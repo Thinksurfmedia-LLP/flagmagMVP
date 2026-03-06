@@ -38,3 +38,26 @@ export async function requireAdmin() {
     }
     return auth;
 }
+
+/**
+ * Check if the user has a specific permission or is an admin.
+ * Admins bypass all permission checks.
+ */
+export async function requirePermission(permission) {
+    const auth = await requireAuth();
+    if (!auth.authorized) return auth;
+
+    if (auth.user.role === "admin") return auth;
+
+    const perms = auth.user.permissions || [];
+    if (!perms.includes(permission)) {
+        return {
+            authorized: false,
+            response: NextResponse.json(
+                { success: false, error: `Permission required: ${permission}` },
+                { status: 403 }
+            ),
+        };
+    }
+    return auth;
+}

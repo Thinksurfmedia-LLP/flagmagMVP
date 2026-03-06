@@ -20,6 +20,7 @@ export async function GET() {
                     name: user.name,
                     email: user.email,
                     role: user.role,
+                    permissions: user.permissions || [],
                 },
             },
             { status: 200 }

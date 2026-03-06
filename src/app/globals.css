@@ -5,6 +5,7 @@
 
 /* Custom Styles */
 @import "../styles/style.css";
+@import "../styles/admin.css";
 
 /* ── Admin Dashboard Responsive ── */
 @media (max-width: 768px) {

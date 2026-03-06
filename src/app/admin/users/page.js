@@ -1,0 +1,239 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import AdminLayout, { hasAccess, ALL_PERMISSIONS } from "@/components/AdminLayout";
+import { useAuth } from "@/components/AuthProvider";
+
+const PERM_LABELS = {
+    manage_organizations: "Organizations",
+    manage_seasons: "Seasons",
+    manage_games: "Games",
+    manage_players: "Players",
+    manage_users: "Users & Roles",
+    view_dashboard: "View Dashboard",
+};
+
+function RoleModal({ user: target, onClose, onSave }) {
+    const [role, setRole] = useState(target.role);
+    const [permissions, setPermissions] = useState(target.permissions || []);
+    const [saving, setSaving] = useState(false);
+
+    const togglePerm = (perm) => {
+        setPermissions(prev =>
+            prev.includes(perm) ? prev.filter(p => p !== perm) : [...prev, perm]
+        );
+    };
+
+    const handleSave = async () => {
+        setSaving(true);
+        await onSave(target._id, { role, permissions });
+        setSaving(false);
+    };
+
+    return (
+        <div className="admin-modal-backdrop" onClick={onClose}>
+            <div className="admin-modal" onClick={e => e.stopPropagation()}>
+                <h3 className="admin-modal-title">
+                    Edit Role — {target.name}
+                </h3>
+
+                <div className="admin-form-group">
+                    <label className="admin-form-label">Role</label>
+                    <select className="admin-form-select" value={role} onChange={e => setRole(e.target.value)}>
+                        <option value="player">Player</option>
+                        <option value="organizer">Organizer</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+
+                {role !== "admin" && (
+                    <div className="admin-form-group">
+                        <label className="admin-form-label">Permissions</label>
+                        <div className="admin-perm-grid">
+                            {ALL_PERMISSIONS.map(perm => (
+                                <label key={perm} className="admin-perm-item">
+                                    <input
+                                        type="checkbox"
+                                        checked={permissions.includes(perm)}
+                                        onChange={() => togglePerm(perm)}
+                                    />
+                                    {PERM_LABELS[perm] || perm}
+                                </label>
+                            ))}
+                        </div>
+                        <div style={{ marginTop: 8, fontSize: 12, color: "rgba(255,255,255,0.35)" }}>
+                            Admins automatically have all permissions.
+                        </div>
+                    </div>
+                )}
+
+                <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
+                    <button className="admin-btn admin-btn-ghost" onClick={onClose}>Cancel</button>
+                    <button className="admin-btn admin-btn-primary" onClick={handleSave} disabled={saving}>
+                        {saving ? "Saving..." : "Save Changes"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function AdminUsersPage() {
+    const { user } = useAuth();
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [editTarget, setEditTarget] = useState(null);
+    const [success, setSuccess] = useState("");
+    const [error, setError] = useState("");
+    const [search, setSearch] = useState("");
+
+    const fetchUsers = useCallback(async () => {
+        try {
+            const res = await fetch("/api/admin/users");
+            const data = await res.json();
+            if (data.success) setUsers(data.data);
+            else setError(data.error);
+        } catch {
+            setError("Failed to load users");
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => { fetchUsers(); }, [fetchUsers]);
+
+    const handleSave = async (userId, updates) => {
+        setError("");
+        try {
+            const res = await fetch(`/api/admin/users/${userId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updates),
+            });
+            const data = await res.json();
+            if (!data.success) { setError(data.error); return; }
+            setEditTarget(null);
+            fetchUsers();
+            setSuccess("User updated successfully!");
+            setTimeout(() => setSuccess(""), 3000);
+        } catch {
+            setError("Failed to update user");
+        }
+    };
+
+    const filtered = users.filter(u =>
+        u.name.toLowerCase().includes(search.toLowerCase()) ||
+        u.email.toLowerCase().includes(search.toLowerCase()) ||
+        u.role.toLowerCase().includes(search.toLowerCase())
+    );
+
+    const canManage = user && hasAccess(user, "manage_users");
+
+    return (
+        <AdminLayout title="Users & Roles">
+            {!canManage ? (
+                <div className="admin-empty">
+                    <i className="fa-solid fa-lock"></i>
+                    <p>You don&apos;t have permission to manage users.</p>
+                </div>
+            ) : (
+                <>
+                    {success && <div className="admin-alert admin-alert-success"><i className="fa-solid fa-check-circle"></i> {success}</div>}
+                    {error && <div className="admin-alert admin-alert-error"><i className="fa-solid fa-exclamation-circle"></i> {error}</div>}
+
+                    <div className="admin-card">
+                        <div className="admin-card-header">
+                            <h3>All Users ({filtered.length})</h3>
+                            <input
+                                type="text"
+                                className="admin-form-input"
+                                placeholder="Search users..."
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
+                                style={{ maxWidth: 260 }}
+                            />
+                        </div>
+                        {loading ? (
+                            <div className="admin-card-body" style={{ textAlign: "center", color: "rgba(255,255,255,0.4)" }}>
+                                Loading users...
+                            </div>
+                        ) : filtered.length === 0 ? (
+                            <div className="admin-empty">
+                                <i className="fa-solid fa-user-slash"></i>
+                                <p>No users found.</p>
+                            </div>
+                        ) : (
+                            <div style={{ overflowX: "auto" }}>
+                                <table className="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Role</th>
+                                            <th>Permissions</th>
+                                            <th>Joined</th>
+                                            <th style={{ width: 100 }}>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {filtered.map(u => (
+                                            <tr key={u._id}>
+                                                <td style={{ fontWeight: 600 }}>{u.name}</td>
+                                                <td style={{ color: "rgba(255,255,255,0.5)" }}>{u.email}</td>
+                                                <td>
+                                                    <span className={`admin-badge ${u.role}`}>{u.role}</span>
+                                                </td>
+                                                <td>
+                                                    {u.role === "admin" ? (
+                                                        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)" }}>All</span>
+                                                    ) : (u.permissions || []).length > 0 ? (
+                                                        <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                                                            {(u.permissions || []).map(p => (
+                                                                <span key={p} style={{
+                                                                    fontSize: 11,
+                                                                    padding: "2px 8px",
+                                                                    borderRadius: 4,
+                                                                    background: "rgba(99,102,241,0.1)",
+                                                                    color: "#818cf8",
+                                                                }}>
+                                                                    {PERM_LABELS[p] || p}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.25)" }}>None</span>
+                                                    )}
+                                                </td>
+                                                <td style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
+                                                    {new Date(u.createdAt).toLocaleDateString()}
+                                                </td>
+                                                <td>
+                                                    {user?.role === "admin" && (
+                                                        <button
+                                                            className="admin-btn admin-btn-ghost admin-btn-sm"
+                                                            onClick={() => setEditTarget(u)}
+                                                        >
+                                                            <i className="fa-solid fa-pen"></i> Edit
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+
+                    {editTarget && (
+                        <RoleModal
+                            user={editTarget}
+                            onClose={() => setEditTarget(null)}
+                            onSave={handleSave}
+                        />
+                    )}
+                </>
+            )}
+        </AdminLayout>
+    );
+}

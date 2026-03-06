@@ -36,11 +36,13 @@ export async function POST(request) {
         }
 
         // Sign JWT and set cookie
+        const perms = Array.isArray(user.permissions) ? [...user.permissions] : [];
         const token = await signToken({
             id: user._id.toString(),
             name: user.name,
             email: user.email,
             role: user.role,
+            permissions: perms,
         });
         await setAuthCookie(token);
 
@@ -52,6 +54,7 @@ export async function POST(request) {
                     name: user.name,
                     email: user.email,
                     role: user.role,
+                    permissions: perms,
                 },
             },
             { status: 200 }

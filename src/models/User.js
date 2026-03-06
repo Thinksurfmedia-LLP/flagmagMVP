@@ -28,6 +28,18 @@ const UserSchema = new mongoose.Schema(
             enum: ["player", "organizer", "admin"],
             default: "player",
         },
+        permissions: {
+            type: [String],
+            enum: [
+                "manage_organizations",
+                "manage_seasons",
+                "manage_games",
+                "manage_players",
+                "manage_users",
+                "view_dashboard",
+            ],
+            default: [],
+        },
     },
     {
         timestamps: true,
