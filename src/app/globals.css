@@ -1,42 +1,45 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Vendor CSS (npm packages) */
+@import "@fortawesome/fontawesome-free/css/all.min.css";
+@import "bootstrap/dist/css/bootstrap.min.css";
+@import "aos/dist/aos.css";
+
+/* Custom Styles */
+@import "../styles/style.css";
+
+/* ── Admin Dashboard Responsive ── */
+@media (max-width: 768px) {
+    .admin-section .table-responsive {
+        font-size: 0.85rem;
+    }
+
+    .admin-section .table td,
+    .admin-section .table th {
+        white-space: nowrap;
+        padding: 0.5rem 0.4rem;
+    }
+
+    .admin-section .btn-sm {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.4rem;
+    }
+
+    .admin-section h1 {
+        font-size: 1.5rem;
+    }
+
+    .admin-section h3 {
+        font-size: 1.1rem;
+    }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* Header auth buttons responsive */
+@media (max-width: 991px) {
+    .header-btn-col {
+        gap: 0.4rem;
+    }
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+    .header-btn-col .btn {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.7rem;
+    }
 }

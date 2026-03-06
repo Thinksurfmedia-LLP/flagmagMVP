@@ -9,7 +9,15 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^7.2.0",
+    "aos": "^2.3.4",
+    "bcryptjs": "^3.0.3",
+    "bootstrap": "^5.3.8",
+    "jose": "^6.2.0",
+    "jquery": "^4.0.0",
+    "mongoose": "^9.2.4",
     "next": "16.1.6",
+    "owl.carousel": "^2.3.4",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
