@@ -56,7 +56,7 @@ export default function AdminLayout({ children, title }) {
     if (loading) {
         return (
             <div className="admin-wrapper" style={{ alignItems: "center", justifyContent: "center" }}>
-                <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 14 }}>Loading...</div>
+                <div style={{ color: "#8b90a0", fontSize: 14 }}>Loading...</div>
             </div>
         );
     }
@@ -64,7 +64,7 @@ export default function AdminLayout({ children, title }) {
     if (!user) {
         return (
             <div className="admin-wrapper" style={{ alignItems: "center", justifyContent: "center" }}>
-                <div style={{ textAlign: "center", color: "rgba(255,255,255,0.6)" }}>
+                <div style={{ textAlign: "center", color: "#5a5f72" }}>
                     <i className="fa-solid fa-lock" style={{ fontSize: 40, marginBottom: 16, display: "block" }}></i>
                     <p>Please log in to access the dashboard.</p>
                     <Link href="/login" className="admin-btn admin-btn-primary" style={{ marginTop: 12 }}>
@@ -82,6 +82,7 @@ export default function AdminLayout({ children, title }) {
             {/* Sidebar */}
             <aside className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>
                 <Link href="/admin" className="admin-sidebar-brand" onClick={() => setSidebarOpen(false)}>
+                    <img src="/assets/images/logo.png" alt="FlagMag" />
                     <div>
                         <h2>FlagMag</h2>
                         <small>Admin Panel</small>
@@ -121,7 +122,7 @@ export default function AdminLayout({ children, title }) {
                     </div>
                     <button
                         className="admin-nav-link"
-                        style={{ marginTop: 8, color: "rgba(239,68,68,0.8)" }}
+                        style={{ marginTop: 8, color: "#dc2626" }}
                         onClick={async () => { await logout(); window.location.href = "/login"; }}
                     >
                         <i className="fa-solid fa-right-from-bracket"></i>
