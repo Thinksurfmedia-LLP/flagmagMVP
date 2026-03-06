@@ -83,10 +83,6 @@ export default function AdminLayout({ children, title }) {
             <aside className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>
                 <Link href="/admin" className="admin-sidebar-brand" onClick={() => setSidebarOpen(false)}>
                     <img src="/assets/images/logo.png" alt="FlagMag" />
-                    <div>
-                        <h2>FlagMag</h2>
-                        <small>Admin Panel</small>
-                    </div>
                 </Link>
 
                 <nav className="admin-sidebar-nav">

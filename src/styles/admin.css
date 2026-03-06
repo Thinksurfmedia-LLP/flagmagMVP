@@ -4,6 +4,18 @@
     background: #f5f6fa;
 }
 
+.admin-wrapper h1,
+.admin-wrapper h2,
+.admin-wrapper h3,
+.admin-wrapper h4,
+.admin-wrapper h5,
+.admin-wrapper h6 {
+    font-family: "DM Sans", sans-serif;
+    color: #1a1d26;
+    line-height: 1.4;
+    letter-spacing: 0;
+}
+
 /* ── Sidebar ── */
 .admin-sidebar {
     width: 250px;
@@ -20,17 +32,18 @@
 }
 
 .admin-sidebar-brand {
-    padding: 14px 18px;
+    padding: 10px 18px;
     border-bottom: 1px solid #e8eaef;
     display: flex;
     align-items: center;
-    gap: 10px;
     text-decoration: none;
 }
 
 .admin-sidebar-brand img {
-    height: 24px;
-    width: auto;
+    height: auto;
+    width: 100%;
+    max-height: 40px;
+    object-fit: contain;
 }
 
 .admin-sidebar-brand h2 {
