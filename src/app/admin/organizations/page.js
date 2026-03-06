@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Fragment } from "react";
 import Link from "next/link";
 import AdminLayout, { hasAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
@@ -346,49 +346,46 @@ export default function AdminOrganizationsPage() {
                                         </thead>
                                         <tbody>
                                             {orgs.map(org => (
-                                                <tr key={org._id} style={{ verticalAlign: "top" }}>
-                                                    <td colSpan={6} style={{ padding: 0 }}>
-                                                        {/* Org row */}
-                                                        <table style={{ width: "100%" }}><tbody>
-                                                            <tr>
-                                                                <td style={{ padding: "14px 16px" }}>
-                                                                    <button className="admin-expand-btn" onClick={() => toggleOrg(org.slug)}>
-                                                                        <i className={`fa-solid fa-chevron-${expandedOrg === org.slug ? "down" : "right"}`} style={{ fontSize: 11 }}></i>
-                                                                        <strong>{org.name}</strong>
-                                                                    </button>
-                                                                </td>
-                                                                <td style={{ padding: "14px 16px" }}>{org.sport}</td>
-                                                                <td style={{ padding: "14px 16px" }}>{org.location}</td>
-                                                                <td style={{ padding: "14px 16px" }}>⭐ {org.rating}</td>
-                                                                <td style={{ padding: "14px 16px" }}>{org.memberCount}</td>
-                                                                <td style={{ padding: "14px 16px", width: 180 }}>
-                                                                    <div style={{ display: "flex", gap: 6 }}>
-                                                                        <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setEditOrg(org); setShowOrgForm(true); }}>
-                                                                            <i className="fa-solid fa-pen"></i>
-                                                                        </button>
-                                                                        <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => deleteOrg(org.slug)}>
-                                                                            <i className="fa-solid fa-trash"></i>
-                                                                        </button>
-                                                                        <Link href={`/organizations/${org.slug}`} className="admin-btn admin-btn-ghost admin-btn-sm">
-                                                                            <i className="fa-solid fa-eye"></i>
-                                                                        </Link>
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-                                                        </tbody></table>
-
-                                                        {/* Edit form */}
-                                                        {editOrg && editOrg.slug === org.slug && (
-                                                            <div style={{ padding: "0 16px 16px" }}>
-                                                                <OrgForm org={editOrg} onSave={saveOrg} onCancel={() => { setEditOrg(null); setShowOrgForm(false); }} />
+                                                <Fragment key={org._id}>
+                                                    <tr>
+                                                        <td>
+                                                            <button className="admin-expand-btn" onClick={() => toggleOrg(org.slug)}>
+                                                                <i className={`fa-solid fa-chevron-${expandedOrg === org.slug ? "down" : "right"}`} style={{ fontSize: 11 }}></i>
+                                                                <strong>{org.name}</strong>
+                                                            </button>
+                                                        </td>
+                                                        <td>{org.sport}</td>
+                                                        <td>{org.location}</td>
+                                                        <td>⭐ {org.rating}</td>
+                                                        <td>{org.memberCount}</td>
+                                                        <td style={{ width: 180 }}>
+                                                            <div style={{ display: "flex", gap: 6 }}>
+                                                                <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setEditOrg(org); setShowOrgForm(true); }}>
+                                                                    <i className="fa-solid fa-pen"></i>
+                                                                </button>
+                                                                <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => deleteOrg(org.slug)}>
+                                                                    <i className="fa-solid fa-trash"></i>
+                                                                </button>
+                                                                <Link href={`/organizations/${org.slug}`} className="admin-btn admin-btn-ghost admin-btn-sm">
+                                                                    <i className="fa-solid fa-eye"></i>
+                                                                </Link>
                                                             </div>
-                                                        )}
+                                                        </td>
+                                                    </tr>
 
-                                                        {/* Expanded seasons */}
-                                                        {expandedOrg === org.slug && (
+                                                    {/* Edit form */}
+                                                    {editOrg && editOrg.slug === org.slug && (
+                                                        <tr><td colSpan={6} style={{ padding: "0 16px 16px" }}>
+                                                            <OrgForm org={editOrg} onSave={saveOrg} onCancel={() => { setEditOrg(null); setShowOrgForm(false); }} />
+                                                        </td></tr>
+                                                    )}
+
+                                                    {/* Expanded seasons */}
+                                                    {expandedOrg === org.slug && (
+                                                        <tr><td colSpan={6} style={{ padding: 0 }}>
                                                             <div className="admin-nested">
                                                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                                                                    <h4 style={{ fontSize: 14, fontWeight: 600, color: "#fff", margin: 0 }}>Seasons</h4>
+                                                                    <h4 style={{ fontSize: 14, fontWeight: 600, color: "#1a1d26", margin: 0 }}>Seasons</h4>
                                                                     <button className="admin-btn admin-btn-primary admin-btn-sm" onClick={() => { setEditSeason(null); setShowSeasonForm(org.slug); }}>
                                                                         <i className="fa-solid fa-plus"></i> Add Season
                                                                     </button>
@@ -405,44 +402,42 @@ export default function AdminOrganizationsPage() {
                                                                         </thead>
                                                                         <tbody>
                                                                             {orgSeasons[org.slug].map(season => (
-                                                                                <tr key={season._id} style={{ verticalAlign: "top" }}>
-                                                                                    <td colSpan={5} style={{ padding: 0 }}>
-                                                                                        <table style={{ width: "100%" }}><tbody>
-                                                                                            <tr>
-                                                                                                <td style={{ padding: "10px 16px" }}>
-                                                                                                    <button className="admin-expand-btn" onClick={() => toggleSeason(season._id)}>
-                                                                                                        <i className={`fa-solid fa-chevron-${expandedSeason === season._id ? "down" : "right"}`} style={{ fontSize: 10 }}></i>
-                                                                                                        {season.name}
-                                                                                                    </button>
-                                                                                                </td>
-                                                                                                <td style={{ padding: "10px 16px" }}>
-                                                                                                    <span className={`admin-badge ${season.type === "active" ? "player" : ""}`}>{season.type}</span>
-                                                                                                </td>
-                                                                                                <td style={{ padding: "10px 16px" }}>{season.category}</td>
-                                                                                                <td style={{ padding: "10px 16px" }}>{season.location}</td>
-                                                                                                <td style={{ padding: "10px 16px", width: 140 }}>
-                                                                                                    <div style={{ display: "flex", gap: 6 }}>
-                                                                                                        <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setEditSeason(season); setShowSeasonForm(org.slug); }}>
-                                                                                                            <i className="fa-solid fa-pen"></i>
-                                                                                                        </button>
-                                                                                                        <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => deleteSeason(season._id, org.slug)}>
-                                                                                                            <i className="fa-solid fa-trash"></i>
-                                                                                                        </button>
-                                                                                                    </div>
-                                                                                                </td>
-                                                                                            </tr>
-                                                                                        </tbody></table>
-
-                                                                                        {editSeason && editSeason._id === season._id && (
-                                                                                            <div style={{ padding: "0 16px 12px" }}>
-                                                                                                <SeasonForm season={editSeason} onSave={d => saveSeason(d, org.slug)} onCancel={() => { setEditSeason(null); setShowSeasonForm(null); }} />
+                                                                                <Fragment key={season._id}>
+                                                                                    <tr>
+                                                                                        <td>
+                                                                                            <button className="admin-expand-btn" onClick={() => toggleSeason(season._id)}>
+                                                                                                <i className={`fa-solid fa-chevron-${expandedSeason === season._id ? "down" : "right"}`} style={{ fontSize: 10 }}></i>
+                                                                                                {season.name}
+                                                                                            </button>
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            <span className={`admin-badge ${season.type === "active" ? "player" : ""}`}>{season.type}</span>
+                                                                                        </td>
+                                                                                        <td>{season.category}</td>
+                                                                                        <td>{season.location}</td>
+                                                                                        <td style={{ width: 140 }}>
+                                                                                            <div style={{ display: "flex", gap: 6 }}>
+                                                                                                <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setEditSeason(season); setShowSeasonForm(org.slug); }}>
+                                                                                                    <i className="fa-solid fa-pen"></i>
+                                                                                                </button>
+                                                                                                <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => deleteSeason(season._id, org.slug)}>
+                                                                                                    <i className="fa-solid fa-trash"></i>
+                                                                                                </button>
                                                                                             </div>
-                                                                                        )}
+                                                                                        </td>
+                                                                                    </tr>
 
-                                                                                        {expandedSeason === season._id && (
+                                                                                    {editSeason && editSeason._id === season._id && (
+                                                                                        <tr><td colSpan={5} style={{ padding: "0 16px 12px" }}>
+                                                                                            <SeasonForm season={editSeason} onSave={d => saveSeason(d, org.slug)} onCancel={() => { setEditSeason(null); setShowSeasonForm(null); }} />
+                                                                                        </td></tr>
+                                                                                    )}
+
+                                                                                    {expandedSeason === season._id && (
+                                                                                        <tr><td colSpan={5} style={{ padding: 0 }}>
                                                                                             <div className="admin-nested">
                                                                                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                                                                                                    <h5 style={{ fontSize: 13, fontWeight: 600, color: "#fff", margin: 0 }}>Games</h5>
+                                                                                                    <h5 style={{ fontSize: 13, fontWeight: 600, color: "#1a1d26", margin: 0 }}>Games</h5>
                                                                                                     <button className="admin-btn admin-btn-primary admin-btn-sm" onClick={() => { setEditGame(null); setShowGameForm(season._id); }}>
                                                                                                         <i className="fa-solid fa-plus"></i> Add Game
                                                                                                     </button>
@@ -459,62 +454,58 @@ export default function AdminOrganizationsPage() {
                                                                                                         </thead>
                                                                                                         <tbody>
                                                                                                             {seasonGames[season._id].map(game => (
-                                                                                                                <tr key={game._id} style={{ verticalAlign: "top" }}>
-                                                                                                                    <td colSpan={7} style={{ padding: 0 }}>
-                                                                                                                        <table style={{ width: "100%" }}><tbody>
-                                                                                                                            <tr>
-                                                                                                                                <td style={{ padding: "10px 16px" }}>{new Date(game.date).toLocaleDateString()}</td>
-                                                                                                                                <td style={{ padding: "10px 16px" }}>{game.time}</td>
-                                                                                                                                <td style={{ padding: "10px 16px" }}>{game.teamA.name}</td>
-                                                                                                                                <td style={{ padding: "10px 16px" }}>{game.teamB.name}</td>
-                                                                                                                                <td style={{ padding: "10px 16px" }}>
-                                                                                                                                    <span className={`admin-badge ${game.status === "completed" ? "player" : game.status === "in_progress" ? "organizer" : ""}`}>
-                                                                                                                                        {game.status}
-                                                                                                                                    </span>
-                                                                                                                                </td>
-                                                                                                                                <td style={{ padding: "10px 16px" }}>
-                                                                                                                                    {game.status === "completed" ? `${game.teamA.score} - ${game.teamB.score}` : "—"}
-                                                                                                                                </td>
-                                                                                                                                <td style={{ padding: "10px 16px", width: 100 }}>
-                                                                                                                                    <div style={{ display: "flex", gap: 6 }}>
-                                                                                                                                        <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setEditGame(game); setShowGameForm(season._id); }}>
-                                                                                                                                            <i className="fa-solid fa-pen"></i>
-                                                                                                                                        </button>
-                                                                                                                                        <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => deleteGame(game._id, season._id)}>
-                                                                                                                                            <i className="fa-solid fa-trash"></i>
-                                                                                                                                        </button>
-                                                                                                                                    </div>
-                                                                                                                                </td>
-                                                                                                                            </tr>
-                                                                                                                        </tbody></table>
-
-                                                                                                                        {editGame && editGame._id === game._id && (
-                                                                                                                            <div style={{ padding: "0 16px 12px" }}>
-                                                                                                                                <GameForm game={editGame} onSave={d => saveGame(d, season._id, org.slug)} onCancel={() => { setEditGame(null); setShowGameForm(null); }} />
+                                                                                                                <Fragment key={game._id}>
+                                                                                                                    <tr>
+                                                                                                                        <td>{new Date(game.date).toLocaleDateString()}</td>
+                                                                                                                        <td>{game.time}</td>
+                                                                                                                        <td>{game.teamA.name}</td>
+                                                                                                                        <td>{game.teamB.name}</td>
+                                                                                                                        <td>
+                                                                                                                            <span className={`admin-badge ${game.status === "completed" ? "player" : game.status === "in_progress" ? "organizer" : ""}`}>
+                                                                                                                                {game.status}
+                                                                                                                            </span>
+                                                                                                                        </td>
+                                                                                                                        <td>
+                                                                                                                            {game.status === "completed" ? `${game.teamA.score} - ${game.teamB.score}` : "—"}
+                                                                                                                        </td>
+                                                                                                                        <td style={{ width: 100 }}>
+                                                                                                                            <div style={{ display: "flex", gap: 6 }}>
+                                                                                                                                <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setEditGame(game); setShowGameForm(season._id); }}>
+                                                                                                                                    <i className="fa-solid fa-pen"></i>
+                                                                                                                                </button>
+                                                                                                                                <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => deleteGame(game._id, season._id)}>
+                                                                                                                                    <i className="fa-solid fa-trash"></i>
+                                                                                                                                </button>
                                                                                                                             </div>
-                                                                                                                        )}
-                                                                                                                    </td>
-                                                                                                                </tr>
+                                                                                                                        </td>
+                                                                                                                    </tr>
+
+                                                                                                                    {editGame && editGame._id === game._id && (
+                                                                                                                        <tr><td colSpan={7} style={{ padding: "0 16px 12px" }}>
+                                                                                                                            <GameForm game={editGame} onSave={d => saveGame(d, season._id, org.slug)} onCancel={() => { setEditGame(null); setShowGameForm(null); }} />
+                                                                                                                        </td></tr>
+                                                                                                                    )}
+                                                                                                                </Fragment>
                                                                                                             ))}
                                                                                                         </tbody>
                                                                                                     </table>
                                                                                                 ) : (
-                                                                                                    <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 13, padding: "8px 0" }}>No games yet.</div>
+                                                                                                    <div style={{ color: "#8b90a0", fontSize: 13, padding: "8px 0" }}>No games yet.</div>
                                                                                                 )}
                                                                                             </div>
-                                                                                        )}
-                                                                                    </td>
-                                                                                </tr>
+                                                                                        </td></tr>
+                                                                                    )}
+                                                                                </Fragment>
                                                                             ))}
                                                                         </tbody>
                                                                     </table>
                                                                 ) : (
-                                                                    <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 13, padding: "8px 0" }}>No seasons yet.</div>
+                                                                    <div style={{ color: "#8b90a0", fontSize: 13, padding: "8px 0" }}>No seasons yet.</div>
                                                                 )}
                                                             </div>
-                                                        )}
-                                                    </td>
-                                                </tr>
+                                                        </td></tr>
+                                                    )}
+                                                </Fragment>
                                             ))}
                                         </tbody>
                                     </table>
