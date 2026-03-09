@@ -1,29 +1,23 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import AdminLayout, { hasAccess, ALL_PERMISSIONS } from "@/components/AdminLayout";
+import AdminLayout, { hasAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 
-const PERM_LABELS = {
-    manage_organizations: "Organizations",
-    manage_seasons: "Seasons",
-    manage_games: "Games",
-    manage_players: "Players",
-    manage_users: "Users & Roles",
-    view_dashboard: "View Dashboard",
-};
-
-function AddUserModal({ onClose, onSave, organizations }) {
+function AddUserModal({ onClose, onSave, organizations, roles }) {
     const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "", role: "player", organization: "" });
     const [saving, setSaving] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [formError, setFormError] = useState("");
 
+    const selectedRole = roles.find(r => r.slug === form.role);
+    const needsOrg = selectedRole?.slug === "organizer";
+
     const handleSave = async () => {
         setFormError("");
-        if (form.role === "organizer" && !form.organization) {
+        if (needsOrg && !form.organization) {
             setFormError("Please select an organization for the organizer");
             return;
         }
@@ -74,14 +68,14 @@ function AddUserModal({ onClose, onSave, organizations }) {
                     </div>
                 </div>
                 <div className="admin-form-group">
-                    <label className="admin-form-label">Role</label>
-                    <select className="admin-form-select" value={form.role} onChange={e => setForm({ ...form, role: e.target.value, ...(e.target.value !== "organizer" ? { organization: "" } : {}) })}>
-                        <option value="player">Player</option>
-                        <option value="organizer">Organizer</option>
-                        <option value="admin">Admin</option>
+                    <label className="admin-form-label">Role *</label>
+                    <select className="admin-form-select" value={form.role} onChange={e => setForm({ ...form, role: e.target.value, ...(!roles.find(r => r.slug === e.target.value && r.slug === "organizer") ? { organization: "" } : {}) })}>
+                        {roles.map(r => (
+                            <option key={r._id} value={r.slug}>{r.name}</option>
+                        ))}
                     </select>
                 </div>
-                {form.role === "organizer" && (
+                {needsOrg && (
                     <div className="admin-form-group">
                         <label className="admin-form-label">Organization *</label>
                         <select className="admin-form-select" value={form.organization} onChange={e => setForm({ ...form, organization: e.target.value })}>
@@ -104,59 +98,48 @@ function AddUserModal({ onClose, onSave, organizations }) {
     );
 }
 
-function RoleModal({ user: target, onClose, onSave }) {
+function EditUserModal({ target, onClose, onSave, organizations, roles }) {
     const [role, setRole] = useState(target.role);
-    const [permissions, setPermissions] = useState(target.permissions || []);
+    const [organization, setOrganization] = useState(target.organization?._id || target.organization || "");
     const [saving, setSaving] = useState(false);
 
-    const togglePerm = (perm) => {
-        setPermissions(prev =>
-            prev.includes(perm) ? prev.filter(p => p !== perm) : [...prev, perm]
-        );
-    };
+    const needsOrg = role === "organizer";
 
     const handleSave = async () => {
         setSaving(true);
-        await onSave(target._id, { role, permissions });
+        await onSave(target._id, { role, organization: needsOrg ? organization : null });
         setSaving(false);
     };
 
     return (
         <div className="admin-modal-backdrop" onClick={onClose}>
             <div className="admin-modal" onClick={e => e.stopPropagation()}>
-                <h3 className="admin-modal-title">
-                    Edit Role — {target.name}
-                </h3>
+                <h3 className="admin-modal-title">Edit User — {target.name}</h3>
 
                 <div className="admin-form-group">
                     <label className="admin-form-label">Role</label>
-                    <select className="admin-form-select" value={role} onChange={e => setRole(e.target.value)}>
-                        <option value="player">Player</option>
-                        <option value="organizer">Organizer</option>
-                        <option value="admin">Admin</option>
+                    <select className="admin-form-select" value={role} onChange={e => { setRole(e.target.value); if (e.target.value !== "organizer") setOrganization(""); }}>
+                        {roles.map(r => (
+                            <option key={r._id} value={r.slug}>{r.name}</option>
+                        ))}
                     </select>
                 </div>
 
-                {role !== "admin" && (
+                {needsOrg && (
                     <div className="admin-form-group">
-                        <label className="admin-form-label">Permissions</label>
-                        <div className="admin-perm-grid">
-                            {ALL_PERMISSIONS.map(perm => (
-                                <label key={perm} className="admin-perm-item">
-                                    <input
-                                        type="checkbox"
-                                        checked={permissions.includes(perm)}
-                                        onChange={() => togglePerm(perm)}
-                                    />
-                                    {PERM_LABELS[perm] || perm}
-                                </label>
+                        <label className="admin-form-label">Organization *</label>
+                        <select className="admin-form-select" value={organization} onChange={e => setOrganization(e.target.value)}>
+                            <option value="">— Select Organization —</option>
+                            {(organizations || []).map(o => (
+                                <option key={o._id} value={o._id}>{o.name}</option>
                             ))}
-                        </div>
-                        <div style={{ marginTop: 8, fontSize: 12, color: "#8b90a0" }}>
-                            Admins automatically have all permissions.
-                        </div>
+                        </select>
                     </div>
                 )}
+
+                <div style={{ marginTop: 12, fontSize: 12, color: "#8b90a0" }}>
+                    Permissions are managed in the <strong>Roles</strong> page.
+                </div>
 
                 <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
                     <button className="admin-btn admin-btn-ghost" onClick={onClose}>Cancel</button>
@@ -177,6 +160,7 @@ export default function AdminUsersPage() {
     const [search, setSearch] = useState("");
     const [showAddUser, setShowAddUser] = useState(false);
     const [organizations, setOrganizations] = useState([]);
+    const [roles, setRoles] = useState([]);
     const { showSuccess, showError } = useToast();
 
     const fetchUsers = useCallback(async () => {
@@ -197,6 +181,9 @@ export default function AdminUsersPage() {
     useEffect(() => {
         fetch("/api/organizations").then(r => r.json()).then(d => {
             if (d.success) setOrganizations(d.data);
+        }).catch(() => {});
+        fetch("/api/admin/roles").then(r => r.json()).then(d => {
+            if (d.success) setRoles(d.data);
         }).catch(() => {});
     }, []);
 
@@ -251,7 +238,7 @@ export default function AdminUsersPage() {
     const canManage = user && hasAccess(user, "manage_users");
 
     return (
-        <AdminLayout title="Users & Roles">
+        <AdminLayout title="Users">
             {!canManage ? (
                 <div className="admin-empty">
                     <i className="fa-solid fa-lock"></i>
@@ -297,7 +284,6 @@ export default function AdminUsersPage() {
                                             <th>Email</th>
                                             <th>Organization</th>
                                             <th>Role</th>
-                                            <th>Permissions</th>
                                             <th>Joined</th>
                                             <th>Status</th>
                                             <th style={{ width: 160 }}>Actions</th>
@@ -316,27 +302,6 @@ export default function AdminUsersPage() {
                                                 </td>
                                                 <td>
                                                     <span className={`admin-badge ${u.role}`}>{u.role}</span>
-                                                </td>
-                                                <td>
-                                                    {u.role === "admin" ? (
-                                                        <span style={{ fontSize: 12, color: "#8b90a0" }}>All</span>
-                                                    ) : (u.permissions || []).length > 0 ? (
-                                                        <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                                                            {(u.permissions || []).map(p => (
-                                                                <span key={p} style={{
-                                                                    fontSize: 11,
-                                                                    padding: "2px 8px",
-                                                                    borderRadius: 4,
-                                                                    background: "rgba(255,30,0,0.08)",
-                                                                    color: "#FF1E00",
-                                                                }}>
-                                                                    {PERM_LABELS[p] || p}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                    ) : (
-                                                        <span style={{ fontSize: 12, color: "#a0a4b2" }}>None</span>
-                                                    )}
                                                 </td>
                                                 <td style={{ color: "#8b90a0", fontSize: 13 }}>
                                                     {new Date(u.createdAt).toLocaleDateString()}
@@ -385,16 +350,19 @@ export default function AdminUsersPage() {
                     </div>
 
                     {editTarget && (
-                        <RoleModal
-                            user={editTarget}
+                        <EditUserModal
+                            target={editTarget}
                             onClose={() => setEditTarget(null)}
                             onSave={handleSave}
+                            organizations={organizations}
+                            roles={roles}
                         />
                     )}
 
                     {showAddUser && (
                         <AddUserModal
                             organizations={organizations}
+                            roles={roles}
                             onClose={() => setShowAddUser(false)}
                             onSave={async (formData) => {
                                 try {

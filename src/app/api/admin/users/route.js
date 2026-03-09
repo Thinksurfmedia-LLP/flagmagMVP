@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
 import Organization from "@/models/Organization";
+import Role from "@/models/Role";
 import { requireAdmin } from "@/lib/apiAuth";
 
 export async function GET() {
@@ -63,8 +64,10 @@ export async function POST(request) {
             ...(organization ? { organization } : {}),
         });
 
-        const userData = user.toObject();
-        delete userData.password;
+        const userData = await User.findById(user._id)
+            .select("-password")
+            .populate("organization", "name slug")
+            .lean();
 
         return NextResponse.json({ success: true, data: userData }, { status: 201 });
     } catch (error) {

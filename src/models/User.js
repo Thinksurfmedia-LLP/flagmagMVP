@@ -25,20 +25,9 @@ const UserSchema = new mongoose.Schema(
         },
         role: {
             type: String,
-            enum: ["player", "organizer", "admin"],
             default: "player",
-        },
-        permissions: {
-            type: [String],
-            enum: [
-                "manage_organizations",
-                "manage_seasons",
-                "manage_games",
-                "manage_players",
-                "manage_users",
-                "view_dashboard",
-            ],
-            default: [],
+            trim: true,
+            lowercase: true,
         },
         organization: {
             type: mongoose.Schema.Types.ObjectId,

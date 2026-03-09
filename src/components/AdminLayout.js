@@ -18,10 +18,6 @@ const ALL_PERMISSIONS = [
 function hasAccess(user, permission) {
     if (!user) return false;
     if (user.role === "admin") return true;
-    if (user.role === "organizer") {
-        const orgPerms = ["manage_organizations", "manage_seasons", "manage_games", "view_dashboard"];
-        if (orgPerms.includes(permission)) return true;
-    }
     return (user.permissions || []).includes(permission);
 }
 
@@ -44,7 +40,8 @@ const NAV_ITEMS = [
     {
         section: "Administration",
         items: [
-            { label: "Users & Roles", href: "/admin/users", icon: "fa-solid fa-user-shield", perm: "manage_users" },
+            { label: "Users", href: "/admin/users", icon: "fa-solid fa-users-gear", perm: "manage_users" },
+            { label: "Roles", href: "/admin/roles", icon: "fa-solid fa-shield-halved", perm: "manage_users" },
         ],
     },
 ];

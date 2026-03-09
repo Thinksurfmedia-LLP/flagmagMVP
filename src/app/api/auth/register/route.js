@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
+import Role from "@/models/Role";
 import { signToken, setAuthCookie } from "@/lib/auth";
 
 export async function POST(request) {
@@ -54,12 +55,15 @@ export async function POST(request) {
             role: "player",
         });
 
-        // Sign JWT and set cookie
+        // Look up role permissions
+        const roleDoc = await Role.findOne({ slug: user.role }).lean();
+        const perms = roleDoc ? [...roleDoc.permissions] : [];
         const token = await signToken({
             id: user._id.toString(),
             name: user.name,
             email: user.email,
             role: user.role,
+            permissions: perms,
         });
         await setAuthCookie(token);
 
@@ -71,6 +75,7 @@ export async function POST(request) {
                     name: user.name,
                     email: user.email,
                     role: user.role,
+                    permissions: perms,
                 },
             },
             { status: 201 }

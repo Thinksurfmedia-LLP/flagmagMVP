@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import dbConnect from "@/lib/dbConnect";
+import Role from "@/models/Role";
 import { getCurrentUser } from "@/lib/auth";
 
 export async function GET() {
@@ -12,6 +14,11 @@ export async function GET() {
             );
         }
 
+        // Look up fresh permissions from Role model
+        await dbConnect();
+        const roleDoc = await Role.findOne({ slug: user.role }).lean();
+        const permissions = roleDoc ? [...roleDoc.permissions] : [];
+
         return NextResponse.json(
             {
                 success: true,
@@ -20,7 +27,7 @@ export async function GET() {
                     name: user.name,
                     email: user.email,
                     role: user.role,
-                    permissions: user.permissions || [],
+                    permissions,
                 },
             },
             { status: 200 }
