@@ -19,7 +19,8 @@
     "next": "16.1.6",
     "owl.carousel": "^2.3.4",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "react-select": "^5.10.2"
   },
   "devDependencies": {
     "eslint": "^9",

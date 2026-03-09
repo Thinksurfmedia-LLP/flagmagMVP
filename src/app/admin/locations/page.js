@@ -1,196 +1,164 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useMemo } from "react";
+import Select from "react-select";
 import AdminLayout, { hasAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
+import { US_STATES, US_COUNTIES } from "@/lib/usGeoData";
+
+/* ── react-select theme to match admin UI ── */
+const selectStyles = {
+    control: (base, state) => ({
+        ...base,
+        minHeight: 36,
+        fontSize: 14,
+        borderColor: state.isFocused ? "#FF1E00" : "#d5d8e0",
+        boxShadow: state.isFocused ? "0 0 0 3px rgba(255,30,0,0.08)" : "none",
+        "&:hover": { borderColor: state.isFocused ? "#FF1E00" : "#b0b4c0" },
+    }),
+    option: (base, state) => ({
+        ...base,
+        fontSize: 14,
+        backgroundColor: state.isSelected ? "#FF1E00" : state.isFocused ? "#fff0ed" : "#fff",
+        color: state.isSelected ? "#fff" : "#1a1d26",
+        "&:active": { backgroundColor: "#FF1E00", color: "#fff" },
+    }),
+    placeholder: (base) => ({ ...base, color: "#a0a4b2" }),
+    singleValue: (base) => ({ ...base, color: "#1a1d26" }),
+    menu: (base) => ({ ...base, zIndex: 20 }),
+    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+};
 
 export default function AdminLocationsPage() {
     const { user } = useAuth();
     const { showSuccess, showError } = useToast();
-    const [activeTab, setActiveTab] = useState("states");
 
-    // Data
-    const [states, setStates] = useState([]);
-    const [counties, setCounties] = useState([]);
+    // Filter dropdowns
+    const [selectedState, setSelectedState] = useState(null);
+    const [selectedCounty, setSelectedCounty] = useState(null);
+
+    // Location data
     const [locations, setLocations] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [countyId, setCountyId] = useState(null);
+    const [loadingLocs, setLoadingLocs] = useState(false);
 
-    // Filters for counties & locations tabs
-    const [filterState, setFilterState] = useState("");
-    const [filterCounty, setFilterCounty] = useState("");
-    const [countyFilterStates, setCountyFilterStates] = useState([]); // counties belonging to selected state on locations tab
-
-    // Add/Edit: States
-    const [stateName, setStateName] = useState("");
-    const [stateAbbr, setStateAbbr] = useState("");
-    const [editingState, setEditingState] = useState(null);
-
-    // Add/Edit: Counties
-    const [countyName, setCountyName] = useState("");
-    const [countyStateId, setCountyStateId] = useState("");
-    const [editingCounty, setEditingCounty] = useState(null);
-
-    // Add/Edit: Locations
+    // Add/Edit location form
     const [locName, setLocName] = useState("");
     const [locAddress, setLocAddress] = useState("");
-    const [locCountyId, setLocCountyId] = useState("");
     const [editingLocation, setEditingLocation] = useState(null);
 
-    /* ── Fetch ── */
+    /* ── Dropdown options (built from static US data) ── */
+    const stateOptions = useMemo(
+        () => US_STATES.map((s) => ({ value: s.abbr, label: `${s.name} (${s.abbr})`, name: s.name })),
+        []
+    );
 
-    const fetchStates = useCallback(async () => {
+    const countyOptions = useMemo(() => {
+        if (!selectedState) return [];
+        const list = US_COUNTIES[selectedState.value] || [];
+        return list.map((c) => ({ value: c, label: c }));
+    }, [selectedState]);
+
+    /* ── Fetch locations for a state + county combo ── */
+    const fetchLocations = async (stateAbbr, countyName) => {
+        setLoadingLocs(true);
         try {
-            const res = await fetch("/api/states");
+            const params = new URLSearchParams({ stateAbbr, countyName });
+            const res = await fetch(`/api/locations/by-geo?${params}`);
             const data = await res.json();
-            if (data.success) setStates(data.data);
-        } catch { showError("Failed to load states"); }
-        finally { setLoading(false); }
-    }, [showError]);
-
-    useEffect(() => { fetchStates(); }, [fetchStates]);
-
-    const fetchCounties = async (stateId) => {
-        if (!stateId) { setCounties([]); return; }
-        const res = await fetch(`/api/states/${stateId}/counties`);
-        const data = await res.json();
-        if (data.success) setCounties(data.data);
-    };
-
-    const fetchLocations = async (countyId) => {
-        if (!countyId) { setLocations([]); return; }
-        const res = await fetch(`/api/counties/${countyId}/locations`);
-        const data = await res.json();
-        if (data.success) setLocations(data.data);
-    };
-
-    // When filter state changes on Counties tab
-    const handleCountyFilterState = (stateId) => {
-        setFilterState(stateId);
-        setCounties([]);
-        resetCountyForm();
-        if (stateId) fetchCounties(stateId);
-    };
-
-    // When filter state changes on Locations tab
-    const handleLocFilterState = async (stateId) => {
-        setFilterState(stateId);
-        setFilterCounty("");
-        setCountyFilterStates([]);
-        setLocations([]);
-        resetLocationForm();
-        if (stateId) {
-            const res = await fetch(`/api/states/${stateId}/counties`);
-            const data = await res.json();
-            if (data.success) setCountyFilterStates(data.data);
+            if (data.success) {
+                setLocations(data.data);
+                setCountyId(data.countyId);
+            }
+        } catch {
+            showError("Failed to load locations");
+        } finally {
+            setLoadingLocs(false);
         }
     };
 
-    const handleLocFilterCounty = (countyId) => {
-        setFilterCounty(countyId);
+    /* ── Handlers ── */
+    const handleStateChange = (opt) => {
+        setSelectedState(opt);
+        setSelectedCounty(null);
         setLocations([]);
-        resetLocationForm();
-        if (countyId) fetchLocations(countyId);
-    };
-
-    // Tab switch resets
-    const switchTab = (tab) => {
-        setActiveTab(tab);
-        setFilterState("");
-        setFilterCounty("");
-        setCounties([]);
-        setLocations([]);
-        setCountyFilterStates([]);
-        resetStateForm();
-        resetCountyForm();
+        setCountyId(null);
         resetLocationForm();
     };
 
-    /* ── Reset helpers ── */
-    const resetStateForm = () => { setStateName(""); setStateAbbr(""); setEditingState(null); };
-    const resetCountyForm = () => { setCountyName(""); setCountyStateId(""); setEditingCounty(null); };
-    const resetLocationForm = () => { setLocName(""); setLocAddress(""); setLocCountyId(""); setEditingLocation(null); };
-
-    /* ── CRUD: States ── */
-
-    const saveState = async (e) => {
-        e.preventDefault();
-        const isEdit = !!editingState;
-        const url = isEdit ? `/api/states/${editingState._id}` : "/api/states";
-        const method = isEdit ? "PUT" : "POST";
-        const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: stateName, abbreviation: stateAbbr }) });
-        const data = await res.json();
-        if (!data.success) { showError(data.error); return; }
-        resetStateForm();
-        fetchStates();
-        showSuccess(isEdit ? "State updated!" : "State added!");
+    const handleCountyChange = (opt) => {
+        setSelectedCounty(opt);
+        setLocations([]);
+        setCountyId(null);
+        resetLocationForm();
+        if (opt && selectedState) {
+            fetchLocations(selectedState.value, opt.value);
+        }
     };
 
-    const startEditState = (st) => { setStateName(st.name); setStateAbbr(st.abbreviation || ""); setEditingState(st); };
-
-    const deleteState = async (st) => {
-        if (!confirm(`Delete "${st.name}" and all its counties & locations?`)) return;
-        const res = await fetch(`/api/states/${st._id}`, { method: "DELETE" });
-        const data = await res.json();
-        if (!data.success) { showError(data.error); return; }
-        fetchStates();
-        showSuccess("State deleted!");
+    const resetLocationForm = () => {
+        setLocName("");
+        setLocAddress("");
+        setEditingLocation(null);
     };
 
-    /* ── CRUD: Counties ── */
-
-    const saveCounty = async (e) => {
-        e.preventDefault();
-        const stateId = editingCounty ? (countyStateId || editingCounty.state) : (countyStateId || filterState);
-        if (!stateId) { showError("Please select a state"); return; }
-        const isEdit = !!editingCounty;
-        const url = isEdit ? `/api/counties/${editingCounty._id}` : `/api/states/${stateId}/counties`;
-        const method = isEdit ? "PUT" : "POST";
-        const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: countyName }) });
-        const data = await res.json();
-        if (!data.success) { showError(data.error); return; }
-        resetCountyForm();
-        if (filterState) fetchCounties(filterState);
-        showSuccess(isEdit ? "County updated!" : "County added!");
-    };
-
-    const startEditCounty = (cn) => { setCountyName(cn.name); setCountyStateId(cn.state); setEditingCounty(cn); };
-
-    const deleteCounty = async (cn) => {
-        if (!confirm(`Delete "${cn.name}" and all its locations?`)) return;
-        const res = await fetch(`/api/counties/${cn._id}`, { method: "DELETE" });
-        const data = await res.json();
-        if (!data.success) { showError(data.error); return; }
-        if (filterState) fetchCounties(filterState);
-        showSuccess("County deleted!");
-    };
-
-    /* ── CRUD: Locations ── */
-
+    /* ── CRUD ── */
     const saveLocation = async (e) => {
         e.preventDefault();
-        const countyId = editingLocation ? (locCountyId || editingLocation.county) : (locCountyId || filterCounty);
-        if (!countyId) { showError("Please select a county"); return; }
+        if (!selectedState || !selectedCounty) {
+            showError("Please select a state and county first");
+            return;
+        }
+
         const isEdit = !!editingLocation;
-        const url = isEdit ? `/api/locations/${editingLocation._id}` : `/api/counties/${countyId}/locations`;
-        const method = isEdit ? "PUT" : "POST";
-        const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: locName, address: locAddress }) });
-        const data = await res.json();
-        if (!data.success) { showError(data.error); return; }
+
+        if (isEdit) {
+            const res = await fetch(`/api/locations/${editingLocation._id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: locName, address: locAddress }),
+            });
+            const data = await res.json();
+            if (!data.success) { showError(data.error); return; }
+            showSuccess("Location updated!");
+        } else {
+            const res = await fetch("/api/locations/by-geo", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    stateAbbr: selectedState.value,
+                    stateName: selectedState.name,
+                    countyName: selectedCounty.value,
+                    locationName: locName,
+                    locationAddress: locAddress,
+                }),
+            });
+            const data = await res.json();
+            if (!data.success) { showError(data.error); return; }
+            if (data.countyId) setCountyId(data.countyId);
+            showSuccess("Location added!");
+        }
+
         resetLocationForm();
-        if (filterCounty) fetchLocations(filterCounty);
-        showSuccess(isEdit ? "Location updated!" : "Location added!");
+        fetchLocations(selectedState.value, selectedCounty.value);
     };
 
-    const startEditLocation = (loc) => { setLocName(loc.name); setLocAddress(loc.address || ""); setLocCountyId(loc.county); setEditingLocation(loc); };
+    const startEditLocation = (loc) => {
+        setLocName(loc.name);
+        setLocAddress(loc.address || "");
+        setEditingLocation(loc);
+    };
 
     const deleteLocation = async (loc) => {
         if (!confirm(`Delete "${loc.name}"?`)) return;
         const res = await fetch(`/api/locations/${loc._id}`, { method: "DELETE" });
         const data = await res.json();
         if (!data.success) { showError(data.error); return; }
-        if (filterCounty) fetchLocations(filterCounty);
         showSuccess("Location deleted!");
+        if (selectedState && selectedCounty) {
+            fetchLocations(selectedState.value, selectedCounty.value);
+        }
     };
 
     const canManage = user && hasAccess(user, "manage_organizations");
@@ -202,228 +170,114 @@ export default function AdminLocationsPage() {
                     <i className="fa-solid fa-lock"></i>
                     <p>You don&apos;t have permission to manage locations.</p>
                 </div>
-            ) : loading ? (
-                <div className="admin-loading">
-                    <div className="admin-spinner"></div>
-                    Loading...
-                </div>
             ) : (
                 <>
-                    {/* ── Tabs ── */}
-                    <div className="admin-tabs">
-                        <button className={`admin-tab ${activeTab === "states" ? "active" : ""}`} onClick={() => switchTab("states")}>
-                            <i className="fa-solid fa-map" style={{ marginRight: 6 }}></i> States
-                        </button>
-                        <button className={`admin-tab ${activeTab === "counties" ? "active" : ""}`} onClick={() => switchTab("counties")}>
-                            <i className="fa-solid fa-map-pin" style={{ marginRight: 6 }}></i> Counties
-                        </button>
-                        <button className={`admin-tab ${activeTab === "locations" ? "active" : ""}`} onClick={() => switchTab("locations")}>
-                            <i className="fa-solid fa-location-dot" style={{ marginRight: 6 }}></i> Locations
-                        </button>
+                    {/* ── Filter bar ── */}
+                    <div className="admin-card" style={{ marginBottom: 16 }}>
+                        <div className="admin-card-body" style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+                            <div style={{ flex: 1, minWidth: 220 }}>
+                                <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#5a5f72", marginBottom: 4 }}>State</label>
+                                <Select
+                                    options={stateOptions}
+                                    value={selectedState}
+                                    onChange={handleStateChange}
+                                    placeholder="Search for a state..."
+                                    isClearable
+                                    styles={selectStyles}
+                                    menuPortalTarget={document.body}
+                                />
+                            </div>
+                            <div style={{ flex: 1, minWidth: 220 }}>
+                                <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#5a5f72", marginBottom: 4 }}>County</label>
+                                <Select
+                                    options={countyOptions}
+                                    value={selectedCounty}
+                                    onChange={handleCountyChange}
+                                    placeholder={selectedState ? "Search for a county..." : "Select a state first..."}
+                                    isClearable
+                                    isDisabled={!selectedState}
+                                    styles={selectStyles}
+                                    menuPortalTarget={document.body}
+                                />
+                            </div>
+                        </div>
                     </div>
 
-                    {/* ── States Tab ── */}
-                    {activeTab === "states" && (
-                        <div className="admin-card">
-                            <div className="admin-card-header">
-                                <h3>All States ({states.length})</h3>
-                            </div>
-                            <div className="admin-card-body">
-                                <form onSubmit={saveState} style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
-                                    <input className="admin-form-input" placeholder="State name *" value={stateName} onChange={e => setStateName(e.target.value)} required style={{ flex: 2, minWidth: 120 }} />
-                                    <input className="admin-form-input" placeholder="Abbreviation" value={stateAbbr} onChange={e => setStateAbbr(e.target.value)} style={{ flex: 1, minWidth: 100 }} maxLength={3} />
-                                    <button type="submit" className="admin-btn admin-btn-primary" style={{ whiteSpace: "nowrap" }}>
-                                        {editingState ? <><i className="fa-solid fa-check"></i> Update</> : <><i className="fa-solid fa-plus"></i> Add State</>}
-                                    </button>
-                                    {editingState && (
-                                        <button type="button" className="admin-btn admin-btn-ghost" onClick={resetStateForm}>Cancel</button>
-                                    )}
-                                </form>
-
-                                {states.length === 0 ? (
-                                    <div className="admin-empty">
-                                        <i className="fa-solid fa-map"></i>
-                                        <p>No states yet. Add one above.</p>
-                                    </div>
-                                ) : (
-                                    <div style={{ overflowX: "auto" }}>
-                                        <table className="admin-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>State</th>
-                                                    <th>Abbreviation</th>
-                                                    <th style={{ width: 120 }}>Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {states.map(st => (
-                                                    <tr key={st._id}>
-                                                        <td style={{ fontWeight: 600 }}>{st.name}</td>
-                                                        <td>{st.abbreviation || "—"}</td>
-                                                        <td>
-                                                            <div style={{ display: "flex", gap: 6 }}>
-                                                                <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => startEditState(st)} title="Edit">
-                                                                    <i className="fa-solid fa-pen"></i>
-                                                                </button>
-                                                                <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => deleteState(st)} title="Delete">
-                                                                    <i className="fa-solid fa-trash"></i>
-                                                                </button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                )}
-                            </div>
+                    {/* ── Locations card ── */}
+                    <div className="admin-card">
+                        <div className="admin-card-header">
+                            <h3>
+                                <i className="fa-solid fa-location-dot" style={{ marginRight: 8, color: "#FF1E00" }}></i>
+                                Locations
+                                {selectedCounty && ` — ${selectedCounty.label}, ${selectedState?.value}`}
+                            </h3>
                         </div>
-                    )}
-
-                    {/* ── Counties Tab ── */}
-                    {activeTab === "counties" && (
-                        <div className="admin-card">
-                            <div className="admin-card-header">
-                                <h3>Counties</h3>
-                                <select className="admin-form-select" value={filterState} onChange={e => handleCountyFilterState(e.target.value)} style={{ maxWidth: 240 }}>
-                                    <option value="">Select a state...</option>
-                                    {states.map(st => <option key={st._id} value={st._id}>{st.name}</option>)}
-                                </select>
-                            </div>
-                            <div className="admin-card-body">
-                                {!filterState ? (
-                                    <div className="admin-empty">
-                                        <i className="fa-solid fa-filter"></i>
-                                        <p>Select a state above to view its counties.</p>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <form onSubmit={saveCounty} style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
-                                            <input className="admin-form-input" placeholder="County name *" value={countyName} onChange={e => setCountyName(e.target.value)} required style={{ flex: 1, minWidth: 160 }} />
-                                            <button type="submit" className="admin-btn admin-btn-primary" style={{ whiteSpace: "nowrap" }}>
-                                                {editingCounty ? <><i className="fa-solid fa-check"></i> Update</> : <><i className="fa-solid fa-plus"></i> Add County</>}
-                                            </button>
-                                            {editingCounty && (
-                                                <button type="button" className="admin-btn admin-btn-ghost" onClick={resetCountyForm}>Cancel</button>
-                                            )}
-                                        </form>
-
-                                        {counties.length === 0 ? (
-                                            <div className="admin-empty">
-                                                <i className="fa-solid fa-map-pin"></i>
-                                                <p>No counties yet. Add one above.</p>
-                                            </div>
-                                        ) : (
-                                            <div style={{ overflowX: "auto" }}>
-                                                <table className="admin-table">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>County</th>
-                                                            <th style={{ width: 120 }}>Actions</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {counties.map(cn => (
-                                                            <tr key={cn._id}>
-                                                                <td style={{ fontWeight: 600 }}>{cn.name}</td>
-                                                                <td>
-                                                                    <div style={{ display: "flex", gap: 6 }}>
-                                                                        <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => startEditCounty(cn)} title="Edit">
-                                                                            <i className="fa-solid fa-pen"></i>
-                                                                        </button>
-                                                                        <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => deleteCounty(cn)} title="Delete">
-                                                                            <i className="fa-solid fa-trash"></i>
-                                                                        </button>
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        )}
-                                    </>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* ── Locations Tab ── */}
-                    {activeTab === "locations" && (
-                        <div className="admin-card">
-                            <div className="admin-card-header">
-                                <h3>Locations</h3>
-                                <div style={{ display: "flex", gap: 8 }}>
-                                    <select className="admin-form-select" value={filterState} onChange={e => handleLocFilterState(e.target.value)} style={{ maxWidth: 200 }}>
-                                        <option value="">Select state...</option>
-                                        {states.map(st => <option key={st._id} value={st._id}>{st.name}</option>)}
-                                    </select>
-                                    <select className="admin-form-select" value={filterCounty} onChange={e => handleLocFilterCounty(e.target.value)} disabled={!filterState} style={{ maxWidth: 200 }}>
-                                        <option value="">Select county...</option>
-                                        {countyFilterStates.map(cn => <option key={cn._id} value={cn._id}>{cn.name}</option>)}
-                                    </select>
+                        <div className="admin-card-body">
+                            {!selectedCounty ? (
+                                <div className="admin-empty">
+                                    <i className="fa-solid fa-filter"></i>
+                                    <p>{!selectedState ? "Select a state and county above to manage locations." : "Now select a county to view its locations."}</p>
                                 </div>
-                            </div>
-                            <div className="admin-card-body">
-                                {!filterCounty ? (
-                                    <div className="admin-empty">
-                                        <i className="fa-solid fa-filter"></i>
-                                        <p>{!filterState ? "Select a state and county above to view locations." : "Now select a county to view its locations."}</p>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <form onSubmit={saveLocation} style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
-                                            <input className="admin-form-input" placeholder="Location name *" value={locName} onChange={e => setLocName(e.target.value)} required style={{ flex: 1, minWidth: 140 }} />
-                                            <input className="admin-form-input" placeholder="Address" value={locAddress} onChange={e => setLocAddress(e.target.value)} style={{ flex: 1, minWidth: 140 }} />
-                                            <button type="submit" className="admin-btn admin-btn-primary" style={{ whiteSpace: "nowrap" }}>
-                                                {editingLocation ? <><i className="fa-solid fa-check"></i> Update</> : <><i className="fa-solid fa-plus"></i> Add Location</>}
-                                            </button>
-                                            {editingLocation && (
-                                                <button type="button" className="admin-btn admin-btn-ghost" onClick={resetLocationForm}>Cancel</button>
-                                            )}
-                                        </form>
-
-                                        {locations.length === 0 ? (
-                                            <div className="admin-empty">
-                                                <i className="fa-solid fa-location-dot"></i>
-                                                <p>No locations yet. Add one above.</p>
-                                            </div>
-                                        ) : (
-                                            <div style={{ overflowX: "auto" }}>
-                                                <table className="admin-table">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Location</th>
-                                                            <th>Address</th>
-                                                            <th style={{ width: 120 }}>Actions</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {locations.map(loc => (
-                                                            <tr key={loc._id}>
-                                                                <td style={{ fontWeight: 600 }}>{loc.name}</td>
-                                                                <td style={{ color: "#5a5f72" }}>{loc.address || "—"}</td>
-                                                                <td>
-                                                                    <div style={{ display: "flex", gap: 6 }}>
-                                                                        <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => startEditLocation(loc)} title="Edit">
-                                                                            <i className="fa-solid fa-pen"></i>
-                                                                        </button>
-                                                                        <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => deleteLocation(loc)} title="Delete">
-                                                                            <i className="fa-solid fa-trash"></i>
-                                                                        </button>
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
-                                            </div>
+                            ) : loadingLocs ? (
+                                <div className="admin-loading">
+                                    <div className="admin-spinner"></div>
+                                    Loading locations...
+                                </div>
+                            ) : (
+                                <>
+                                    {/* Add / Edit form */}
+                                    <form onSubmit={saveLocation} style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+                                        <input className="admin-form-input" placeholder="Location name *" value={locName} onChange={(e) => setLocName(e.target.value)} required style={{ flex: 1, minWidth: 140 }} />
+                                        <input className="admin-form-input" placeholder="Address" value={locAddress} onChange={(e) => setLocAddress(e.target.value)} style={{ flex: 1, minWidth: 140 }} />
+                                        <button type="submit" className="admin-btn admin-btn-primary" style={{ whiteSpace: "nowrap" }}>
+                                            {editingLocation ? <><i className="fa-solid fa-check"></i> Update</> : <><i className="fa-solid fa-plus"></i> Add Location</>}
+                                        </button>
+                                        {editingLocation && (
+                                            <button type="button" className="admin-btn admin-btn-ghost" onClick={resetLocationForm}>Cancel</button>
                                         )}
-                                    </>
-                                )}
-                            </div>
+                                    </form>
+
+                                    {/* Locations table */}
+                                    {locations.length === 0 ? (
+                                        <div className="admin-empty">
+                                            <i className="fa-solid fa-location-dot"></i>
+                                            <p>No locations yet. Add one above.</p>
+                                        </div>
+                                    ) : (
+                                        <div style={{ overflowX: "auto" }}>
+                                            <table className="admin-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Location</th>
+                                                        <th>Address</th>
+                                                        <th style={{ width: 120 }}>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {locations.map((loc) => (
+                                                        <tr key={loc._id}>
+                                                            <td style={{ fontWeight: 600 }}>{loc.name}</td>
+                                                            <td style={{ color: "#5a5f72" }}>{loc.address || "—"}</td>
+                                                            <td>
+                                                                <div style={{ display: "flex", gap: 6 }}>
+                                                                    <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => startEditLocation(loc)} title="Edit">
+                                                                        <i className="fa-solid fa-pen"></i>
+                                                                    </button>
+                                                                    <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => deleteLocation(loc)} title="Delete">
+                                                                        <i className="fa-solid fa-trash"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
+                                </>
+                            )}
                         </div>
-                    )}
+                    </div>
                 </>
             )}
         </AdminLayout>
