@@ -203,6 +203,35 @@ export default function AdminUsersPage() {
         u.role.toLowerCase().includes(search.toLowerCase())
     );
 
+    const toggleActive = async (userId, currentActive) => {
+        setError("");
+        try {
+            const res = await fetch(`/api/admin/users/${userId}`, { method: "PATCH" });
+            const data = await res.json();
+            if (!data.success) { setError(data.error); return; }
+            fetchUsers();
+            setSuccess(currentActive === false ? "User activated!" : "User deactivated!");
+            setTimeout(() => setSuccess(""), 3000);
+        } catch {
+            setError("Failed to update user status");
+        }
+    };
+
+    const deleteUser = async (userId, name) => {
+        if (!confirm(`Delete user "${name}"? This cannot be undone.`)) return;
+        setError("");
+        try {
+            const res = await fetch(`/api/admin/users/${userId}`, { method: "DELETE" });
+            const data = await res.json();
+            if (!data.success) { setError(data.error); return; }
+            fetchUsers();
+            setSuccess("User deleted!");
+            setTimeout(() => setSuccess(""), 3000);
+        } catch {
+            setError("Failed to delete user");
+        }
+    };
+
     const canManage = user && hasAccess(user, "manage_users");
 
     return (
@@ -256,13 +285,17 @@ export default function AdminUsersPage() {
                                             <th>Role</th>
                                             <th>Permissions</th>
                                             <th>Joined</th>
-                                            <th style={{ width: 100 }}>Actions</th>
+                                            <th>Status</th>
+                                            <th style={{ width: 160 }}>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {filtered.map(u => (
-                                            <tr key={u._id}>
-                                                <td style={{ fontWeight: 600 }}>{u.name}</td>
+                                            <tr key={u._id} style={{ opacity: u.isActive === false ? 0.5 : 1 }}>
+                                                <td style={{ fontWeight: 600 }}>
+                                                    {u.name}
+                                                    {u.isActive === false && <span className="admin-badge" style={{ marginLeft: 8, background: "#fee2e2", color: "#dc2626" }}>Inactive</span>}
+                                                </td>
                                                 <td style={{ color: "#5a5f72" }}>{u.email}</td>
                                                 <td>
                                                     <span className={`admin-badge ${u.role}`}>{u.role}</span>
@@ -292,13 +325,38 @@ export default function AdminUsersPage() {
                                                     {new Date(u.createdAt).toLocaleDateString()}
                                                 </td>
                                                 <td>
-                                                    {user?.role === "admin" && (
-                                                        <button
-                                                            className="admin-btn admin-btn-ghost admin-btn-sm"
-                                                            onClick={() => setEditTarget(u)}
-                                                        >
-                                                            <i className="fa-solid fa-pen"></i> Edit
-                                                        </button>
+                                                    <span className={`admin-badge ${u.isActive === false ? "" : "player"}`}>
+                                                        {u.isActive === false ? "Inactive" : "Active"}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    {user?.role === "admin" && u._id !== user.id && (
+                                                        <div style={{ display: "flex", gap: 6 }}>
+                                                            <button
+                                                                className="admin-btn admin-btn-ghost admin-btn-sm"
+                                                                onClick={() => setEditTarget(u)}
+                                                                title="Edit role & permissions"
+                                                            >
+                                                                <i className="fa-solid fa-pen"></i>
+                                                            </button>
+                                                            <button
+                                                                className={`admin-btn admin-btn-sm ${u.isActive === false ? "admin-btn-primary" : "admin-btn-ghost"}`}
+                                                                onClick={() => toggleActive(u._id, u.isActive)}
+                                                                title={u.isActive === false ? "Activate user" : "Deactivate user"}
+                                                            >
+                                                                <i className={`fa-solid ${u.isActive === false ? "fa-toggle-off" : "fa-toggle-on"}`}></i>
+                                                            </button>
+                                                            <button
+                                                                className="admin-btn admin-btn-danger admin-btn-sm"
+                                                                onClick={() => deleteUser(u._id, u.name)}
+                                                                title="Delete user"
+                                                            >
+                                                                <i className="fa-solid fa-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                    {user?.role === "admin" && u._id === user.id && (
+                                                        <span style={{ fontSize: 12, color: "#8b90a0" }}>You</span>
                                                     )}
                                                 </td>
                                             </tr>
