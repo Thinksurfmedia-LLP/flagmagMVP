@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const LocationSchema = new mongoose.Schema(
+const VenueSchema = new mongoose.Schema(
     {
         county: {
             type: mongoose.Schema.Types.ObjectId,
@@ -9,7 +9,7 @@ const LocationSchema = new mongoose.Schema(
         },
         name: {
             type: String,
-            required: [true, "Location name is required"],
+            required: [true, "Venue name is required"],
             trim: true,
         },
         slug: {
@@ -22,10 +22,20 @@ const LocationSchema = new mongoose.Schema(
             type: String,
             default: "",
         },
+        managerName: {
+            type: String,
+            default: "",
+            trim: true,
+        },
+        managerPhone: {
+            type: String,
+            default: "",
+            trim: true,
+        },
     },
     { timestamps: true }
 );
 
-LocationSchema.index({ county: 1, slug: 1 }, { unique: true });
+VenueSchema.index({ county: 1, slug: 1 }, { unique: true });
 
-export default mongoose.models.Location || mongoose.model("Location", LocationSchema);
+export default mongoose.models.Venue || mongoose.model("Venue", VenueSchema);

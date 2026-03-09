@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useCallback, Fragment } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import AdminLayout, { hasAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
+import { useImpersonation } from "@/components/ImpersonationProvider";
 
 function OrgForm({ org, onSave, onCancel }) {
     const [form, setForm] = useState(
@@ -188,6 +190,8 @@ function GameForm({ game, onSave, onCancel }) {
 
 export default function AdminOrganizationsPage() {
     const { user } = useAuth();
+    const router = useRouter();
+    const { enterImpersonation } = useImpersonation();
     const [orgs, setOrgs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showOrgForm, setShowOrgForm] = useState(false);
@@ -357,6 +361,9 @@ export default function AdminOrganizationsPage() {
                                                         <td>{org.memberCount}</td>
                                                         <td style={{ width: 180 }}>
                                                             <div style={{ display: "flex", gap: 6 }}>
+                                                                <button className="admin-btn admin-btn-primary admin-btn-sm" title="Manage as organizer" onClick={() => { enterImpersonation(org); router.push(`/admin/organizations/${org.slug}`); }}>
+                                                                    <i className="fa-solid fa-user-secret"></i>
+                                                                </button>
                                                                 <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setEditOrg(org); setShowOrgForm(true); }}>
                                                                     <i className="fa-solid fa-pen"></i>
                                                                 </button>

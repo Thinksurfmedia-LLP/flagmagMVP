@@ -2,13 +2,12 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import State from "@/models/State";
 import County from "@/models/County";
-import Location from "@/models/Location";
+import Venue from "@/models/Location";
 import { requireAdmin } from "@/lib/apiAuth";
 
 /**
- * GET /api/locations/by-geo?stateAbbr=CA&countyName=Los+Angeles
- * Returns locations for a given state abbreviation + county name.
- * Returns empty array if state or county doesn't exist in DB yet.
+ * GET /api/locations/by-geo?stateAbbr=XX&countyName=YY
+ * Returns venues for the given state + county.
  */
 export async function GET(request) {
     try {
@@ -18,30 +17,29 @@ export async function GET(request) {
         const countyName = searchParams.get("countyName");
 
         if (!stateAbbr || !countyName) {
-            return NextResponse.json({ success: true, data: [], countyId: null });
+            return NextResponse.json({ success: false, error: "stateAbbr and countyName are required" }, { status: 400 });
         }
 
-        const state = await State.findOne({ abbreviation: stateAbbr.toUpperCase() }).lean();
+        const state = await State.findOne({ abbreviation: stateAbbr.toUpperCase() });
         if (!state) {
             return NextResponse.json({ success: true, data: [], countyId: null });
         }
 
-        const county = await County.findOne({ state: state._id, name: countyName }).lean();
+        const countySlug = countyName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+        const county = await County.findOne({ state: state._id, slug: countySlug });
         if (!county) {
             return NextResponse.json({ success: true, data: [], countyId: null });
         }
 
-        const locations = await Location.find({ county: county._id }).sort({ name: 1 }).lean();
-        return NextResponse.json({ success: true, data: locations, countyId: county._id });
+        const venues = await Venue.find({ county: county._id }).sort({ name: 1 }).lean();
+        return NextResponse.json({ success: true, data: venues, countyId: county._id });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }
 
 /**
- * POST /api/locations/by-geo
- * Body: { stateAbbr, stateName, countyName, locationName, locationAddress }
- * Finds-or-creates the State and County, then creates the Location.
+ * POST /api/locations/by-geo — Create a venue (auto-creates state/county if needed)
  */
 export async function POST(request) {
     try {
@@ -49,36 +47,38 @@ export async function POST(request) {
         if (!auth.authorized) return auth.response;
 
         await dbConnect();
-        const { stateAbbr, stateName, countyName, locationName, locationAddress } = await request.json();
+        const { stateAbbr, stateName, countyName, venueName, venueAddress, managerName, managerPhone } = await request.json();
 
-        if (!stateAbbr || !stateName || !countyName || !locationName) {
-            return NextResponse.json({ success: false, error: "State, county, and location name are required" }, { status: 400 });
+        if (!stateAbbr || !countyName || !venueName) {
+            return NextResponse.json({ success: false, error: "State, county, and venue name are required" }, { status: 400 });
         }
 
-        // Find or create State
+        // Upsert state
         let state = await State.findOne({ abbreviation: stateAbbr.toUpperCase() });
         if (!state) {
-            const slug = stateName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-            state = await State.create({ name: stateName, abbreviation: stateAbbr.toUpperCase(), slug });
+            const stateSlug = (stateName || stateAbbr).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+            state = await State.create({ name: stateName || stateAbbr, slug: stateSlug, abbreviation: stateAbbr.toUpperCase() });
         }
 
-        // Find or create County
-        let county = await County.findOne({ state: state._id, name: countyName });
+        // Upsert county
+        const countySlug = countyName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+        let county = await County.findOne({ state: state._id, slug: countySlug });
         if (!county) {
-            const slug = countyName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-            county = await County.create({ state: state._id, name: countyName, slug });
+            county = await County.create({ state: state._id, name: countyName, slug: countySlug });
         }
 
-        // Create Location
-        const locSlug = locationName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-        const location = await Location.create({
+        // Create venue
+        const venueSlug = venueName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+        const venue = await Venue.create({
             county: county._id,
-            name: locationName,
-            slug: locSlug,
-            address: locationAddress || "",
+            name: venueName,
+            slug: venueSlug,
+            address: venueAddress || "",
+            managerName: managerName || "",
+            managerPhone: managerPhone || "",
         });
 
-        return NextResponse.json({ success: true, data: location, countyId: county._id }, { status: 201 });
+        return NextResponse.json({ success: true, data: venue, countyId: county._id }, { status: 201 });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 400 });
     }

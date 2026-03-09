@@ -30,7 +30,7 @@ const selectStyles = {
     menuPortal: (base) => ({ ...base, zIndex: 9999 }),
 };
 
-export default function AdminLocationsPage() {
+export default function AdminVenuesPage() {
     const { user } = useAuth();
     const { showSuccess, showError } = useToast();
 
@@ -38,15 +38,17 @@ export default function AdminLocationsPage() {
     const [selectedState, setSelectedState] = useState(null);
     const [selectedCounty, setSelectedCounty] = useState(null);
 
-    // Location data
-    const [locations, setLocations] = useState([]);
+    // Venue data
+    const [venues, setVenues] = useState([]);
     const [countyId, setCountyId] = useState(null);
-    const [loadingLocs, setLoadingLocs] = useState(false);
+    const [loadingVenues, setLoadingVenues] = useState(false);
 
-    // Add/Edit location form
-    const [locName, setLocName] = useState("");
-    const [locAddress, setLocAddress] = useState("");
-    const [editingLocation, setEditingLocation] = useState(null);
+    // Add/Edit form
+    const [venueName, setVenueName] = useState("");
+    const [venueAddress, setVenueAddress] = useState("");
+    const [managerName, setManagerName] = useState("");
+    const [managerPhone, setManagerPhone] = useState("");
+    const [editingVenue, setEditingVenue] = useState(null);
 
     /* ── Dropdown options (built from static US data) ── */
     const stateOptions = useMemo(
@@ -60,21 +62,21 @@ export default function AdminLocationsPage() {
         return list.map((c) => ({ value: c, label: c }));
     }, [selectedState]);
 
-    /* ── Fetch locations for a state + county combo ── */
-    const fetchLocations = async (stateAbbr, countyName) => {
-        setLoadingLocs(true);
+    /* ── Fetch venues for a state + county combo ── */
+    const fetchVenues = async (stateAbbr, countyName) => {
+        setLoadingVenues(true);
         try {
             const params = new URLSearchParams({ stateAbbr, countyName });
             const res = await fetch(`/api/locations/by-geo?${params}`);
             const data = await res.json();
             if (data.success) {
-                setLocations(data.data);
+                setVenues(data.data);
                 setCountyId(data.countyId);
             }
         } catch {
-            showError("Failed to load locations");
+            showError("Failed to load venues");
         } finally {
-            setLoadingLocs(false);
+            setLoadingVenues(false);
         }
     };
 
@@ -82,46 +84,48 @@ export default function AdminLocationsPage() {
     const handleStateChange = (opt) => {
         setSelectedState(opt);
         setSelectedCounty(null);
-        setLocations([]);
+        setVenues([]);
         setCountyId(null);
-        resetLocationForm();
+        resetForm();
     };
 
     const handleCountyChange = (opt) => {
         setSelectedCounty(opt);
-        setLocations([]);
+        setVenues([]);
         setCountyId(null);
-        resetLocationForm();
+        resetForm();
         if (opt && selectedState) {
-            fetchLocations(selectedState.value, opt.value);
+            fetchVenues(selectedState.value, opt.value);
         }
     };
 
-    const resetLocationForm = () => {
-        setLocName("");
-        setLocAddress("");
-        setEditingLocation(null);
+    const resetForm = () => {
+        setVenueName("");
+        setVenueAddress("");
+        setManagerName("");
+        setManagerPhone("");
+        setEditingVenue(null);
     };
 
     /* ── CRUD ── */
-    const saveLocation = async (e) => {
+    const saveVenue = async (e) => {
         e.preventDefault();
         if (!selectedState || !selectedCounty) {
             showError("Please select a state and county first");
             return;
         }
 
-        const isEdit = !!editingLocation;
+        const isEdit = !!editingVenue;
 
         if (isEdit) {
-            const res = await fetch(`/api/locations/${editingLocation._id}`, {
+            const res = await fetch(`/api/locations/${editingVenue._id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: locName, address: locAddress }),
+                body: JSON.stringify({ name: venueName, address: venueAddress, managerName, managerPhone }),
             });
             const data = await res.json();
             if (!data.success) { showError(data.error); return; }
-            showSuccess("Location updated!");
+            showSuccess("Venue updated!");
         } else {
             const res = await fetch("/api/locations/by-geo", {
                 method: "POST",
@@ -130,45 +134,49 @@ export default function AdminLocationsPage() {
                     stateAbbr: selectedState.value,
                     stateName: selectedState.name,
                     countyName: selectedCounty.value,
-                    locationName: locName,
-                    locationAddress: locAddress,
+                    venueName,
+                    venueAddress,
+                    managerName,
+                    managerPhone,
                 }),
             });
             const data = await res.json();
             if (!data.success) { showError(data.error); return; }
             if (data.countyId) setCountyId(data.countyId);
-            showSuccess("Location added!");
+            showSuccess("Venue added!");
         }
 
-        resetLocationForm();
-        fetchLocations(selectedState.value, selectedCounty.value);
+        resetForm();
+        fetchVenues(selectedState.value, selectedCounty.value);
     };
 
-    const startEditLocation = (loc) => {
-        setLocName(loc.name);
-        setLocAddress(loc.address || "");
-        setEditingLocation(loc);
+    const startEditVenue = (v) => {
+        setVenueName(v.name);
+        setVenueAddress(v.address || "");
+        setManagerName(v.managerName || "");
+        setManagerPhone(v.managerPhone || "");
+        setEditingVenue(v);
     };
 
-    const deleteLocation = async (loc) => {
-        if (!confirm(`Delete "${loc.name}"?`)) return;
-        const res = await fetch(`/api/locations/${loc._id}`, { method: "DELETE" });
+    const deleteVenue = async (v) => {
+        if (!confirm(`Delete "${v.name}"?`)) return;
+        const res = await fetch(`/api/locations/${v._id}`, { method: "DELETE" });
         const data = await res.json();
         if (!data.success) { showError(data.error); return; }
-        showSuccess("Location deleted!");
+        showSuccess("Venue deleted!");
         if (selectedState && selectedCounty) {
-            fetchLocations(selectedState.value, selectedCounty.value);
+            fetchVenues(selectedState.value, selectedCounty.value);
         }
     };
 
     const canManage = user && hasAccess(user, "manage_organizations");
 
     return (
-        <AdminLayout title="Locations">
+        <AdminLayout title="Venues">
             {!canManage ? (
                 <div className="admin-empty">
                     <i className="fa-solid fa-lock"></i>
-                    <p>You don&apos;t have permission to manage locations.</p>
+                    <p>You don&apos;t have permission to manage venues.</p>
                 </div>
             ) : (
                 <>
@@ -184,7 +192,7 @@ export default function AdminLocationsPage() {
                                     placeholder="Search for a state..."
                                     isClearable
                                     styles={selectStyles}
-                                    menuPortalTarget={document.body}
+                                    menuPortalTarget={typeof document !== "undefined" ? document.body : null}
                                 />
                             </div>
                             <div style={{ flex: 1, minWidth: 220 }}>
@@ -197,18 +205,18 @@ export default function AdminLocationsPage() {
                                     isClearable
                                     isDisabled={!selectedState}
                                     styles={selectStyles}
-                                    menuPortalTarget={document.body}
+                                    menuPortalTarget={typeof document !== "undefined" ? document.body : null}
                                 />
                             </div>
                         </div>
                     </div>
 
-                    {/* ── Locations card ── */}
+                    {/* ── Venues card ── */}
                     <div className="admin-card">
                         <div className="admin-card-header">
                             <h3>
                                 <i className="fa-solid fa-location-dot" style={{ marginRight: 8, color: "#FF1E00" }}></i>
-                                Locations
+                                Venues
                                 {selectedCounty && ` — ${selectedCounty.label}, ${selectedState?.value}`}
                             </h3>
                         </div>
@@ -216,54 +224,60 @@ export default function AdminLocationsPage() {
                             {!selectedCounty ? (
                                 <div className="admin-empty">
                                     <i className="fa-solid fa-filter"></i>
-                                    <p>{!selectedState ? "Select a state and county above to manage locations." : "Now select a county to view its locations."}</p>
+                                    <p>{!selectedState ? "Select a state and county above to manage venues." : "Now select a county to view its venues."}</p>
                                 </div>
-                            ) : loadingLocs ? (
+                            ) : loadingVenues ? (
                                 <div className="admin-loading">
                                     <div className="admin-spinner"></div>
-                                    Loading locations...
+                                    Loading venues...
                                 </div>
                             ) : (
                                 <>
                                     {/* Add / Edit form */}
-                                    <form onSubmit={saveLocation} style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
-                                        <input className="admin-form-input" placeholder="Location name *" value={locName} onChange={(e) => setLocName(e.target.value)} required style={{ flex: 1, minWidth: 140 }} />
-                                        <input className="admin-form-input" placeholder="Address" value={locAddress} onChange={(e) => setLocAddress(e.target.value)} style={{ flex: 1, minWidth: 140 }} />
+                                    <form onSubmit={saveVenue} style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+                                        <input className="admin-form-input" placeholder="Venue name *" value={venueName} onChange={(e) => setVenueName(e.target.value)} required style={{ flex: 2, minWidth: 140 }} />
+                                        <input className="admin-form-input" placeholder="Address" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} style={{ flex: 2, minWidth: 140 }} />
+                                        <input className="admin-form-input" placeholder="Location Manager" value={managerName} onChange={(e) => setManagerName(e.target.value)} style={{ flex: 1, minWidth: 130 }} />
+                                        <input className="admin-form-input" placeholder="Phone Number" value={managerPhone} onChange={(e) => setManagerPhone(e.target.value)} style={{ flex: 1, minWidth: 120 }} />
                                         <button type="submit" className="admin-btn admin-btn-primary" style={{ whiteSpace: "nowrap" }}>
-                                            {editingLocation ? <><i className="fa-solid fa-check"></i> Update</> : <><i className="fa-solid fa-plus"></i> Add Location</>}
+                                            {editingVenue ? <><i className="fa-solid fa-check"></i> Update</> : <><i className="fa-solid fa-plus"></i> Add Venue</>}
                                         </button>
-                                        {editingLocation && (
-                                            <button type="button" className="admin-btn admin-btn-ghost" onClick={resetLocationForm}>Cancel</button>
+                                        {editingVenue && (
+                                            <button type="button" className="admin-btn admin-btn-ghost" onClick={resetForm}>Cancel</button>
                                         )}
                                     </form>
 
-                                    {/* Locations table */}
-                                    {locations.length === 0 ? (
+                                    {/* Venues table */}
+                                    {venues.length === 0 ? (
                                         <div className="admin-empty">
                                             <i className="fa-solid fa-location-dot"></i>
-                                            <p>No locations yet. Add one above.</p>
+                                            <p>No venues yet. Add one above.</p>
                                         </div>
                                     ) : (
                                         <div style={{ overflowX: "auto" }}>
                                             <table className="admin-table">
                                                 <thead>
                                                     <tr>
-                                                        <th>Location</th>
+                                                        <th>Name</th>
                                                         <th>Address</th>
+                                                        <th>Location Manager</th>
+                                                        <th>Phone</th>
                                                         <th style={{ width: 120 }}>Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {locations.map((loc) => (
-                                                        <tr key={loc._id}>
-                                                            <td style={{ fontWeight: 600 }}>{loc.name}</td>
-                                                            <td style={{ color: "#5a5f72" }}>{loc.address || "—"}</td>
+                                                    {venues.map((v) => (
+                                                        <tr key={v._id}>
+                                                            <td style={{ fontWeight: 600 }}>{v.name}</td>
+                                                            <td style={{ color: "#5a5f72" }}>{v.address || "—"}</td>
+                                                            <td>{v.managerName || "—"}</td>
+                                                            <td>{v.managerPhone || "—"}</td>
                                                             <td>
                                                                 <div style={{ display: "flex", gap: 6 }}>
-                                                                    <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => startEditLocation(loc)} title="Edit">
+                                                                    <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => startEditVenue(v)} title="Edit">
                                                                         <i className="fa-solid fa-pen"></i>
                                                                     </button>
-                                                                    <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => deleteLocation(loc)} title="Delete">
+                                                                    <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => deleteVenue(v)} title="Delete">
                                                                         <i className="fa-solid fa-trash"></i>
                                                                     </button>
                                                                 </div>

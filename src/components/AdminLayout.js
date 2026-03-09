@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
+import { useImpersonation } from "@/components/ImpersonationProvider";
 import "@/styles/admin.css";
 
 const ALL_PERMISSIONS = [
@@ -32,7 +33,7 @@ const NAV_ITEMS = [
         section: "Management",
         items: [
             { label: "Organizations", href: "/admin/organizations", icon: "fa-solid fa-building", perm: "manage_organizations" },
-            { label: "Locations", href: "/admin/locations", icon: "fa-solid fa-map-location-dot", perm: "manage_organizations" },
+            { label: "Venues", href: "/admin/locations", icon: "fa-solid fa-map-location-dot", perm: "manage_organizations" },
             { label: "Players", href: "/admin/players", icon: "fa-solid fa-users", perm: "manage_players" },
             { label: "Games", href: "/admin/games", icon: "fa-solid fa-football", perm: "manage_games" },
         ],
@@ -46,8 +47,30 @@ const NAV_ITEMS = [
     },
 ];
 
+function getImpersonationNav(orgSlug) {
+    return [
+        {
+            section: "Organization",
+            items: [
+                { label: "Dashboard", href: `/admin/organizations/${orgSlug}`, icon: "fa-solid fa-chart-pie" },
+                { label: "Seasons", href: `/admin/organizations/${orgSlug}/seasons`, icon: "fa-solid fa-calendar-days" },
+                { label: "Games", href: `/admin/organizations/${orgSlug}/games`, icon: "fa-solid fa-football" },
+                { label: "Players", href: `/admin/organizations/${orgSlug}/players`, icon: "fa-solid fa-users" },
+                { label: "Teams", href: `/admin/organizations/${orgSlug}/teams`, icon: "fa-solid fa-people-group" },
+            ],
+        },
+        {
+            section: "Settings",
+            items: [
+                { label: "Organization", href: `/admin/organizations/${orgSlug}/settings`, icon: "fa-solid fa-gear" },
+            ],
+        },
+    ];
+}
+
 export default function AdminLayout({ children, title }) {
     const { user, loading, logout } = useAuth();
+    const { org: impersonatedOrg, exitImpersonation } = useImpersonation();
     const pathname = usePathname();
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -74,18 +97,34 @@ export default function AdminLayout({ children, title }) {
     }
 
     const initials = (user.name || "U").split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+    const isImpersonating = !!impersonatedOrg;
+    const navSections = isImpersonating ? getImpersonationNav(impersonatedOrg.slug) : NAV_ITEMS;
 
     return (
         <div className="admin-wrapper">
             {/* Sidebar */}
             <aside className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>
-                <Link href="/admin" className="admin-sidebar-brand" onClick={() => setSidebarOpen(false)}>
-                    <img src="/assets/images/logo.png" alt="FlagMag" />
-                </Link>
+                {isImpersonating ? (
+                    <div className="admin-sidebar-brand" style={{ cursor: "default" }}>
+                        {impersonatedOrg.logo ? (
+                            <img src={impersonatedOrg.logo} alt={impersonatedOrg.name} />
+                        ) : (
+                            <div className="admin-org-initials">
+                                {impersonatedOrg.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)}
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <Link href="/admin" className="admin-sidebar-brand" onClick={() => setSidebarOpen(false)}>
+                        <img src="/assets/images/logo.png" alt="FlagMag" />
+                    </Link>
+                )}
 
                 <nav className="admin-sidebar-nav">
-                    {NAV_ITEMS.map((section) => {
-                        const visibleItems = section.items.filter(item => hasAccess(user, item.perm));
+                    {navSections.map((section) => {
+                        const visibleItems = isImpersonating
+                            ? section.items
+                            : section.items.filter(item => hasAccess(user, item.perm));
                         if (visibleItems.length === 0) return null;
                         return (
                             <div className="admin-nav-section" key={section.section}>
@@ -143,6 +182,17 @@ export default function AdminLayout({ children, title }) {
 
             {/* Main Content */}
             <main className="admin-main">
+                {impersonatedOrg && (
+                    <div className="admin-impersonation-banner">
+                        <div className="admin-impersonation-inner">
+                            <i className="fa-solid fa-user-secret"></i>
+                            <span>Impersonation mode for <strong>{impersonatedOrg.name}</strong></span>
+                            <button className="admin-impersonation-exit" onClick={() => { exitImpersonation(); window.location.href = "/admin/organizations"; }}>
+                                <i className="fa-solid fa-xmark"></i> Exit
+                            </button>
+                        </div>
+                    </div>
+                )}
                 <header className="admin-topbar">
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                         <button className="admin-mobile-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
-import Location from "@/models/Location";
+import Venue from "@/models/Location";
 import { requireAdmin } from "@/lib/apiAuth";
 
 export async function PUT(request, { params }) {
@@ -12,10 +12,10 @@ export async function PUT(request, { params }) {
         const { id } = await params;
         const body = await request.json();
 
-        const location = await Location.findByIdAndUpdate(id, body, { new: true, runValidators: true });
-        if (!location) return NextResponse.json({ success: false, error: "Location not found" }, { status: 404 });
+        const venue = await Venue.findByIdAndUpdate(id, body, { new: true, runValidators: true });
+        if (!venue) return NextResponse.json({ success: false, error: "Venue not found" }, { status: 404 });
 
-        return NextResponse.json({ success: true, data: location });
+        return NextResponse.json({ success: true, data: venue });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 400 });
     }
@@ -28,9 +28,9 @@ export async function DELETE(request, { params }) {
 
         await dbConnect();
         const { id } = await params;
-        await Location.findByIdAndDelete(id);
+        await Venue.findByIdAndDelete(id);
 
-        return NextResponse.json({ success: true, message: "Location deleted" });
+        return NextResponse.json({ success: true, message: "Venue deleted" });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
