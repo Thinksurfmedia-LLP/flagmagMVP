@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import AdminLayout, { hasAccess, ALL_PERMISSIONS } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
+import { useToast } from "@/components/AdminToast";
 
 const PERM_LABELS = {
     manage_organizations: "Organizations",
@@ -158,19 +159,18 @@ export default function AdminUsersPage() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [editTarget, setEditTarget] = useState(null);
-    const [success, setSuccess] = useState("");
-    const [error, setError] = useState("");
     const [search, setSearch] = useState("");
     const [showAddUser, setShowAddUser] = useState(false);
+    const { showSuccess, showError } = useToast();
 
     const fetchUsers = useCallback(async () => {
         try {
             const res = await fetch("/api/admin/users");
             const data = await res.json();
             if (data.success) setUsers(data.data);
-            else setError(data.error);
+            else showError(data.error);
         } catch {
-            setError("Failed to load users");
+            showError("Failed to load users");
         } finally {
             setLoading(false);
         }
@@ -179,7 +179,6 @@ export default function AdminUsersPage() {
     useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
     const handleSave = async (userId, updates) => {
-        setError("");
         try {
             const res = await fetch(`/api/admin/users/${userId}`, {
                 method: "PUT",
@@ -187,13 +186,12 @@ export default function AdminUsersPage() {
                 body: JSON.stringify(updates),
             });
             const data = await res.json();
-            if (!data.success) { setError(data.error); return; }
+            if (!data.success) { showError(data.error); return; }
             setEditTarget(null);
             fetchUsers();
-            setSuccess("User updated successfully!");
-            setTimeout(() => setSuccess(""), 3000);
+            showSuccess("User updated successfully!");
         } catch {
-            setError("Failed to update user");
+            showError("Failed to update user");
         }
     };
 
@@ -204,31 +202,27 @@ export default function AdminUsersPage() {
     );
 
     const toggleActive = async (userId, currentActive) => {
-        setError("");
         try {
             const res = await fetch(`/api/admin/users/${userId}`, { method: "PATCH" });
             const data = await res.json();
-            if (!data.success) { setError(data.error); return; }
+            if (!data.success) { showError(data.error); return; }
             fetchUsers();
-            setSuccess(currentActive === false ? "User activated!" : "User deactivated!");
-            setTimeout(() => setSuccess(""), 3000);
+            showSuccess(currentActive === false ? "User activated!" : "User deactivated!");
         } catch {
-            setError("Failed to update user status");
+            showError("Failed to update user status");
         }
     };
 
     const deleteUser = async (userId, name) => {
         if (!confirm(`Delete user "${name}"? This cannot be undone.`)) return;
-        setError("");
         try {
             const res = await fetch(`/api/admin/users/${userId}`, { method: "DELETE" });
             const data = await res.json();
-            if (!data.success) { setError(data.error); return; }
+            if (!data.success) { showError(data.error); return; }
             fetchUsers();
-            setSuccess("User deleted!");
-            setTimeout(() => setSuccess(""), 3000);
+            showSuccess("User deleted!");
         } catch {
-            setError("Failed to delete user");
+            showError("Failed to delete user");
         }
     };
 
@@ -243,9 +237,6 @@ export default function AdminUsersPage() {
                 </div>
             ) : (
                 <>
-                    {success && <div className="admin-alert admin-alert-success"><i className="fa-solid fa-check-circle"></i> {success}</div>}
-                    {error && <div className="admin-alert admin-alert-error"><i className="fa-solid fa-exclamation-circle"></i> {error}</div>}
-
                     <div className="admin-card">
                         <div className="admin-card-header">
                             <h3>All Users ({filtered.length})</h3>
@@ -387,13 +378,12 @@ export default function AdminUsersPage() {
                                         body: JSON.stringify(formData),
                                     });
                                     const data = await res.json();
-                                    if (!data.success) { setError(data.error); return; }
+                                    if (!data.success) { showError(data.error); return; }
                                     setShowAddUser(false);
                                     fetchUsers();
-                                    setSuccess("User created successfully!");
-                                    setTimeout(() => setSuccess(""), 3000);
+                                    showSuccess("User created successfully!");
                                 } catch {
-                                    setError("Failed to create user");
+                                    showError("Failed to create user");
                                 }
                             }}
                         />

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, Fragment } from "react";
 import Link from "next/link";
 import AdminLayout, { hasAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
+import { useToast } from "@/components/AdminToast";
 
 function OrgForm({ org, onSave, onCancel }) {
     const [form, setForm] = useState(
@@ -189,8 +190,6 @@ export default function AdminOrganizationsPage() {
     const { user } = useAuth();
     const [orgs, setOrgs] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
-    const [success, setSuccess] = useState("");
     const [showOrgForm, setShowOrgForm] = useState(false);
     const [editOrg, setEditOrg] = useState(null);
     const [expandedOrg, setExpandedOrg] = useState(null);
@@ -201,28 +200,28 @@ export default function AdminOrganizationsPage() {
     const [seasonGames, setSeasonGames] = useState({});
     const [showGameForm, setShowGameForm] = useState(null);
     const [editGame, setEditGame] = useState(null);
+    const { showSuccess, showError } = useToast();
 
-    const flash = (msg) => { setSuccess(msg); setTimeout(() => setSuccess(""), 3000); };
+    const flash = (msg) => { showSuccess(msg); };
 
     const fetchOrgs = useCallback(async () => {
         try {
             const res = await fetch("/api/organizations");
             const data = await res.json();
             if (data.success) setOrgs(data.data);
-        } catch { setError("Failed to load organizations"); }
+        } catch { showError("Failed to load organizations"); }
         finally { setLoading(false); }
     }, []);
 
     useEffect(() => { fetchOrgs(); }, [fetchOrgs]);
 
     const saveOrg = async (formData) => {
-        setError("");
         const isEdit = !!editOrg;
         const url = isEdit ? `/api/organizations/${editOrg.slug}` : "/api/organizations";
         const method = isEdit ? "PUT" : "POST";
         const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(formData) });
         const data = await res.json();
-        if (!data.success) { setError(data.error); return; }
+        if (!data.success) { showError(data.error); return; }
         setShowOrgForm(false); setEditOrg(null); fetchOrgs();
         flash(isEdit ? "Organization updated!" : "Organization created!");
     };
@@ -231,7 +230,7 @@ export default function AdminOrganizationsPage() {
         if (!confirm("Delete this organization? This cannot be undone.")) return;
         const res = await fetch(`/api/organizations/${slug}`, { method: "DELETE" });
         const data = await res.json();
-        if (!data.success) { setError(data.error); return; }
+        if (!data.success) { showError(data.error); return; }
         fetchOrgs(); flash("Organization deleted!");
     };
 
@@ -247,13 +246,12 @@ export default function AdminOrganizationsPage() {
     };
 
     const saveSeason = async (formData, orgSlug) => {
-        setError("");
         const isEdit = !!editSeason;
         const url = isEdit ? `/api/seasons/${editSeason._id}` : `/api/organizations/${orgSlug}/seasons`;
         const method = isEdit ? "PUT" : "POST";
         const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(formData) });
         const data = await res.json();
-        if (!data.success) { setError(data.error); return; }
+        if (!data.success) { showError(data.error); return; }
         setShowSeasonForm(null); setEditSeason(null); fetchSeasons(orgSlug);
         flash(isEdit ? "Season updated!" : "Season created!");
     };
@@ -262,7 +260,7 @@ export default function AdminOrganizationsPage() {
         if (!confirm("Delete this season?")) return;
         const res = await fetch(`/api/seasons/${seasonId}`, { method: "DELETE" });
         const data = await res.json();
-        if (!data.success) { setError(data.error); return; }
+        if (!data.success) { showError(data.error); return; }
         fetchSeasons(orgSlug); flash("Season deleted!");
     };
 
@@ -278,13 +276,12 @@ export default function AdminOrganizationsPage() {
     };
 
     const saveGame = async (formData, seasonId, orgSlug) => {
-        setError("");
         const isEdit = !!editGame;
         const url = isEdit ? `/api/games/${editGame._id}` : `/api/seasons/${seasonId}/games`;
         const method = isEdit ? "PUT" : "POST";
         const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(formData) });
         const data = await res.json();
-        if (!data.success) { setError(data.error); return; }
+        if (!data.success) { showError(data.error); return; }
         setShowGameForm(null); setEditGame(null); fetchGames(seasonId);
         flash(isEdit ? "Game updated!" : "Game created!");
     };
@@ -293,7 +290,7 @@ export default function AdminOrganizationsPage() {
         if (!confirm("Delete this game?")) return;
         const res = await fetch(`/api/games/${gameId}`, { method: "DELETE" });
         const data = await res.json();
-        if (!data.success) { setError(data.error); return; }
+        if (!data.success) { showError(data.error); return; }
         fetchGames(seasonId); flash("Game deleted!");
     };
 
@@ -308,9 +305,6 @@ export default function AdminOrganizationsPage() {
                 </div>
             ) : (
                 <>
-                    {success && <div className="admin-alert admin-alert-success"><i className="fa-solid fa-check-circle"></i> {success}</div>}
-                    {error && <div className="admin-alert admin-alert-error"><i className="fa-solid fa-exclamation-circle"></i> {error}</div>}
-
                     <div className="admin-card">
                         <div className="admin-card-header">
                             <h3>Organizations ({orgs.length})</h3>

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import AdminLayout, { hasAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
+import { useToast } from "@/components/AdminToast";
 
 export default function AdminGamesPage() {
     const { user } = useAuth();
@@ -12,15 +13,14 @@ export default function AdminGamesPage() {
     const [selectedSeason, setSelectedSeason] = useState("");
     const [games, setGames] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
-    const [success, setSuccess] = useState("");
+    const { showSuccess, showError } = useToast();
 
     const fetchOrgs = useCallback(async () => {
         try {
             const res = await fetch("/api/organizations");
             const data = await res.json();
             if (data.success) setOrgs(data.data);
-        } catch { setError("Failed to load organizations"); }
+        } catch { showError("Failed to load organizations"); }
     }, []);
 
     useEffect(() => { fetchOrgs(); }, [fetchOrgs]);
@@ -48,15 +48,13 @@ export default function AdminGamesPage() {
 
     const deleteGame = async (gameId) => {
         if (!confirm("Delete this game?")) return;
-        setError("");
         try {
             const res = await fetch(`/api/games/${gameId}`, { method: "DELETE" });
             const data = await res.json();
-            if (!data.success) { setError(data.error); return; }
+            if (!data.success) { showError(data.error); return; }
             setGames(prev => prev.filter(g => g._id !== gameId));
-            setSuccess("Game deleted!");
-            setTimeout(() => setSuccess(""), 3000);
-        } catch { setError("Failed to delete game"); }
+            showSuccess("Game deleted!");
+        } catch { showError("Failed to delete game"); }
     };
 
     const canManage = user && hasAccess(user, "manage_games");
@@ -70,9 +68,6 @@ export default function AdminGamesPage() {
                 </div>
             ) : (
                 <>
-                    {success && <div className="admin-alert admin-alert-success"><i className="fa-solid fa-check-circle"></i> {success}</div>}
-                    {error && <div className="admin-alert admin-alert-error"><i className="fa-solid fa-exclamation-circle"></i> {error}</div>}
-
                     {/* Filters */}
                     <div className="admin-card">
                         <div className="admin-card-header">

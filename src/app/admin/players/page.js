@@ -4,21 +4,21 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import AdminLayout, { hasAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
+import { useToast } from "@/components/AdminToast";
 
 export default function AdminPlayersPage() {
     const { user } = useAuth();
     const [players, setPlayers] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
-    const [success, setSuccess] = useState("");
     const [search, setSearch] = useState("");
+    const { showSuccess, showError } = useToast();
 
     const fetchPlayers = useCallback(async () => {
         try {
             const res = await fetch("/api/players");
             const data = await res.json();
             if (data.success) setPlayers(data.data);
-        } catch { setError("Failed to load players"); }
+        } catch { showError("Failed to load players"); }
         finally { setLoading(false); }
     }, []);
 
@@ -26,15 +26,13 @@ export default function AdminPlayersPage() {
 
     const deletePlayer = async (id) => {
         if (!confirm("Delete this player?")) return;
-        setError("");
         try {
             const res = await fetch(`/api/players/${id}`, { method: "DELETE" });
             const data = await res.json();
-            if (!data.success) { setError(data.error); return; }
+            if (!data.success) { showError(data.error); return; }
             fetchPlayers();
-            setSuccess("Player deleted!");
-            setTimeout(() => setSuccess(""), 3000);
-        } catch { setError("Failed to delete player"); }
+            showSuccess("Player deleted!");
+        } catch { showError("Failed to delete player"); }
     };
 
     const filtered = players.filter(p =>
@@ -53,9 +51,6 @@ export default function AdminPlayersPage() {
                 </div>
             ) : (
                 <>
-                    {success && <div className="admin-alert admin-alert-success"><i className="fa-solid fa-check-circle"></i> {success}</div>}
-                    {error && <div className="admin-alert admin-alert-error"><i className="fa-solid fa-exclamation-circle"></i> {error}</div>}
-
                     <div className="admin-card">
                         <div className="admin-card-header">
                             <h3>Players ({filtered.length})</h3>
