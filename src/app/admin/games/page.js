@@ -103,7 +103,8 @@ export default function AdminGamesPage() {
                                 <p>Select an organization and season to view games.</p>
                             </div>
                         ) : loading ? (
-                            <div className="admin-card-body" style={{ textAlign: "center", color: "rgba(255,255,255,0.4)" }}>
+                            <div className="admin-loading">
+                                <div className="admin-spinner"></div>
                                 Loading games...
                             </div>
                         ) : games.length === 0 ? (

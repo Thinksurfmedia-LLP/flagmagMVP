@@ -65,7 +65,8 @@ export default function AdminPlayersPage() {
                         </div>
 
                         {loading ? (
-                            <div className="admin-card-body" style={{ textAlign: "center", color: "rgba(255,255,255,0.4)" }}>
+                            <div className="admin-loading">
+                                <div className="admin-spinner"></div>
                                 Loading players...
                             </div>
                         ) : filtered.length === 0 ? (

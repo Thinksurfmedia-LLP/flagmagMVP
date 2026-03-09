@@ -319,7 +319,10 @@ export default function AdminOrganizationsPage() {
                             )}
 
                             {loading ? (
-                                <div style={{ textAlign: "center", padding: 32, color: "rgba(255,255,255,0.4)" }}>Loading...</div>
+                                <div className="admin-loading">
+                                    <div className="admin-spinner"></div>
+                                    Loading organizations...
+                                </div>
                             ) : orgs.length === 0 ? (
                                 <div className="admin-empty">
                                     <i className="fa-solid fa-building"></i>

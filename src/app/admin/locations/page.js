@@ -203,7 +203,10 @@ export default function AdminLocationsPage() {
                     <p>You don&apos;t have permission to manage locations.</p>
                 </div>
             ) : loading ? (
-                <div style={{ textAlign: "center", color: "#8b90a0", padding: 40 }}>Loading...</div>
+                <div className="admin-loading">
+                    <div className="admin-spinner"></div>
+                    Loading...
+                </div>
             ) : (
                 <>
                     {/* ── Tabs ── */}

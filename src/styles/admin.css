@@ -518,6 +518,31 @@
     border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
+/* ── Loading Spinner ── */
+.admin-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    gap: 16px;
+    color: #8b90a0;
+    font-size: 13px;
+}
+
+.admin-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #e8eaef;
+    border-top-color: #FF1E00;
+    border-radius: 50%;
+    animation: adminSpin 0.7s linear infinite;
+}
+
+@keyframes adminSpin {
+    to { transform: rotate(360deg); }
+}
+
 /* ── Toast Notifications ── */
 .admin-toast-container {
     position: fixed;

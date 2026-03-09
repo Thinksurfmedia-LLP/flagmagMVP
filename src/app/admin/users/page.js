@@ -267,7 +267,8 @@ export default function AdminUsersPage() {
                             </div>
                         </div>
                         {loading ? (
-                            <div className="admin-card-body" style={{ textAlign: "center", color: "#8b90a0" }}>
+                            <div className="admin-loading">
+                                <div className="admin-spinner"></div>
                                 Loading users...
                             </div>
                         ) : filtered.length === 0 ? (

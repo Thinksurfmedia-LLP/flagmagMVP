@@ -160,7 +160,8 @@ export default function AdminRolesPage() {
                     )}
 
                     {loading ? (
-                        <div className="admin-card-body" style={{ textAlign: "center", color: "#8b90a0" }}>
+                        <div className="admin-loading">
+                            <div className="admin-spinner"></div>
                             Loading roles...
                         </div>
                     ) : roles.length === 0 ? (
