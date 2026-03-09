@@ -333,6 +333,36 @@
     border-bottom: none;
 }
 
+/* ── Tabs ── */
+.admin-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid #e8eaef;
+    margin-bottom: 20px;
+}
+
+.admin-tab {
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #8b90a0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: color 0.2s, border-color 0.2s;
+}
+
+.admin-tab:hover {
+    color: #1a1d26;
+}
+
+.admin-tab.active {
+    color: #FF1E00;
+    border-bottom-color: #FF1E00;
+}
+
 /* ── Badges ── */
 .admin-badge {
     display: inline-block;

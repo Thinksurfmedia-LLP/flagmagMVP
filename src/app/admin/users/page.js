@@ -14,8 +14,8 @@ const PERM_LABELS = {
     view_dashboard: "View Dashboard",
 };
 
-function AddUserModal({ onClose, onSave }) {
-    const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "", role: "player" });
+function AddUserModal({ onClose, onSave, organizations }) {
+    const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "", role: "player", organization: "" });
     const [saving, setSaving] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
@@ -23,6 +23,10 @@ function AddUserModal({ onClose, onSave }) {
 
     const handleSave = async () => {
         setFormError("");
+        if (form.role === "organizer" && !form.organization) {
+            setFormError("Please select an organization for the organizer");
+            return;
+        }
         if (form.password !== form.confirmPassword) {
             setFormError("Passwords do not match");
             return;
@@ -71,12 +75,23 @@ function AddUserModal({ onClose, onSave }) {
                 </div>
                 <div className="admin-form-group">
                     <label className="admin-form-label">Role</label>
-                    <select className="admin-form-select" value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}>
+                    <select className="admin-form-select" value={form.role} onChange={e => setForm({ ...form, role: e.target.value, ...(e.target.value !== "organizer" ? { organization: "" } : {}) })}>
                         <option value="player">Player</option>
                         <option value="organizer">Organizer</option>
                         <option value="admin">Admin</option>
                     </select>
                 </div>
+                {form.role === "organizer" && (
+                    <div className="admin-form-group">
+                        <label className="admin-form-label">Organization *</label>
+                        <select className="admin-form-select" value={form.organization} onChange={e => setForm({ ...form, organization: e.target.value })}>
+                            <option value="">— Select Organization —</option>
+                            {(organizations || []).map(o => (
+                                <option key={o._id} value={o._id}>{o.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
 
                 <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
                     <button className="admin-btn admin-btn-ghost" onClick={onClose}>Cancel</button>
@@ -161,6 +176,7 @@ export default function AdminUsersPage() {
     const [editTarget, setEditTarget] = useState(null);
     const [search, setSearch] = useState("");
     const [showAddUser, setShowAddUser] = useState(false);
+    const [organizations, setOrganizations] = useState([]);
     const { showSuccess, showError } = useToast();
 
     const fetchUsers = useCallback(async () => {
@@ -177,6 +193,12 @@ export default function AdminUsersPage() {
     }, []);
 
     useEffect(() => { fetchUsers(); }, [fetchUsers]);
+
+    useEffect(() => {
+        fetch("/api/organizations").then(r => r.json()).then(d => {
+            if (d.success) setOrganizations(d.data);
+        }).catch(() => {});
+    }, []);
 
     const handleSave = async (userId, updates) => {
         try {
@@ -273,6 +295,7 @@ export default function AdminUsersPage() {
                                         <tr>
                                             <th>Name</th>
                                             <th>Email</th>
+                                            <th>Organization</th>
                                             <th>Role</th>
                                             <th>Permissions</th>
                                             <th>Joined</th>
@@ -288,6 +311,9 @@ export default function AdminUsersPage() {
                                                     {u.isActive === false && <span className="admin-badge" style={{ marginLeft: 8, background: "#fee2e2", color: "#dc2626" }}>Inactive</span>}
                                                 </td>
                                                 <td style={{ color: "#5a5f72" }}>{u.email}</td>
+                                                <td style={{ color: "#5a5f72", fontSize: 13 }}>
+                                                    {u.organization ? u.organization.name : <span style={{ color: "#a0a4b2" }}>—</span>}
+                                                </td>
                                                 <td>
                                                     <span className={`admin-badge ${u.role}`}>{u.role}</span>
                                                 </td>
@@ -368,9 +394,9 @@ export default function AdminUsersPage() {
 
                     {showAddUser && (
                         <AddUserModal
+                            organizations={organizations}
                             onClose={() => setShowAddUser(false)}
                             onSave={async (formData) => {
-                                setError("");
                                 try {
                                     const res = await fetch("/api/admin/users", {
                                         method: "POST",

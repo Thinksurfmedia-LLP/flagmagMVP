@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
+import Organization from "@/models/Organization";
 import { requireAdmin } from "@/lib/apiAuth";
 
 export async function GET() {
@@ -10,7 +11,7 @@ export async function GET() {
 
     try {
         await dbConnect();
-        const users = await User.find({}, "-password").sort({ createdAt: -1 }).lean();
+        const users = await User.find({}, "-password").populate("organization", "name slug").sort({ createdAt: -1 }).lean();
         return NextResponse.json({ success: true, data: users });
     } catch (error) {
         return NextResponse.json(
@@ -26,7 +27,7 @@ export async function POST(request) {
 
     try {
         await dbConnect();
-        const { name, email, phone, password, role } = await request.json();
+        const { name, email, phone, password, role, organization } = await request.json();
 
         if (!name || !email || !password) {
             return NextResponse.json(
@@ -59,6 +60,7 @@ export async function POST(request) {
             phone: phone || "",
             password: hashedPassword,
             role: role || "player",
+            ...(organization ? { organization } : {}),
         });
 
         const userData = user.toObject();

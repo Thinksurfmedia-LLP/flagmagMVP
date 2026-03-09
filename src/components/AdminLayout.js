@@ -36,6 +36,7 @@ const NAV_ITEMS = [
         section: "Management",
         items: [
             { label: "Organizations", href: "/admin/organizations", icon: "fa-solid fa-building", perm: "manage_organizations" },
+            { label: "Locations", href: "/admin/locations", icon: "fa-solid fa-map-location-dot", perm: "manage_organizations" },
             { label: "Players", href: "/admin/players", icon: "fa-solid fa-users", perm: "manage_players" },
             { label: "Games", href: "/admin/games", icon: "fa-solid fa-football", perm: "manage_games" },
         ],

@@ -40,6 +40,11 @@ const UserSchema = new mongoose.Schema(
             ],
             default: [],
         },
+        organization: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Organization",
+            default: null,
+        },
         isActive: {
             type: Boolean,
             default: true,
