@@ -13,6 +13,81 @@ const PERM_LABELS = {
     view_dashboard: "View Dashboard",
 };
 
+function AddUserModal({ onClose, onSave }) {
+    const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "", role: "player" });
+    const [saving, setSaving] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [formError, setFormError] = useState("");
+
+    const handleSave = async () => {
+        setFormError("");
+        if (form.password !== form.confirmPassword) {
+            setFormError("Passwords do not match");
+            return;
+        }
+        setSaving(true);
+        await onSave(form);
+        setSaving(false);
+    };
+
+    return (
+        <div className="admin-modal-backdrop" onClick={onClose}>
+            <div className="admin-modal" onClick={e => e.stopPropagation()}>
+                <h3 className="admin-modal-title">Add New User</h3>
+
+                {formError && <div className="admin-alert admin-alert-error" style={{ marginBottom: 12 }}><i className="fa-solid fa-exclamation-circle"></i> {formError}</div>}
+
+                <div className="admin-form-group">
+                    <label className="admin-form-label">Name *</label>
+                    <input className="admin-form-input" autoComplete="off" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Full name" />
+                </div>
+                <div className="admin-form-group">
+                    <label className="admin-form-label">Email *</label>
+                    <input type="email" className="admin-form-input" autoComplete="off" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="user@example.com" />
+                </div>
+                <div className="admin-form-group">
+                    <label className="admin-form-label">Phone</label>
+                    <input className="admin-form-input" autoComplete="off" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="+1-555-0000" />
+                </div>
+                <div className="admin-form-group">
+                    <label className="admin-form-label">Password *</label>
+                    <div style={{ position: "relative" }}>
+                        <input type={showPassword ? "text" : "password"} className="admin-form-input" autoComplete="new-password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="Min 6 characters" style={{ paddingRight: 36 }} />
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#8b90a0", fontSize: 14 }}>
+                            <i className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
+                        </button>
+                    </div>
+                </div>
+                <div className="admin-form-group">
+                    <label className="admin-form-label">Confirm Password *</label>
+                    <div style={{ position: "relative" }}>
+                        <input type={showConfirm ? "text" : "password"} className="admin-form-input" autoComplete="new-password" value={form.confirmPassword} onChange={e => setForm({ ...form, confirmPassword: e.target.value })} placeholder="Re-enter password" style={{ paddingRight: 36 }} />
+                        <button type="button" onClick={() => setShowConfirm(!showConfirm)} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#8b90a0", fontSize: 14 }}>
+                            <i className={`fa-solid ${showConfirm ? "fa-eye-slash" : "fa-eye"}`}></i>
+                        </button>
+                    </div>
+                </div>
+                <div className="admin-form-group">
+                    <label className="admin-form-label">Role</label>
+                    <select className="admin-form-select" value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}>
+                        <option value="player">Player</option>
+                        <option value="organizer">Organizer</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+
+                <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
+                    <button className="admin-btn admin-btn-ghost" onClick={onClose}>Cancel</button>
+                    <button className="admin-btn admin-btn-primary" onClick={handleSave} disabled={saving}>
+                        {saving ? "Creating..." : "Create User"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function RoleModal({ user: target, onClose, onSave }) {
     const [role, setRole] = useState(target.role);
     const [permissions, setPermissions] = useState(target.permissions || []);
@@ -61,7 +136,7 @@ function RoleModal({ user: target, onClose, onSave }) {
                                 </label>
                             ))}
                         </div>
-                        <div style={{ marginTop: 8, fontSize: 12, color: "rgba(255,255,255,0.35)" }}>
+                        <div style={{ marginTop: 8, fontSize: 12, color: "#8b90a0" }}>
                             Admins automatically have all permissions.
                         </div>
                     </div>
@@ -86,6 +161,7 @@ export default function AdminUsersPage() {
     const [success, setSuccess] = useState("");
     const [error, setError] = useState("");
     const [search, setSearch] = useState("");
+    const [showAddUser, setShowAddUser] = useState(false);
 
     const fetchUsers = useCallback(async () => {
         try {
@@ -144,17 +220,25 @@ export default function AdminUsersPage() {
                     <div className="admin-card">
                         <div className="admin-card-header">
                             <h3>All Users ({filtered.length})</h3>
-                            <input
-                                type="text"
-                                className="admin-form-input"
-                                placeholder="Search users..."
-                                value={search}
-                                onChange={e => setSearch(e.target.value)}
-                                style={{ maxWidth: 260 }}
-                            />
+                            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                                <input
+                                    type="text"
+                                    className="admin-form-input"
+                                    placeholder="Search users..."
+                                    value={search}
+                                    onChange={e => setSearch(e.target.value)}
+                                    autoComplete="off"
+                                    style={{ maxWidth: 260 }}
+                                />
+                                {user?.role === "admin" && (
+                                    <button className="admin-btn admin-btn-primary" style={{ whiteSpace: "nowrap" }} onClick={() => { setSearch(""); setShowAddUser(true); }}>
+                                        <i className="fa-solid fa-plus"></i> Add User
+                                    </button>
+                                )}
+                            </div>
                         </div>
                         {loading ? (
-                            <div className="admin-card-body" style={{ textAlign: "center", color: "rgba(255,255,255,0.4)" }}>
+                            <div className="admin-card-body" style={{ textAlign: "center", color: "#8b90a0" }}>
                                 Loading users...
                             </div>
                         ) : filtered.length === 0 ? (
@@ -179,13 +263,13 @@ export default function AdminUsersPage() {
                                         {filtered.map(u => (
                                             <tr key={u._id}>
                                                 <td style={{ fontWeight: 600 }}>{u.name}</td>
-                                                <td style={{ color: "rgba(255,255,255,0.5)" }}>{u.email}</td>
+                                                <td style={{ color: "#5a5f72" }}>{u.email}</td>
                                                 <td>
                                                     <span className={`admin-badge ${u.role}`}>{u.role}</span>
                                                 </td>
                                                 <td>
                                                     {u.role === "admin" ? (
-                                                        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)" }}>All</span>
+                                                        <span style={{ fontSize: 12, color: "#8b90a0" }}>All</span>
                                                     ) : (u.permissions || []).length > 0 ? (
                                                         <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
                                                             {(u.permissions || []).map(p => (
@@ -193,18 +277,18 @@ export default function AdminUsersPage() {
                                                                     fontSize: 11,
                                                                     padding: "2px 8px",
                                                                     borderRadius: 4,
-                                                                    background: "rgba(99,102,241,0.1)",
-                                                                    color: "#818cf8",
+                                                                    background: "rgba(255,30,0,0.08)",
+                                                                    color: "#FF1E00",
                                                                 }}>
                                                                     {PERM_LABELS[p] || p}
                                                                 </span>
                                                             ))}
                                                         </div>
                                                     ) : (
-                                                        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.25)" }}>None</span>
+                                                        <span style={{ fontSize: 12, color: "#a0a4b2" }}>None</span>
                                                     )}
                                                 </td>
-                                                <td style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
+                                                <td style={{ color: "#8b90a0", fontSize: 13 }}>
                                                     {new Date(u.createdAt).toLocaleDateString()}
                                                 </td>
                                                 <td>
@@ -230,6 +314,30 @@ export default function AdminUsersPage() {
                             user={editTarget}
                             onClose={() => setEditTarget(null)}
                             onSave={handleSave}
+                        />
+                    )}
+
+                    {showAddUser && (
+                        <AddUserModal
+                            onClose={() => setShowAddUser(false)}
+                            onSave={async (formData) => {
+                                setError("");
+                                try {
+                                    const res = await fetch("/api/admin/users", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify(formData),
+                                    });
+                                    const data = await res.json();
+                                    if (!data.success) { setError(data.error); return; }
+                                    setShowAddUser(false);
+                                    fetchUsers();
+                                    setSuccess("User created successfully!");
+                                    setTimeout(() => setSuccess(""), 3000);
+                                } catch {
+                                    setError("Failed to create user");
+                                }
+                            }}
                         />
                     )}
                 </>
