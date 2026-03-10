@@ -52,17 +52,23 @@ function getImpersonationNav(orgSlug) {
         {
             section: "Organization",
             items: [
-                { label: "Dashboard", href: `/admin/organizations/${orgSlug}`, icon: "fa-solid fa-chart-pie" },
-                { label: "Seasons", href: `/admin/organizations/${orgSlug}/seasons`, icon: "fa-solid fa-calendar-days" },
-                { label: "Games", href: `/admin/organizations/${orgSlug}/games`, icon: "fa-solid fa-football" },
-                { label: "Players", href: `/admin/organizations/${orgSlug}/players`, icon: "fa-solid fa-users" },
-                { label: "Teams", href: `/admin/organizations/${orgSlug}/teams`, icon: "fa-solid fa-people-group" },
+                { label: "Dashboard", href: `/admin/organizations/${orgSlug}`, icon: "fa-solid fa-chart-pie", perm: "view_dashboard" },
+                { label: "Seasons", href: `/admin/organizations/${orgSlug}/seasons`, icon: "fa-solid fa-calendar-days", perm: "manage_seasons" },
+                { label: "Games", href: `/admin/organizations/${orgSlug}/games`, icon: "fa-solid fa-football", perm: "manage_games" },
+                { label: "Players", href: `/admin/organizations/${orgSlug}/players`, icon: "fa-solid fa-users", perm: "manage_players" },
+                { label: "Teams", href: `/admin/organizations/${orgSlug}/teams`, icon: "fa-solid fa-people-group", perm: "manage_organizations" },
+            ],
+        },
+        {
+            section: "Administration",
+            items: [
+                { label: "Users", href: `/admin/organizations/${orgSlug}/users`, icon: "fa-solid fa-users-gear", perm: "manage_users" },
             ],
         },
         {
             section: "Settings",
             items: [
-                { label: "Organization", href: `/admin/organizations/${orgSlug}/settings`, icon: "fa-solid fa-gear" },
+                { label: "Organization", href: `/admin/organizations/${orgSlug}/settings`, icon: "fa-solid fa-gear", perm: "manage_organizations" },
             ],
         },
     ];
@@ -122,9 +128,7 @@ export default function AdminLayout({ children, title }) {
 
                 <nav className="admin-sidebar-nav">
                     {navSections.map((section) => {
-                        const visibleItems = isImpersonating
-                            ? section.items
-                            : section.items.filter(item => hasAccess(user, item.perm));
+                        const visibleItems = section.items.filter(item => hasAccess(user, item.perm));
                         if (visibleItems.length === 0) return null;
                         return (
                             <div className="admin-nav-section" key={section.section}>
