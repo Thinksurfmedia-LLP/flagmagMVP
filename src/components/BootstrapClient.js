@@ -45,21 +45,7 @@ export default function BootstrapClient() {
       import("bootstrap/dist/js/bootstrap.bundle.min.js").then(() => {
         // Import Owl Carousel (requires jQuery on window)
         import("owl.carousel").then(() => {
-          // Initialize testimonial carousel
-          $(".testimonial-carousel").owlCarousel({
-            loop: true,
-            margin: 10,
-            nav: true,
-            autoplay: true,
-            autoplayTimeout: 3000,
-            responsive: {
-              0: { items: 1, nav: false },
-              600: { items: 2, nav: true },
-              1000: { items: 3 },
-            },
-          });
-
-          // Initialize gallery carousel
+          // Initialize gallery carousel (testimonial carousel is handled by its own component)
           $(".gallery-carousel").owlCarousel({
             loop: true,
             margin: 10,

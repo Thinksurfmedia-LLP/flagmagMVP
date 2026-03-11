@@ -1,5 +1,6 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import TestimonialCarousel from "@/components/TestimonialCarousel";
 import Link from "next/link";
 
 export default function HomePage() {
@@ -307,7 +308,7 @@ export default function HomePage() {
           </div>
 
           <div className="testimonial-slider">
-            <div className="owl-carousel owl-theme testimonial-carousel">
+            <TestimonialCarousel>
               <div className="item testimonial-area">
                 <div className="card">
                   <div className="card-header">
@@ -343,7 +344,7 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-            </div>
+            </TestimonialCarousel>
           </div>
         </div>
       </section>
