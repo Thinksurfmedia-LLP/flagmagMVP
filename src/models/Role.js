@@ -68,6 +68,12 @@ export const DEFAULT_ROLES = [
         permissions: [],
         isSystem: true,
     },
+    {
+        name: "Viewer",
+        slug: "viewer",
+        permissions: [],
+        isSystem: true,
+    },
 ];
 
 export async function seedDefaultRoles() {

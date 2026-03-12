@@ -52,7 +52,7 @@ export async function POST(request) {
             email,
             phone: phone || "",
             password: hashedPassword,
-            role: "player",
+            role: "viewer",
         });
 
         // Look up role permissions

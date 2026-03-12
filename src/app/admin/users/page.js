@@ -6,7 +6,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 
 function AddUserModal({ onClose, onSave, organizations, roles }) {
-    const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "", role: "player", organization: "" });
+    const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "", role: "viewer", organization: "" });
     const [saving, setSaving] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);

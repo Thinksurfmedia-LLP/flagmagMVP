@@ -25,7 +25,7 @@ const UserSchema = new mongoose.Schema(
         },
         role: {
             type: String,
-            default: "player",
+            default: "viewer",
             trim: true,
             lowercase: true,
         },

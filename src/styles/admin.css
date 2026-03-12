@@ -401,6 +401,11 @@
     color: #16a34a;
 }
 
+.admin-badge.viewer {
+    background: rgba(99, 102, 241, 0.1);
+    color: #6366f1;
+}
+
 /* ── Buttons ── */
 .admin-btn {
     display: inline-flex;
