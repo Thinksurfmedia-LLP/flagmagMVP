@@ -4,6 +4,7 @@ import Link from "next/link";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import Season from "@/models/Season";
+import Player from "@/models/Player";
 
 async function getData(slug, seasonSlug) {
     await dbConnect();
@@ -11,18 +12,20 @@ async function getData(slug, seasonSlug) {
     if (!org) return null;
     const season = await Season.findOne({ organization: org._id, slug: seasonSlug }).lean();
     if (!season) return null;
+    const players = await Player.find({}).lean();
     return {
         org: JSON.parse(JSON.stringify(org)),
         season: JSON.parse(JSON.stringify(season)),
+        players: JSON.parse(JSON.stringify(players)),
     };
 }
 
-// Sample player stats data matching the HTML design
+// Fallback sample data if no players exist in DB
 const samplePlayerStats = [
-    { name: "Aaron Benton", rate: "102.08", atts: 12, comp: 102, tds: 10, pct: 60, xp2: "-", yards: 1, ten: 114, twenty: 2, forty: 22, ints: 50, intOpen: 25, intXp: 25 },
-    { name: "Aaron Benton", rate: "102.08", atts: 12, comp: 102, tds: 10, pct: 60, xp2: "-", yards: 1, ten: 114, twenty: 2, forty: 22, ints: 50, intOpen: 25, intXp: 25 },
-    { name: "Aaron Benton", rate: "102.08", atts: 12, comp: 102, tds: 10, pct: 60, xp2: "-", yards: 1, ten: 114, twenty: 2, forty: 22, ints: 50, intOpen: 25, intXp: 25 },
-    { name: "Aaron Benton", rate: "102.08", atts: 12, comp: 102, tds: 10, pct: 60, xp2: "-", yards: 1, ten: 114, twenty: 2, forty: 22, ints: 50, intOpen: 25, intXp: 25 },
+    { _id: null, name: "Aaron Benton", rate: "102.08", atts: 12, comp: 102, tds: 10, pct: 60, xp2: "-", yards: 1, ten: 114, twenty: 2, forty: 22, ints: 50, intOpen: 25, intXp: 25 },
+    { _id: null, name: "Aaron Benton", rate: "102.08", atts: 12, comp: 102, tds: 10, pct: 60, xp2: "-", yards: 1, ten: 114, twenty: 2, forty: 22, ints: 50, intOpen: 25, intXp: 25 },
+    { _id: null, name: "Aaron Benton", rate: "102.08", atts: 12, comp: 102, tds: 10, pct: 60, xp2: "-", yards: 1, ten: 114, twenty: 2, forty: 22, ints: 50, intOpen: 25, intXp: 25 },
+    { _id: null, name: "Aaron Benton", rate: "102.08", atts: 12, comp: 102, tds: 10, pct: 60, xp2: "-", yards: 1, ten: 114, twenty: 2, forty: 22, ints: 50, intOpen: 25, intXp: 25 },
 ];
 
 export default async function PlayerStatsPage({ params }) {
@@ -35,7 +38,18 @@ export default async function PlayerStatsPage({ params }) {
         );
     }
 
-    const { org, season } = data;
+    const { org, season, players } = data;
+
+    // Build player rows from real DB players, or fall back to sample data
+    const playerRows = players.length > 0
+        ? players.map((p) => ({
+            _id: p._id,
+            name: p.name,
+            photo: p.photo || "/assets/images/t-logo.jpg",
+            teamLogo: p.presentTeam?.logo || "/assets/images/t-logo.jpg",
+            rate: "102.08", atts: 12, comp: 102, tds: 10, pct: 60, xp2: "-", yards: 1, ten: 114, twenty: 2, forty: 22, ints: 50, intOpen: 25, intXp: 25,
+        }))
+        : samplePlayerStats;
 
     // Collect all team names from divisions for the team tabs
     const allTeams = [];
@@ -150,10 +164,10 @@ export default async function PlayerStatsPage({ params }) {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {samplePlayerStats.map((player, i) => (
+                                    {playerRows.map((player, i) => (
                                         <tr key={i}>
-                                            <td><img src="/assets/images/t-logo.jpg" alt="" /> <Link href="#">{player.name}</Link></td>
-                                            <td><Link href="#"><img src="/assets/images/t-logo.jpg" alt="" /></Link></td>
+                                            <td><img src={player.photo || "/assets/images/t-logo.jpg"} alt="" /> {player._id ? <Link href={`/players/${player._id}`}>{player.name}</Link> : player.name}</td>
+                                            <td>{player._id ? <Link href={`/players/${player._id}`}><img src={player.teamLogo || "/assets/images/t-logo.jpg"} alt="" /></Link> : <img src="/assets/images/t-logo.jpg" alt="" />}</td>
                                             <td>{player.rate}</td>
                                             <td>{player.atts}</td>
                                             <td>{player.comp}</td>
