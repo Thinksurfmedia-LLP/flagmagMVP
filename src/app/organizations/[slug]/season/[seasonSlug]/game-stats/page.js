@@ -120,7 +120,7 @@ export default async function GameStatsPage({ params }) {
                         <ul>
                             <li><Link href={`/organizations/${slug}/season/${seasonSlug}`}>Schedules</Link></li>
                             <li className="active"><Link href={`/organizations/${slug}/season/${seasonSlug}/game-stats`}>Game Stats</Link></li>
-                            <li><Link href="#">Player Stat</Link></li>
+                            <li><Link href={`/organizations/${slug}/season/${seasonSlug}/player-stats`}>Player Stats</Link></li>
                             <li><Link href="#">Location</Link></li>
                             <li><Link href="#">Media</Link></li>
                         </ul>

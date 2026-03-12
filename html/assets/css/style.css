@@ -1,6 +1,6 @@
 @font-face {
   font-family: "Cros";
-  src: url("/assets/webfonts/Cros.woff2") format("woff2"), url("/assets/webfonts/Cros.woff") format("woff"), url("/assets/webfonts/Cros.ttf") format("truetype");
+  src: url("../webfonts/Cros.woff2") format("woff2"), url("../webfonts/Cros.woff") format("woff"), url("../webfonts/Cros.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -256,7 +256,7 @@ ul.list2 li:before {
   top: 5px;
   width: 20px;
   height: 14px;
-  background: url(/assets/images/list2.png) center center no-repeat;
+  background: url(../images/list2.png) center center no-repeat;
   background-size: contain;
 }
 
@@ -318,12 +318,12 @@ input:focus {
 
 .owl-carousel .owl-nav button.owl-next {
   right: -5%;
-  background: url(/assets/images/next.png) center center no-repeat !important;
+  background: url(../images/next.png) center center no-repeat !important;
 }
 
 .owl-carousel .owl-nav button.owl-prev {
   left: -5%;
-  background: url(/assets/images/prev.png) center center no-repeat !important;
+  background: url(../images/prev.png) center center no-repeat !important;
 }
 
 .owl-carousel .owl-dots {
@@ -515,7 +515,7 @@ header.for-homepage {
 
 .banner-section {
   min-height: 100vh;
-  background: url(/assets/images/banner.jpg) center top no-repeat;
+  background: url(../images/banner.jpg) center top no-repeat;
   background-size: cover;
   position: relative;
   padding: 6.5rem 0 4.5rem;
@@ -579,7 +579,7 @@ header.for-homepage {
   left: 0;
   width: 100%;
   height: 100%;
-  background: url(/assets/images/bg1.png) center top no-repeat;
+  background: url(../images/bg1.png) center top no-repeat;
   background-size: auto;
   background-size: 100% auto;
   opacity: 0.5;
@@ -669,7 +669,7 @@ header.for-homepage {
   left: 0;
   width: 100%;
   height: 100%;
-  background: url(/assets/images/bg1.png) center top no-repeat;
+  background: url(../images/bg1.png) center top no-repeat;
   background-size: 100% auto;
   opacity: 1;
   z-index: 1;
@@ -716,7 +716,7 @@ header.for-homepage {
   left: 0;
   width: 100%;
   height: 100%;
-  background: url(/assets/images/plat1.png) left center no-repeat;
+  background: url(../images/plat1.png) left center no-repeat;
   background-size: contain;
   opacity: 1;
   z-index: 1;
@@ -729,7 +729,7 @@ header.for-homepage {
   left: 0;
   width: 100%;
   height: 100%;
-  background: url(/assets/images/plat2.png) right center no-repeat;
+  background: url(../images/plat2.png) right center no-repeat;
   background-size: contain;
   opacity: 1;
   z-index: 1;
@@ -876,7 +876,7 @@ header.for-homepage {
   left: 0;
   width: 100%;
   height: 100%;
-  background: url(/assets/images/dots.png) center center no-repeat;
+  background: url(../images/dots.png) center center no-repeat;
   background-size: contain;
   opacity: 1;
   z-index: 1;
@@ -1075,9 +1075,8 @@ header.for-homepage {
 }
 .testimonial-section .testimonial-area .card .card-body {
   border: 0;
+  height: 100%;
   min-height: 180px;
-  padding: 0;
-  flex: 0 1 auto;
 }
 .testimonial-section .testimonial-area .card .card-body p {
   margin: 0;
@@ -1107,7 +1106,7 @@ header.for-homepage {
   left: 0;
   width: 100%;
   height: 100%;
-  background: url(/assets/images/up-ftr-bg.png) center bottom no-repeat;
+  background: url(../images/up-ftr-bg.png) center bottom no-repeat;
   background-size: contain;
   opacity: 1;
   z-index: 1;
@@ -1236,7 +1235,7 @@ header.for-homepage {
 }
 
 .organization-team-section .search-part .form-control {
-  background: url(/assets/images/icon-search.png) 20px center no-repeat #16181C;
+  background: url(../images/icon-search.png) 20px center no-repeat #16181C;
   padding-left: 55px;
   transition: 0.3s;
 }
@@ -1494,7 +1493,7 @@ header.for-homepage {
   top: 12px;
   right: 0;
   z-index: 2;
-  background: url(/assets/images/badge-bg.png) left center no-repeat;
+  background: url(../images/badge-bg.png) left center no-repeat;
   background-size: 100% 100%;
   display: flex;
   align-items: center;
@@ -1608,6 +1607,41 @@ header.for-homepage {
 }
 .leagues-section .leagues-filter-area .form-select {
   width: auto;
+}
+
+.players-stats-heading-area {
+  margin: 0 0 20px;
+}
+.players-stats-heading-area .team-nav {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+.players-stats-heading-area .team-nav li {
+  font-size: 14px;
+}
+.players-stats-heading-area .team-nav li a {
+  color: #fff;
+  padding: 5px 15px;
+  min-width: 100px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.3019607843);
+  border-radius: 26px;
+  display: inline-block;
+}
+.players-stats-heading-area .team-nav li.active a, .players-stats-heading-area .team-nav li:hover a {
+  color: #fff;
+  background-color: #8D1100;
+  border-color: #ab0000;
+  transition: 0.3s;
+}
+.players-stats-heading-area .dropdown .btn-info-primary {
+  font-size: 1rem;
+  text-transform: capitalize;
 }
 
 .venues-section {
@@ -1860,6 +1894,40 @@ header.for-homepage {
 .table tr td:not(:first-child) {
   text-align: center;
   vertical-align: middle;
+}
+
+.players-stats {
+  overflow: hidden;
+  border-radius: 10px;
+}
+.players-stats .table-wrap {
+  padding: 0;
+  border-radius: 0;
+  overflow: auto;
+}
+.players-stats .table-wrap table {
+  margin: 0;
+}
+.players-stats .table-wrap table tr th, .players-stats .table-wrap table tr td {
+  text-transform: uppercase;
+  font-family: "Cros", sans-serif;
+  letter-spacing: 1.4px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 18px;
+  text-align: center;
+  vertical-align: middle;
+  line-height: 1.25;
+}
+.players-stats .table-wrap table tr th {
+  background-color: rgb(40, 43, 44);
+}
+.players-stats .table-wrap table tr td {
+  color: #fff;
+}
+.players-stats .table-wrap table tr td a {
+  color: #fff;
+  text-decoration: underline;
 }
 
 .game-record-area .heading-area {
@@ -2212,18 +2280,14 @@ header.for-signup .top-header, header.for-signup .header-nav {
   min-height: 100vh;
 }
 .login-register-section .image-area {
-  background: url(/assets/images/login-bg.jpg) no-repeat center center;
+  background: url(../images/login-bg.jpg) no-repeat center center;
   background-size: cover;
 }
 .login-register-section .content-area-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 120px 10px 40px;
-}
-.login-register-section .content-area-wrap .content-area {
-  width: 100%;
-  max-width: 640px;
+  padding: 40px 10px;
 }
 .login-register-section .content-area-wrap .content-area .form-area {
   display: flex;
@@ -2236,17 +2300,12 @@ header.for-signup .top-header, header.for-signup .header-nav {
 .login-register-section .content-area-wrap .content-area .form-area .agree-check {
   font-size: 14px;
   color: #c7c7c7;
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
 }
 .login-register-section .content-area-wrap .content-area .form-area .agree-check a {
   color: #FF1E00;
 }
 .login-register-section .content-area-wrap .content-area .form-area .agree-check input {
-  margin-right: 2px;
-  flex-shrink: 0;
-  margin-top: 3px;
+  margin-right: 10px;
 }
 .login-register-section .content-area-wrap .content-area .form-area .btn {
   margin-top: 30px;
@@ -2341,75 +2400,6 @@ footer .copyright-area p {
     transform: translate(-50%, -50%) rotate(1turn);
   }
 }
-.players-stats-heading-area {
-  margin: 0 0 20px;
-}
-.players-stats-heading-area .team-nav {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-}
-.players-stats-heading-area .team-nav li {
-  font-size: 14px;
-}
-.players-stats-heading-area .team-nav li a {
-  color: #fff;
-  padding: 5px 15px;
-  min-width: 100px;
-  text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.3019607843);
-  border-radius: 26px;
-  display: inline-block;
-}
-.players-stats-heading-area .team-nav li.active a, .players-stats-heading-area .team-nav li:hover a {
-  color: #fff;
-  background-color: #8D1100;
-  border-color: #ab0000;
-  transition: 0.3s;
-}
-.players-stats-heading-area .dropdown .btn-info-primary {
-  font-size: 1rem;
-  text-transform: capitalize;
-}
-
-.players-stats {
-  overflow: hidden;
-  border-radius: 10px;
-}
-.players-stats .table-wrap {
-  padding: 0;
-  border-radius: 0;
-  overflow: auto;
-}
-.players-stats .table-wrap table {
-  margin: 0;
-}
-.players-stats .table-wrap table tr th, .players-stats .table-wrap table tr td {
-  text-transform: uppercase;
-  font-family: "Cros", sans-serif;
-  letter-spacing: 1.4px;
-  font-weight: 400;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 18px;
-  text-align: center;
-  vertical-align: middle;
-  line-height: 1.25;
-}
-.players-stats .table-wrap table tr th {
-  background-color: rgb(40, 43, 44);
-}
-.players-stats .table-wrap table tr td {
-  color: #fff;
-}
-.players-stats .table-wrap table tr td a {
-  color: #fff;
-  text-decoration: underline;
-}
-
 /* ============ RESPONSIVE CSS ============ */
 @media only screen and (min-width: 1600px) {
   .container {
@@ -2533,9 +2523,6 @@ footer .copyright-area p {
   }
   .login-register-section {
     text-align: center;
-  }
-  .login-register-section .content-area-wrap {
-    padding: 40px 10px;
   }
   .login-register-section .logo-area {
     display: block !important;
@@ -2804,6 +2791,13 @@ footer .copyright-area p {
   .build-section .image-area {
     margin-top: 30px;
   }
+  .build-section .image-area > img {
+    padding: 50px 0;
+    position: relative;
+  }
+  .build-section .image-area .build-bg {
+    position: absolute;
+  }
   .build-section .video-wrapper {
     margin-top: 35px;
   }
@@ -2873,6 +2867,15 @@ footer .copyright-area p {
     flex-direction: row;
     flex-wrap: wrap;
     margin: 15px 0 30px;
+  }
+  .players-stats .table-wrap table tr th, .players-stats .table-wrap table tr td {
+    font-size: 14px;
+  }
+  .players-stats .table-wrap table tr td img {
+    margin: 0;
+  }
+  .players-stats .table-wrap table tr td:nth-child(1) img {
+    margin-bottom: 7px;
   }
   .leagues-section .leagues-nav {
     gap: 10px;
@@ -2997,15 +3000,6 @@ footer .copyright-area p {
   }
   .players-info-section .awards .award-card .image-area img {
     max-height: 140px;
-  }
-  .players-stats .table-wrap table tr th, .players-stats .table-wrap table tr td {
-    font-size: 14px;
-  }
-  .players-stats .table-wrap table tr td img {
-    margin: 0;
-  }
-  .players-stats .table-wrap table tr td:nth-child(1) img {
-    margin-bottom: 7px;
   }
 }
 @media only screen and (max-width: 480px) {
