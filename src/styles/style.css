@@ -2219,7 +2219,11 @@ header.for-signup .top-header, header.for-signup .header-nav {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px 10px;
+  padding: 120px 10px 40px;
+}
+.login-register-section .content-area-wrap .content-area {
+  width: 100%;
+  max-width: 640px;
 }
 .login-register-section .content-area-wrap .content-area .form-area {
   display: flex;
@@ -2232,12 +2236,17 @@ header.for-signup .top-header, header.for-signup .header-nav {
 .login-register-section .content-area-wrap .content-area .form-area .agree-check {
   font-size: 14px;
   color: #c7c7c7;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
 }
 .login-register-section .content-area-wrap .content-area .form-area .agree-check a {
   color: #FF1E00;
 }
 .login-register-section .content-area-wrap .content-area .form-area .agree-check input {
-  margin-right: 10px;
+  margin-right: 2px;
+  flex-shrink: 0;
+  margin-top: 3px;
 }
 .login-register-section .content-area-wrap .content-area .form-area .btn {
   margin-top: 30px;
@@ -2455,6 +2464,9 @@ footer .copyright-area p {
   }
   .login-register-section {
     text-align: center;
+  }
+  .login-register-section .content-area-wrap {
+    padding: 40px 10px;
   }
   .login-register-section .logo-area {
     display: block !important;

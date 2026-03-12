@@ -89,6 +89,7 @@ export default function SignupForm() {
                     value={formData.email}
                     onChange={handleChange}
                     required
+                    suppressHydrationWarning
                 />
                 <input
                     type="password"

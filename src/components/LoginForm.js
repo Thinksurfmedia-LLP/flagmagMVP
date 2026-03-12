@@ -93,6 +93,12 @@ export default function LoginForm() {
                 >
                     {loading ? "Signing in..." : "Sign in"}
                 </button>
+                <p className="text-center mt-3" style={{ fontSize: '14px' }}>
+                    Don&apos;t have an account?{' '}
+                    <a href="/signup" style={{ color: '#FF1E00', textDecoration: 'none', fontWeight: 600 }}>
+                        Sign up here
+                    </a>
+                </p>
             </div>
         </form>
     );
