@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-export default function GameTeamStats({ teamA, teamB, orgSlug, seasonSlug, gameId }) {
+export default function GameTeamStats({ teamA, teamB, orgSlug, seasonSlug, gameId, dummyPlayers }) {
     const [activeTeam, setActiveTeam] = useState(teamA.name);
     const [statType, setStatType] = useState("passing");
     const [players, setPlayers] = useState([]);
@@ -20,10 +20,11 @@ export default function GameTeamStats({ teamA, teamB, orgSlug, seasonSlug, gameI
                     `/api/organizations/${orgSlug}/season/${seasonSlug}/game/${gameId}/player-stats?team=${encodeURIComponent(activeTeam)}&statType=${statType}`
                 );
                 const data = await res.json();
-                setPlayers(data.players || []);
+                const fetched = data.players || [];
+                setPlayers(fetched.length > 0 ? fetched : (dummyPlayers || []));
             } catch (err) {
                 console.error("Failed to fetch stats:", err);
-                setPlayers([]);
+                setPlayers(dummyPlayers || []);
             }
             setLoading(false);
         }
