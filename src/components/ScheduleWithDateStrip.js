@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 
-function MatchCard({ game }) {
+function MatchCard({ game, orgSlug, seasonSlug }) {
+    const gameStatsUrl = `/organizations/${orgSlug}/season/${seasonSlug}/game/${game._id}/stats`;
     return (
         <div className="col-xl-6">
             <div className="organization-team-area">
@@ -14,7 +16,9 @@ function MatchCard({ game }) {
                 </div>
                 <div className="middle">
                     <div className="a">
-                        <img src={game.teamA.logo || "/assets/images/team1.png"} alt="" />
+                        <Link href={gameStatsUrl}>
+                            <img src={game.teamA.logo || "/assets/images/team1.png"} alt="" />
+                        </Link>
                         <h6>{game.teamA.name}</h6>
                     </div>
                     <div className="b">
@@ -25,7 +29,9 @@ function MatchCard({ game }) {
                         )}
                     </div>
                     <div className="c">
-                        <img src={game.teamB.logo || "/assets/images/team2.png"} alt="" />
+                        <Link href={gameStatsUrl}>
+                            <img src={game.teamB.logo || "/assets/images/team2.png"} alt="" />
+                        </Link>
                         <h6>{game.teamB.name}</h6>
                     </div>
                 </div>
@@ -43,7 +49,7 @@ function formatDate(dateStr) {
     return new Date(dateStr).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "2-digit" });
 }
 
-export default function ScheduleWithDateStrip({ games }) {
+export default function ScheduleWithDateStrip({ games, orgSlug, seasonSlug }) {
     // Get unique game dates sorted
     const uniqueDates = useMemo(() => {
         const dates = [...new Set(games.map(g => new Date(g.date).toISOString().split("T")[0]))];
@@ -86,7 +92,7 @@ export default function ScheduleWithDateStrip({ games }) {
 
             <div className="organization-teams-wrap row g-4 g-xxl-5">
                 {filteredGames.length > 0 ? filteredGames.map((game) => (
-                    <MatchCard key={game._id} game={game} />
+                    <MatchCard key={game._id} game={game} orgSlug={orgSlug} seasonSlug={seasonSlug} />
                 )) : (
                     <div className="col-12 text-center py-4"><p>No games on this date.</p></div>
                 )}
