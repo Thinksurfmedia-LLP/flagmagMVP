@@ -31,6 +31,10 @@ const SeasonSchema = new mongoose.Schema(
             type: String,
             default: "",
         },
+        locations: {
+            type: [String],
+            default: [],
+        },
         startDate: {
             type: Date,
         },

@@ -4,6 +4,11 @@ import Organization from "@/models/Organization";
 import Season from "@/models/Season";
 import User from "@/models/User";
 import { requireAnyPermission } from "@/lib/apiAuth";
+import { formatOrganizationLocationEntry } from "@/lib/organizationLocations";
+
+function normalizeText(value = "") {
+    return String(value).trim().toLowerCase();
+}
 
 // GET seasons for an organization
 export async function GET(request, { params }) {
@@ -67,6 +72,39 @@ export async function POST(request, { params }) {
 
         const body = await request.json();
         body.organization = organization._id;
+
+        const locations = Array.isArray(body.locations)
+            ? body.locations.map((entry) => String(entry).trim()).filter(Boolean)
+            : [];
+
+        if (auth.user.role === "organizer") {
+            const allowedCategories = (organization.categories || []).map((entry) => String(entry).trim()).filter(Boolean);
+            const allowedCategorySet = new Set(allowedCategories.map(normalizeText));
+
+            if (body.category && !allowedCategorySet.has(normalizeText(body.category))) {
+                return NextResponse.json(
+                    { success: false, error: "Category must be one of your organization's registered categories" },
+                    { status: 400 }
+                );
+            }
+
+            const allowedLocations = (organization.locations || [])
+                .map(formatOrganizationLocationEntry)
+                .filter(Boolean);
+            const allowedLocationSet = new Set(allowedLocations.map(normalizeText));
+
+            const hasInvalidLocation = locations.some((entry) => !allowedLocationSet.has(normalizeText(entry)));
+            if (hasInvalidLocation) {
+                return NextResponse.json(
+                    { success: false, error: "Location must be selected from your organization's configured locations" },
+                    { status: 400 }
+                );
+            }
+        }
+
+        body.locations = locations;
+        body.location = locations[0] || body.location || "";
+        delete body.time;
 
         // Auto-generate slug from name if not provided
         if (!body.slug && body.name) {

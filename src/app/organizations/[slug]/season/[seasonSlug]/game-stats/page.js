@@ -4,6 +4,7 @@ import Link from "next/link";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import Season from "@/models/Season";
+import { formatOrganizationLocations } from "@/lib/organizationLocations";
 
 async function getData(slug, seasonSlug) {
     await dbConnect();
@@ -80,6 +81,7 @@ export default async function GameStatsPage({ params }) {
     }
 
     const { org, season } = data;
+    const locationText = formatOrganizationLocations(org);
 
     return (
         <>
@@ -100,7 +102,7 @@ export default async function GameStatsPage({ params }) {
                                 <ul>
                                     <li><img src="/assets/images/icon-star.png" alt="" /> <span>{org.rating}</span> ({org.memberCount} members)</li>
                                     <li><img src="/assets/images/icon-calander.png" alt="" /> <span>Founded {org.foundedYear}</span></li>
-                                    <li><img src="/assets/images/icon-map.png" alt="" /> <span>{org.location}</span></li>
+                                    <li><img src="/assets/images/icon-map.png" alt="" /> <span>{locationText}</span></li>
                                 </ul>
                             </div>
                         </div>

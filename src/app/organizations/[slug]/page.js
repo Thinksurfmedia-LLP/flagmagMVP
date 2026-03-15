@@ -4,6 +4,7 @@ import Link from "next/link";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import Season from "@/models/Season";
+import { formatOrganizationLocations } from "@/lib/organizationLocations";
 
 async function getOrgAndSeasons(slug) {
     await dbConnect();
@@ -64,9 +65,7 @@ export default async function OrganizationDetailPage({ params }) {
     }
 
     const categories = org.categories?.length ? org.categories : (org.tags || []);
-    const locationText = org.locations?.length
-        ? org.locations.map((entry) => entry.locationName).filter(Boolean).join(", ")
-        : org.location;
+    const locationText = formatOrganizationLocations(org);
 
     return (
         <>

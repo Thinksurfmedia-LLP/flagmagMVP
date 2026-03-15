@@ -2,7 +2,13 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Season from "@/models/Season";
 import User from "@/models/User";
+import Organization from "@/models/Organization";
 import { requireAnyPermission } from "@/lib/apiAuth";
+import { formatOrganizationLocationEntry } from "@/lib/organizationLocations";
+
+function normalizeText(value = "") {
+    return String(value).trim().toLowerCase();
+}
 
 // GET single season
 export async function GET(request, { params }) {
@@ -56,7 +62,52 @@ export async function PUT(request, { params }) {
                     { status: 403 }
                 );
             }
+
+            const organization = await Organization.findById(existingSeason.organization).select("categories locations").lean();
+            if (!organization) {
+                return NextResponse.json(
+                    { success: false, error: "Organization not found" },
+                    { status: 404 }
+                );
+            }
+
+            if (body.category !== undefined) {
+                const allowedCategorySet = new Set(
+                    (organization.categories || []).map((entry) => normalizeText(entry)).filter(Boolean)
+                );
+                if (body.category && !allowedCategorySet.has(normalizeText(body.category))) {
+                    return NextResponse.json(
+                        { success: false, error: "Category must be one of your organization's registered categories" },
+                        { status: 400 }
+                    );
+                }
+            }
+
+            if (body.locations !== undefined) {
+                const locations = Array.isArray(body.locations)
+                    ? body.locations.map((entry) => String(entry).trim()).filter(Boolean)
+                    : [];
+                const allowedLocationSet = new Set(
+                    (organization.locations || [])
+                        .map(formatOrganizationLocationEntry)
+                        .filter(Boolean)
+                        .map((entry) => normalizeText(entry))
+                );
+
+                const hasInvalidLocation = locations.some((entry) => !allowedLocationSet.has(normalizeText(entry)));
+                if (hasInvalidLocation) {
+                    return NextResponse.json(
+                        { success: false, error: "Location must be selected from your organization's configured locations" },
+                        { status: 400 }
+                    );
+                }
+
+                body.locations = locations;
+                body.location = locations[0] || "";
+            }
         }
+
+        delete body.time;
 
         const season = await Season.findByIdAndUpdate(id, body, { new: true, runValidators: true });
         if (!season) {

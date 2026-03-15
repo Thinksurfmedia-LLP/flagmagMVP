@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import Link from "next/link";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
+import { formatOrganizationLocations } from "@/lib/organizationLocations";
 
 async function getOrganizations() {
     await dbConnect();
@@ -14,9 +15,7 @@ async function getOrganizations() {
 
 function OrgCard({ org }) {
     const categories = org.categories?.length ? org.categories : (org.tags || []);
-    const locationText = org.locations?.length
-        ? org.locations.map((entry) => entry.locationName).filter(Boolean).join(", ")
-        : org.location;
+    const locationText = formatOrganizationLocations(org);
 
     return (
         <div className="col-xxl-3 col-xl-4 col-md-6 mb-4">

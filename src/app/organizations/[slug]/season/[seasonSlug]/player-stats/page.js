@@ -5,6 +5,7 @@ import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import Season from "@/models/Season";
 import Player from "@/models/Player";
+import { formatOrganizationLocations } from "@/lib/organizationLocations";
 
 async function getData(slug, seasonSlug) {
     await dbConnect();
@@ -39,6 +40,7 @@ export default async function PlayerStatsPage({ params }) {
     }
 
     const { org, season, players } = data;
+    const locationText = formatOrganizationLocations(org);
 
     // Build player rows from real DB players, or fall back to sample data
     const playerRows = players.length > 0
@@ -84,7 +86,7 @@ export default async function PlayerStatsPage({ params }) {
                                 <ul>
                                     <li><img src="/assets/images/icon-star.png" alt="" /> <span>{org.rating}</span> ({org.memberCount} members)</li>
                                     <li><img src="/assets/images/icon-calander.png" alt="" /> <span>Founded {org.foundedYear}</span></li>
-                                    <li><img src="/assets/images/icon-map.png" alt="" /> <span>{org.location}</span></li>
+                                    <li><img src="/assets/images/icon-map.png" alt="" /> <span>{locationText}</span></li>
                                 </ul>
                             </div>
                         </div>

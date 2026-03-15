@@ -22,6 +22,10 @@ export async function GET() {
         const data = venues.map((venue) => ({
             _id: venue._id,
             name: venue.name,
+            address: venue.address || "",
+            fieldCount: venue.fieldCount ?? null,
+            managerName: venue.managerName || "",
+            managerPhone: venue.managerPhone || "",
             countyId: venue.county?._id || null,
             countyName: venue.county?.name || "",
             stateId: venue.county?.state?._id || null,

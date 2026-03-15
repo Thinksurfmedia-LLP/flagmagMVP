@@ -11,6 +11,7 @@ function expandFullAccessPermissions(rawPermissions = []) {
         ["manage_seasons", ["season_view", "season_create", "season_update", "season_delete"]],
         ["manage_games", ["game_view", "game_create", "game_update", "game_delete"]],
         ["manage_players", ["player_view", "player_create", "player_update", "player_delete"]],
+        ["manage_teams", ["team_view", "team_create", "team_update", "team_delete"]],
         ["manage_users", ["user_view", "user_create", "user_update", "user_delete"]],
     ];
 

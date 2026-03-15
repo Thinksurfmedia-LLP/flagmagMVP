@@ -5,6 +5,7 @@ import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import Season from "@/models/Season";
 import Game from "@/models/Game";
+import { formatOrganizationLocations } from "@/lib/organizationLocations";
 
 const DUMMY_DATA = {
     org: {
@@ -61,6 +62,7 @@ export default async function GameTeamStatsPage({ params }) {
 
     const { org, season, game } = data;
     const isDummy = data.isDummy;
+    const locationText = formatOrganizationLocations(org);
 
     return (
         <>
@@ -81,7 +83,7 @@ export default async function GameTeamStatsPage({ params }) {
                                 <ul>
                                     <li><img src="/assets/images/icon-star.png" alt="" /> <span>{org.rating}</span> ({org.memberCount} members)</li>
                                     <li><img src="/assets/images/icon-calander.png" alt="" /> <span>Founded {org.foundedYear}</span></li>
-                                    <li><img src="/assets/images/icon-map.png" alt="" /> <span>{org.location}</span></li>
+                                    <li><img src="/assets/images/icon-map.png" alt="" /> <span>{locationText}</span></li>
                                 </ul>
                             </div>
                         </div>

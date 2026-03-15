@@ -28,6 +28,11 @@ const ALL_PERMISSIONS = [
     "player_create",
     "player_update",
     "player_delete",
+    "manage_teams",
+    "team_view",
+    "team_create",
+    "team_update",
+    "team_delete",
     "manage_users",
     "user_view",
     "user_create",
@@ -40,6 +45,7 @@ const PERMISSION_COMPATIBILITY = {
     manage_seasons: ["season_view", "season_create", "season_update", "season_delete"],
     manage_games: ["game_view", "game_create", "game_update", "game_delete"],
     manage_players: ["player_view", "player_create", "player_update", "player_delete"],
+    manage_teams: ["team_view", "team_create", "team_update", "team_delete"],
     manage_users: ["user_view", "user_create", "user_update", "user_delete"],
 };
 
@@ -71,6 +77,7 @@ const NAV_ITEMS = [
         items: [
             { label: "Organizations", href: "/admin/organizations", icon: "fa-solid fa-building", perm: "manage_organizations" },
             { label: "Venues", href: "/admin/locations", icon: "fa-solid fa-map-location-dot", perm: "manage_organizations" },
+            { label: "Teams", href: "/admin/teams", icon: "fa-solid fa-people-group", perm: "manage_teams" },
             { label: "Players", href: "/admin/players", icon: "fa-solid fa-users", perm: "manage_players" },
             { label: "Games", href: "/admin/games", icon: "fa-solid fa-football", perm: "manage_games" },
         ],
@@ -93,7 +100,7 @@ function getImpersonationNav(orgSlug) {
                 { label: "Seasons", href: `/admin/organizations/${orgSlug}/seasons`, icon: "fa-solid fa-calendar-days", perm: "manage_seasons" },
                 { label: "Games", href: `/admin/organizations/${orgSlug}/games`, icon: "fa-solid fa-football", perm: "manage_games" },
                 { label: "Players", href: `/admin/organizations/${orgSlug}/players`, icon: "fa-solid fa-users", perm: "manage_players" },
-                { label: "Teams", href: `/admin/organizations/${orgSlug}/teams`, icon: "fa-solid fa-people-group", perm: "manage_organizations" },
+                { label: "Teams", href: `/admin/organizations/${orgSlug}/teams`, icon: "fa-solid fa-people-group", perm: "manage_teams" },
             ],
         },
         {
@@ -139,6 +146,12 @@ function getOrganizerNav() {
                     href: "/admin/games",
                     icon: "fa-solid fa-football",
                     perms: ["manage_games", "game_view", "game_create", "game_update", "game_delete"],
+                },
+                {
+                    label: "Teams",
+                    href: "/admin/teams",
+                    icon: "fa-solid fa-people-group",
+                    perms: ["manage_teams", "team_view", "team_create", "team_update", "team_delete"],
                 },
                 {
                     label: "Players",

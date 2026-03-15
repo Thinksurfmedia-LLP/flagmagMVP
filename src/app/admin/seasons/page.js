@@ -5,14 +5,17 @@ import AdminLayout, { hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 
-function SeasonModal({ onClose, onSave, initial }) {
+function SeasonModal({ onClose, onSave, initial, categoryOptions = [], locationOptions = [] }) {
     const [form, setForm] = useState({
         name: initial?.name || "",
         type: initial?.type || "active",
         category: initial?.category || "",
-        location: initial?.location || "",
+        locations: Array.isArray(initial?.locations)
+            ? initial.locations
+            : initial?.location
+                ? [initial.location]
+                : [],
         startDate: initial?.startDate ? new Date(initial.startDate).toISOString().split("T")[0] : "",
-        time: initial?.time || "",
     });
     const [saving, setSaving] = useState(false);
 
@@ -39,21 +42,43 @@ function SeasonModal({ onClose, onSave, initial }) {
                 </div>
                 <div className="admin-form-group">
                     <label className="admin-form-label">Category</label>
-                    <input className="admin-form-input" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="e.g. 8U, Adult" />
+                    <select className="admin-form-select" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+                        <option value="">Select category</option>
+                        {categoryOptions.map((category) => (
+                            <option key={category} value={category}>{category}</option>
+                        ))}
+                    </select>
                 </div>
                 <div className="admin-form-group">
-                    <label className="admin-form-label">Location</label>
-                    <input className="admin-form-input" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="e.g. Central Park Field" />
+                    <label className="admin-form-label">Locations</label>
+                    <div className="admin-location-list" style={{ maxHeight: 180 }}>
+                        {locationOptions.length === 0 ? (
+                            <div style={{ color: "#8b90a0", fontSize: 13 }}>No organization locations configured.</div>
+                        ) : locationOptions.map((location) => {
+                            const checked = form.locations.includes(location);
+                            return (
+                                <label key={location} className={`admin-location-option ${checked ? "selected" : ""}`}>
+                                    <input
+                                        type="checkbox"
+                                        checked={checked}
+                                        onChange={() => {
+                                            setForm((prev) => ({
+                                                ...prev,
+                                                locations: checked
+                                                    ? prev.locations.filter((entry) => entry !== location)
+                                                    : [...prev.locations, location],
+                                            }));
+                                        }}
+                                    />
+                                    <span>{location}</span>
+                                </label>
+                            );
+                        })}
+                    </div>
                 </div>
-                <div style={{ display: "flex", gap: 12 }}>
-                    <div className="admin-form-group" style={{ flex: 1 }}>
-                        <label className="admin-form-label">Start Date</label>
-                        <input type="date" className="admin-form-input" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} />
-                    </div>
-                    <div className="admin-form-group" style={{ flex: 1 }}>
-                        <label className="admin-form-label">Time</label>
-                        <input className="admin-form-input" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} placeholder="e.g. 6:00 PM" />
-                    </div>
+                <div className="admin-form-group">
+                    <label className="admin-form-label">Start Date</label>
+                    <input type="date" className="admin-form-input" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} />
                 </div>
                 <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
                     <button className="admin-btn admin-btn-ghost" onClick={onClose}>Cancel</button>
@@ -73,6 +98,7 @@ export default function OrganizerSeasonsPage() {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editTarget, setEditTarget] = useState(null);
+    const [organization, setOrganization] = useState(null);
 
     const orgSlug = user?.organization?.slug;
     const orgName = user?.organization?.name || "Your Organization";
@@ -100,9 +126,30 @@ export default function OrganizerSeasonsPage() {
         }
     }, [orgSlug, canView, showError]);
 
+    const fetchOrganization = useCallback(async () => {
+        if (!orgSlug || !canView) return;
+        try {
+            const res = await fetch(`/api/organizations/${orgSlug}`);
+            const data = await res.json();
+            if (data.success) setOrganization(data.data);
+        } catch {
+            // Non-blocking; season list still works without metadata.
+        }
+    }, [orgSlug, canView]);
+
     useEffect(() => {
         fetchSeasons();
-    }, [fetchSeasons]);
+        fetchOrganization();
+    }, [fetchSeasons, fetchOrganization]);
+
+    const categoryOptions = (organization?.categories || []).map((entry) => String(entry).trim()).filter(Boolean);
+    const locationOptions = (organization?.locations || [])
+        .map((entry) => {
+            if (entry?.locationName) return entry.locationName;
+            if (entry?.countyName && (entry?.stateAbbr || entry?.stateName)) return `${entry.countyName} (${entry.stateAbbr || entry.stateName})`;
+            return entry?.countyName || entry?.stateName || "";
+        })
+        .filter(Boolean);
 
     const handleSave = async (formData) => {
         if (!orgSlug) {
@@ -232,7 +279,11 @@ export default function OrganizerSeasonsPage() {
                                                 </span>
                                             </td>
                                             <td style={{ color: "#5a5f72" }}>{season.category || "-"}</td>
-                                            <td style={{ color: "#5a5f72" }}>{season.location || "-"}</td>
+                                            <td style={{ color: "#5a5f72" }}>
+                                                {Array.isArray(season.locations) && season.locations.length > 0
+                                                    ? season.locations.join(", ")
+                                                    : season.location || "-"}
+                                            </td>
                                             <td style={{ color: "#8b90a0", fontSize: 13 }}>
                                                 {season.startDate ? new Date(season.startDate).toLocaleDateString() : "-"}
                                             </td>
@@ -270,6 +321,8 @@ export default function OrganizerSeasonsPage() {
             {showModal && (
                 <SeasonModal
                     initial={editTarget}
+                    categoryOptions={categoryOptions}
+                    locationOptions={locationOptions}
                     onClose={() => { setShowModal(false); setEditTarget(null); }}
                     onSave={handleSave}
                 />

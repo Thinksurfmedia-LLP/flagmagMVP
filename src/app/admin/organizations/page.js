@@ -8,6 +8,7 @@ import AdminLayout, { hasAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 import { useImpersonation } from "@/components/ImpersonationProvider";
+import { formatOrganizationLocations } from "@/lib/organizationLocations";
 
 const CATEGORY_OPTIONS = ["Men", "Youth", "Women", "Co-ed"];
 const SCHEDULE_DAY_OPTIONS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
@@ -59,12 +60,6 @@ function CheckboxOption(props) {
             </div>
         </components.Option>
     );
-}
-
-function getOrgLocationText(org) {
-    const locationNames = (org.locations || []).map((entry) => entry.locationName || entry.countyName).filter(Boolean);
-    if (locationNames.length) return locationNames.join(", ");
-    return org.location || "-";
 }
 
 function OrgForm({ org, onSave, onCancel }) {
@@ -546,7 +541,7 @@ export default function AdminOrganizationsPage() {
                                                             </button>
                                                         </td>
                                                         <td>{org.sport}</td>
-                                                        <td>{getOrgLocationText(org)}</td>
+                                                        <td>{formatOrganizationLocations(org)}</td>
                                                         <td>⭐ {org.rating}</td>
                                                         <td>{org.memberCount}</td>
                                                         <td style={{ width: 180 }}>

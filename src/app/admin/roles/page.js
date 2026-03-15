@@ -26,6 +26,11 @@ const PERM_LABELS = {
     player_create: "Player Create",
     player_update: "Player Update",
     player_delete: "Player Delete",
+    manage_teams: "Teams (Full)",
+    team_view: "Team View",
+    team_create: "Team Create",
+    team_update: "Team Update",
+    team_delete: "Team Delete",
     manage_users: "Users (Full)",
     user_view: "User View",
     user_create: "User Create",
@@ -80,6 +85,16 @@ const PERMISSION_ROWS = [
             update: "player_update",
             delete: "player_delete",
             full: "manage_players",
+        },
+    },
+    {
+        module: "Teams",
+        permissions: {
+            view: "team_view",
+            create: "team_create",
+            update: "team_update",
+            delete: "team_delete",
+            full: "manage_teams",
         },
     },
     {
