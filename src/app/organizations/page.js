@@ -13,6 +13,11 @@ async function getOrganizations() {
 }
 
 function OrgCard({ org }) {
+    const categories = org.categories?.length ? org.categories : (org.tags || []);
+    const locationText = org.locations?.length
+        ? org.locations.map((entry) => entry.locationName).filter(Boolean).join(", ")
+        : org.location;
+
     return (
         <div className="col-xxl-3 col-xl-4 col-md-6 mb-4">
             <div className="team-area card">
@@ -30,11 +35,11 @@ function OrgCard({ org }) {
                     <div className="content-part">
                         <h3>{org.name}</h3>
                         <ul className="tag">
-                            {org.tags.map((tag, i) => (
+                            {categories.map((tag, i) => (
                                 <li key={i}>{tag}</li>
                             ))}
                         </ul>
-                        <h4><img src="/assets/images/icon-map.png" alt="" /> {org.location}</h4>
+                        <h4><img src="/assets/images/icon-map.png" alt="" /> {locationText}</h4>
                         <h4><img src="/assets/images/icon-calander.png" alt="" /> {org.scheduleDays.join(", ")}</h4>
                     </div>
                 </div>

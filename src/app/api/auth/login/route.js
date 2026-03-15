@@ -19,7 +19,7 @@ export async function POST(request) {
         }
 
         // Find user
-        const user = await User.findOne({ email }).populate("organization", "name slug");
+        const user = await User.findOne({ email }).populate("organization", "name slug logo");
         if (!user) {
             return NextResponse.json(
                 { success: false, error: "Invalid email or password" },
@@ -62,6 +62,7 @@ export async function POST(request) {
                             id: user.organization._id,
                             name: user.organization.name,
                             slug: user.organization.slug,
+                            logo: user.organization.logo || "",
                         }
                         : null,
                 },

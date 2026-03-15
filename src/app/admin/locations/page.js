@@ -46,6 +46,7 @@ export default function AdminVenuesPage() {
     // Add/Edit form
     const [venueName, setVenueName] = useState("");
     const [venueAddress, setVenueAddress] = useState("");
+    const [fieldCount, setFieldCount] = useState("");
     const [managerName, setManagerName] = useState("");
     const [managerPhone, setManagerPhone] = useState("");
     const [editingVenue, setEditingVenue] = useState(null);
@@ -102,6 +103,7 @@ export default function AdminVenuesPage() {
     const resetForm = () => {
         setVenueName("");
         setVenueAddress("");
+        setFieldCount("");
         setManagerName("");
         setManagerPhone("");
         setEditingVenue(null);
@@ -121,7 +123,13 @@ export default function AdminVenuesPage() {
             const res = await fetch(`/api/locations/${editingVenue._id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: venueName, address: venueAddress, managerName, managerPhone }),
+                body: JSON.stringify({
+                    name: venueName,
+                    address: venueAddress,
+                    fieldCount: fieldCount === "" ? null : Number(fieldCount),
+                    managerName,
+                    managerPhone,
+                }),
             });
             const data = await res.json();
             if (!data.success) { showError(data.error); return; }
@@ -136,6 +144,7 @@ export default function AdminVenuesPage() {
                     countyName: selectedCounty.value,
                     venueName,
                     venueAddress,
+                    fieldCount: fieldCount === "" ? null : Number(fieldCount),
                     managerName,
                     managerPhone,
                 }),
@@ -153,6 +162,7 @@ export default function AdminVenuesPage() {
     const startEditVenue = (v) => {
         setVenueName(v.name);
         setVenueAddress(v.address || "");
+        setFieldCount(v.fieldCount ?? "");
         setManagerName(v.managerName || "");
         setManagerPhone(v.managerPhone || "");
         setEditingVenue(v);
@@ -237,6 +247,7 @@ export default function AdminVenuesPage() {
                                     <form onSubmit={saveVenue} style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
                                         <input className="admin-form-input" placeholder="Venue name *" value={venueName} onChange={(e) => setVenueName(e.target.value)} required style={{ flex: 2, minWidth: 140 }} />
                                         <input className="admin-form-input" placeholder="Address" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} style={{ flex: 2, minWidth: 140 }} />
+                                        <input type="number" min="0" className="admin-form-input" placeholder="Number of Fields" value={fieldCount} onChange={(e) => setFieldCount(e.target.value)} style={{ flex: 1, minWidth: 130 }} />
                                         <input className="admin-form-input" placeholder="Location Manager" value={managerName} onChange={(e) => setManagerName(e.target.value)} style={{ flex: 1, minWidth: 130 }} />
                                         <input className="admin-form-input" placeholder="Phone Number" value={managerPhone} onChange={(e) => setManagerPhone(e.target.value)} style={{ flex: 1, minWidth: 120 }} />
                                         <button type="submit" className="admin-btn admin-btn-primary" style={{ whiteSpace: "nowrap" }}>
@@ -260,6 +271,7 @@ export default function AdminVenuesPage() {
                                                     <tr>
                                                         <th>Name</th>
                                                         <th>Address</th>
+                                                        <th>Fields</th>
                                                         <th>Location Manager</th>
                                                         <th>Phone</th>
                                                         <th style={{ width: 120 }}>Actions</th>
@@ -270,6 +282,7 @@ export default function AdminVenuesPage() {
                                                         <tr key={v._id}>
                                                             <td style={{ fontWeight: 600 }}>{v.name}</td>
                                                             <td style={{ color: "#5a5f72" }}>{v.address || "—"}</td>
+                                                            <td>{v.fieldCount ?? "—"}</td>
                                                             <td>{v.managerName || "—"}</td>
                                                             <td>{v.managerPhone || "—"}</td>
                                                             <td>

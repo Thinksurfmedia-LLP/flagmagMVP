@@ -514,6 +514,113 @@
     color: #1a1d26;
 }
 
+.admin-option-bubbles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.admin-option-bubble {
+    border: 1px solid #d5d8e0;
+    background: #fff;
+    color: #3d4255;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.admin-option-bubble:hover {
+    border-color: #FF1E00;
+    color: #FF1E00;
+}
+
+.admin-option-bubble.selected {
+    background: rgba(255, 30, 0, 0.08);
+    border-color: #FF1E00;
+    color: #FF1E00;
+}
+
+.admin-selected-locations {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.admin-selected-location-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #f5f6fa;
+    border: 1px solid #e8eaef;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 12px;
+    color: #3d4255;
+}
+
+.admin-selected-location-chip button {
+    border: none;
+    background: transparent;
+    color: #8b90a0;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.admin-selected-location-chip button:hover {
+    color: #dc2626;
+}
+
+.admin-location-list {
+    margin-top: 10px;
+    max-height: 220px;
+    overflow-y: auto;
+    border: 1px solid #e8eaef;
+    border-radius: 8px;
+    padding: 8px;
+    background: #fff;
+    display: grid;
+    gap: 6px;
+}
+
+.admin-location-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #f0f1f5;
+    cursor: pointer;
+}
+
+.admin-location-option:hover {
+    background: #f9fafb;
+}
+
+.admin-location-option.selected {
+    background: rgba(255, 30, 0, 0.06);
+    border-color: rgba(255, 30, 0, 0.25);
+}
+
+.admin-location-option input {
+    accent-color: #FF1E00;
+}
+
+.admin-location-option span {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.admin-location-option small {
+    color: #8b90a0;
+    font-size: 11px;
+}
+
 /* ── Impersonation Banner ── */
 .admin-impersonation-banner {
     background: #FF1E00;

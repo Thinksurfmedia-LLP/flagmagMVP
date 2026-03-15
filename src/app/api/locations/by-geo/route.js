@@ -47,7 +47,7 @@ export async function POST(request) {
         if (!auth.authorized) return auth.response;
 
         await dbConnect();
-        const { stateAbbr, stateName, countyName, venueName, venueAddress, managerName, managerPhone } = await request.json();
+        const { stateAbbr, stateName, countyName, venueName, venueAddress, managerName, managerPhone, fieldCount } = await request.json();
 
         if (!stateAbbr || !countyName || !venueName) {
             return NextResponse.json({ success: false, error: "State, county, and venue name are required" }, { status: 400 });
@@ -74,6 +74,7 @@ export async function POST(request) {
             name: venueName,
             slug: venueSlug,
             address: venueAddress || "",
+            fieldCount: fieldCount === "" || fieldCount === undefined || fieldCount === null ? null : Number(fieldCount),
             managerName: managerName || "",
             managerPhone: managerPhone || "",
         });

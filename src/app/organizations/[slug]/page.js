@@ -63,6 +63,11 @@ export default async function OrganizationDetailPage({ params }) {
         );
     }
 
+    const categories = org.categories?.length ? org.categories : (org.tags || []);
+    const locationText = org.locations?.length
+        ? org.locations.map((entry) => entry.locationName).filter(Boolean).join(", ")
+        : org.location;
+
     return (
         <>
             <Header />
@@ -84,9 +89,10 @@ export default async function OrganizationDetailPage({ params }) {
                                 <ul>
                                     <li><img src="/assets/images/icon-star.png" alt="" /> <span>{org.rating}</span> ({org.memberCount} members)</li>
                                     <li><img src="/assets/images/icon-calander.png" alt="" /> <span>Founded {org.foundedYear}</span></li>
+                                    <li><img src="/assets/images/icon-map.png" alt="" /> <span>{locationText}</span></li>
                                 </ul>
                                 <ul className="tag">
-                                    {org.tags.map((tag, i) => (
+                                    {categories.map((tag, i) => (
                                         <li key={i}>{tag}</li>
                                     ))}
                                 </ul>

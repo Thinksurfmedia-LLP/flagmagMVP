@@ -43,6 +43,24 @@ const OrganizationSchema = new mongoose.Schema(
             type: String,
             default: "",
         },
+        categories: {
+            type: [String],
+            default: [],
+        },
+        locations: {
+            type: [
+                {
+                    state: { type: mongoose.Schema.Types.ObjectId, ref: "State" },
+                    county: { type: mongoose.Schema.Types.ObjectId, ref: "County" },
+                    location: { type: mongoose.Schema.Types.ObjectId, ref: "Venue" },
+                    stateName: { type: String, default: "" },
+                    stateAbbr: { type: String, default: "" },
+                    countyName: { type: String, default: "" },
+                    locationName: { type: String, default: "" },
+                },
+            ],
+            default: [],
+        },
         tags: {
             type: [String],
             default: [],

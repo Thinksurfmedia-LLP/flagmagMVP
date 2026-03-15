@@ -187,9 +187,11 @@ export default function AdminLayout({ children, title }) {
 
     const initials = (user.name || "U").split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
     const isImpersonating = !!impersonatedOrg;
+    const isOrganizer = user.role === "organizer";
+    const organizerOrg = user.organization;
     const navSections = isImpersonating
         ? getImpersonationNav(impersonatedOrg.slug)
-        : user.role === "organizer"
+        : isOrganizer
             ? getOrganizerNav()
             : NAV_ITEMS;
 
@@ -207,6 +209,18 @@ export default function AdminLayout({ children, title }) {
                             </div>
                         )}
                     </div>
+                ) : isOrganizer ? (
+                    <Link href="/admin" className="admin-sidebar-brand" onClick={() => setSidebarOpen(false)}>
+                        {organizerOrg?.logo ? (
+                            <img src={organizerOrg.logo} alt={organizerOrg?.name || "Organization"} />
+                        ) : organizerOrg?.name ? (
+                            <div className="admin-org-initials">
+                                {organizerOrg.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)}
+                            </div>
+                        ) : (
+                            <img src="/assets/images/logo.png" alt="FlagMag" />
+                        )}
+                    </Link>
                 ) : (
                     <Link href="/admin" className="admin-sidebar-brand" onClick={() => setSidebarOpen(false)}>
                         <img src="/assets/images/logo.png" alt="FlagMag" />

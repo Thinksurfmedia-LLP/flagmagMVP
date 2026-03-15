@@ -19,7 +19,7 @@ export async function GET() {
         await dbConnect();
         const userDoc = await User.findById(user.id)
             .select("organization")
-            .populate("organization", "name slug")
+            .populate("organization", "name slug logo")
             .lean();
         const roleDoc = await Role.findOne({ slug: user.role }).lean();
         const permissions = roleDoc ? [...roleDoc.permissions] : [];
@@ -38,6 +38,7 @@ export async function GET() {
                             id: userDoc.organization._id,
                             name: userDoc.organization.name,
                             slug: userDoc.organization.slug,
+                            logo: userDoc.organization.logo || "",
                         }
                         : null,
                 },

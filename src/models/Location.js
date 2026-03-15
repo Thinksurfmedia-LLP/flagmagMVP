@@ -22,6 +22,11 @@ const VenueSchema = new mongoose.Schema(
             type: String,
             default: "",
         },
+        fieldCount: {
+            type: Number,
+            default: null,
+            min: 0,
+        },
         managerName: {
             type: String,
             default: "",
@@ -38,4 +43,18 @@ const VenueSchema = new mongoose.Schema(
 
 VenueSchema.index({ county: 1, slug: 1 }, { unique: true });
 
-export default mongoose.models.Venue || mongoose.model("Venue", VenueSchema);
+function getVenueModel() {
+    const existing = mongoose.models.Venue;
+    if (existing) {
+        const hasFieldCount = Boolean(existing.schema.path("fieldCount"));
+
+        // In dev, HMR can keep an outdated compiled model; rebuild it when schema changes.
+        if (!hasFieldCount) {
+            delete mongoose.models.Venue;
+        }
+    }
+
+    return mongoose.models.Venue || mongoose.model("Venue", VenueSchema);
+}
+
+export default getVenueModel();
