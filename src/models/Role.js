@@ -57,6 +57,29 @@ const RoleSchema = new mongoose.Schema(
     }
 );
 
+const REQUIRED_PERMISSION_KEYS = [
+    "organization_view",
+    "season_view",
+    "game_view",
+    "player_view",
+    "user_view",
+];
+
+function getRoleModel() {
+    const existing = mongoose.models.Role;
+    if (existing) {
+        const enumValues = existing.schema.path("permissions")?.caster?.enumValues || [];
+        const hasLatestSchema = REQUIRED_PERMISSION_KEYS.every((perm) => enumValues.includes(perm));
+
+        // In dev, HMR can keep an outdated compiled model; rebuild it when enum keys changed.
+        if (!hasLatestSchema) {
+            delete mongoose.models.Role;
+        }
+    }
+
+    return mongoose.models.Role || mongoose.model("Role", RoleSchema);
+}
+
 export const DEFAULT_ROLES = [
     {
         name: "Admin",
@@ -129,7 +152,7 @@ export const DEFAULT_ROLES = [
 ];
 
 export async function seedDefaultRoles() {
-    const Role = mongoose.models.Role || mongoose.model("Role", RoleSchema);
+    const Role = getRoleModel();
     for (const role of DEFAULT_ROLES) {
         await Role.findOneAndUpdate(
             { slug: role.slug },
@@ -139,4 +162,4 @@ export async function seedDefaultRoles() {
     }
 }
 
-export default mongoose.models.Role || mongoose.model("Role", RoleSchema);
+export default getRoleModel();

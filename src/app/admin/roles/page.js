@@ -117,6 +117,29 @@ function normalizePermissions(rawPermissions = []) {
     return Array.from(selected);
 }
 
+function getDisplayPermissions(rawPermissions = []) {
+    const selected = new Set(rawPermissions.filter((permission) => permission !== "view_dashboard"));
+
+    PERMISSION_ROWS.forEach((row) => {
+        const fullPermission = row.permissions.full;
+        if (!fullPermission || !selected.has(fullPermission)) return;
+
+        Object.values(row.permissions)
+            .filter((permission) => permission !== fullPermission)
+            .forEach((permission) => selected.delete(permission));
+    });
+
+    const order = PERMISSION_ROWS.flatMap((row) => {
+        const values = Object.values(row.permissions);
+        const full = row.permissions.full;
+        return full ? [full, ...values.filter((p) => p !== full)] : values;
+    });
+
+    const ordered = order.filter((permission, index) => selected.has(permission) && order.indexOf(permission) === index);
+    const extras = Array.from(selected).filter((permission) => !order.includes(permission));
+    return [...ordered, ...extras];
+}
+
 function togglePermissionSet(previousPermissions, targetPermission) {
     const selected = new Set(previousPermissions);
     const groupMeta = PERMISSION_GROUP_BY_KEY[targetPermission];
@@ -366,7 +389,7 @@ export default function AdminRolesPage() {
                                             </td>
                                             <td>
                                                 {(() => {
-                                                    const visiblePerms = r.permissions.filter((p) => p !== "view_dashboard");
+                                                    const visiblePerms = getDisplayPermissions(r.permissions);
                                                     return editId === r._id ? (
                                                         <div>
                                                             <PermissionMatrix selectedPermissions={normalizePermissions(editPerms)} onToggle={toggleEditPerm} />
