@@ -111,9 +111,7 @@ function getImpersonationNav(orgSlug) {
     ];
 }
 
-function getOrganizerNav(user) {
-    const baseHref = "/admin/seasons";
-
+function getOrganizerNav() {
     return [
         {
             section: "Overview",
@@ -122,12 +120,38 @@ function getOrganizerNav(user) {
             ],
         },
         {
-            section: "Season Management",
+            section: "Management",
             items: [
-                { label: "View Seasons", href: `${baseHref}?action=view`, icon: "fa-solid fa-eye", perm: "season_view" },
-                { label: "Create Season", href: `${baseHref}?action=create`, icon: "fa-solid fa-calendar-plus", perm: "season_create" },
-                { label: "Update Seasons", href: `${baseHref}?action=update`, icon: "fa-solid fa-pen-to-square", perm: "season_update" },
-                { label: "Delete Seasons", href: `${baseHref}?action=delete`, icon: "fa-solid fa-trash", perm: "season_delete" },
+                {
+                    label: "Organizations",
+                    href: "/admin/organizations",
+                    icon: "fa-solid fa-building",
+                    perms: ["manage_organizations", "organization_view", "organization_create", "organization_update", "organization_delete"],
+                },
+                {
+                    label: "Seasons",
+                    href: "/admin/seasons",
+                    icon: "fa-solid fa-calendar-days",
+                    perms: ["manage_seasons", "season_view", "season_create", "season_update", "season_delete"],
+                },
+                {
+                    label: "Games",
+                    href: "/admin/games",
+                    icon: "fa-solid fa-football",
+                    perms: ["manage_games", "game_view", "game_create", "game_update", "game_delete"],
+                },
+                {
+                    label: "Players",
+                    href: "/admin/players",
+                    icon: "fa-solid fa-users",
+                    perms: ["manage_players", "player_view", "player_create", "player_update", "player_delete"],
+                },
+                {
+                    label: "Users",
+                    href: "/admin/users",
+                    icon: "fa-solid fa-users-gear",
+                    perms: ["manage_users", "user_view", "user_create", "user_update", "user_delete"],
+                },
             ],
         },
     ];
@@ -166,7 +190,7 @@ export default function AdminLayout({ children, title }) {
     const navSections = isImpersonating
         ? getImpersonationNav(impersonatedOrg.slug)
         : user.role === "organizer"
-            ? getOrganizerNav(user)
+            ? getOrganizerNav()
             : NAV_ITEMS;
 
     return (

@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import AdminLayout, { hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
@@ -67,19 +66,9 @@ function SeasonModal({ onClose, onSave, initial }) {
     );
 }
 
-const ACTION_LABELS = {
-    view: "View",
-    create: "Create",
-    update: "Update",
-    delete: "Delete",
-};
-
 export default function OrganizerSeasonsPage() {
     const { user } = useAuth();
     const { showSuccess, showError } = useToast();
-    const searchParams = useSearchParams();
-
-    const action = searchParams.get("action") || "view";
     const [seasons, setSeasons] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -114,16 +103,6 @@ export default function OrganizerSeasonsPage() {
     useEffect(() => {
         fetchSeasons();
     }, [fetchSeasons]);
-
-    useEffect(() => {
-        if (action === "create" && canCreate) {
-            setEditTarget(null);
-            setShowModal(true);
-        }
-    }, [action, canCreate]);
-
-    const canEnterEditMode = useMemo(() => action === "update" && canUpdate, [action, canUpdate]);
-    const canEnterDeleteMode = useMemo(() => action === "delete" && canDelete, [action, canDelete]);
 
     const handleSave = async (formData) => {
         if (!orgSlug) {
@@ -215,10 +194,7 @@ export default function OrganizerSeasonsPage() {
                     <div className="admin-card-header">
                         <h3>{orgName} - Seasons ({seasons.length})</h3>
                         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                            <span className="admin-badge" style={{ textTransform: "uppercase" }}>
-                                {ACTION_LABELS[action] || "View"} Mode
-                            </span>
-                            {action === "create" && canCreate && (
+                            {canCreate && (
                                 <button className="admin-btn admin-btn-primary" onClick={() => { setEditTarget(null); setShowModal(true); }}>
                                     <i className="fa-solid fa-plus"></i> Add Season
                                 </button>
@@ -262,7 +238,7 @@ export default function OrganizerSeasonsPage() {
                                             </td>
                                             <td>
                                                 <div style={{ display: "flex", gap: 6 }}>
-                                                    {canEnterEditMode && (
+                                                    {canUpdate && (
                                                         <button
                                                             className="admin-btn admin-btn-ghost admin-btn-sm"
                                                             onClick={() => { setEditTarget(season); setShowModal(true); }}
@@ -271,7 +247,7 @@ export default function OrganizerSeasonsPage() {
                                                             <i className="fa-solid fa-pen"></i>
                                                         </button>
                                                     )}
-                                                    {canEnterDeleteMode && (
+                                                    {canDelete && (
                                                         <button
                                                             className="admin-btn admin-btn-danger admin-btn-sm"
                                                             onClick={() => deleteSeason(season)}
