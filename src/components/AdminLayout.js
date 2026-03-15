@@ -9,17 +9,54 @@ import "@/styles/admin.css";
 
 const ALL_PERMISSIONS = [
     "manage_organizations",
+    "organization_view",
+    "organization_create",
+    "organization_update",
+    "organization_delete",
     "manage_seasons",
+    "season_view",
+    "season_create",
+    "season_update",
+    "season_delete",
     "manage_games",
+    "game_view",
+    "game_create",
+    "game_update",
+    "game_delete",
     "manage_players",
+    "player_view",
+    "player_create",
+    "player_update",
+    "player_delete",
     "manage_users",
-    "view_dashboard",
+    "user_view",
+    "user_create",
+    "user_update",
+    "user_delete",
 ];
+
+const PERMISSION_COMPATIBILITY = {
+    manage_organizations: ["organization_view", "organization_create", "organization_update", "organization_delete"],
+    manage_seasons: ["season_view", "season_create", "season_update", "season_delete"],
+    manage_games: ["game_view", "game_create", "game_update", "game_delete"],
+    manage_players: ["player_view", "player_create", "player_update", "player_delete"],
+    manage_users: ["user_view", "user_create", "user_update", "user_delete"],
+};
 
 function hasAccess(user, permission) {
     if (!user) return false;
     if (user.role === "admin") return true;
-    return (user.permissions || []).includes(permission);
+    if (permission === "view_dashboard") return true;
+
+    const perms = user.permissions || [];
+    if (perms.includes(permission)) return true;
+
+    const compatiblePerms = PERMISSION_COMPATIBILITY[permission] || [];
+    return compatiblePerms.some((perm) => perms.includes(perm));
+}
+
+function hasAnyAccess(user, permissions = []) {
+    return permissions.some((permission) => hasAccess(user, permission));
 }
 
 const NAV_ITEMS = [
@@ -74,6 +111,28 @@ function getImpersonationNav(orgSlug) {
     ];
 }
 
+function getOrganizerNav(user) {
+    const baseHref = "/admin/seasons";
+
+    return [
+        {
+            section: "Overview",
+            items: [
+                { label: "Dashboard", href: "/admin", icon: "fa-solid fa-chart-pie", perm: "view_dashboard" },
+            ],
+        },
+        {
+            section: "Season Management",
+            items: [
+                { label: "View Seasons", href: `${baseHref}?action=view`, icon: "fa-solid fa-eye", perm: "season_view" },
+                { label: "Create Season", href: `${baseHref}?action=create`, icon: "fa-solid fa-calendar-plus", perm: "season_create" },
+                { label: "Update Seasons", href: `${baseHref}?action=update`, icon: "fa-solid fa-pen-to-square", perm: "season_update" },
+                { label: "Delete Seasons", href: `${baseHref}?action=delete`, icon: "fa-solid fa-trash", perm: "season_delete" },
+            ],
+        },
+    ];
+}
+
 export default function AdminLayout({ children, title }) {
     const { user, loading, logout } = useAuth();
     const { org: impersonatedOrg, exitImpersonation } = useImpersonation();
@@ -104,7 +163,11 @@ export default function AdminLayout({ children, title }) {
 
     const initials = (user.name || "U").split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
     const isImpersonating = !!impersonatedOrg;
-    const navSections = isImpersonating ? getImpersonationNav(impersonatedOrg.slug) : NAV_ITEMS;
+    const navSections = isImpersonating
+        ? getImpersonationNav(impersonatedOrg.slug)
+        : user.role === "organizer"
+            ? getOrganizerNav(user)
+            : NAV_ITEMS;
 
     return (
         <div className="admin-wrapper">
@@ -128,22 +191,29 @@ export default function AdminLayout({ children, title }) {
 
                 <nav className="admin-sidebar-nav">
                     {navSections.map((section) => {
-                        const visibleItems = section.items.filter(item => hasAccess(user, item.perm));
+                        const visibleItems = section.items.filter((item) => {
+                            if (item.perms) return hasAnyAccess(user, item.perms);
+                            return hasAccess(user, item.perm);
+                        });
                         if (visibleItems.length === 0) return null;
                         return (
                             <div className="admin-nav-section" key={section.section}>
                                 <div className="admin-nav-section-title">{section.section}</div>
-                                {visibleItems.map((item) => (
-                                    <Link
-                                        key={item.href}
-                                        href={item.href}
-                                        className={`admin-nav-link ${pathname === item.href ? "active" : ""}`}
-                                        onClick={() => setSidebarOpen(false)}
-                                    >
-                                        <i className={item.icon}></i>
-                                        {item.label}
-                                    </Link>
-                                ))}
+                                {visibleItems.map((item) => {
+                                    const targetPath = item.href.split("?")[0];
+                                    const isActive = pathname === targetPath;
+                                    return (
+                                        <Link
+                                            key={item.href}
+                                            href={item.href}
+                                            className={`admin-nav-link ${isActive ? "active" : ""}`}
+                                            onClick={() => setSidebarOpen(false)}
+                                        >
+                                            <i className={item.icon}></i>
+                                            {item.label}
+                                        </Link>
+                                    );
+                                })}
                             </div>
                         );
                     })}
@@ -214,4 +284,4 @@ export default function AdminLayout({ children, title }) {
     );
 }
 
-export { hasAccess, ALL_PERMISSIONS };
+export { hasAccess, hasAnyAccess, ALL_PERMISSIONS };

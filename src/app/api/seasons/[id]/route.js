@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Season from "@/models/Season";
-import { requireAdmin } from "@/lib/apiAuth";
+import User from "@/models/User";
+import { requireAnyPermission } from "@/lib/apiAuth";
 
 // GET single season
 export async function GET(request, { params }) {
@@ -32,12 +33,30 @@ export async function GET(request, { params }) {
 // UPDATE season (admin/organizer only)
 export async function PUT(request, { params }) {
     try {
-        const auth = await requireAdmin();
+        const auth = await requireAnyPermission(["manage_seasons", "season_update"]);
         if (!auth.authorized) return auth.response;
 
         await dbConnect();
         const { id } = await params;
         const body = await request.json();
+
+        const existingSeason = await Season.findById(id).select("organization").lean();
+        if (!existingSeason) {
+            return NextResponse.json(
+                { success: false, error: "Season not found" },
+                { status: 404 }
+            );
+        }
+
+        if (auth.user.role === "organizer") {
+            const currentUser = await User.findById(auth.user.id).select("organization").lean();
+            if (!currentUser?.organization || String(currentUser.organization) !== String(existingSeason.organization)) {
+                return NextResponse.json(
+                    { success: false, error: "You can only update seasons for your assigned organization" },
+                    { status: 403 }
+                );
+            }
+        }
 
         const season = await Season.findByIdAndUpdate(id, body, { new: true, runValidators: true });
         if (!season) {
@@ -56,12 +75,12 @@ export async function PUT(request, { params }) {
 // DELETE season (admin/organizer only)
 export async function DELETE(request, { params }) {
     try {
-        const auth = await requireAdmin();
+        const auth = await requireAnyPermission(["manage_seasons", "season_delete"]);
         if (!auth.authorized) return auth.response;
 
         await dbConnect();
         const { id } = await params;
-        const season = await Season.findByIdAndDelete(id);
+        const season = await Season.findById(id).select("organization");
 
         if (!season) {
             return NextResponse.json(
@@ -69,6 +88,18 @@ export async function DELETE(request, { params }) {
                 { status: 404 }
             );
         }
+
+        if (auth.user.role === "organizer") {
+            const currentUser = await User.findById(auth.user.id).select("organization").lean();
+            if (!currentUser?.organization || String(currentUser.organization) !== String(season.organization)) {
+                return NextResponse.json(
+                    { success: false, error: "You can only delete seasons for your assigned organization" },
+                    { status: 403 }
+                );
+            }
+        }
+
+        await Season.deleteOne({ _id: id });
 
         return NextResponse.json({ success: true, message: "Season deleted" }, { status: 200 });
     } catch (error) {

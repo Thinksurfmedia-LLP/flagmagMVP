@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import Season from "@/models/Season";
-import { requireAdmin } from "@/lib/apiAuth";
+import User from "@/models/User";
+import { requireAnyPermission } from "@/lib/apiAuth";
 
 // GET seasons for an organization
 export async function GET(request, { params }) {
@@ -40,7 +41,7 @@ export async function GET(request, { params }) {
 // CREATE season for an organization (admin/organizer only)
 export async function POST(request, { params }) {
     try {
-        const auth = await requireAdmin();
+        const auth = await requireAnyPermission(["manage_seasons", "season_create"]);
         if (!auth.authorized) return auth.response;
 
         await dbConnect();
@@ -52,6 +53,16 @@ export async function POST(request, { params }) {
                 { success: false, error: "Organization not found" },
                 { status: 404 }
             );
+        }
+
+        if (auth.user.role === "organizer") {
+            const currentUser = await User.findById(auth.user.id).select("organization").lean();
+            if (!currentUser?.organization || String(currentUser.organization) !== String(organization._id)) {
+                return NextResponse.json(
+                    { success: false, error: "You can only create seasons for your assigned organization" },
+                    { status: 403 }
+                );
+            }
         }
 
         const body = await request.json();

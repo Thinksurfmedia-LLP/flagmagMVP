@@ -1,6 +1,14 @@
 import { getCurrentUser } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
+const PERMISSION_COMPATIBILITY = {
+    manage_organizations: ["organization_view", "organization_create", "organization_update", "organization_delete"],
+    manage_seasons: ["season_view", "season_create", "season_update", "season_delete"],
+    manage_games: ["game_view", "game_create", "game_update", "game_delete"],
+    manage_players: ["player_view", "player_create", "player_update", "player_delete"],
+    manage_users: ["user_view", "user_create", "user_update", "user_delete"],
+};
+
 /**
  * Check if the current request is from an authenticated user.
  * Returns the user payload or a 401 response.
@@ -48,9 +56,13 @@ export async function requirePermission(permission) {
     if (!auth.authorized) return auth;
 
     if (auth.user.role === "admin") return auth;
+    if (permission === "view_dashboard") return auth;
 
     const perms = auth.user.permissions || [];
-    if (!perms.includes(permission)) {
+    const compatiblePerms = PERMISSION_COMPATIBILITY[permission] || [];
+    const hasPermission = perms.includes(permission) || compatiblePerms.some((perm) => perms.includes(perm));
+
+    if (!hasPermission) {
         return {
             authorized: false,
             response: NextResponse.json(
@@ -59,5 +71,30 @@ export async function requirePermission(permission) {
             ),
         };
     }
+    return auth;
+}
+
+/**
+ * Check if the user has at least one of the provided permissions or is an admin.
+ */
+export async function requireAnyPermission(permissions = []) {
+    const auth = await requireAuth();
+    if (!auth.authorized) return auth;
+
+    if (auth.user.role === "admin") return auth;
+
+    const perms = auth.user.permissions || [];
+    const hasAny = permissions.some((permission) => perms.includes(permission));
+
+    if (!hasAny) {
+        return {
+            authorized: false,
+            response: NextResponse.json(
+                { success: false, error: `One of these permissions is required: ${permissions.join(", ")}` },
+                { status: 403 }
+            ),
+        };
+    }
+
     return auth;
 }

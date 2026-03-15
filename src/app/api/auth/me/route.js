@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Role from "@/models/Role";
+import User from "@/models/User";
 import { getCurrentUser } from "@/lib/auth";
 
 export async function GET() {
@@ -16,6 +17,10 @@ export async function GET() {
 
         // Look up fresh permissions from Role model
         await dbConnect();
+        const userDoc = await User.findById(user.id)
+            .select("organization")
+            .populate("organization", "name slug")
+            .lean();
         const roleDoc = await Role.findOne({ slug: user.role }).lean();
         const permissions = roleDoc ? [...roleDoc.permissions] : [];
 
@@ -28,6 +33,13 @@ export async function GET() {
                     email: user.email,
                     role: user.role,
                     permissions,
+                    organization: userDoc?.organization
+                        ? {
+                            id: userDoc.organization._id,
+                            name: userDoc.organization.name,
+                            slug: userDoc.organization.slug,
+                        }
+                        : null,
                 },
             },
             { status: 200 }
