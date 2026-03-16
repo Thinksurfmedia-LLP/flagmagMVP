@@ -29,6 +29,10 @@ const UserSchema = new mongoose.Schema(
             trim: true,
             lowercase: true,
         },
+        roles: {
+            type: [String],
+            default: [],
+        },
         organization: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Organization",

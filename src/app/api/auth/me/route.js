@@ -16,14 +16,15 @@ export async function GET() {
             );
         }
 
-        // Look up fresh permissions from Role model
+        // Look up fresh permissions from all assigned roles
         await dbConnect();
         const userDoc = await User.findById(user.id)
-            .select("organization")
+            .select("organization roles")
             .populate("organization", "name slug logo")
             .lean();
-        const roleDoc = await Role.findOne({ slug: user.role }).lean();
-        const permissions = roleDoc ? [...roleDoc.permissions] : [];
+        const roles = userDoc?.roles?.length ? [...userDoc.roles] : [user.role];
+        const roleDocs = await Role.find({ slug: { $in: roles } }).lean();
+        const permissions = [...new Set(roleDocs.flatMap(r => r.permissions))];
 
         return NextResponse.json(
             {
@@ -33,6 +34,7 @@ export async function GET() {
                     name: user.name,
                     email: user.email,
                     role: user.role,
+                    roles,
                     permissions,
                     organization: userDoc?.organization
                         ? {

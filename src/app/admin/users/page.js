@@ -6,28 +6,29 @@ import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 
 function AddUserModal({ onClose, onSave, organizations, roles, isAdmin }) {
-    const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "", role: "viewer", organization: "" });
+    const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "", organization: "" });
+    const [selectedRoles, setSelectedRoles] = useState(["viewer"]);
     const [saving, setSaving] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [formError, setFormError] = useState("");
 
-    const selectedRole = roles.find(r => r.slug === form.role);
     const availableRoles = isAdmin ? roles : roles.filter(r => !["admin", "organizer"].includes(r.slug));
-    const needsOrg = isAdmin && selectedRole?.slug === "organizer";
+    const needsOrg = isAdmin && selectedRoles.includes("organizer");
+
+    const toggleRole = (slug) => {
+        setSelectedRoles(prev =>
+            prev.includes(slug) ? prev.filter(r => r !== slug) : [...prev, slug]
+        );
+    };
 
     const handleSave = async () => {
         setFormError("");
-        if (needsOrg && !form.organization) {
-            setFormError("Please select an organization for the organizer");
-            return;
-        }
-        if (form.password !== form.confirmPassword) {
-            setFormError("Passwords do not match");
-            return;
-        }
+        if (selectedRoles.length === 0) { setFormError("Please select at least one role"); return; }
+        if (needsOrg && !form.organization) { setFormError("Please select an organization for the organizer role"); return; }
+        if (form.password !== form.confirmPassword) { setFormError("Passwords do not match"); return; }
         setSaving(true);
-        await onSave(form);
+        await onSave({ ...form, roles: selectedRoles, role: selectedRoles[0] });
         setSaving(false);
     };
 
@@ -69,12 +70,28 @@ function AddUserModal({ onClose, onSave, organizations, roles, isAdmin }) {
                     </div>
                 </div>
                 <div className="admin-form-group">
-                    <label className="admin-form-label">Role *</label>
-                    <select className="admin-form-select" value={form.role} onChange={e => setForm({ ...form, role: e.target.value, ...(!roles.find(r => r.slug === e.target.value && r.slug === "organizer") ? { organization: "" } : {}) })}>
+                    <label className="admin-form-label">Roles *</label>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
                         {availableRoles.map(r => (
-                            <option key={r._id} value={r.slug}>{r.name}</option>
+                            <label key={r._id} style={{
+                                display: "flex", alignItems: "center", gap: 6,
+                                padding: "6px 12px", borderRadius: 8, cursor: "pointer",
+                                border: `1.5px solid ${selectedRoles.includes(r.slug) ? "#6366f1" : "rgba(255,255,255,0.1)"}`,
+                                background: selectedRoles.includes(r.slug) ? "rgba(99,102,241,0.15)" : "transparent",
+                                color: selectedRoles.includes(r.slug) ? "#818cf8" : "#8b90a0",
+                                fontSize: 13, fontWeight: 500, userSelect: "none", transition: "all 0.15s",
+                            }}>
+                                <input
+                                    type="checkbox"
+                                    checked={selectedRoles.includes(r.slug)}
+                                    onChange={() => toggleRole(r.slug)}
+                                    style={{ display: "none" }}
+                                />
+                                {selectedRoles.includes(r.slug) && <i className="fa-solid fa-check" style={{ fontSize: 11 }}></i>}
+                                {r.name}
+                            </label>
                         ))}
-                    </select>
+                    </div>
                     {!isAdmin && <p style={{ fontSize: 12, color: "#8b90a0", marginTop: 6 }}>User will be automatically added to your organization.</p>}
                 </div>
                 {needsOrg && (
@@ -101,15 +118,29 @@ function AddUserModal({ onClose, onSave, organizations, roles, isAdmin }) {
 }
 
 function EditUserModal({ target, onClose, onSave, organizations, roles, isAdmin }) {
-    const [role, setRole] = useState(target.role);
+    const [selectedRoles, setSelectedRoles] = useState(
+        target.roles?.length ? target.roles : [target.role]
+    );
     const [organization, setOrganization] = useState(target.organization?._id || target.organization || "");
     const [saving, setSaving] = useState(false);
 
-    const needsOrg = isAdmin && role === "organizer";
+    const availableRoles = isAdmin ? roles : roles.filter(r => !["admin", "organizer"].includes(r.slug));
+    const needsOrg = isAdmin && selectedRoles.includes("organizer");
+
+    const toggleRole = (slug) => {
+        setSelectedRoles(prev =>
+            prev.includes(slug) ? prev.filter(r => r !== slug) : [...prev, slug]
+        );
+    };
 
     const handleSave = async () => {
+        if (selectedRoles.length === 0) return;
         setSaving(true);
-        await onSave(target._id, { role, organization: needsOrg ? organization : null });
+        await onSave(target._id, {
+            roles: selectedRoles,
+            role: selectedRoles[0],
+            organization: needsOrg ? organization : null,
+        });
         setSaving(false);
     };
 
@@ -119,12 +150,28 @@ function EditUserModal({ target, onClose, onSave, organizations, roles, isAdmin 
                 <h3 className="admin-modal-title">Edit User — {target.name}</h3>
 
                 <div className="admin-form-group">
-                    <label className="admin-form-label">Role</label>
-                    <select className="admin-form-select" value={role} onChange={e => { setRole(e.target.value); if (e.target.value !== "organizer") setOrganization(""); }}>
-                        {(isAdmin ? roles : roles.filter(r => !["admin", "organizer"].includes(r.slug))).map(r => (
-                            <option key={r._id} value={r.slug}>{r.name}</option>
+                    <label className="admin-form-label">Roles</label>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
+                        {availableRoles.map(r => (
+                            <label key={r._id} style={{
+                                display: "flex", alignItems: "center", gap: 6,
+                                padding: "6px 12px", borderRadius: 8, cursor: "pointer",
+                                border: `1.5px solid ${selectedRoles.includes(r.slug) ? "#6366f1" : "rgba(255,255,255,0.1)"}`,
+                                background: selectedRoles.includes(r.slug) ? "rgba(99,102,241,0.15)" : "transparent",
+                                color: selectedRoles.includes(r.slug) ? "#818cf8" : "#8b90a0",
+                                fontSize: 13, fontWeight: 500, userSelect: "none", transition: "all 0.15s",
+                            }}>
+                                <input
+                                    type="checkbox"
+                                    checked={selectedRoles.includes(r.slug)}
+                                    onChange={() => toggleRole(r.slug)}
+                                    style={{ display: "none" }}
+                                />
+                                {selectedRoles.includes(r.slug) && <i className="fa-solid fa-check" style={{ fontSize: 11 }}></i>}
+                                {r.name}
+                            </label>
                         ))}
-                    </select>
+                    </div>
                 </div>
 
                 {needsOrg && (
@@ -145,7 +192,7 @@ function EditUserModal({ target, onClose, onSave, organizations, roles, isAdmin 
 
                 <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
                     <button className="admin-btn admin-btn-ghost" onClick={onClose}>Cancel</button>
-                    <button className="admin-btn admin-btn-primary" onClick={handleSave} disabled={saving}>
+                    <button className="admin-btn admin-btn-primary" onClick={handleSave} disabled={saving || selectedRoles.length === 0}>
                         {saving ? "Saving..." : "Save Changes"}
                     </button>
                 </div>
@@ -155,7 +202,7 @@ function EditUserModal({ target, onClose, onSave, organizations, roles, isAdmin 
 }
 
 export default function AdminUsersPage() {
-    const { user } = useAuth();
+    const { user, activeRole } = useAuth();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [editTarget, setEditTarget] = useState(null);
@@ -304,7 +351,9 @@ export default function AdminUsersPage() {
                                                     {u.organization ? u.organization.name : <span style={{ color: "#a0a4b2" }}>—</span>}
                                                 </td>
                                                 <td>
-                                                    <span className={`admin-badge ${u.role}`}>{u.role}</span>
+                                                    {(u.roles?.length ? u.roles : [u.role]).map(r => (
+                                                        <span key={r} className={`admin-badge ${r}`} style={{ marginRight: 4 }}>{r}</span>
+                                                    ))}
                                                 </td>
                                                 <td style={{ color: "#8b90a0", fontSize: 13 }}>
                                                     {new Date(u.createdAt).toLocaleDateString()}
@@ -359,7 +408,7 @@ export default function AdminUsersPage() {
                             onSave={handleSave}
                             organizations={organizations}
                             roles={roles}
-                            isAdmin={user?.role === "admin"}
+                            isAdmin={(activeRole || user?.role) === "admin"}
                         />
                     )}
 
@@ -368,7 +417,7 @@ export default function AdminUsersPage() {
                             organizations={organizations}
                             roles={roles}
                             onClose={() => setShowAddUser(false)}
-                            isAdmin={user?.role === "admin"}
+                            isAdmin={(activeRole || user?.role) === "admin"}
                             onSave={async (formData) => {
                                 try {
                                     const res = await fetch("/api/admin/users", {

@@ -45,7 +45,7 @@ export default function HeaderAuth() {
                         onClick={() => setOpen((v) => !v)}
                         style={{ cursor: "pointer" }}
                     >
-                        <i className="fa-solid fa-user me-1"></i> {user.name}
+                        <i className="fa-solid fa-user me-1"></i> {user.name.split(" ")[0]}
                         <i className={`fa-solid fa-chevron-down ms-2`} style={{ fontSize: "10px", transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}></i>
                     </button>
                     {open && (

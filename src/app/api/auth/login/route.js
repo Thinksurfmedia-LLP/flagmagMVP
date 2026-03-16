@@ -37,14 +37,17 @@ export async function POST(request) {
             );
         }
 
-        // Look up role permissions
-        const roleDoc = await Role.findOne({ slug: user.role }).lean();
-        const perms = roleDoc ? [...roleDoc.permissions] : [];
+        // Look up permissions from all assigned roles
+        const roles = user.roles?.length ? [...user.roles] : [user.role];
+        const roleDocs = await Role.find({ slug: { $in: roles } }).lean();
+        const perms = [...new Set(roleDocs.flatMap(r => r.permissions))];
+
         const token = await signToken({
             id: user._id.toString(),
             name: user.name,
             email: user.email,
             role: user.role,
+            roles,
             permissions: perms,
             organization: user.organization
                 ? {
@@ -64,6 +67,7 @@ export async function POST(request) {
                     name: user.name,
                     email: user.email,
                     role: user.role,
+                    roles,
                     permissions: perms,
                     organization: user.organization
                         ? {

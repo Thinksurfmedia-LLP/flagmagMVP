@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import { useImpersonation } from "@/components/ImpersonationProvider";
 import "@/styles/admin.css";
@@ -118,8 +118,8 @@ function getImpersonationNav(orgSlug) {
     ];
 }
 
-function getOrganizerNav() {
-    return [
+function getOrganizerNav(orgSlug) {
+    const nav = [
         {
             section: "Overview",
             items: [
@@ -168,13 +168,40 @@ function getOrganizerNav() {
             ],
         },
     ];
+    if (orgSlug) {
+        nav.push({
+            section: "Settings",
+            items: [
+                { label: "Locations", href: `/admin/organizations/${orgSlug}/locations`, icon: "fa-solid fa-map-location-dot", perm: "view_dashboard" },
+                { label: "Organization", href: `/admin/organizations/${orgSlug}/settings`, icon: "fa-solid fa-gear", perm: "view_dashboard" },
+            ],
+        });
+    }
+    return nav;
 }
 
 export default function AdminLayout({ children, title }) {
-    const { user, loading, logout } = useAuth();
+    const { user, loading, logout, activeRole, clearActiveRole } = useAuth();
     const { org: impersonatedOrg, exitImpersonation } = useImpersonation();
     const pathname = usePathname();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const router = useRouter();
+    const [fetchedOrgSlug, setFetchedOrgSlug] = useState(null);
+
+    // If organizer has no user.organization, fetch their first org from the API
+    const effectiveRole = activeRole || user?.role;
+    useEffect(() => {
+        if (effectiveRole === "organizer" && !user?.organization?.slug) {
+            fetch("/api/organizations")
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success && data.data?.length > 0) {
+                        setFetchedOrgSlug(data.data[0].slug);
+                    }
+                })
+                .catch(() => {});
+        }
+    }, [effectiveRole, user?.organization?.slug]);
 
     if (loading) {
         return (
@@ -200,12 +227,15 @@ export default function AdminLayout({ children, title }) {
 
     const initials = (user.name || "U").split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
     const isImpersonating = !!impersonatedOrg;
-    const isOrganizer = user.role === "organizer";
+    const isOrganizer = effectiveRole === "organizer";
+    const userRoles = user.roles?.length ? user.roles : [user.role];
+    const isMultiRole = userRoles.length > 1;
     const organizerOrg = user.organization;
+    const orgSlug = organizerOrg?.slug || fetchedOrgSlug;
     const navSections = isImpersonating
         ? getImpersonationNav(impersonatedOrg.slug)
         : isOrganizer
-            ? getOrganizerNav()
+            ? getOrganizerNav(orgSlug)
             : NAV_ITEMS;
 
     return (
@@ -275,9 +305,19 @@ export default function AdminLayout({ children, title }) {
                         <div className="admin-user-avatar">{initials}</div>
                         <div className="admin-user-info">
                             <div className="admin-user-name">{user.name}</div>
-                            <div className="admin-user-role">{user.role}</div>
+                            <div className="admin-user-role">{effectiveRole}</div>
                         </div>
                     </div>
+                    {isMultiRole && (
+                        <button
+                            className="admin-nav-link"
+                            style={{ marginTop: 8, color: "#a78bfa" }}
+                            onClick={() => { clearActiveRole(); router.push("/admin/select-role"); }}
+                        >
+                            <i className="fa-solid fa-shuffle"></i>
+                            Switch Role
+                        </button>
+                    )}
                     <button
                         className="admin-nav-link"
                         style={{ marginTop: 8, color: "#dc2626" }}

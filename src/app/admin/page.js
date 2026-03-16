@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import AdminLayout, { hasAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 
@@ -29,9 +30,21 @@ function QuickAction({ icon, label, href }) {
 }
 
 export default function AdminDashboard() {
-    const { user } = useAuth();
+    const { user, loading, activeRole, setActiveRole } = useAuth();
+    const router = useRouter();
     const [stats, setStats] = useState(null);
     const [recentUsers, setRecentUsers] = useState([]);
+
+    // Multi-role redirect: send to role picker if no active role has been chosen
+    useEffect(() => {
+        if (loading || !user) return;
+        const userRoles = user.roles?.length ? user.roles : [user.role];
+        if (userRoles.length > 1 && !activeRole) {
+            router.replace("/admin/select-role");
+        } else if (userRoles.length === 1 && !activeRole) {
+            setActiveRole(userRoles[0]);
+        }
+    }, [user, loading, activeRole, setActiveRole, router]);
 
     useEffect(() => {
         fetch("/api/admin/stats")

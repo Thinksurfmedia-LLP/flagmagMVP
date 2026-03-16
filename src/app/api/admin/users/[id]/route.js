@@ -25,17 +25,27 @@ export async function PUT(request, { params }) {
             if (String(target.organization) !== String(requester.organization)) {
                 return NextResponse.json({ success: false, error: "You can only manage users in your organization" }, { status: 403 });
             }
-            if (body.role && ["admin", "organizer"].includes(body.role)) {
+            const incomingRoles = Array.isArray(body.roles) ? body.roles : (body.role ? [body.role] : []);
+            if (incomingRoles.some(r => ["admin", "organizer"].includes(r))) {
                 return NextResponse.json({ success: false, error: "You cannot assign admin or organizer roles" }, { status: 403 });
             }
         }
 
-        if (body.role) {
+        if (Array.isArray(body.roles) && body.roles.length > 0) {
+            // Validate each role slug exists
+            const count = await Role.countDocuments({ slug: { $in: body.roles } });
+            if (count !== body.roles.length) {
+                return NextResponse.json({ success: false, error: "One or more roles are invalid" }, { status: 400 });
+            }
+            update.roles = body.roles;
+            update.role = body.roles[0];
+        } else if (body.role) {
             const validRole = await Role.findOne({ slug: body.role });
             if (!validRole) {
                 return NextResponse.json({ success: false, error: "Invalid role" }, { status: 400 });
             }
             update.role = body.role;
+            update.roles = [body.role];
         }
 
         if (body.organization !== undefined && auth.user.role === "admin") {

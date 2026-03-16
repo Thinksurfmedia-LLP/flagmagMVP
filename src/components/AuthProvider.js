@@ -5,6 +5,9 @@ import { createContext, useContext, useState, useEffect, useCallback } from "rea
 const AuthContext = createContext({
     user: null,
     loading: true,
+    activeRole: null,
+    setActiveRole: () => { },
+    clearActiveRole: () => { },
     login: async () => { },
     logout: async () => { },
     refreshUser: async () => { },
@@ -13,6 +16,33 @@ const AuthContext = createContext({
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [activeRole, setActiveRoleState] = useState(null);
+
+    // Load persisted active role from sessionStorage when client mounts
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const saved = sessionStorage.getItem("flagmag-active-role");
+            if (saved) setActiveRoleState(saved);
+        }
+    }, []);
+
+    // Clear active role when user logs out
+    useEffect(() => {
+        if (!user) {
+            setActiveRoleState(null);
+            if (typeof window !== "undefined") sessionStorage.removeItem("flagmag-active-role");
+        }
+    }, [user]);
+
+    const setActiveRole = useCallback((role) => {
+        setActiveRoleState(role);
+        if (typeof window !== "undefined") sessionStorage.setItem("flagmag-active-role", role);
+    }, []);
+
+    const clearActiveRole = useCallback(() => {
+        setActiveRoleState(null);
+        if (typeof window !== "undefined") sessionStorage.removeItem("flagmag-active-role");
+    }, []);
 
     const refreshUser = useCallback(async () => {
         try {
@@ -43,6 +73,8 @@ export function AuthProvider({ children }) {
         const data = await res.json();
         if (data.success) {
             setUser(data.data);
+            // Clear any stale active role on fresh login
+            clearActiveRole();
         }
         return data;
     };
@@ -50,10 +82,11 @@ export function AuthProvider({ children }) {
     const logout = async () => {
         await fetch("/api/auth/logout", { method: "POST" });
         setUser(null);
+        clearActiveRole();
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, logout, refreshUser }}>
+        <AuthContext.Provider value={{ user, loading, activeRole, setActiveRole, clearActiveRole, login, logout, refreshUser }}>
             {children}
         </AuthContext.Provider>
     );

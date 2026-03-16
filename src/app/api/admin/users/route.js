@@ -31,7 +31,7 @@ export async function POST(request) {
 
     try {
         await dbConnect();
-        const { name, email, phone, password, role, organization } = await request.json();
+        const { name, email, phone, password, role, roles: rolesInput, organization } = await request.json();
 
         if (!name || !email || !password) {
             return NextResponse.json({ success: false, error: "Name, email, and password are required" }, { status: 400 });
@@ -40,11 +40,15 @@ export async function POST(request) {
             return NextResponse.json({ success: false, error: "Password must be at least 6 characters" }, { status: 400 });
         }
 
+        // Build the final roles array; fall back to single role for backwards compat
+        let assignedRoles = Array.isArray(rolesInput) && rolesInput.length > 0 ? rolesInput : [role || "viewer"];
+        const primaryRole = assignedRoles[0];
+
         let assignedOrg = organization || null;
         if (auth.user.role !== "admin") {
             const requester = await User.findById(auth.user.id).select("organization").lean();
             assignedOrg = requester?.organization || null;
-            if (["admin", "organizer"].includes(role)) {
+            if (assignedRoles.some(r => ["admin", "organizer"].includes(r))) {
                 return NextResponse.json({ success: false, error: "You can only create viewer or player accounts" }, { status: 403 });
             }
         }
@@ -62,7 +66,8 @@ export async function POST(request) {
             email,
             phone: phone || "",
             password: hashedPassword,
-            role: role || "viewer",
+            role: primaryRole,
+            roles: assignedRoles,
             ...(assignedOrg ? { organization: assignedOrg } : {}),
         });
 
