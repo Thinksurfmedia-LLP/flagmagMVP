@@ -9,9 +9,12 @@ import { useToast } from "@/components/AdminToast";
 
 export default function OrgSettingsPage() {
     const { slug } = useParams();
-    const { user } = useAuth();
+    const { user, activeRole } = useAuth();
     const { org: impersonatedOrg, enterImpersonation } = useImpersonation();
     const { showSuccess, showError } = useToast();
+
+    const effectiveRole = activeRole || user?.role;
+    const isOwnOrg = effectiveRole === "organizer" && user?.organization?.slug === slug;
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -41,7 +44,7 @@ export default function OrgSettingsPage() {
                 const data = await res.json();
                 if (data.success) {
                     const org = data.data;
-                    if (!impersonatedOrg) enterImpersonation(org);
+                    if (!isOwnOrg && !impersonatedOrg) enterImpersonation(org);
                     setForm({
                         name: org.name || "",
                         description: org.description || "",
@@ -98,13 +101,13 @@ export default function OrgSettingsPage() {
             if (!data.success) { showError(data.error); return; }
 
             // Update impersonation context with new name/logo if changed
-            if (data.data) enterImpersonation(data.data);
+            if (!isOwnOrg && data.data) enterImpersonation(data.data);
             showSuccess("Settings saved!");
         } catch { showError("Failed to save settings"); }
         finally { setSaving(false); }
     };
 
-    const canManage = user && hasAccess(user, "manage_organizations");
+    const canManage = isOwnOrg || (user && hasAccess(user, "manage_organizations"));
 
     return (
         <AdminLayout title="Organization Settings">

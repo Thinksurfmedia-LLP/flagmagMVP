@@ -170,7 +170,7 @@ function LocationModal({ open, editingVenue, orgLocations, onClose, onSave, load
 
 export default function OrgLocationsPage() {
     const { slug } = useParams();
-    const { user } = useAuth();
+    const { user, activeRole } = useAuth();
     const { org: impersonatedOrg, enterImpersonation } = useImpersonation();
     const { showSuccess, showError } = useToast();
 
@@ -181,7 +181,9 @@ export default function OrgLocationsPage() {
     const [modalSaving, setModalSaving] = useState(false);
     const [editingVenue, setEditingVenue] = useState(null);
 
-    const canManage = user && hasAccess(user, "manage_organizations");
+    const effectiveRole = activeRole || user?.role;
+    const isOwnOrg = effectiveRole === "organizer" && user?.organization?.slug === slug;
+    const canManage = isOwnOrg || (user && hasAccess(user, "manage_organizations"));
 
     useEffect(() => {
         (async () => {
@@ -189,7 +191,7 @@ export default function OrgLocationsPage() {
                 const res = await fetch(`/api/organizations/${slug}`);
                 const data = await res.json();
                 if (data.success) {
-                    if (!impersonatedOrg) enterImpersonation(data.data);
+                    if (!isOwnOrg && !impersonatedOrg) enterImpersonation(data.data);
                     setOrgLocations(data.data.locations || []);
                 }
             } catch {}

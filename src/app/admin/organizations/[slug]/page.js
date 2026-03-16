@@ -9,12 +9,15 @@ import { useImpersonation } from "@/components/ImpersonationProvider";
 export default function OrgDashboardPage() {
     const { slug } = useParams();
     const router = useRouter();
-    const { user } = useAuth();
+    const { user, activeRole } = useAuth();
     const { org, enterImpersonation } = useImpersonation();
+
+    const effectiveRole = activeRole || user?.role;
+    const isOwnOrg = effectiveRole === "organizer" && user?.organization?.slug === slug;
 
     /* If the user navigates here directly (e.g. page refresh), re-hydrate the impersonation context */
     useEffect(() => {
-        if (!org && user) {
+        if (!isOwnOrg && !org && user) {
             (async () => {
                 try {
                     const res = await fetch(`/api/organizations/${slug}`);
@@ -29,7 +32,7 @@ export default function OrgDashboardPage() {
                 }
             })();
         }
-    }, [org, user, slug, enterImpersonation, router]);
+    }, [org, user, slug, enterImpersonation, router, isOwnOrg]);
 
     const orgName = org?.name || slug;
 
