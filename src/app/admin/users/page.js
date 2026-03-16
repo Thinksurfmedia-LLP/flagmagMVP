@@ -5,7 +5,7 @@ import AdminLayout, { hasAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 
-function AddUserModal({ onClose, onSave, organizations, roles }) {
+function AddUserModal({ onClose, onSave, organizations, roles, isAdmin }) {
     const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "", role: "viewer", organization: "" });
     const [saving, setSaving] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -13,7 +13,8 @@ function AddUserModal({ onClose, onSave, organizations, roles }) {
     const [formError, setFormError] = useState("");
 
     const selectedRole = roles.find(r => r.slug === form.role);
-    const needsOrg = selectedRole?.slug === "organizer";
+    const availableRoles = isAdmin ? roles : roles.filter(r => !["admin", "organizer"].includes(r.slug));
+    const needsOrg = isAdmin && selectedRole?.slug === "organizer";
 
     const handleSave = async () => {
         setFormError("");
@@ -70,10 +71,11 @@ function AddUserModal({ onClose, onSave, organizations, roles }) {
                 <div className="admin-form-group">
                     <label className="admin-form-label">Role *</label>
                     <select className="admin-form-select" value={form.role} onChange={e => setForm({ ...form, role: e.target.value, ...(!roles.find(r => r.slug === e.target.value && r.slug === "organizer") ? { organization: "" } : {}) })}>
-                        {roles.map(r => (
+                        {availableRoles.map(r => (
                             <option key={r._id} value={r.slug}>{r.name}</option>
                         ))}
                     </select>
+                    {!isAdmin && <p style={{ fontSize: 12, color: "#8b90a0", marginTop: 6 }}>User will be automatically added to your organization.</p>}
                 </div>
                 {needsOrg && (
                     <div className="admin-form-group">
@@ -98,12 +100,12 @@ function AddUserModal({ onClose, onSave, organizations, roles }) {
     );
 }
 
-function EditUserModal({ target, onClose, onSave, organizations, roles }) {
+function EditUserModal({ target, onClose, onSave, organizations, roles, isAdmin }) {
     const [role, setRole] = useState(target.role);
     const [organization, setOrganization] = useState(target.organization?._id || target.organization || "");
     const [saving, setSaving] = useState(false);
 
-    const needsOrg = role === "organizer";
+    const needsOrg = isAdmin && role === "organizer";
 
     const handleSave = async () => {
         setSaving(true);
@@ -119,7 +121,7 @@ function EditUserModal({ target, onClose, onSave, organizations, roles }) {
                 <div className="admin-form-group">
                     <label className="admin-form-label">Role</label>
                     <select className="admin-form-select" value={role} onChange={e => { setRole(e.target.value); if (e.target.value !== "organizer") setOrganization(""); }}>
-                        {roles.map(r => (
+                        {(isAdmin ? roles : roles.filter(r => !["admin", "organizer"].includes(r.slug))).map(r => (
                             <option key={r._id} value={r.slug}>{r.name}</option>
                         ))}
                     </select>
@@ -259,7 +261,7 @@ export default function AdminUsersPage() {
                                     autoComplete="off"
                                     style={{ maxWidth: 260 }}
                                 />
-                                {user?.role === "admin" && (
+                                {canManage && (
                                     <button className="admin-btn admin-btn-primary" style={{ whiteSpace: "nowrap" }} onClick={() => { setSearch(""); setShowAddUser(true); }}>
                                         <i className="fa-solid fa-plus"></i> Add User
                                     </button>
@@ -313,7 +315,7 @@ export default function AdminUsersPage() {
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    {user?.role === "admin" && u._id !== user.id && (
+                                                    {canManage && u._id !== user.id && (
                                                         <div style={{ display: "flex", gap: 6 }}>
                                                             <button
                                                                 className="admin-btn admin-btn-ghost admin-btn-sm"
@@ -338,7 +340,7 @@ export default function AdminUsersPage() {
                                                             </button>
                                                         </div>
                                                     )}
-                                                    {user?.role === "admin" && u._id === user.id && (
+                                                    {canManage && u._id === user.id && (
                                                         <span style={{ fontSize: 12, color: "#8b90a0" }}>You</span>
                                                     )}
                                                 </td>
@@ -357,6 +359,7 @@ export default function AdminUsersPage() {
                             onSave={handleSave}
                             organizations={organizations}
                             roles={roles}
+                            isAdmin={user?.role === "admin"}
                         />
                     )}
 
@@ -365,6 +368,7 @@ export default function AdminUsersPage() {
                             organizations={organizations}
                             roles={roles}
                             onClose={() => setShowAddUser(false)}
+                            isAdmin={user?.role === "admin"}
                             onSave={async (formData) => {
                                 try {
                                     const res = await fetch("/api/admin/users", {

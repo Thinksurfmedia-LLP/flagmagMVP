@@ -614,6 +614,9 @@
     display: flex;
     flex-direction: column;
     line-height: 1.2;
+    color: #23262f;
+    font-size: 13px;
+    font-weight: 500;
 }
 
 .admin-location-option small {

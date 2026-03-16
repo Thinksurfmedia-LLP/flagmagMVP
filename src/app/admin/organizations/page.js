@@ -10,7 +10,7 @@ import { useToast } from "@/components/AdminToast";
 import { useImpersonation } from "@/components/ImpersonationProvider";
 import { formatOrganizationLocations } from "@/lib/organizationLocations";
 
-const CATEGORY_OPTIONS = ["Men", "Youth", "Women", "Co-ed"];
+const CATEGORY_OPTIONS = ["Coed", "Men's", "Women's", "Youth", "Senior"];
 const SCHEDULE_DAY_OPTIONS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
 const selectStyles = {
@@ -112,7 +112,7 @@ function OrgForm({ org, onSave, onCancel }) {
         if (!availableLocations.length) return;
 
         const selectedFromList = selectedLocationIds
-            .map((id) => availableLocations.find((entry) => String(entry._id) === String(id)))
+            .map((id) => availableLocations.find((entry) => String(entry.countyId) === String(id)))
             .filter(Boolean)
             .map((entry) => ({
                 state: entry.stateId,

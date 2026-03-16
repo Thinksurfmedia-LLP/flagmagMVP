@@ -5,7 +5,7 @@ import AdminLayout, { hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 
-function SeasonModal({ onClose, onSave, initial, categoryOptions = [], locationOptions = [] }) {
+function SeasonModal({ onClose, onSave, initial, categoryOptions = [], venuesByCounty = [] }) {
     const [form, setForm] = useState({
         name: initial?.name || "",
         type: initial?.type || "active",
@@ -19,11 +19,22 @@ function SeasonModal({ onClose, onSave, initial, categoryOptions = [], locationO
     });
     const [saving, setSaving] = useState(false);
 
+    const toggleVenue = (venueName) => {
+        setForm((prev) => ({
+            ...prev,
+            locations: prev.locations.includes(venueName)
+                ? prev.locations.filter((v) => v !== venueName)
+                : [...prev.locations, venueName],
+        }));
+    };
+
     const handleSave = async () => {
         setSaving(true);
         await onSave(form);
         setSaving(false);
     };
+
+    const hasVenues = venuesByCounty.some((group) => group.venues.length > 0);
 
     return (
         <div className="admin-modal-backdrop" onClick={onClose}>
@@ -50,30 +61,31 @@ function SeasonModal({ onClose, onSave, initial, categoryOptions = [], locationO
                     </select>
                 </div>
                 <div className="admin-form-group">
-                    <label className="admin-form-label">Locations</label>
-                    <div className="admin-location-list" style={{ maxHeight: 180 }}>
-                        {locationOptions.length === 0 ? (
-                            <div style={{ color: "#8b90a0", fontSize: 13 }}>No organization locations configured.</div>
-                        ) : locationOptions.map((location) => {
-                            const checked = form.locations.includes(location);
-                            return (
-                                <label key={location} className={`admin-location-option ${checked ? "selected" : ""}`}>
-                                    <input
-                                        type="checkbox"
-                                        checked={checked}
-                                        onChange={() => {
-                                            setForm((prev) => ({
-                                                ...prev,
-                                                locations: checked
-                                                    ? prev.locations.filter((entry) => entry !== location)
-                                                    : [...prev.locations, location],
-                                            }));
-                                        }}
-                                    />
-                                    <span>{location}</span>
-                                </label>
-                            );
-                        })}
+                    <label className="admin-form-label">Venues</label>
+                    <div className="admin-location-list" style={{ maxHeight: 220 }}>
+                        {!hasVenues ? (
+                            <div style={{ color: "#8b90a0", fontSize: 13 }}>No venues found for this organization&apos;s operating locations.</div>
+                        ) : venuesByCounty.map((group) => (
+                            group.venues.length > 0 && (
+                                <div key={group.countyId}>
+                                    <div style={{ fontSize: 11, fontWeight: 700, color: "#8b90a0", textTransform: "uppercase", letterSpacing: 0.5, padding: "8px 4px 4px" }}>
+                                        {group.countyLabel}
+                                    </div>
+                                    {group.venues.map((venue) => {
+                                        const checked = form.locations.includes(venue.name);
+                                        return (
+                                            <label key={venue._id} className={`admin-location-option ${checked ? "selected" : ""}`}>
+                                                <input type="checkbox" checked={checked} onChange={() => toggleVenue(venue.name)} />
+                                                <span>
+                                                    {venue.name}
+                                                    {venue.address && <small>{venue.address}</small>}
+                                                </span>
+                                            </label>
+                                        );
+                                    })}
+                                </div>
+                            )
+                        ))}
                     </div>
                 </div>
                 <div className="admin-form-group">
@@ -99,6 +111,7 @@ export default function OrganizerSeasonsPage() {
     const [showModal, setShowModal] = useState(false);
     const [editTarget, setEditTarget] = useState(null);
     const [organization, setOrganization] = useState(null);
+    const [allVenues, setAllVenues] = useState([]);
 
     const orgSlug = user?.organization?.slug;
     const orgName = user?.organization?.name || "Your Organization";
@@ -137,19 +150,32 @@ export default function OrganizerSeasonsPage() {
         }
     }, [orgSlug, canView]);
 
+    const fetchVenues = useCallback(async () => {
+        try {
+            const res = await fetch("/api/locations");
+            const data = await res.json();
+            if (data.success) setAllVenues(data.data || []);
+        } catch { /* non-blocking */ }
+    }, []);
+
     useEffect(() => {
         fetchSeasons();
         fetchOrganization();
-    }, [fetchSeasons, fetchOrganization]);
+        fetchVenues();
+    }, [fetchSeasons, fetchOrganization, fetchVenues]);
 
-    const categoryOptions = (organization?.categories || []).map((entry) => String(entry).trim()).filter(Boolean);
-    const locationOptions = (organization?.locations || [])
-        .map((entry) => {
-            if (entry?.locationName) return entry.locationName;
-            if (entry?.countyName && (entry?.stateAbbr || entry?.stateName)) return `${entry.countyName} (${entry.stateAbbr || entry.stateName})`;
-            return entry?.countyName || entry?.stateName || "";
-        })
-        .filter(Boolean);
+    const categoryOptions = (organization?.tags?.length ? organization.tags : organization?.categories || []).map((entry) => String(entry).trim()).filter(Boolean);
+
+    const orgCountyIds = (organization?.locations || []).map((entry) => String(entry.county || entry.countyId)).filter(Boolean);
+    const venuesByCounty = orgCountyIds.reduce((groups, countyId) => {
+        const venues = allVenues.filter((v) => String(v.countyId) === countyId);
+        const sample = allVenues.find((v) => String(v.countyId) === countyId) || organization?.locations?.find((l) => String(l.county || l.countyId) === countyId);
+        const countyLabel = sample ? `${sample.countyName || ""} (${sample.stateAbbr || sample.stateName || ""})`.trim() : countyId;
+        if (!groups.some((g) => g.countyId === countyId)) {
+            groups.push({ countyId, countyLabel, venues });
+        }
+        return groups;
+    }, []);
 
     const handleSave = async (formData) => {
         if (!orgSlug) {
@@ -322,7 +348,7 @@ export default function OrganizerSeasonsPage() {
                 <SeasonModal
                     initial={editTarget}
                     categoryOptions={categoryOptions}
-                    locationOptions={locationOptions}
+                    venuesByCounty={venuesByCounty}
                     onClose={() => { setShowModal(false); setEditTarget(null); }}
                     onSave={handleSave}
                 />

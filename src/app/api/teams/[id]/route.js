@@ -2,7 +2,15 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Team from "@/models/Team";
 import Player from "@/models/Player";
+import User from "@/models/User";
 import { requireAnyPermission } from "@/lib/apiAuth";
+
+async function getOrgIdForOrganizer(authUser) {
+    if (authUser.organization?.id) return authUser.organization.id;
+    const userDoc = await User.findById(authUser.id).select("organization").lean()
+        || await User.findOne({ email: authUser.email }).select("organization").lean();
+    return userDoc?.organization ? String(userDoc.organization) : null;
+}
 
 function normalizeObjectId(value) {
     return value ? String(value) : "";
@@ -50,7 +58,7 @@ async function getTeamForUser(id, user) {
     if (!team) return null;
 
     if (user.role === "organizer") {
-        const organizerOrgId = user.organization?.id ? String(user.organization.id) : "";
+        const organizerOrgId = await getOrgIdForOrganizer(user);
         if (!organizerOrgId || String(team.organization) !== organizerOrgId) {
             return "forbidden";
         }
@@ -88,7 +96,7 @@ export async function PUT(request, { params }) {
         const nextPlayerIds = Array.isArray(body.players) ? body.players : prevPlayerIds;
 
         if (auth.user.role === "organizer" && nextPlayerIds.length > 0) {
-            const organizerOrgId = auth.user.organization?.id;
+            const organizerOrgId = await getOrgIdForOrganizer(auth.user);
             const disallowed = await Player.countDocuments({
                 _id: { $in: nextPlayerIds },
                 organization: { $nin: [null, organizerOrgId] },

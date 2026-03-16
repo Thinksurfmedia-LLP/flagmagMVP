@@ -3,18 +3,11 @@ import mongoose from "mongoose";
 import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
 import Role from "@/models/Role";
-import { requireAdmin } from "@/lib/apiAuth";
+import { requirePermission } from "@/lib/apiAuth";
 
 export async function PUT(request, { params }) {
-    const auth = await requireAdmin();
+    const auth = await requirePermission("manage_users");
     if (!auth.authorized) return auth.response;
-
-    if (auth.user.role !== "admin") {
-        return NextResponse.json(
-            { success: false, error: "Only admins can manage user roles" },
-            { status: 403 }
-        );
-    }
 
     try {
         await dbConnect();
@@ -22,18 +15,30 @@ export async function PUT(request, { params }) {
         const body = await request.json();
         const update = {};
 
+        if (auth.user.role !== "admin") {
+            const requester = await User.findById(auth.user.id).select("organization").lean();
+            if (!requester?.organization) {
+                return NextResponse.json({ success: false, error: "You are not associated with an organization" }, { status: 403 });
+            }
+            const target = await User.findById(id).select("organization").lean();
+            if (!target) return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
+            if (String(target.organization) !== String(requester.organization)) {
+                return NextResponse.json({ success: false, error: "You can only manage users in your organization" }, { status: 403 });
+            }
+            if (body.role && ["admin", "organizer"].includes(body.role)) {
+                return NextResponse.json({ success: false, error: "You cannot assign admin or organizer roles" }, { status: 403 });
+            }
+        }
+
         if (body.role) {
             const validRole = await Role.findOne({ slug: body.role });
             if (!validRole) {
-                return NextResponse.json(
-                    { success: false, error: "Invalid role" },
-                    { status: 400 }
-                );
+                return NextResponse.json({ success: false, error: "Invalid role" }, { status: 400 });
             }
             update.role = body.role;
         }
 
-        if (body.organization !== undefined) {
+        if (body.organization !== undefined && auth.user.role === "admin") {
             update.organization = body.organization || null;
         }
 
@@ -43,31 +48,18 @@ export async function PUT(request, { params }) {
             .lean();
 
         if (!user) {
-            return NextResponse.json(
-                { success: false, error: "User not found" },
-                { status: 404 }
-            );
+            return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
         }
 
         return NextResponse.json({ success: true, data: user });
     } catch (error) {
-        return NextResponse.json(
-            { success: false, error: error.message },
-            { status: 500 }
-        );
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }
 
 export async function PATCH(request, { params }) {
-    const auth = await requireAdmin();
+    const auth = await requirePermission("manage_users");
     if (!auth.authorized) return auth.response;
-
-    if (auth.user.role !== "admin") {
-        return NextResponse.json(
-            { success: false, error: "Only admins can manage users" },
-            { status: 403 }
-        );
-    }
 
     try {
         await dbConnect();
@@ -78,6 +70,18 @@ export async function PATCH(request, { params }) {
                 { success: false, error: "You cannot deactivate your own account" },
                 { status: 400 }
             );
+        }
+
+        if (auth.user.role !== "admin") {
+            const requester = await User.findById(auth.user.id).select("organization").lean();
+            if (!requester?.organization) {
+                return NextResponse.json({ success: false, error: "You are not associated with an organization" }, { status: 403 });
+            }
+            const target = await User.findById(id).select("organization").lean();
+            if (!target) return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
+            if (String(target.organization) !== String(requester.organization)) {
+                return NextResponse.json({ success: false, error: "You can only manage users in your organization" }, { status: 403 });
+            }
         }
 
         const existing = await User.findById(id).select("isActive").lean();
@@ -109,19 +113,28 @@ export async function PATCH(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
-    const auth = await requireAdmin();
+    const auth = await requirePermission("manage_users");
     if (!auth.authorized) return auth.response;
-
-    if (auth.user.role !== "admin") {
-        return NextResponse.json(
-            { success: false, error: "Only admins can delete users" },
-            { status: 403 }
-        );
-    }
 
     try {
         await dbConnect();
         const { id } = await params;
+
+        if (id === auth.user.id) {
+            return NextResponse.json({ success: false, error: "You cannot delete your own account" }, { status: 400 });
+        }
+
+        if (auth.user.role !== "admin") {
+            const requester = await User.findById(auth.user.id).select("organization").lean();
+            if (!requester?.organization) {
+                return NextResponse.json({ success: false, error: "You are not associated with an organization" }, { status: 403 });
+            }
+            const target = await User.findById(id).select("organization").lean();
+            if (!target) return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
+            if (String(target.organization) !== String(requester.organization)) {
+                return NextResponse.json({ success: false, error: "You can only manage users in your organization" }, { status: 403 });
+            }
+        }
 
         if (id === auth.user.id) {
             return NextResponse.json(

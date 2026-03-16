@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Role from "@/models/Role";
 import User from "@/models/User";
+import "@/models/Organization"; // register schema for populate
 import { getCurrentUser } from "@/lib/auth";
 
 export async function GET() {

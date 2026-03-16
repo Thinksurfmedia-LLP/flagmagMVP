@@ -19,7 +19,8 @@ const UserSchema = new mongoose.Schema(
         email: { type: String, required: true, unique: true, lowercase: true, trim: true },
         phone: { type: String, trim: true },
         password: { type: String, required: true, minlength: 6 },
-        role: { type: String, enum: ["player", "organizer", "admin"], default: "player" },
+        role: { type: String, enum: ["player", "organizer", "admin", "viewer"], default: "player" },
+        organization: { type: mongoose.Schema.Types.ObjectId, ref: "Organization", default: null },
     },
     { timestamps: true }
 );
@@ -347,6 +348,10 @@ async function seed() {
             testimonials: [],
         },
     ]);
+
+    // ── Assign organizer to organization ──
+    await User.updateOne({ _id: users[2]._id }, { organization: orgs[0]._id });
+    console.log("🔗 Assigned Mike Johnson to xFlag Football");
 
     // ── Seasons ──
     console.log("📅 Creating seasons...");

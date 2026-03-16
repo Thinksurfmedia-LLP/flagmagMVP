@@ -2,7 +2,15 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Team from "@/models/Team";
 import Player from "@/models/Player";
+import User from "@/models/User";
 import { requireAnyPermission } from "@/lib/apiAuth";
+
+async function getOrgIdForOrganizer(authUser) {
+    if (authUser.organization?.id) return authUser.organization.id;
+    const userDoc = await User.findById(authUser.id).select("organization").lean()
+        || await User.findOne({ email: authUser.email }).select("organization").lean();
+    return userDoc?.organization ? String(userDoc.organization) : null;
+}
 
 function normalizeObjectId(value) {
     return value ? String(value) : "";
@@ -67,10 +75,11 @@ export async function GET(request) {
         const filter = {};
 
         if (auth.user.role === "organizer") {
-            if (!auth.user.organization?.id) {
+            const orgId = await getOrgIdForOrganizer(auth.user);
+            if (!orgId) {
                 return NextResponse.json({ success: false, error: "Organizer is not assigned to an organization" }, { status: 400 });
             }
-            filter.organization = auth.user.organization.id;
+            filter.organization = orgId;
         } else if (organization) {
             filter.organization = organization;
         }
@@ -106,7 +115,7 @@ export async function POST(request) {
 
         const playerIds = Array.isArray(body.players) ? body.players : [];
         const organizationId = auth.user.role === "organizer"
-            ? auth.user.organization?.id
+            ? await getOrgIdForOrganizer(auth.user)
             : body.organization;
 
         if (!organizationId) {

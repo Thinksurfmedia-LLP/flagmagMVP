@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
 import Role from "@/models/Role";
+import "@/models/Organization"; // register schema for populate
 import { signToken, setAuthCookie } from "@/lib/auth";
 
 export async function POST(request) {
@@ -45,6 +46,13 @@ export async function POST(request) {
             email: user.email,
             role: user.role,
             permissions: perms,
+            organization: user.organization
+                ? {
+                    id: user.organization._id.toString(),
+                    name: user.organization.name,
+                    slug: user.organization.slug,
+                }
+                : null,
         });
         await setAuthCookie(token);
 

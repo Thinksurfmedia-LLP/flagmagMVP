@@ -8,12 +8,7 @@ export function ImpersonationProvider({ children }) {
     const [org, setOrg] = useState(null);
 
     const enterImpersonation = useCallback((organization) => {
-        setOrg({
-            _id: organization._id,
-            name: organization.name,
-            slug: organization.slug,
-            logo: organization.logo || "",
-        });
+        setOrg(organization);
     }, []);
 
     const exitImpersonation = useCallback(() => {

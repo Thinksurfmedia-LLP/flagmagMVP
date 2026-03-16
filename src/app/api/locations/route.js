@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Venue from "@/models/Location";
+import "@/models/County";
+import "@/models/State";
 import { requireAdmin } from "@/lib/apiAuth";
 
 export async function GET() {
