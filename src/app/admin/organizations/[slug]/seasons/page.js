@@ -7,7 +7,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { useImpersonation } from "@/components/ImpersonationProvider";
 import { useToast } from "@/components/AdminToast";
 
-function SeasonModal({ onClose, onSave, initial, orgTags, venuesByCounty = [] }) {
+function SeasonModal({ onClose, onSave, initial, orgCategories, venuesByCounty = [] }) {
     const [form, setForm] = useState({
         name: initial?.name || "",
         type: initial?.type || "active",
@@ -56,15 +56,15 @@ function SeasonModal({ onClose, onSave, initial, orgTags, venuesByCounty = [] })
                 </div>
                 <div className="admin-form-group">
                     <label className="admin-form-label">Category</label>
-                    {orgTags && orgTags.length > 0 ? (
+                    {orgCategories && orgCategories.length > 0 ? (
                         <select className="admin-form-select" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
                             <option value="">Select category</option>
-                            {orgTags.map(tag => (
-                                <option key={tag} value={tag}>{tag}</option>
+                            {orgCategories.map(category => (
+                                <option key={category} value={category}>{category}</option>
                             ))}
                         </select>
                     ) : (
-                        <input className="admin-form-input" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} placeholder="e.g. Men's, Women's, Coed" />
+                        <input className="admin-form-input" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} placeholder="e.g. Men, Women, Coed" />
                     )}
                 </div>
                 <div className="admin-form-group">
@@ -280,7 +280,7 @@ export default function OrgSeasonsPage() {
                     initial={editTarget}
                     onClose={() => { setShowModal(false); setEditTarget(null); }}
                     onSave={handleSave}
-                    orgTags={impersonatedOrg?.tags || []}
+                    orgCategories={impersonatedOrg?.categories || []}
                     venuesByCounty={venuesByCounty}
                 />
             )}

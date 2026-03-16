@@ -14,7 +14,7 @@ async function getOrganizations() {
 }
 
 function OrgCard({ org }) {
-    const categories = org.categories?.length ? org.categories : (org.tags || []);
+    const categories = org.categories || [];
     const locationText = formatOrganizationLocations(org);
 
     return (
@@ -89,10 +89,10 @@ export default async function OrganizationsPage() {
                                 </select>
                                 <select className="form-select" aria-label="League Type">
                                     <option defaultValue>League Type</option>
-                                    <option value="Coed">Coed</option>
-                                    <option value="Men's">Men&apos;s</option>
-                                    <option value="Women's">Women&apos;s</option>
+                                    <option value="Men">Men</option>
                                     <option value="Youth">Youth</option>
+                                    <option value="Women">Women</option>
+                                    <option value="Coed">Coed</option>
                                 </select>
                             </div>
                             <div className="col-auto sort-part">

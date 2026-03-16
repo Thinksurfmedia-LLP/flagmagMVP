@@ -36,7 +36,7 @@ const OrganizationSchema = new mongoose.Schema(
         foundedYear: { type: Number },
         description: { type: String, default: "" },
         locationsDescription: { type: String, default: "" },
-        tags: { type: [String], default: [] },
+        categories: { type: [String], default: [] },
         location: { type: String, default: "" },
         scheduleDays: { type: [String], default: [] },
         sport: { type: String, default: "" },
@@ -210,10 +210,7 @@ async function seed() {
     const hashedPassword = await bcrypt.hash("password123", 10);
     const hashedAdmin = await bcrypt.hash("admin123", 10);
     const users = await User.insertMany([
-        { name: "Justin Blake", email: "justin@example.com", phone: "+1-555-0101", password: hashedPassword, role: "player" },
-        { name: "Sarah Mitchell", email: "sarah@example.com", phone: "+1-555-0102", password: hashedPassword, role: "player" },
-        { name: "Mike Johnson", email: "mike@example.com", phone: "+1-555-0103", password: hashedPassword, role: "organizer" },
-        { name: "Admin User", email: "admin@flagmag.com", phone: "+1-555-0100", password: hashedAdmin, role: "admin" },
+        { name: "Admin", email: "admin@flagmag.com", phone: "+1-555-0100", password: hashedAdmin, role: "admin" },
     ]);
 
     // ── Organizations ──
@@ -229,7 +226,7 @@ async function seed() {
             foundedYear: 2018,
             description: "Join the most competitive and fun flag football organization in Southern California. We offer leagues for all skill levels and age groups, with professional refs, quality equipment, and a vibrant community of players.",
             locationsDescription: "Multiple locations across Southern California including Los Angeles, San Diego, and Orange County. We partner with top-tier facilities to ensure the best playing experience.",
-            tags: ["Coed", "Women's", "Youth", "Men's"],
+            categories: ["Coed", "Women", "Youth", "Men"],
             location: "New York, NY",
             scheduleDays: ["THU", "FRI", "SAT", "MON", "SUN"],
             sport: "Flag Football",
@@ -255,7 +252,7 @@ async function seed() {
             foundedYear: 2020,
             description: "SoCal Flag League is the premier destination for recreational and competitive flag football in the greater Los Angeles area.",
             locationsDescription: "Based in Los Angeles with venues across the metro area.",
-            tags: ["Coed", "Men's", "Youth"],
+            categories: ["Coed", "Men", "Youth"],
             location: "Los Angeles, CA",
             scheduleDays: ["SAT", "SUN"],
             sport: "Flag Football",
@@ -277,7 +274,7 @@ async function seed() {
             foundedYear: 2019,
             description: "East Coast Flag Co brings premier flag football competitions to the Eastern seaboard. Leagues available in NYC, Boston, and Philadelphia.",
             locationsDescription: "Operating across major East Coast cities.",
-            tags: ["Coed", "Women's", "Men's"],
+            categories: ["Coed", "Women", "Men"],
             location: "Boston, MA",
             scheduleDays: ["FRI", "SAT", "SUN"],
             sport: "Flag Football",
@@ -297,7 +294,7 @@ async function seed() {
             foundedYear: 2015,
             description: "The largest recreational soccer organization in the Midwest, serving players of all ages and skill levels.",
             locationsDescription: "Facilities in Chicago, Detroit, Minneapolis, and Milwaukee.",
-            tags: ["Coed", "Women's", "Youth", "Men's"],
+            categories: ["Coed", "Women", "Youth", "Men"],
             location: "Chicago, IL",
             scheduleDays: ["TUE", "THU", "SAT"],
             sport: "Soccer",
@@ -317,7 +314,7 @@ async function seed() {
             foundedYear: 2017,
             description: "From pickup games to full competitive seasons, Bay Area Basketball has something for every baller in the SF Bay Area.",
             locationsDescription: "Courts across San Francisco, Oakland, and San Jose.",
-            tags: ["Coed", "Men's"],
+            categories: ["Coed", "Men"],
             location: "San Francisco, CA",
             scheduleDays: ["MON", "WED", "SAT"],
             sport: "Basketball",
@@ -337,7 +334,7 @@ async function seed() {
             foundedYear: 2022,
             description: "Florida's fastest-growing pickleball community. Year-round leagues under the sunshine.",
             locationsDescription: "Courts in Miami, Tampa, Orlando, and Jacksonville.",
-            tags: ["Coed", "Senior", "Youth"],
+            categories: ["Coed", "Youth"],
             location: "Miami, FL",
             scheduleDays: ["WED", "SAT", "SUN"],
             sport: "Pickleball",
@@ -350,8 +347,8 @@ async function seed() {
     ]);
 
     // ── Assign organizer to organization ──
-    await User.updateOne({ _id: users[2]._id }, { organization: orgs[0]._id });
-    console.log("🔗 Assigned Mike Johnson to xFlag Football");
+    // await User.updateOne({ _id: users[2]._id }, { organization: orgs[0]._id });
+    // console.log("🔗 Assigned Mike Johnson to xFlag Football");
 
     // ── Seasons ──
     console.log("📅 Creating seasons...");
@@ -543,48 +540,48 @@ async function seed() {
                 { name: "DARKSIDE", logo: "/assets/images/teamlogo2.png", record: "8-2", pf: 245, pa: 180, diff: 65, season: "2024 D1VA WINTER" },
             ],
         },
-        {
-            user: users[1]._id,
-            name: "Sarah Mitchell",
-            photo: "/assets/images/player1.jpg",
-            bannerImage: "/assets/images/player-banner.jpg",
-            rating: 4.5,
-            memberCount: 218,
-            joinYear: 2023,
-            location: "Los Angeles, CA",
-            about: "Versatile flag football player with experience in both offensive and defensive roles. Team captain and league MVP 2024.",
-            locationsDescription: "Playing in LA area leagues.",
-            socialLinks: { facebook: "#", instagram: "#", youtube: "#" },
-            presentTeam: { name: "DARKSIDE", logo: "/assets/images/team1.jpg" },
-            overallRating: 82,
-            defenseRating: 88,
-            quarterbackRating: 75,
-            wideReceiverRating: 80,
-            stats: { totalKills: 1923, totalDeaths: 845, totalAssists: 678, totalWins: 142 },
-            seasonProgress: { current: 55, max: 100 },
-            offenseStats: [
-                { label: "Headshot %", value: "45%" },
-                { label: "Completion Rate", value: "68%" },
-                { label: "Pass Yards/Game", value: "198" },
-                { label: "TD/INT Ratio", value: "2.8" },
-            ],
-            defenseStats: [
-                { label: "Interceptions", value: "18" },
-                { label: "Sacks", value: "5" },
-                { label: "Tackles", value: "62" },
-                { label: "Forced Fumbles", value: "7" },
-            ],
-            specialStats: [
-                { label: "Return Yards", value: "210" },
-                { label: "Return TDs", value: "1" },
-                { label: "Punt Average", value: "38.0" },
-                { label: "Field Goal %", value: "78%" },
-            ],
-            teams: [
-                { name: "DARKSIDE", logo: "/assets/images/teamlogo2.png", record: "8-2", pf: 245, pa: 180, diff: 65, season: "2026 D1VA WINTER" },
-                { name: "STORM", logo: "/assets/images/teamlogo2.png", record: "5-5", pf: 195, pa: 205, diff: -10, season: "2025 D1A SUMMER" },
-            ],
-        },
+        // {
+        //     user: users[1]._id,
+        //     name: "Sarah Mitchell",
+        //     photo: "/assets/images/player1.jpg",
+        //     bannerImage: "/assets/images/player-banner.jpg",
+        //     rating: 4.5,
+        //     memberCount: 218,
+        //     joinYear: 2023,
+        //     location: "Los Angeles, CA",
+        //     about: "Versatile flag football player with experience in both offensive and defensive roles. Team captain and league MVP 2024.",
+        //     locationsDescription: "Playing in LA area leagues.",
+        //     socialLinks: { facebook: "#", instagram: "#", youtube: "#" },
+        //     presentTeam: { name: "DARKSIDE", logo: "/assets/images/team1.jpg" },
+        //     overallRating: 82,
+        //     defenseRating: 88,
+        //     quarterbackRating: 75,
+        //     wideReceiverRating: 80,
+        //     stats: { totalKills: 1923, totalDeaths: 845, totalAssists: 678, totalWins: 142 },
+        //     seasonProgress: { current: 55, max: 100 },
+        //     offenseStats: [
+        //         { label: "Headshot %", value: "45%" },
+        //         { label: "Completion Rate", value: "68%" },
+        //         { label: "Pass Yards/Game", value: "198" },
+        //         { label: "TD/INT Ratio", value: "2.8" },
+        //     ],
+        //     defenseStats: [
+        //         { label: "Interceptions", value: "18" },
+        //         { label: "Sacks", value: "5" },
+        //         { label: "Tackles", value: "62" },
+        //         { label: "Forced Fumbles", value: "7" },
+        //     ],
+        //     specialStats: [
+        //         { label: "Return Yards", value: "210" },
+        //         { label: "Return TDs", value: "1" },
+        //         { label: "Punt Average", value: "38.0" },
+        //         { label: "Field Goal %", value: "78%" },
+        //     ],
+        //     teams: [
+        //         { name: "DARKSIDE", logo: "/assets/images/teamlogo2.png", record: "8-2", pf: 245, pa: 180, diff: 65, season: "2026 D1VA WINTER" },
+        //         { name: "STORM", logo: "/assets/images/teamlogo2.png", record: "5-5", pf: 195, pa: 205, diff: -10, season: "2025 D1A SUMMER" },
+        //     ],
+        // },
     ]);
 
     // ── Awards ──
@@ -595,8 +592,8 @@ async function seed() {
         { player: players[0]._id, name: "All-Star Selection", image: "/assets/images/award1.png", season: "2024 D1VA Fall" },
         { player: players[0]._id, name: "Rookie of the Year", image: "/assets/images/award1.png", season: "2023 D1A Spring" },
         { player: players[0]._id, name: "Sportsmanship Award", image: "/assets/images/award1.png", season: "2024 D1VA Summer" },
-        { player: players[1]._id, name: "Defensive MVP 2024", image: "/assets/images/award2.png", season: "2024 D1VA Winter" },
-        { player: players[1]._id, name: "Most Interceptions", image: "/assets/images/award1.png", season: "2025 D1A Summer" },
+        // { player: players[1]._id, name: "Defensive MVP 2024", image: "/assets/images/award2.png", season: "2024 D1VA Winter" },
+        // { player: players[1]._id, name: "Most Interceptions", image: "/assets/images/award1.png", season: "2025 D1A Summer" },
     ]);
 
     console.log("\n✅ Seed complete! Data summary:");

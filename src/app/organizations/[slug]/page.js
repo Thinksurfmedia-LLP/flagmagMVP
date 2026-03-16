@@ -64,7 +64,7 @@ export default async function OrganizationDetailPage({ params }) {
         );
     }
 
-    const categories = org.categories?.length ? org.categories : (org.tags || []);
+    const categories = org.categories || [];
     const locationText = formatOrganizationLocations(org);
 
     return (

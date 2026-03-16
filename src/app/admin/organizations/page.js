@@ -10,7 +10,7 @@ import { useToast } from "@/components/AdminToast";
 import { useImpersonation } from "@/components/ImpersonationProvider";
 import { formatOrganizationLocations } from "@/lib/organizationLocations";
 
-const CATEGORY_OPTIONS = ["Coed", "Men's", "Women's", "Youth", "Senior"];
+const CATEGORY_OPTIONS = ["Men", "Youth", "Women", "Coed"];
 const SCHEDULE_DAY_OPTIONS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
 const selectStyles = {
@@ -70,7 +70,7 @@ function OrgForm({ org, onSave, onCancel }) {
             foundedYear: new Date().getFullYear(), categories: [], scheduleDays: [], locations: [],
         }
     );
-    const [selectedCategories, setSelectedCategories] = useState(org?.categories?.length ? org.categories : (org?.tags || []));
+    const [selectedCategories, setSelectedCategories] = useState(org?.categories || []);
     const [selectedDays, setSelectedDays] = useState(org?.scheduleDays || []);
     const [selectedLocations, setSelectedLocations] = useState(org?.locations || []);
     const [selectedLocationIds, setSelectedLocationIds] = useState(
@@ -163,7 +163,6 @@ function OrgForm({ org, onSave, onCancel }) {
         onSave({
             ...form,
             categories: selectedCategories,
-            tags: selectedCategories,
             scheduleDays: selectedDays,
             locations: selectedLocations,
             location: locationNames.join(", "),
@@ -267,7 +266,7 @@ function OrgForm({ org, onSave, onCancel }) {
 
 function SeasonForm({ season, onSave, onCancel }) {
     const [form, setForm] = useState(
-        season || { name: "", type: "active", category: "coed", location: "", time: "" }
+        season || { name: "", type: "active", category: "Coed", location: "", time: "" }
     );
     const handleSubmit = (e) => { e.preventDefault(); onSave(form); };
 
@@ -289,10 +288,10 @@ function SeasonForm({ season, onSave, onCancel }) {
                     <div className="admin-form-group">
                         <label className="admin-form-label">Category</label>
                         <select className="admin-form-select" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
-                            <option value="coed">Coed</option>
-                            <option value="men">Men</option>
-                            <option value="women">Women</option>
-                            <option value="youth">Youth</option>
+                            <option value="Men">Men</option>
+                            <option value="Youth">Youth</option>
+                            <option value="Women">Women</option>
+                            <option value="Coed">Coed</option>
                         </select>
                     </div>
                     <div className="admin-form-group">

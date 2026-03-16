@@ -61,7 +61,7 @@ const OrganizationSchema = new mongoose.Schema(
             ],
             default: [],
         },
-        tags: {
+        categories: {
             type: [String],
             default: [],
         },

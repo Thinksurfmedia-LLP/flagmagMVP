@@ -164,7 +164,7 @@ export default function OrganizerSeasonsPage() {
         fetchVenues();
     }, [fetchSeasons, fetchOrganization, fetchVenues]);
 
-    const categoryOptions = (organization?.tags?.length ? organization.tags : organization?.categories || []).map((entry) => String(entry).trim()).filter(Boolean);
+    const categoryOptions = (organization?.categories || []).map((entry) => String(entry).trim()).filter(Boolean);
 
     const orgCountyIds = (organization?.locations || []).map((entry) => String(entry.county || entry.countyId)).filter(Boolean);
     const venuesByCounty = orgCountyIds.reduce((groups, countyId) => {
