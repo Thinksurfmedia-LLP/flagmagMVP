@@ -76,7 +76,6 @@ const NAV_ITEMS = [
         section: "Management",
         items: [
             { label: "Organizations", href: "/admin/organizations", icon: "fa-solid fa-building", perm: "manage_organizations" },
-            { label: "Venues", href: "/admin/locations", icon: "fa-solid fa-map-location-dot", perm: "manage_organizations" },
             { label: "Teams", href: "/admin/teams", icon: "fa-solid fa-people-group", perm: "manage_teams" },
             { label: "Players", href: "/admin/players", icon: "fa-solid fa-users", perm: "manage_players" },
             { label: "Games", href: "/admin/games", icon: "fa-solid fa-football", perm: "manage_games" },
@@ -101,6 +100,7 @@ function getImpersonationNav(orgSlug) {
                 { label: "Games", href: `/admin/organizations/${orgSlug}/games`, icon: "fa-solid fa-football", perm: "manage_games" },
                 { label: "Players", href: `/admin/organizations/${orgSlug}/players`, icon: "fa-solid fa-users", perm: "manage_players" },
                 { label: "Teams", href: `/admin/organizations/${orgSlug}/teams`, icon: "fa-solid fa-people-group", perm: "manage_teams" },
+                { label: "Locations", href: `/admin/organizations/${orgSlug}/locations`, icon: "fa-solid fa-map-location-dot", perm: "manage_organizations" },
             ],
         },
         {

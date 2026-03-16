@@ -4,6 +4,17 @@ import County from "@/models/County";
 import Location from "@/models/Location";
 import { requireAdmin } from "@/lib/apiAuth";
 
+export async function GET(request, { params }) {
+    try {
+        await dbConnect();
+        const { id } = await params;
+        const counties = await County.find({ state: id }).sort({ name: 1 }).lean();
+        return NextResponse.json({ success: true, data: counties });
+    } catch (error) {
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    }
+}
+
 export async function PUT(request, { params }) {
     try {
         const auth = await requireAdmin();

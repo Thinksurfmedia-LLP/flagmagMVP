@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback, Fragment } from "react";
 import React from "react";
 import Link from "next/link";
-import Select, { components } from "react-select";
 import { useRouter } from "next/navigation";
+import { US_STATES, US_COUNTIES } from "@/lib/usGeoData";
 import AdminLayout, { hasAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
@@ -13,55 +13,6 @@ import { formatOrganizationLocations } from "@/lib/organizationLocations";
 
 const CATEGORY_OPTIONS = ["Men", "Youth", "Women", "Coed"];
 const SCHEDULE_DAY_OPTIONS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
-
-const selectStyles = {
-    control: (base, state) => ({
-        ...base,
-        minHeight: 42,
-        fontSize: 14,
-        borderColor: state.isFocused ? "#FF1E00" : "#d5d8e0",
-        boxShadow: state.isFocused ? "0 0 0 3px rgba(255,30,0,0.08)" : "none",
-        "&:hover": { borderColor: state.isFocused ? "#FF1E00" : "#b0b4c0" },
-    }),
-    option: (base, state) => ({
-        ...base,
-        fontSize: 14,
-        backgroundColor: state.isSelected ? "rgba(255,30,0,0.08)" : state.isFocused ? "#fff0ed" : "#fff",
-        color: "#1a1d26",
-    }),
-    multiValue: (base) => ({
-        ...base,
-        backgroundColor: "rgba(255,30,0,0.08)",
-        borderRadius: 999,
-    }),
-    multiValueLabel: (base) => ({
-        ...base,
-        color: "#FF1E00",
-        fontWeight: 600,
-        paddingLeft: 10,
-    }),
-    multiValueRemove: (base) => ({
-        ...base,
-        color: "#FF1E00",
-        ":hover": {
-            backgroundColor: "rgba(255,30,0,0.12)",
-            color: "#d41800",
-        },
-    }),
-    menu: (base) => ({ ...base, zIndex: 20 }),
-    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-};
-
-function CheckboxOption(props) {
-    return (
-        <components.Option {...props}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <input type="checkbox" checked={props.isSelected} readOnly style={{ accentColor: "#FF1E00" }} />
-                <span>{props.label}</span>
-            </div>
-        </components.Option>
-    );
-}
 
 function ImageUploadField({ label, value, onChange, placeholder, onError }) {
     const [uploading, setUploading] = useState(false);
@@ -129,23 +80,28 @@ function OrgForm({ org, onSave, onCancel }) {
     const [selectedCategories, setSelectedCategories] = useState(org?.categories || []);
     const [selectedDays, setSelectedDays] = useState(org?.scheduleDays || []);
     const [selectedLocations, setSelectedLocations] = useState(org?.locations || []);
-    const [selectedLocationIds, setSelectedLocationIds] = useState(
-        (org?.locations || []).map((entry) => String(entry.county || entry.countyId)).filter(Boolean)
-    );
-    const [availableLocations, setAvailableLocations] = useState([]);
+    const [pickerState, setPickerState] = useState("");
+    const [pickerCounty, setPickerCounty] = useState("");
 
-    useEffect(() => {
-        const loadAvailableLocations = async () => {
-            try {
-                const res = await fetch("/api/locations");
-                const data = await res.json();
-                if (data.success) setAvailableLocations(data.data || []);
-            } catch {
-                setAvailableLocations([]);
-            }
-        };
-        loadAvailableLocations();
-    }, []);
+    const addLocation = () => {
+        if (!pickerState || !pickerCounty) return;
+        if (selectedLocations.some(l => l.stateAbbr === pickerState && l.countyName === pickerCounty)) return;
+        const stateObj = US_STATES.find(s => s.abbr === pickerState);
+        setSelectedLocations(prev => [...prev, {
+            state: null,
+            county: null,
+            location: null,
+            stateName: stateObj.name,
+            stateAbbr: stateObj.abbr,
+            countyName: pickerCounty,
+            locationName: `${pickerCounty} (${stateObj.abbr})`,
+        }]);
+        setPickerCounty("");
+    };
+
+    const removeLocation = (stateAbbr, countyName) => {
+        setSelectedLocations(prev => prev.filter(l => !(l.stateAbbr === stateAbbr && l.countyName === countyName)));
+    };
 
     const toggleCategory = (category) => {
         setSelectedCategories((prev) => (
@@ -163,53 +119,11 @@ function OrgForm({ org, onSave, onCancel }) {
         ));
     };
 
-    useEffect(() => {
-        if (!availableLocations.length) return;
-
-        const selectedFromList = selectedLocationIds
-            .map((id) => availableLocations.find((entry) => String(entry.countyId) === String(id)))
-            .filter(Boolean)
-            .map((entry) => ({
-                state: entry.stateId,
-                county: entry.countyId,
-                location: null,
-                stateName: entry.stateName,
-                stateAbbr: entry.stateAbbr,
-                countyName: entry.countyName,
-                locationName: `${entry.countyName} (${entry.stateAbbr || entry.stateName})`,
-            }));
-
-        const unmatchedExisting = (org?.locations || []).filter(
-            (entry) => !selectedFromList.some((selectedEntry) => String(selectedEntry.county) === String(entry.county || entry.countyId))
-        );
-
-        setSelectedLocations([...selectedFromList, ...unmatchedExisting]);
-    }, [availableLocations, selectedLocationIds, org?.locations]);
-
-    const countyOptions = availableLocations.reduce((accumulator, entry) => {
-        const key = String(entry.countyId);
-        if (accumulator.some((option) => option.value === key)) return accumulator;
-
-        accumulator.push({
-            value: key,
-            label: `${entry.countyName} (${entry.stateAbbr || entry.stateName})`,
-            countyId: entry.countyId,
-            countyName: entry.countyName,
-            stateId: entry.stateId,
-            stateName: entry.stateName,
-            stateAbbr: entry.stateAbbr,
-        });
-
-        return accumulator;
-    }, []).sort((left, right) => left.label.localeCompare(right.label));
-
-    const selectedCountyOptions = countyOptions.filter((option) => selectedLocationIds.includes(String(option.value)));
-
     const handleSubmit = (e) => {
         e.preventDefault();
 
         if (selectedLocations.length === 0) {
-            showError("Please select at least one operating location from the Venues list.");
+            showError("Please select at least one operating location.");
             return;
         }
 
@@ -308,19 +222,56 @@ function OrgForm({ org, onSave, onCancel }) {
 
                     <div className="admin-form-group" style={{ gridColumn: "span 2" }}>
                         <label className="admin-form-label">Operating Locations *</label>
-                        <Select
-                            isMulti
-                            closeMenuOnSelect={false}
-                            hideSelectedOptions={false}
-                            options={countyOptions}
-                            value={selectedCountyOptions}
-                            onChange={(options) => setSelectedLocationIds((options || []).map((option) => String(option.value)))}
-                            placeholder="Search counties from Venues list..."
-                            noOptionsMessage={() => "No pre-created locations found. Create them first in Venues."}
-                            components={{ Option: CheckboxOption }}
-                            styles={selectStyles}
-                            menuPortalTarget={typeof document !== "undefined" ? document.body : null}
-                        />
+                        <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                            <select
+                                className="admin-form-select"
+                                style={{ flex: 1 }}
+                                value={pickerState}
+                                onChange={e => { setPickerState(e.target.value); setPickerCounty(""); }}
+                            >
+                                <option value="">Select state...</option>
+                                {US_STATES.map(s => (
+                                    <option key={s.abbr} value={s.abbr}>{s.name} ({s.abbr})</option>
+                                ))}
+                            </select>
+                            <select
+                                className="admin-form-select"
+                                style={{ flex: 1 }}
+                                value={pickerCounty}
+                                onChange={e => setPickerCounty(e.target.value)}
+                                disabled={!pickerState}
+                            >
+                                <option value="">Select county...</option>
+                                {(US_COUNTIES[pickerState] || []).map(c => (
+                                    <option key={c} value={c}>{c}</option>
+                                ))}
+                            </select>
+                            <button
+                                type="button"
+                                className="admin-btn admin-btn-primary"
+                                style={{ whiteSpace: "nowrap" }}
+                                onClick={addLocation}
+                                disabled={!pickerState || !pickerCounty}
+                            >
+                                Add
+                            </button>
+                        </div>
+                        {selectedLocations.length > 0 && (
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                                {selectedLocations.map((loc, i) => (
+                                    <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,30,0,0.08)", color: "#FF1E00", fontWeight: 600, fontSize: 13, borderRadius: 999, padding: "4px 10px" }}>
+                                        {loc.countyName} ({loc.stateAbbr || loc.stateName})
+                                        <button
+                                            type="button"
+                                            onClick={() => removeLocation(loc.stateAbbr, loc.countyName)}
+                                            style={{ background: "none", border: "none", cursor: "pointer", color: "#FF1E00", padding: 0, fontSize: 16, lineHeight: 1 }}
+                                        >
+                                            ×
+                                        </button>
+                                    </span>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     <div className="admin-form-group" style={{ gridColumn: "span 2" }}>
@@ -597,7 +548,6 @@ export default function AdminOrganizationsPage() {
                                                 <th>Name</th>
                                                 <th>Sport</th>
                                                 <th>Location</th>
-                                                <th>Rating</th>
                                                 <th>Members</th>
                                                 <th style={{ width: 180 }}>Actions</th>
                                             </tr>
@@ -614,7 +564,6 @@ export default function AdminOrganizationsPage() {
                                                         </td>
                                                         <td>{org.sport}</td>
                                                         <td>{formatOrganizationLocations(org)}</td>
-                                                        <td>⭐ {org.rating}</td>
                                                         <td>{org.memberCount}</td>
                                                         <td style={{ width: 180 }}>
                                                             <div style={{ display: "flex", gap: 6 }}>
@@ -636,14 +585,14 @@ export default function AdminOrganizationsPage() {
 
                                                     {/* Edit form */}
                                                     {editOrg && editOrg.slug === org.slug && (
-                                                        <tr><td colSpan={6} style={{ padding: "0 16px 16px" }}>
+                                                        <tr><td colSpan={5} style={{ padding: "0 16px 16px" }}>
                                                             <OrgForm org={editOrg} onSave={saveOrg} onCancel={() => { setEditOrg(null); setShowOrgForm(false); }} />
                                                         </td></tr>
                                                     )}
 
                                                     {/* Expanded seasons */}
                                                     {expandedOrg === org.slug && (
-                                                        <tr><td colSpan={6} style={{ padding: 0 }}>
+                                                        <tr><td colSpan={5} style={{ padding: 0 }}>
                                                             <div className="admin-nested">
                                                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                                                                     <h4 style={{ fontSize: 14, fontWeight: 600, color: "#1a1d26", margin: 0 }}>Seasons</h4>
