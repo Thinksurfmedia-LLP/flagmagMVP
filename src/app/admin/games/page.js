@@ -6,7 +6,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 
 export default function AdminGamesPage() {
-    const { user } = useAuth();
+    const { user, activeRole } = useAuth();
     const [orgs, setOrgs] = useState([]);
     const [selectedOrg, setSelectedOrg] = useState("");
     const [seasons, setSeasons] = useState([]);
@@ -15,13 +15,20 @@ export default function AdminGamesPage() {
     const [loading, setLoading] = useState(false);
     const { showSuccess, showError } = useToast();
 
+    const effectiveRole = activeRole || user?.role;
+    const isOrganizer = effectiveRole === "organizer" && user?.organization?.slug;
+
     const fetchOrgs = useCallback(async () => {
+        if (isOrganizer) {
+            setSelectedOrg(user.organization.slug);
+            return;
+        }
         try {
             const res = await fetch("/api/organizations");
             const data = await res.json();
             if (data.success) setOrgs(data.data);
         } catch { showError("Failed to load organizations"); }
-    }, []);
+    }, [isOrganizer, user?.organization?.slug]);
 
     useEffect(() => { fetchOrgs(); }, [fetchOrgs]);
 
@@ -74,13 +81,15 @@ export default function AdminGamesPage() {
                             <h3>Filter Games</h3>
                         </div>
                         <div className="admin-card-body" style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-                            <div style={{ flex: 1, minWidth: 200 }}>
-                                <label className="admin-form-label">Organization</label>
-                                <select className="admin-form-select" value={selectedOrg} onChange={e => setSelectedOrg(e.target.value)}>
-                                    <option value="">Select organization...</option>
-                                    {orgs.map(o => <option key={o.slug} value={o.slug}>{o.name}</option>)}
-                                </select>
-                            </div>
+                            {!isOrganizer && (
+                                <div style={{ flex: 1, minWidth: 200 }}>
+                                    <label className="admin-form-label">Organization</label>
+                                    <select className="admin-form-select" value={selectedOrg} onChange={e => setSelectedOrg(e.target.value)}>
+                                        <option value="">Select organization...</option>
+                                        {orgs.map(o => <option key={o.slug} value={o.slug}>{o.name}</option>)}
+                                    </select>
+                                </div>
+                            )}
                             <div style={{ flex: 1, minWidth: 200 }}>
                                 <label className="admin-form-label">Season</label>
                                 <select className="admin-form-select" value={selectedSeason} onChange={e => setSelectedSeason(e.target.value)} disabled={!selectedOrg}>
@@ -100,7 +109,7 @@ export default function AdminGamesPage() {
                         {!selectedSeason ? (
                             <div className="admin-empty">
                                 <i className="fa-solid fa-filter"></i>
-                                <p>Select an organization and season to view games.</p>
+                                <p>{isOrganizer ? "Select a season to view games." : "Select an organization and season to view games."}</p>
                             </div>
                         ) : loading ? (
                             <div className="admin-loading">
