@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, Fragment } from "react";
+import React from "react";
 import Link from "next/link";
 import Select, { components } from "react-select";
 import { useRouter } from "next/navigation";
@@ -62,12 +63,67 @@ function CheckboxOption(props) {
     );
 }
 
+function ImageUploadField({ label, value, onChange, placeholder, onError }) {
+    const [uploading, setUploading] = useState(false);
+    const inputRef = React.useRef();
+
+    const handleFile = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setUploading(true);
+        try {
+            const fd = new FormData();
+            fd.append("file", file);
+            const res = await fetch("/api/upload", { method: "POST", body: fd });
+            const data = await res.json();
+            if (data.success) onChange(data.url);
+            else onError(data.error || "Upload failed");
+        } catch {
+            onError("Upload failed");
+        } finally {
+            setUploading(false);
+            e.target.value = "";
+        }
+    };
+
+    return (
+        <div>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <input
+                    className="admin-form-input"
+                    style={{ flex: 1 }}
+                    value={value || ""}
+                    onChange={e => onChange(e.target.value)}
+                    placeholder={placeholder || "https://..."}
+                />
+                <button
+                    type="button"
+                    className="admin-btn admin-btn-ghost admin-btn-sm"
+                    style={{ whiteSpace: "nowrap", height: 42 }}
+                    onClick={() => inputRef.current?.click()}
+                    disabled={uploading}
+                >
+                    {uploading ? "Uploading..." : <><i className="fa-solid fa-upload" style={{ marginRight: 6 }}></i>Upload</>}
+                </button>
+                <input ref={inputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFile} />
+            </div>
+            {value && (
+                <img src={value} alt="" style={{ marginTop: 8, height: 56, borderRadius: 6, border: "1px solid #e5e7ef", objectFit: "cover" }} />
+            )}
+        </div>
+    );
+}
+
 function OrgForm({ org, onSave, onCancel }) {
+    const { showError } = useToast();
     const [form, setForm] = useState(
         org || {
             name: "", slug: "", description: "", location: "",
-            sport: "Flag Football", rating: 0, memberCount: 0,
+            sport: "Flag Football", memberCount: 0,
             foundedYear: new Date().getFullYear(), categories: [], scheduleDays: [], locations: [],
+            logo: "", bannerImage: "",
+            contactInfo: { phone: "", email: "", website: "" },
+            socialLinks: { facebook: "", twitter: "", instagram: "" },
         }
     );
     const [selectedCategories, setSelectedCategories] = useState(org?.categories || []);
@@ -77,7 +133,6 @@ function OrgForm({ org, onSave, onCancel }) {
         (org?.locations || []).map((entry) => String(entry.county || entry.countyId)).filter(Boolean)
     );
     const [availableLocations, setAvailableLocations] = useState([]);
-    const [formError, setFormError] = useState("");
 
     useEffect(() => {
         const loadAvailableLocations = async () => {
@@ -152,10 +207,9 @@ function OrgForm({ org, onSave, onCancel }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        setFormError("");
 
         if (selectedLocations.length === 0) {
-            setFormError("Please select at least one operating location from the Venues list.");
+            showError("Please select at least one operating location from the Venues list.");
             return;
         }
 
@@ -172,12 +226,6 @@ function OrgForm({ org, onSave, onCancel }) {
     return (
         <div className="admin-inline-form">
             <form onSubmit={handleSubmit}>
-                {formError && (
-                    <div className="admin-alert admin-alert-error" style={{ marginBottom: 12 }}>
-                        <i className="fa-solid fa-exclamation-circle"></i>
-                        {formError}
-                    </div>
-                )}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     <div className="admin-form-group">
                         <label className="admin-form-label">Name *</label>
@@ -198,8 +246,33 @@ function OrgForm({ org, onSave, onCancel }) {
                         <input type="number" className="admin-form-input" value={form.foundedYear || ""} onChange={e => setForm({ ...form, foundedYear: +e.target.value })} />
                     </div>
                     <div className="admin-form-group">
-                        <label className="admin-form-label">Rating (0-5)</label>
-                        <input type="number" step="0.1" min="0" max="5" className="admin-form-input" value={form.rating} onChange={e => setForm({ ...form, rating: +e.target.value })} />
+                        <label className="admin-form-label">Logo</label>
+                        <ImageUploadField value={form.logo || ""} onChange={v => setForm({ ...form, logo: v })} placeholder="https://... or upload" onError={showError} />
+                    </div>
+                    <div className="admin-form-group" style={{ gridColumn: "span 2" }}>
+                        <label className="admin-form-label">Cover Photo</label>
+                        <ImageUploadField value={form.bannerImage || ""} onChange={v => setForm({ ...form, bannerImage: v })} placeholder="https://... or upload" onError={showError} />
+                    </div>
+
+                    <div className="admin-form-group">
+                        <label className="admin-form-label">Website</label>
+                        <input className="admin-form-input" value={form.contactInfo?.website || ""} onChange={e => setForm({ ...form, contactInfo: { ...form.contactInfo, website: e.target.value } })} placeholder="https://..." />
+                    </div>
+                    <div className="admin-form-group">
+                        <label className="admin-form-label">Email</label>
+                        <input type="email" className="admin-form-input" value={form.contactInfo?.email || ""} onChange={e => setForm({ ...form, contactInfo: { ...form.contactInfo, email: e.target.value } })} placeholder="contact@example.com" />
+                    </div>
+                    <div className="admin-form-group">
+                        <label className="admin-form-label">Facebook</label>
+                        <input className="admin-form-input" value={form.socialLinks?.facebook || ""} onChange={e => setForm({ ...form, socialLinks: { ...form.socialLinks, facebook: e.target.value } })} placeholder="https://facebook.com/..." />
+                    </div>
+                    <div className="admin-form-group">
+                        <label className="admin-form-label">Instagram</label>
+                        <input className="admin-form-input" value={form.socialLinks?.instagram || ""} onChange={e => setForm({ ...form, socialLinks: { ...form.socialLinks, instagram: e.target.value } })} placeholder="https://instagram.com/..." />
+                    </div>
+                    <div className="admin-form-group" style={{ gridColumn: "span 2" }}>
+                        <label className="admin-form-label">Twitter / X</label>
+                        <input className="admin-form-input" value={form.socialLinks?.twitter || ""} onChange={e => setForm({ ...form, socialLinks: { ...form.socialLinks, twitter: e.target.value } })} placeholder="https://x.com/..." />
                     </div>
 
                     <div className="admin-form-group">
