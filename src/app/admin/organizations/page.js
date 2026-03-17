@@ -79,7 +79,14 @@ function OrgForm({ org, onSave, onCancel }) {
     );
     const [selectedCategories, setSelectedCategories] = useState(org?.categories || []);
     const [selectedDays, setSelectedDays] = useState(org?.scheduleDays || []);
-    const [selectedLocations, setSelectedLocations] = useState(org?.locations || []);
+    const [selectedLocations, setSelectedLocations] = useState(() => {
+        return (org?.locations || []).map(l => {
+            if (!l.cityName && l.locationName && l.locationName.includes(',')) {
+                return { ...l, cityName: l.locationName.split(',')[0].trim() };
+            }
+            return l;
+        });
+    });
     const [pickerState, setPickerState] = useState("");
     const [pickerCounty, setPickerCounty] = useState("");
     const [pickerCity, setPickerCity] = useState("");

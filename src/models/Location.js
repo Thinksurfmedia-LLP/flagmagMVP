@@ -37,6 +37,11 @@ const VenueSchema = new mongoose.Schema(
             default: "",
             trim: true,
         },
+        cityName: {
+            type: String,
+            default: "",
+            trim: true,
+        },
     },
     { timestamps: true }
 );
@@ -47,9 +52,10 @@ function getVenueModel() {
     const existing = mongoose.models.Venue;
     if (existing) {
         const hasFieldCount = Boolean(existing.schema.path("fieldCount"));
+        const hasCityName = Boolean(existing.schema.path("cityName"));
 
         // In dev, HMR can keep an outdated compiled model; rebuild it when schema changes.
-        if (!hasFieldCount) {
+        if (!hasFieldCount || !hasCityName) {
             delete mongoose.models.Venue;
         }
     }

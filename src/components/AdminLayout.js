@@ -191,8 +191,8 @@ function getOrganizerNav(orgSlug) {
         nav.push({
             section: "Settings",
             items: [
-                { label: "Locations", href: `/admin/organizations/${orgSlug}/locations`, icon: "fa-solid fa-map-location-dot", perm: "view_dashboard" },
-                { label: "Organization", href: `/admin/organizations/${orgSlug}/settings`, icon: "fa-solid fa-gear", perm: "view_dashboard" },
+                { label: "Locations", href: "/admin/locations", icon: "fa-solid fa-map-location-dot", perm: "view_dashboard" },
+                { label: "Organization", href: "/admin/settings", icon: "fa-solid fa-gear", perm: "view_dashboard" },
             ],
         });
     }

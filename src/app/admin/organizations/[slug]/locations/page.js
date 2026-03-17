@@ -33,6 +33,7 @@ const selectStyles = {
 function LocationModal({ open, editingVenue, orgLocations, onClose, onSave, loading }) {
     const [selectedState, setSelectedState] = useState(null);
     const [selectedCounty, setSelectedCounty] = useState(null);
+    const [selectedCity, setSelectedCity] = useState(null);
     const [venueName, setVenueName] = useState("");
     const [venueAddress, setVenueAddress] = useState("");
     const [fieldCount, setFieldCount] = useState("");
@@ -53,6 +54,16 @@ function LocationModal({ open, editingVenue, orgLocations, onClose, onSave, load
             .map(l => ({ value: l.countyName, label: l.countyName }));
     }, [orgLocations, selectedState]);
 
+    const cityOptions = useMemo(() => {
+        if (!selectedState || !selectedCounty) return [];
+        const seen = new Set();
+        return orgLocations
+            .filter(l => l.stateAbbr === selectedState.value && l.countyName === selectedCounty.value && l.cityName)
+            .filter(l => { if (seen.has(l.cityName)) return false; seen.add(l.cityName); return true; })
+            .map(l => ({ value: l.cityName, label: l.cityName }))
+            .sort((a, b) => a.label.localeCompare(b.label));
+    }, [orgLocations, selectedState, selectedCounty]);
+
     useEffect(() => {
         if (!open) return;
 
@@ -63,6 +74,7 @@ function LocationModal({ open, editingVenue, orgLocations, onClose, onSave, load
             const county = editingVenue.countyName ? { value: editingVenue.countyName, label: editingVenue.countyName } : null;
             setSelectedState(state);
             setSelectedCounty(county);
+            setSelectedCity(editingVenue.cityName ? { value: editingVenue.cityName, label: editingVenue.cityName } : null);
             setVenueName(editingVenue.name || "");
             setVenueAddress(editingVenue.address || "");
             setFieldCount(editingVenue.fieldCount ?? "");
@@ -73,6 +85,7 @@ function LocationModal({ open, editingVenue, orgLocations, onClose, onSave, load
 
         setSelectedState(null);
         setSelectedCounty(null);
+        setSelectedCity(null);
         setVenueName("");
         setVenueAddress("");
         setFieldCount("");
@@ -84,7 +97,7 @@ function LocationModal({ open, editingVenue, orgLocations, onClose, onSave, load
 
     const submit = async (e) => {
         e.preventDefault();
-        await onSave({ editingVenue, selectedState, selectedCounty, venueName, venueAddress, fieldCount, managerName, managerPhone });
+        await onSave({ editingVenue, selectedState, selectedCounty, selectedCity, venueName, venueAddress, fieldCount, managerName, managerPhone });
     };
 
     return (
@@ -111,13 +124,33 @@ function LocationModal({ open, editingVenue, orgLocations, onClose, onSave, load
                         <Select
                             options={countyOptions}
                             value={selectedCounty}
-                            onChange={setSelectedCounty}
+                            onChange={opt => { setSelectedCounty(opt); setSelectedCity(null); }}
                             placeholder={selectedState ? "Select county..." : "Select a state first..."}
                             isClearable
                             isDisabled={!selectedState || Boolean(editingVenue)}
                             styles={selectStyles}
                             menuPortalTarget={typeof document !== "undefined" ? document.body : null}
                         />
+                    </div>
+
+                    <div className="admin-form-group">
+                        <label className="admin-form-label">City *</label>
+                        {cityOptions.length > 0 ? (
+                            <Select
+                                options={cityOptions}
+                                value={selectedCity}
+                                onChange={setSelectedCity}
+                                placeholder="Select city..."
+                                isClearable
+                                isDisabled={Boolean(editingVenue)}
+                                styles={selectStyles}
+                                menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+                            />
+                        ) : (
+                            <div style={{ color: "#8b90a0", fontSize: 13, padding: "8px 0" }}>
+                                {selectedCounty ? "No cities configured for this county." : "Select county first..."}
+                            </div>
+                        )}
                     </div>
 
                     <div className="admin-form-group">
@@ -192,7 +225,12 @@ export default function OrgLocationsPage() {
                 const data = await res.json();
                 if (data.success) {
                     if (!isOwnOrg && !impersonatedOrg) enterImpersonation(data.data);
-                    setOrgLocations(data.data.locations || []);
+                    setOrgLocations((data.data.locations || []).map(l => {
+                        if (!l.cityName && l.locationName && l.locationName.includes(',')) {
+                            return { ...l, cityName: l.locationName.split(',')[0].trim() };
+                        }
+                        return l;
+                    }));
                 }
             } catch {}
         })();
@@ -224,9 +262,9 @@ export default function OrgLocationsPage() {
     const openEditModal = (venue) => { setEditingVenue(venue); setModalOpen(true); };
     const closeModal = () => { setModalOpen(false); setEditingVenue(null); };
 
-    const saveVenue = async ({ editingVenue: venue, selectedState, selectedCounty, venueName, venueAddress, fieldCount, managerName, managerPhone }) => {
+    const saveVenue = async ({ editingVenue: venue, selectedState, selectedCounty, selectedCity, venueName, venueAddress, fieldCount, managerName, managerPhone }) => {
         if (!venue && (!selectedState || !selectedCounty)) {
-            showError("Please select state and county");
+            showError("Please select state, county, and city");
             return;
         }
         if (!venueName?.trim()) {
@@ -260,6 +298,7 @@ export default function OrgLocationsPage() {
                         stateAbbr: selectedState.value,
                         stateName: stateObj?.stateName || selectedState.name,
                         countyName: selectedCounty.value,
+                        cityName: selectedCity?.value || "",
                         venueName: venueName.trim(),
                         venueAddress: venueAddress || "",
                         fieldCount: fieldCount === "" ? null : Number(fieldCount),
@@ -332,6 +371,7 @@ export default function OrgLocationsPage() {
                                         <th>#</th>
                                         <th>State</th>
                                         <th>County</th>
+                                        <th>City</th>
                                         <th>Name</th>
                                         <th>Address</th>
                                         <th>Fields</th>
@@ -346,6 +386,7 @@ export default function OrgLocationsPage() {
                                             <td>{index + 1}</td>
                                             <td>{venue.stateAbbr || "-"}</td>
                                             <td>{venue.countyName || "-"}</td>
+                                            <td>{venue.cityName || "-"}</td>
                                             <td style={{ fontWeight: 600 }}>{venue.name}</td>
                                             <td>{venue.address || "-"}</td>
                                             <td>{venue.fieldCount ?? "-"}</td>

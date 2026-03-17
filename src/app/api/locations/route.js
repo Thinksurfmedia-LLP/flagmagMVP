@@ -33,6 +33,7 @@ export async function GET() {
             stateId: venue.county?.state?._id || null,
             stateName: venue.county?.state?.name || "",
             stateAbbr: venue.county?.state?.abbreviation || "",
+            cityName: venue.cityName || "",
         }));
 
         return NextResponse.json({ success: true, data });
