@@ -73,7 +73,7 @@ export default async function SeasonSchedulePage({ params }) {
                     <div className="organization-nav-area">
                         <ul>
                             <li className="active"><Link href={`/organizations/${slug}/season/${seasonSlug}`}>Schedules</Link></li>
-                            <li><Link href={`/organizations/${slug}/season/${seasonSlug}/game-stats`}>Game Stats</Link></li>
+                            <li><Link href={`/organizations/${slug}/season/${seasonSlug}/game-stats`}>Standings</Link></li>
                             <li><Link href={`/organizations/${slug}/season/${seasonSlug}/player-stats`}>Player Stats</Link></li>
                             <li><Link href="#">Location</Link></li>
                             <li><Link href="#">Media</Link></li>

@@ -5,7 +5,9 @@ import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import Season from "@/models/Season";
 import Player from "@/models/Player";
+import Team from "@/models/Team";
 import { formatOrganizationLocations } from "@/lib/organizationLocations";
+import PlayerStatsFilter from "@/components/PlayerStatsFilter";
 
 async function getData(slug, seasonSlug) {
     await dbConnect();
@@ -13,11 +15,25 @@ async function getData(slug, seasonSlug) {
     if (!org) return null;
     const season = await Season.findOne({ organization: org._id, slug: seasonSlug }).lean();
     if (!season) return null;
-    const players = await Player.find({}).lean();
+    const [players, teams] = await Promise.all([
+        Player.find({ organization: org._id }).lean(),
+        Team.find({ organization: org._id }).populate("players", "_id").lean(),
+    ]);
+
+    // Build a map of playerId -> team name
+    const playerTeamMap = {};
+    for (const team of teams) {
+        for (const p of team.players || []) {
+            playerTeamMap[String(p._id || p)] = team.name;
+        }
+    }
+
     return {
         org: JSON.parse(JSON.stringify(org)),
         season: JSON.parse(JSON.stringify(season)),
         players: JSON.parse(JSON.stringify(players)),
+        teams: JSON.parse(JSON.stringify(teams)),
+        playerTeamMap,
     };
 }
 
@@ -39,7 +55,7 @@ export default async function PlayerStatsPage({ params }) {
         );
     }
 
-    const { org, season, players } = data;
+    const { org, season, players, teams, playerTeamMap } = data;
     const locationText = formatOrganizationLocations(org);
 
     // Build player rows from real DB players, or fall back to sample data
@@ -49,23 +65,13 @@ export default async function PlayerStatsPage({ params }) {
             name: p.name,
             photo: p.photo || "/assets/images/t-logo.jpg",
             teamLogo: p.presentTeam?.logo || "/assets/images/t-logo.jpg",
+            teamName: playerTeamMap[String(p._id)] || p.presentTeam?.name || "",
             rate: "102.08", atts: 12, comp: 102, tds: 10, pct: 60, xp2: "-", yards: 1, ten: 114, twenty: 2, forty: 22, ints: 50, intOpen: 25, intXp: 25,
         }))
         : samplePlayerStats;
 
-    // Collect all team names from divisions for the team tabs
-    const allTeams = [];
-    if (season.divisions) {
-        season.divisions.forEach((div) => {
-            if (div.teams) {
-                div.teams.forEach((team) => {
-                    if (!allTeams.find((t) => t.name === team.name)) {
-                        allTeams.push({ name: team.name, logo: team.logo });
-                    }
-                });
-            }
-        });
-    }
+    // Collect teams from Team collection
+    const allTeams = teams.map((t) => ({ name: t.name, logo: t.logo || "" }));
 
     return (
         <>
@@ -105,90 +111,14 @@ export default async function PlayerStatsPage({ params }) {
                     <div className="organization-nav-area">
                         <ul>
                             <li><Link href={`/organizations/${slug}/season/${seasonSlug}`}>Schedules</Link></li>
-                            <li><Link href={`/organizations/${slug}/season/${seasonSlug}/game-stats`}>Game Stats</Link></li>
+                            <li><Link href={`/organizations/${slug}/season/${seasonSlug}/game-stats`}>Standings</Link></li>
                             <li className="active"><Link href={`/organizations/${slug}/season/${seasonSlug}/player-stats`}>Player Stats</Link></li>
                             <li><Link href="#">Location</Link></li>
                             <li><Link href="#">Media</Link></li>
                         </ul>
                     </div>
 
-                    <div className="row justify-content-between align-items-center players-stats-heading-area">
-                        <div className="col-auto">
-                            <ul className="team-nav">
-                                {allTeams.length > 0 ? (
-                                    allTeams.map((team, i) => (
-                                        <li key={i} className={i === 0 ? "active" : ""}>
-                                            <Link href="#">{team.name}</Link>
-                                        </li>
-                                    ))
-                                ) : (
-                                    <>
-                                        <li className="active"><Link href="#">Team 1</Link></li>
-                                        <li><Link href="#">Team 2</Link></li>
-                                    </>
-                                )}
-                            </ul>
-                        </div>
-                        <div className="col-auto">
-                            <div className="dropdown">
-                                <a className="btn btn-info-primary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Passing
-                                </a>
-                                <ul className="dropdown-menu">
-                                    <li><a className="dropdown-item" href="#">Passing</a></li>
-                                    <li><a className="dropdown-item" href="#">Rushing</a></li>
-                                    <li><a className="dropdown-item" href="#">Receiving</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="organization-stats-table-wrap players-stats">
-                        <div className="table-wrap">
-                            <table className="table">
-                                <thead>
-                                    <tr>
-                                        <th>players</th>
-                                        <th>team</th>
-                                        <th>Rate</th>
-                                        <th>atts</th>
-                                        <th>comp</th>
-                                        <th>tds</th>
-                                        <th>%</th>
-                                        <th>xp2</th>
-                                        <th>yards</th>
-                                        <th>10+</th>
-                                        <th>20+</th>
-                                        <th>40+</th>
-                                        <th>ints</th>
-                                        <th>int open</th>
-                                        <th>int xp</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {playerRows.map((player, i) => (
-                                        <tr key={i}>
-                                            <td><img src={player.photo || "/assets/images/t-logo.jpg"} alt="" /> {player._id ? <Link href={`/players/${player._id}`}>{player.name}</Link> : player.name}</td>
-                                            <td>{player._id ? <Link href={`/players/${player._id}`}><img src={player.teamLogo || "/assets/images/t-logo.jpg"} alt="" /></Link> : <img src="/assets/images/t-logo.jpg" alt="" />}</td>
-                                            <td>{player.rate}</td>
-                                            <td>{player.atts}</td>
-                                            <td>{player.comp}</td>
-                                            <td>{player.tds}</td>
-                                            <td>{player.pct}</td>
-                                            <td>{player.xp2}</td>
-                                            <td>{player.yards}</td>
-                                            <td>{player.ten}</td>
-                                            <td>{player.twenty}</td>
-                                            <td>{player.forty}</td>
-                                            <td>{player.ints}</td>
-                                            <td>{player.intOpen}</td>
-                                            <td>{player.intXp}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                    <PlayerStatsFilter playerRows={playerRows} allTeams={allTeams} />
 
                 </div>
             </section>
