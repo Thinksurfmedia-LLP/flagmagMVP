@@ -118,6 +118,14 @@ export async function PUT(request, { params }) {
 
         delete body.time;
 
+        // If setting as default, unset other defaults for this org
+        if (body.isDefault) {
+            await Season.updateMany(
+                { organization: existingSeason.organization, _id: { $ne: id }, isDefault: true },
+                { $set: { isDefault: false } },
+            );
+        }
+
         const season = await Season.findByIdAndUpdate(id, body, { new: true, runValidators: true });
         if (!season) {
             return NextResponse.json(

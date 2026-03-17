@@ -76,6 +76,7 @@ const NAV_ITEMS = [
         section: "League Management",
         items: [
             { label: "Organizations", href: "/admin/organizations", icon: "fa-solid fa-building", perm: "manage_organizations" },
+            { label: "Seasons", href: "/admin/seasons", icon: "fa-solid fa-calendar-days", perm: "manage_seasons" },
             // { label: "Teams", href: "/admin/teams", icon: "fa-solid fa-people-group", perm: "manage_teams" },
             // { label: "Players", href: "/admin/players", icon: "fa-solid fa-users", perm: "manage_players" },
             // { label: "Games", href: "/admin/games", icon: "fa-solid fa-football", perm: "manage_games" },
@@ -85,7 +86,7 @@ const NAV_ITEMS = [
         section: "Tournament Management",
         items: [
             // { label: "Organizations", href: "/admin/organizations", icon: "fa-solid fa-building", perm: "manage_organizations" },
-            { label: "Seasons", href: "/admin/seasons", icon: "fa-solid fa-calendar-days", perm: "manage_seasons" },
+            
             { label: "League", href: "/admin/league", icon: "fa-solid fa-calendar-days", perm: "manage_league" },
             { label: "Teams", href: "/admin/teams", icon: "fa-solid fa-people-group", perm: "manage_teams" },
             { label: "Players", href: "/admin/players", icon: "fa-solid fa-users", perm: "manage_players" },

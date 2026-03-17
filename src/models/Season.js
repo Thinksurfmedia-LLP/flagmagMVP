@@ -42,6 +42,10 @@ const SeasonSchema = new mongoose.Schema(
             type: String,
             default: "",
         },
+        isDefault: {
+            type: Boolean,
+            default: false,
+        },
         divisions: [
             {
                 name: { type: String },
@@ -77,5 +81,18 @@ const SeasonSchema = new mongoose.Schema(
 // Compound index so slugs are unique within an organization
 SeasonSchema.index({ organization: 1, slug: 1 }, { unique: true });
 
-export default mongoose.models.Season ||
-    mongoose.model("Season", SeasonSchema);
+function getSeasonModel() {
+    if (mongoose.models.Season) {
+        const existing = mongoose.models.Season;
+        // If cached model is missing isDefault, re-register with current schema
+        if (!existing.schema.paths.isDefault) {
+            delete mongoose.models.Season;
+            delete mongoose.connection.models?.Season;
+            return mongoose.model("Season", SeasonSchema);
+        }
+        return existing;
+    }
+    return mongoose.model("Season", SeasonSchema);
+}
+
+export default getSeasonModel();

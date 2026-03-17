@@ -127,9 +127,11 @@ export default async function OrganizationDetailPage({ params }) {
                         <li className="nav-item" role="presentation">
                             <button className="nav-link active" id="leagues-one-tab" data-bs-toggle="pill" data-bs-target="#leagues-one" type="button" role="tab" aria-controls="leagues-one" aria-selected="true">Active Leagues ({activeSeasons.length})</button>
                         </li>
-                        <li className="nav-item" role="presentation">
-                            <button className="nav-link" id="leagues-two-tab" data-bs-toggle="pill" data-bs-target="#leagues-two" type="button" role="tab" aria-controls="leagues-two" aria-selected="false">Past Leagues ({pastSeasons.length})</button>
-                        </li>
+                        {pastSeasons.length > 0 && (
+                            <li className="nav-item" role="presentation">
+                                <button className="nav-link" id="leagues-two-tab" data-bs-toggle="pill" data-bs-target="#leagues-two" type="button" role="tab" aria-controls="leagues-two" aria-selected="false">Past Leagues ({pastSeasons.length})</button>
+                            </li>
+                        )}
                     </ul>
 
                     <div className="tab-content" id="pills-tabContent">
