@@ -42,6 +42,7 @@ const ALL_PERMISSIONS = [
 
 const PERMISSION_COMPATIBILITY = {
     manage_organizations: ["organization_view", "organization_create", "organization_update", "organization_delete"],
+    manage_leagues: ["league_view", "league_create", "league_update", "league_delete"],
     manage_seasons: ["season_view", "season_create", "season_update", "season_delete"],
     manage_games: ["game_view", "game_create", "game_update", "game_delete"],
     manage_players: ["player_view", "player_create", "player_update", "player_delete"],
@@ -87,7 +88,7 @@ const NAV_ITEMS = [
         items: [
             // { label: "Organizations", href: "/admin/organizations", icon: "fa-solid fa-building", perm: "manage_organizations" },
             
-            { label: "League", href: "/admin/league", icon: "fa-solid fa-calendar-days", perm: "manage_league" },
+            { label: "Leagues", href: "/admin/leagues", icon: "fa-solid fa-trophy", perm: "manage_leagues" },
             { label: "Teams", href: "/admin/teams", icon: "fa-solid fa-people-group", perm: "manage_teams" },
             { label: "Players", href: "/admin/players", icon: "fa-solid fa-users", perm: "manage_players" },
             { label: "Games", href: "/admin/games", icon: "fa-solid fa-football", perm: "manage_games" },
@@ -152,6 +153,12 @@ function getOrganizerNav(orgSlug) {
                     href: "/admin/seasons",
                     icon: "fa-solid fa-calendar-days",
                     perms: ["manage_seasons", "season_view", "season_create", "season_update", "season_delete"],
+                },
+                {
+                    label: "Leagues",
+                    href: "/admin/leagues",
+                    icon: "fa-solid fa-trophy",
+                    perms: ["manage_leagues", "league_view", "league_create", "league_update", "league_delete"],
                 },
                 {
                     label: "Games",

@@ -7,6 +7,11 @@ const SeasonSchema = new mongoose.Schema(
             ref: "Organization",
             required: true,
         },
+        kind: {
+            type: String,
+            enum: ["season", "league"],
+            default: "league",
+        },
         name: {
             type: String,
             required: [true, "Season name is required"],
@@ -85,7 +90,7 @@ function getSeasonModel() {
     if (mongoose.models.Season) {
         const existing = mongoose.models.Season;
         // If cached model is missing isDefault, re-register with current schema
-        if (!existing.schema.paths.isDefault) {
+        if (!existing.schema.paths.isDefault || !existing.schema.paths.kind) {
             delete mongoose.models.Season;
             delete mongoose.connection.models?.Season;
             return mongoose.model("Season", SeasonSchema);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import AdminLayout, { hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
@@ -14,6 +14,37 @@ export default function SeasonsPage() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [searchInput, setSearchInput] = useState("");
+    const [sortCol, setSortCol] = useState(null);
+    const [sortDir, setSortDir] = useState("asc");
+
+    const toggleSort = (col) => {
+        if (sortCol === col) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+        else { setSortCol(col); setSortDir("asc"); }
+    };
+
+    const sortIcon = (col) => {
+        if (sortCol !== col) return <i className="fa-solid fa-sort" style={{ opacity: 0.3, marginLeft: 4 }}></i>;
+        return sortDir === "asc"
+            ? <i className="fa-solid fa-sort-up" style={{ marginLeft: 4, color: "#FF1E00" }}></i>
+            : <i className="fa-solid fa-sort-down" style={{ marginLeft: 4, color: "#FF1E00" }}></i>;
+    };
+
+    const sortedSeasons = useMemo(() => {
+        if (!sortCol) return seasons;
+        const sorted = [...seasons].sort((a, b) => {
+            if (sortCol === "name") {
+                return (a.name || "").localeCompare(b.name || "");
+            }
+            if (sortCol === "organization") {
+                return (a.organization?.name || "").localeCompare(b.organization?.name || "");
+            }
+            if (sortCol === "isDefault") {
+                return (a.isDefault ? 1 : 0) - (b.isDefault ? 1 : 0);
+            }
+            return 0;
+        });
+        return sortDir === "desc" ? sorted.reverse() : sorted;
+    }, [seasons, sortCol, sortDir]);
 
     // Form state
     const [showForm, setShowForm] = useState(false);
@@ -258,14 +289,22 @@ export default function SeasonsPage() {
                                 <table className="admin-table">
                                     <thead>
                                         <tr>
-                                            <th>Name</th>
-                                            {isAdmin && <th>Organization</th>}
-                                            <th>Default Season</th>
+                                            <th style={{ cursor: "pointer", userSelect: "none" }} onClick={() => toggleSort("name")}>
+                                                Name {sortIcon("name")}
+                                            </th>
+                                            {isAdmin && (
+                                                <th style={{ cursor: "pointer", userSelect: "none" }} onClick={() => toggleSort("organization")}>
+                                                    Organization {sortIcon("organization")}
+                                                </th>
+                                            )}
+                                            <th style={{ cursor: "pointer", userSelect: "none" }} onClick={() => toggleSort("isDefault")}>
+                                                Default Season {sortIcon("isDefault")}
+                                            </th>
                                             <th style={{ width: 120 }}>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {seasons.map((season) => (
+                                        {sortedSeasons.map((season) => (
                                             <tr key={season._id}>
                                                 <td style={{ fontWeight: 600 }}>{season.name}</td>
                                                 {isAdmin && (

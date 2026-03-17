@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 const PERMISSION_COMPATIBILITY = {
     manage_organizations: ["organization_view", "organization_create", "organization_update", "organization_delete"],
+    manage_leagues: ["league_view", "league_create", "league_update", "league_delete"],
     manage_seasons: ["season_view", "season_create", "season_update", "season_delete"],
     manage_games: ["game_view", "game_create", "game_update", "game_delete"],
     manage_players: ["player_view", "player_create", "player_update", "player_delete"],
@@ -85,7 +86,17 @@ export async function requireAnyPermission(permissions = []) {
     if (auth.user.role === "admin") return auth;
 
     const perms = auth.user.permissions || [];
-    const hasAny = permissions.some((permission) => perms.includes(permission));
+    const hasAny = permissions.some((permission) => {
+        if (perms.includes(permission)) return true;
+        // Check if user has a parent permission that covers this one
+        for (const [parent, children] of Object.entries(PERMISSION_COMPATIBILITY)) {
+            if (children.includes(permission) && perms.includes(parent)) return true;
+        }
+        // Check if this permission is a parent that covers any child the user has
+        const compatiblePerms = PERMISSION_COMPATIBILITY[permission] || [];
+        if (compatiblePerms.some((p) => perms.includes(p))) return true;
+        return false;
+    });
 
     if (!hasAny) {
         return {
