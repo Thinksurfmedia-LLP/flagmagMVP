@@ -82,11 +82,29 @@ function OrgForm({ org, onSave, onCancel }) {
     const [selectedLocations, setSelectedLocations] = useState(org?.locations || []);
     const [pickerState, setPickerState] = useState("");
     const [pickerCounty, setPickerCounty] = useState("");
+    const [pickerCity, setPickerCity] = useState("");
+    const [cityOptions, setCityOptions] = useState([]);
+    const [loadingCities, setLoadingCities] = useState(false);
+
+    const fetchCities = async (state, county) => {
+        if (!state || !county) { setCityOptions([]); return; }
+        setLoadingCities(true);
+        try {
+            const res = await fetch(`/api/cities?state=${encodeURIComponent(state)}&county=${encodeURIComponent(county)}`);
+            const data = await res.json();
+            if (data.success) setCityOptions(data.data);
+            else setCityOptions([]);
+        } catch { setCityOptions([]); }
+        finally { setLoadingCities(false); }
+    };
+
+    const noCityData = pickerCounty && !loadingCities && cityOptions.length === 0;
 
     const addLocation = () => {
         if (!pickerState || !pickerCounty) return;
-        if (selectedLocations.some(l => l.stateAbbr === pickerState && l.countyName === pickerCounty)) return;
+        if (selectedLocations.some(l => l.stateAbbr === pickerState && l.countyName === pickerCounty && l.cityName === pickerCity)) return;
         const stateObj = US_STATES.find(s => s.abbr === pickerState);
+        const cityLabel = pickerCity.trim();
         setSelectedLocations(prev => [...prev, {
             state: null,
             county: null,
@@ -94,13 +112,16 @@ function OrgForm({ org, onSave, onCancel }) {
             stateName: stateObj.name,
             stateAbbr: stateObj.abbr,
             countyName: pickerCounty,
-            locationName: `${pickerCounty} (${stateObj.abbr})`,
+            cityName: cityLabel,
+            locationName: cityLabel
+                ? `${cityLabel}, ${pickerCounty} (${stateObj.abbr})`
+                : `${pickerCounty} (${stateObj.abbr})`,
         }]);
-        setPickerCounty("");
+        setPickerCity("");
     };
 
-    const removeLocation = (stateAbbr, countyName) => {
-        setSelectedLocations(prev => prev.filter(l => !(l.stateAbbr === stateAbbr && l.countyName === countyName)));
+    const removeLocation = (stateAbbr, countyName, cityName) => {
+        setSelectedLocations(prev => prev.filter(l => !(l.stateAbbr === stateAbbr && l.countyName === countyName && l.cityName === cityName)));
     };
 
     const toggleCategory = (category) => {
@@ -222,12 +243,12 @@ function OrgForm({ org, onSave, onCancel }) {
 
                     <div className="admin-form-group" style={{ gridColumn: "span 2" }}>
                         <label className="admin-form-label">Operating Locations *</label>
-                        <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                        <div style={{ display: "flex", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
                             <select
                                 className="admin-form-select"
-                                style={{ flex: 1 }}
+                                style={{ flex: 1, minWidth: 160 }}
                                 value={pickerState}
-                                onChange={e => { setPickerState(e.target.value); setPickerCounty(""); }}
+                                onChange={e => { setPickerState(e.target.value); setPickerCounty(""); setPickerCity(""); setCityOptions([]); }}
                             >
                                 <option value="">Select state...</option>
                                 {US_STATES.map(s => (
@@ -236,9 +257,9 @@ function OrgForm({ org, onSave, onCancel }) {
                             </select>
                             <select
                                 className="admin-form-select"
-                                style={{ flex: 1 }}
+                                style={{ flex: 1, minWidth: 160 }}
                                 value={pickerCounty}
-                                onChange={e => setPickerCounty(e.target.value)}
+                                onChange={e => { setPickerCounty(e.target.value); setPickerCity(""); fetchCities(pickerState, e.target.value); }}
                                 disabled={!pickerState}
                             >
                                 <option value="">Select county...</option>
@@ -246,12 +267,34 @@ function OrgForm({ org, onSave, onCancel }) {
                                     <option key={c} value={c}>{c}</option>
                                 ))}
                             </select>
+                            {noCityData ? (
+                                <input
+                                    className="admin-form-input"
+                                    style={{ flex: 1, minWidth: 160 }}
+                                    value={pickerCity}
+                                    onChange={e => setPickerCity(e.target.value)}
+                                    placeholder="City (optional)"
+                                />
+                            ) : (
+                                <select
+                                    className="admin-form-select"
+                                    style={{ flex: 1, minWidth: 160 }}
+                                    value={pickerCity}
+                                    onChange={e => setPickerCity(e.target.value)}
+                                    disabled={!pickerCounty || loadingCities}
+                                >
+                                    <option value="">{loadingCities ? "Loading cities..." : "Select city..."}</option>
+                                    {cityOptions.map(c => (
+                                        <option key={c} value={c}>{c}</option>
+                                    ))}
+                                </select>
+                            )}
                             <button
                                 type="button"
                                 className="admin-btn admin-btn-primary"
                                 style={{ whiteSpace: "nowrap" }}
                                 onClick={addLocation}
-                                disabled={!pickerState || !pickerCounty}
+                                disabled={!pickerState || !pickerCounty || (!noCityData && !pickerCity)}
                             >
                                 Add
                             </button>
@@ -260,10 +303,10 @@ function OrgForm({ org, onSave, onCancel }) {
                             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                                 {selectedLocations.map((loc, i) => (
                                     <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,30,0,0.08)", color: "#FF1E00", fontWeight: 600, fontSize: 13, borderRadius: 999, padding: "4px 10px" }}>
-                                        {loc.countyName} ({loc.stateAbbr || loc.stateName})
+                                        {loc.cityName ? `${loc.cityName}, ` : ""}{loc.countyName} ({loc.stateAbbr || loc.stateName})
                                         <button
                                             type="button"
-                                            onClick={() => removeLocation(loc.stateAbbr, loc.countyName)}
+                                            onClick={() => removeLocation(loc.stateAbbr, loc.countyName, loc.cityName)}
                                             style={{ background: "none", border: "none", cursor: "pointer", color: "#FF1E00", padding: 0, fontSize: 16, lineHeight: 1 }}
                                         >
                                             ×

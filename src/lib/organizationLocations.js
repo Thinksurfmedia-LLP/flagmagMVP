@@ -5,11 +5,16 @@ export function formatOrganizationLocationEntry(entry) {
         return entry.locationName;
     }
 
-    if (entry.countyName && (entry.stateAbbr || entry.stateName)) {
-        return `${entry.countyName} (${entry.stateAbbr || entry.stateName})`;
+    const parts = [];
+    if (entry.cityName) parts.push(entry.cityName);
+    if (entry.countyName) parts.push(entry.countyName);
+    const stateLabel = entry.stateAbbr || entry.stateName;
+
+    if (parts.length > 0 && stateLabel) {
+        return `${parts.join(", ")} (${stateLabel})`;
     }
 
-    return entry.countyName || entry.stateName || "";
+    return parts.join(", ") || stateLabel || "";
 }
 
 export function formatOrganizationLocations(organization) {

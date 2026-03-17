@@ -56,6 +56,7 @@ const OrganizationSchema = new mongoose.Schema(
                     stateName: { type: String, default: "" },
                     stateAbbr: { type: String, default: "" },
                     countyName: { type: String, default: "" },
+                    cityName: { type: String, default: "" },
                     locationName: { type: String, default: "" },
                 },
             ],
