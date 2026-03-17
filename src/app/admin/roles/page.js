@@ -6,11 +6,17 @@ import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 
 const PERM_LABELS = {
+    // kept for backward-compat display on existing roles
     manage_organizations: "Organizations (Full)",
     organization_view: "Organization View",
     organization_create: "Organization Create",
     organization_update: "Organization Update",
     organization_delete: "Organization Delete",
+    manage_leagues: "Leagues (Full)",
+    league_view: "League View",
+    league_create: "League Create",
+    league_update: "League Update",
+    league_delete: "League Delete",
     manage_seasons: "Seasons (Full)",
     season_view: "Season View",
     season_create: "Season Create",
@@ -55,6 +61,16 @@ const PERMISSION_ROWS = [
             update: "organization_update",
             delete: "organization_delete",
             full: "manage_organizations",
+        },
+    },
+    {
+        module: "Leagues",
+        permissions: {
+            view: "league_view",
+            create: "league_create",
+            update: "league_update",
+            delete: "league_delete",
+            full: "manage_leagues",
         },
     },
     {
@@ -196,7 +212,7 @@ function togglePermissionSet(previousPermissions, targetPermission) {
     return [...selected];
 }
 
-function PermissionMatrix({ selectedPermissions, onToggle }) {
+function PermissionMatrix({ selectedPermissions, onToggle, disabledModules = [] }) {
     return (
         <div style={{ overflowX: "auto", border: "1px solid #e5e7eb", borderRadius: 12, background: "#fff" }}>
             <table className="admin-table" style={{ marginBottom: 0 }}>
@@ -209,9 +225,14 @@ function PermissionMatrix({ selectedPermissions, onToggle }) {
                     </tr>
                 </thead>
                 <tbody>
-                    {PERMISSION_ROWS.map((row) => (
-                        <tr key={row.module}>
-                            <td style={{ fontWeight: 600 }}>{row.module}</td>
+                    {PERMISSION_ROWS.map((row) => {
+                        const isDisabled = disabledModules.includes(row.module);
+                        return (
+                        <tr key={row.module} style={isDisabled ? { opacity: 0.38, pointerEvents: "none" } : {}}>
+                            <td style={{ fontWeight: 600 }}>
+                                {row.module}
+                                {isDisabled && <span style={{ marginLeft: 8, fontSize: 10, color: "#aaa", fontWeight: 400 }}>(not available)</span>}
+                            </td>
                             {MATRIX_COLUMNS.map((column) => {
                                 const perm = row.permissions[column.key];
                                 if (!perm) {
@@ -227,6 +248,7 @@ function PermissionMatrix({ selectedPermissions, onToggle }) {
                                                 type="checkbox"
                                                 checked={selectedPermissions.includes(perm)}
                                                 onChange={() => onToggle(perm)}
+                                                disabled={isDisabled}
                                                 aria-label={`${row.module} ${column.label}`}
                                             />
                                         </label>
@@ -234,7 +256,8 @@ function PermissionMatrix({ selectedPermissions, onToggle }) {
                                 );
                             })}
                         </tr>
-                    ))}
+                        );
+                    })}
                 </tbody>
             </table>
         </div>
@@ -348,7 +371,7 @@ export default function AdminRolesPage() {
             ) : (
                 <div className="admin-card">
                     <div className="admin-card-header">
-                        <h3>All Roles ({roles.length})</h3>
+                        <h3>All Roles ({roles.filter(r => r.slug !== "admin").length})</h3>
                         {user?.role === "admin" && !showAdd && (
                             <button className="admin-btn admin-btn-primary" style={{ whiteSpace: "nowrap" }} onClick={() => setShowAdd(true)}>
                                 <i className="fa-solid fa-plus"></i> Add Role
@@ -365,7 +388,11 @@ export default function AdminRolesPage() {
                                 </div>
                                 <div className="admin-form-group">
                                     <label className="admin-form-label">Permissions</label>
-                                    <PermissionMatrix selectedPermissions={normalizePermissions(newPerms)} onToggle={toggleNewPerm} />
+                                    <PermissionMatrix
+                                selectedPermissions={normalizePermissions(newPerms)}
+                                onToggle={toggleNewPerm}
+                                disabledModules={newName.trim().toLowerCase() === "organizer" ? ["Organizations"] : []}
+                            />
                                 </div>
                                 <div style={{ display: "flex", gap: 8 }}>
                                     <button type="submit" className="admin-btn admin-btn-primary">Create Role</button>
@@ -396,7 +423,7 @@ export default function AdminRolesPage() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {roles.map(r => (
+                                    {roles.filter(r => r.slug !== "admin").map(r => (
                                         <tr key={r._id}>
                                             <td style={{ fontWeight: 600 }}>
                                                 {r.name}
@@ -407,7 +434,11 @@ export default function AdminRolesPage() {
                                                     const visiblePerms = getDisplayPermissions(r.permissions);
                                                     return editId === r._id ? (
                                                         <div>
-                                                            <PermissionMatrix selectedPermissions={normalizePermissions(editPerms)} onToggle={toggleEditPerm} />
+                                                            <PermissionMatrix
+                                                                selectedPermissions={normalizePermissions(editPerms)}
+                                                                onToggle={toggleEditPerm}
+                                                                disabledModules={r.name === "Organizer" ? ["Organizations"] : []}
+                                                            />
                                                             <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
                                                                 <button className="admin-btn admin-btn-primary admin-btn-sm" onClick={saveEdit}>Save</button>
                                                                 <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={cancelEdit}>Cancel</button>
