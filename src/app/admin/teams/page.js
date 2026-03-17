@@ -5,7 +5,7 @@ import AdminLayout, { hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 
-function TeamModal({ team, players, organizations, user, onClose, onSave }) {
+function TeamModal({ team, players, organizations, user, effectiveRole, onClose, onSave }) {
     const [name, setName] = useState(team?.name || "");
     const [logo, setLogo] = useState(team?.logo || "");
     const [organization, setOrganization] = useState(
@@ -16,15 +16,17 @@ function TeamModal({ team, players, organizations, user, onClose, onSave }) {
     const [saving, setSaving] = useState(false);
 
     const eligiblePlayers = useMemo(() => {
-        if (user?.role !== "organizer") return players;
+        if (effectiveRole !== "organizer") return players;
 
         const organizerOrgId = user?.organization?.id ? String(user.organization.id) : "";
 
         return players.filter((player) => {
-            const playerOrgId = player.organization ? String(player.organization._id || player.organization) : "";
+            const playerOrgId = player.organization
+                ? String(player.organization._id || player.organization)
+                : "";
             return !playerOrgId || playerOrgId === organizerOrgId;
         });
-    }, [players, user]);
+    }, [players, user, effectiveRole]);
 
     const filteredPlayers = eligiblePlayers.filter((player) => {
         const haystack = `${player.name} ${player.presentTeam?.name || ""}`.toLowerCase();
@@ -46,7 +48,7 @@ function TeamModal({ team, players, organizations, user, onClose, onSave }) {
         await onSave({
             name: name.trim(),
             logo: logo.trim(),
-            organization: user?.role === "admin" ? organization : undefined,
+            organization: effectiveRole === "admin" ? organization : undefined,
             players: selectedPlayerIds,
         });
         setSaving(false);
@@ -67,7 +69,7 @@ function TeamModal({ team, players, organizations, user, onClose, onSave }) {
                     <input className="admin-form-input" value={logo} onChange={(event) => setLogo(event.target.value)} placeholder="/assets/images/teamlogo1.png" />
                 </div>
 
-                {user?.role === "admin" && (
+                {effectiveRole === "admin" && (
                     <div className="admin-form-group">
                         <label className="admin-form-label">Organization *</label>
                         <select className="admin-form-select" value={organization} onChange={(event) => setOrganization(event.target.value)}>
@@ -111,7 +113,7 @@ function TeamModal({ team, players, organizations, user, onClose, onSave }) {
                     <button
                         className="admin-btn admin-btn-primary"
                         onClick={handleSave}
-                        disabled={saving || !name.trim() || (user?.role === "admin" && !organization)}
+                        disabled={saving || !name.trim() || (effectiveRole === "admin" && !organization)}
                     >
                         {saving ? "Saving..." : team ? "Save Changes" : "Create Team"}
                     </button>
@@ -122,7 +124,8 @@ function TeamModal({ team, players, organizations, user, onClose, onSave }) {
 }
 
 export default function AdminTeamsPage() {
-    const { user } = useAuth();
+    const { user, activeRole } = useAuth();
+    const effectiveRole = activeRole || user?.role;
     const { showSuccess, showError } = useToast();
 
     const [teams, setTeams] = useState([]);
@@ -164,7 +167,7 @@ export default function AdminTeamsPage() {
             if (playersData.success) setPlayers(playersData.data || []);
             else showError(playersData.error || "Failed to load players");
 
-            if (user?.role === "admin") {
+            if (effectiveRole === "admin") {
                 const orgRes = await fetch("/api/organizations");
                 const orgData = await orgRes.json();
                 if (orgData.success) setOrganizations(orgData.data || []);
@@ -174,7 +177,7 @@ export default function AdminTeamsPage() {
         } finally {
             setLoading(false);
         }
-    }, [canManageTeams, showError, user?.role]);
+    }, [canManageTeams, showError, effectiveRole]);
 
     useEffect(() => {
         fetchData();
@@ -296,6 +299,7 @@ export default function AdminTeamsPage() {
                             players={players}
                             organizations={organizations}
                             user={user}
+                            effectiveRole={effectiveRole}
                             onClose={() => { setModalOpen(false); setEditTarget(null); }}
                             onSave={saveTeam}
                         />

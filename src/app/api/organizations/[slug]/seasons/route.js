@@ -5,6 +5,7 @@ import Season from "@/models/Season";
 import User from "@/models/User";
 import { requireAnyPermission } from "@/lib/apiAuth";
 import { formatOrganizationLocationEntry } from "@/lib/organizationLocations";
+import Venue from "@/models/Location";
 
 function normalizeText(value = "") {
     return String(value).trim().toLowerCase();
@@ -88,12 +89,22 @@ export async function POST(request, { params }) {
                 );
             }
 
-            const allowedLocations = (organization.locations || [])
-                .map(formatOrganizationLocationEntry)
-                .filter(Boolean);
-            const allowedLocationSet = new Set(allowedLocations.map(normalizeText));
+            const orgLocationKeys = new Set(
+                (organization.locations || [])
+                    .filter((loc) => loc.countyName && loc.stateAbbr)
+                    .map((loc) => `${normalizeText(loc.countyName)}|${normalizeText(loc.stateAbbr)}`)
+            );
 
-            const hasInvalidLocation = locations.some((entry) => !allowedLocationSet.has(normalizeText(entry)));
+            const venues = await Venue.find({ name: { $in: locations } })
+                .populate({ path: "county", populate: { path: "state" } })
+                .lean();
+
+            const hasInvalidLocation = locations.some((venueName) => {
+                const venue = venues.find((v) => normalizeText(v.name) === normalizeText(venueName));
+                if (!venue || !venue.county) return true;
+                const key = `${normalizeText(venue.county.name)}|${normalizeText(venue.county.state?.abbreviation || "")}`;
+                return !orgLocationKeys.has(key);
+            });
             if (hasInvalidLocation) {
                 return NextResponse.json(
                     { success: false, error: "Location must be selected from your organization's configured locations" },

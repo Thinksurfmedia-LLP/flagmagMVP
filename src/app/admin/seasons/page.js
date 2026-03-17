@@ -166,13 +166,14 @@ export default function OrganizerSeasonsPage() {
 
     const categoryOptions = (organization?.categories || []).map((entry) => String(entry).trim()).filter(Boolean);
 
-    const orgCountyIds = (organization?.locations || []).map((entry) => String(entry.county || entry.countyId)).filter(Boolean);
-    const venuesByCounty = orgCountyIds.reduce((groups, countyId) => {
-        const venues = allVenues.filter((v) => String(v.countyId) === countyId);
-        const sample = allVenues.find((v) => String(v.countyId) === countyId) || organization?.locations?.find((l) => String(l.county || l.countyId) === countyId);
-        const countyLabel = sample ? `${sample.countyName || ""} (${sample.stateAbbr || sample.stateName || ""})`.trim() : countyId;
-        if (!groups.some((g) => g.countyId === countyId)) {
-            groups.push({ countyId, countyLabel, venues });
+    const venuesByCounty = (organization?.locations || []).reduce((groups, loc) => {
+        const countyKey = `${loc.countyName}|${loc.stateAbbr}`;
+        const venues = allVenues.filter((v) =>
+            v.countyName === loc.countyName && v.stateAbbr === loc.stateAbbr
+        );
+        const countyLabel = `${loc.countyName || ""} (${loc.stateAbbr || loc.stateName || ""})`.trim();
+        if (!groups.some((g) => g.countyId === countyKey)) {
+            groups.push({ countyId: countyKey, countyLabel, venues });
         }
         return groups;
     }, []);
