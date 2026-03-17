@@ -4,7 +4,6 @@ import Link from "next/link";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import Season from "@/models/Season";
-import { formatOrganizationLocations } from "@/lib/organizationLocations";
 
 async function getOrgAndSeasons(slug) {
     await dbConnect();
@@ -65,7 +64,6 @@ export default async function OrganizationDetailPage({ params }) {
     }
 
     const categories = org.categories || [];
-    const locationText = formatOrganizationLocations(org);
 
     return (
         <>
@@ -88,7 +86,6 @@ export default async function OrganizationDetailPage({ params }) {
                                 <ul>
                                     <li><img src="/assets/images/icon-star.png" alt="" /> <span>{org.rating}</span> ({org.memberCount} members)</li>
                                     <li><img src="/assets/images/icon-calander.png" alt="" /> <span>Founded {org.foundedYear}</span></li>
-                                    <li><img src="/assets/images/icon-map.png" alt="" /> <span>{locationText}</span></li>
                                 </ul>
                                 <ul className="tag">
                                     {categories.map((tag, i) => (
@@ -105,10 +102,21 @@ export default async function OrganizationDetailPage({ params }) {
                     </div>
 
                     <div className="content-area">
-                        <h4>about</h4>
+                        <h4>About</h4>
                         <p>{org.description}</p>
                         <h4>Locations List</h4>
-                        <p>{org.locationsDescription}</p>
+                        {org.venues && org.venues.length > 0 ? (
+                            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexWrap: "wrap", alignItems: "center" }}>
+                                {org.venues.map((venue, i) => (
+                                    <li key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 15, padding: "0 20px 0 0", margin: "0 20px 0 0", borderRight: i < org.venues.length - 1 ? "1px solid #A4A1A1" : "none" }}>
+                                        <span style={{ color: "#FF8C00", fontSize: 14, lineHeight: 1 }}>●</span>
+                                        <strong>{venue.name}</strong>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p style={{ color: "rgba(255,255,255,0.5)", fontStyle: "italic" }}>Coming Soon...</p>
+                        )}
                     </div>
                 </div>
             </section>

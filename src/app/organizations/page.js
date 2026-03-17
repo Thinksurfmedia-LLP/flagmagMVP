@@ -1,21 +1,18 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
-import dbConnect from "@/lib/dbConnect";
-import Organization from "@/models/Organization";
-import { formatOrganizationLocations } from "@/lib/organizationLocations";
-
-async function getOrganizations() {
-    await dbConnect();
-    const organizations = await Organization.find({})
-        .sort({ createdAt: -1 })
-        .lean();
-    return JSON.parse(JSON.stringify(organizations));
-}
 
 function OrgCard({ org }) {
     const categories = org.categories || [];
-    const locationText = formatOrganizationLocations(org);
+    const cities = (org.locations || [])
+        .map((loc) => loc.cityName || loc.countyName)
+        .filter(Boolean);
+    const visibleCities = cities.slice(0, 2);
+    const extraCount = cities.length - 2;
+    const locationText = visibleCities.join(", ") + (extraCount > 0 ? ` +${extraCount}` : "");
 
     return (
         <div className="col-xxl-3 col-xl-4 col-md-6 mb-4">
@@ -39,7 +36,7 @@ function OrgCard({ org }) {
                             ))}
                         </ul>
                         <h4><img src="/assets/images/icon-map.png" alt="" /> {locationText}</h4>
-                        <h4><img src="/assets/images/icon-calander.png" alt="" /> {org.scheduleDays.join(", ")}</h4>
+                        <h4><img src="/assets/images/icon-calander.png" alt="" /> {(org.scheduleDays || []).join(", ")}</h4>
                     </div>
                 </div>
                 <div className="button-area">
@@ -50,8 +47,48 @@ function OrgCard({ org }) {
     );
 }
 
-export default async function OrganizationsPage() {
-    const organizations = await getOrganizations();
+export default function OrganizationsPage() {
+    const [organizations, setOrganizations] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState("");
+    const [sport, setSport] = useState("");
+    const [location, setLocation] = useState("");
+    const [category, setCategory] = useState("");
+    const [sort, setSort] = useState("featured");
+    const [filterOptions, setFilterOptions] = useState({ locations: [], sports: [], categories: [] });
+
+    // Load filter options once
+    useEffect(() => {
+        fetch("/api/organizations?filtersOnly=true")
+            .then((r) => r.json())
+            .then((d) => { if (d.success) setFilterOptions(d.data); })
+            .catch(() => {});
+    }, []);
+
+    const fetchOrgs = useCallback(async () => {
+        setLoading(true);
+        const params = new URLSearchParams();
+        if (search) params.set("search", search);
+        if (sport) params.set("sport", sport);
+        if (location) params.set("location", location);
+        if (category) params.set("category", category);
+        if (sort) params.set("sort", sort);
+        try {
+            const res = await fetch(`/api/organizations?${params.toString()}`);
+            const data = await res.json();
+            if (data.success) setOrganizations(data.data);
+        } catch { /* ignore */ }
+        finally { setLoading(false); }
+    }, [search, sport, location, category, sort]);
+
+    useEffect(() => { fetchOrgs(); }, [fetchOrgs]);
+
+    // Debounce search
+    const [searchInput, setSearchInput] = useState("");
+    useEffect(() => {
+        const t = setTimeout(() => setSearch(searchInput), 400);
+        return () => clearTimeout(t);
+    }, [searchInput]);
 
     return (
         <>
@@ -70,35 +107,38 @@ export default async function OrganizationsPage() {
             <section className="organization-team-section section-padding">
                 <div className="container">
                     <div className="search-part">
-                        <input type="text" className="form-control" placeholder="Search Organizations..." />
+                        <input
+                            type="text"
+                            className="form-control"
+                            placeholder="Search Organizations..."
+                            value={searchInput}
+                            onChange={(e) => setSearchInput(e.target.value)}
+                        />
                         <div className="row justify-content-between mt-3">
                             <div className="col-auto">
-                                <select className="form-select" aria-label="All Sports">
-                                    <option defaultValue>All Sports</option>
-                                    <option value="Flag Football">Flag Football</option>
-                                    <option value="Soccer">Soccer</option>
-                                    <option value="Basketball">Basketball</option>
-                                    <option value="Pickleball">Pickleball</option>
+                                <select className="form-select" value={sport} onChange={(e) => setSport(e.target.value)}>
+                                    <option value="">All Sports</option>
+                                    {filterOptions.sports.map((s) => (
+                                        <option key={s} value={s}>{s}</option>
+                                    ))}
                                 </select>
-                                <select className="form-select" aria-label="All Locations">
-                                    <option defaultValue>All Locations</option>
-                                    <option value="New York">New York</option>
-                                    <option value="Los Angeles">Los Angeles</option>
-                                    <option value="Chicago">Chicago</option>
-                                    <option value="Boston">Boston</option>
+                                <select className="form-select" value={location} onChange={(e) => setLocation(e.target.value)}>
+                                    <option value="">All Locations</option>
+                                    {filterOptions.locations.map((l) => (
+                                        <option key={l} value={l}>{l}</option>
+                                    ))}
                                 </select>
-                                <select className="form-select" aria-label="League Type">
-                                    <option defaultValue>League Type</option>
-                                    <option value="Men">Men</option>
-                                    <option value="Youth">Youth</option>
-                                    <option value="Women">Women</option>
-                                    <option value="Coed">Coed</option>
+                                <select className="form-select" value={category} onChange={(e) => setCategory(e.target.value)}>
+                                    <option value="">League Type</option>
+                                    {filterOptions.categories.map((c) => (
+                                        <option key={c} value={c}>{c}</option>
+                                    ))}
                                 </select>
                             </div>
                             <div className="col-auto sort-part">
                                 <h6>Sort by:</h6>
-                                <select className="form-select" aria-label="Sort">
-                                    <option defaultValue>Featured</option>
+                                <select className="form-select" value={sort} onChange={(e) => setSort(e.target.value)}>
+                                    <option value="featured">Featured</option>
                                     <option value="a-z">A to Z</option>
                                     <option value="z-a">Z to A</option>
                                     <option value="rating">Rating</option>
@@ -108,7 +148,9 @@ export default async function OrganizationsPage() {
                     </div>
 
                     <div className="team-main-wrapper">
-                        <h6 className="item-count">Showing {organizations.length} organizations</h6>
+                        <h6 className="item-count">
+                            {loading ? "Loading..." : `Showing ${organizations.length} organizations`}
+                        </h6>
                         <div className="row">
                             {organizations.map((org) => (
                                 <OrgCard key={org._id} org={org} />

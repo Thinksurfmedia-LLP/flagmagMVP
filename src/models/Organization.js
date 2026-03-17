@@ -46,6 +46,10 @@ const OrganizationSchema = new mongoose.Schema(
         categories: {
             type: [String],
             default: [],
+            validate: {
+                validator: (v) => v && v.length > 0,
+                message: "At least one category is required",
+            },
         },
         locations: {
             type: [
@@ -61,10 +65,18 @@ const OrganizationSchema = new mongoose.Schema(
                 },
             ],
             default: [],
+            validate: {
+                validator: (v) => v && v.length > 0,
+                message: "At least one operating location is required",
+            },
         },
         categories: {
             type: [String],
             default: [],
+            validate: {
+                validator: (v) => v && v.length > 0,
+                message: "At least one category is required",
+            },
         },
         location: {
             type: String,
@@ -73,6 +85,10 @@ const OrganizationSchema = new mongoose.Schema(
         scheduleDays: {
             type: [String],
             default: [],
+            validate: {
+                validator: (v) => v && v.length > 0,
+                message: "At least one schedule day is required",
+            },
         },
         sport: {
             type: String,
@@ -113,5 +129,16 @@ const OrganizationSchema = new mongoose.Schema(
     }
 );
 
-export default mongoose.models.Organization ||
-    mongoose.model("Organization", OrganizationSchema);
+function getOrganizationModel() {
+    const existing = mongoose.models.Organization;
+    if (existing) {
+        const locationsSchema = existing.schema.path("locations");
+        const subdocPaths = locationsSchema?.schema?.paths || {};
+        if (!subdocPaths.cityName) {
+            delete mongoose.models.Organization;
+        }
+    }
+    return mongoose.models.Organization || mongoose.model("Organization", OrganizationSchema);
+}
+
+export default getOrganizationModel();

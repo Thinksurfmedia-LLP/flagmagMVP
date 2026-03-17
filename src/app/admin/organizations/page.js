@@ -143,6 +143,16 @@ function OrgForm({ org, onSave, onCancel }) {
     const handleSubmit = (e) => {
         e.preventDefault();
 
+        if (selectedCategories.length === 0) {
+            showError("Please select at least one category.");
+            return;
+        }
+
+        if (selectedDays.length === 0) {
+            showError("Please select at least one schedule day.");
+            return;
+        }
+
         if (selectedLocations.length === 0) {
             showError("Please select at least one operating location.");
             return;
@@ -211,7 +221,7 @@ function OrgForm({ org, onSave, onCancel }) {
                     </div>
 
                     <div className="admin-form-group">
-                        <label className="admin-form-label">Categories</label>
+                        <label className="admin-form-label">Categories *</label>
                         <div className="admin-option-bubbles">
                             {CATEGORY_OPTIONS.map((category) => (
                                 <button
@@ -226,7 +236,7 @@ function OrgForm({ org, onSave, onCancel }) {
                         </div>
                     </div>
                     <div className="admin-form-group">
-                        <label className="admin-form-label">Schedule Days</label>
+                        <label className="admin-form-label">Schedule Days *</label>
                         <div className="admin-option-bubbles">
                             {SCHEDULE_DAY_OPTIONS.map((day) => (
                                 <button
@@ -303,7 +313,7 @@ function OrgForm({ org, onSave, onCancel }) {
                             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                                 {selectedLocations.map((loc, i) => (
                                     <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,30,0,0.08)", color: "#FF1E00", fontWeight: 600, fontSize: 13, borderRadius: 999, padding: "4px 10px" }}>
-                                        {loc.cityName ? `${loc.cityName}, ` : ""}{loc.countyName} ({loc.stateAbbr || loc.stateName})
+                                        {loc.locationName || (`${loc.cityName ? `${loc.cityName}, ` : ""}${loc.countyName} (${loc.stateAbbr || loc.stateName})`)}
                                         <button
                                             type="button"
                                             onClick={() => removeLocation(loc.stateAbbr, loc.countyName, loc.cityName)}

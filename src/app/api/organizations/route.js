@@ -10,15 +10,49 @@ export async function GET(request) {
         const { searchParams } = new URL(request.url);
         const sport = searchParams.get("sport");
         const location = searchParams.get("location");
+        const category = searchParams.get("category");
         const search = searchParams.get("search");
         const sort = searchParams.get("sort") || "featured";
+        const filtersOnly = searchParams.get("filtersOnly");
+
+        // Return distinct filter options
+        if (filtersOnly === "true") {
+            const orgs = await Organization.find({}).select("locations.cityName locations.countyName locations.stateAbbr locations.locationName sport categories").lean();
+            const citySet = new Set();
+            for (const org of orgs) {
+                for (const loc of org.locations || []) {
+                    const city = loc.cityName || loc.countyName;
+                    if (city) citySet.add(city);
+                }
+            }
+            const sportSet = new Set();
+            const categorySet = new Set();
+            for (const org of orgs) {
+                if (org.sport) sportSet.add(org.sport);
+                for (const cat of org.categories || []) categorySet.add(cat);
+            }
+            return NextResponse.json({
+                success: true,
+                data: {
+                    locations: [...citySet].sort((a, b) => a.localeCompare(b)),
+                    sports: [...sportSet].sort((a, b) => a.localeCompare(b)),
+                    categories: [...categorySet].sort((a, b) => a.localeCompare(b)),
+                },
+            });
+        }
 
         const filter = {};
-        if (sport && sport !== "All Sports") {
+        if (sport) {
             filter.sport = sport;
         }
-        if (location && location !== "All Locations") {
-            filter.location = { $regex: location, $options: "i" };
+        if (location) {
+            filter.$or = [
+                { "locations.cityName": location },
+                { "locations.countyName": location },
+            ];
+        }
+        if (category) {
+            filter.categories = category;
         }
         if (search) {
             filter.name = { $regex: search, $options: "i" };
