@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
+import Season from "@/models/Season";
+import Player from "@/models/Player";
 import { requireAdmin } from "@/lib/apiAuth";
 
 export async function GET(request) {
@@ -68,8 +70,28 @@ export async function GET(request) {
 
         const organizations = await Organization.find(filter).sort(sortOption).lean();
 
+        // Attach season and player counts
+        const orgIds = organizations.map(o => o._id);
+        const [seasonCounts, playerCounts] = await Promise.all([
+            Season.aggregate([
+                { $match: { organization: { $in: orgIds } } },
+                { $group: { _id: "$organization", count: { $sum: 1 } } },
+            ]),
+            Player.aggregate([
+                { $match: { organization: { $in: orgIds } } },
+                { $group: { _id: "$organization", count: { $sum: 1 } } },
+            ]),
+        ]);
+        const seasonMap = Object.fromEntries(seasonCounts.map(r => [r._id.toString(), r.count]));
+        const playerMap = Object.fromEntries(playerCounts.map(r => [r._id.toString(), r.count]));
+        const enriched = organizations.map(o => ({
+            ...o,
+            seasonCount: seasonMap[o._id.toString()] || 0,
+            playerCount: playerMap[o._id.toString()] || 0,
+        }));
+
         return NextResponse.json(
-            { success: true, count: organizations.length, data: organizations },
+            { success: true, count: enriched.length, data: enriched },
             { status: 200 }
         );
     } catch (error) {
