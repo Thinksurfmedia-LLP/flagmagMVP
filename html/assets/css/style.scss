@@ -654,6 +654,44 @@ header.for-homepage {position: absolute;}
 	}
 
 
+	.location-item-wrapper{ counter-reset: item;
+
+		.location-item::before {counter-increment: item; content: counter(item) ""; position: absolute; top: 10px; right: 10px; font-family: $font-heading; font-size: 300px; font-weight: 600; background: -webkit-linear-gradient(170deg,rgba(70, 70, 70, 1) 30%, rgba(29, 29, 29, 1) 100%); -webkit-background-clip: text; -webkit-text-fill-color: #464646;
+		
+		}
+	}
+
+	.location-item{ padding: 30px; border-radius: 26px; background: linear-gradient(180deg,rgba(49, 49, 49, 1) 0%, rgba(6, 6, 6, 1) 100%); border: 1px solid rgba(49, 49, 49, 1); margin-bottom: 40px; position: relative;
+
+		.map-area {
+			img {border-radius: 10px; border: 2px solid #fff;}
+		}
+
+		.map-content-area{ 
+			h3 {text-transform: uppercase; margin-bottom: 25px;}
+			ul{margin: 0; padding: 0; list-style: none; gap: 15px 20px; display: flex; flex-wrap: wrap;
+				li{ width: calc(46% - 20px); display: flex; align-items: center; flex-wrap: nowrap; flex-direction: row; gap: 15px; line-height: 1.2; font-weight: 600; margin: 0;}
+
+			}
+		}
+
+		.gallery-area {
+			.item img {border-radius: 10px; overflow: hidden;}
+			.owl-carousel .owl-nav {
+				button.owl-prev {left: -2%;}
+				button.owl-next {right: -2%;}
+			}
+		}
+		.gallery-area h5 {margin-bottom: 20px;}
+
+	}
+
+	.media-item{
+		img {border-radius: 10px; overflow: hidden;}
+	}
+	
+
+
 
 }
 
@@ -1261,6 +1299,7 @@ footer{ padding: 6rem 0 0; background: radial-gradient(circle,rgba(54, 22, 12, 1
 	.banner-section .banner-area h1 {font-size: 3rem;}
 	.heading-part h2 {font-size: 3rem;}
 
+	.map-content-area {margin-top: 30px;}
 
 }
 
@@ -1318,7 +1357,7 @@ footer{ padding: 6rem 0 0; background: radial-gradient(circle,rgba(54, 22, 12, 1
 
 
 	.login-register-section .image-area {min-height: 500px; margin-top: 30px;}
-
+	.leagues-section .location-item .map-content-area ul li {width: 100%;}
 
 
 
@@ -1462,6 +1501,8 @@ footer{ padding: 6rem 0 0; background: radial-gradient(circle,rgba(54, 22, 12, 1
 			.badge {background: $secondary-color; color: #000; border-radius: 5px 0 0 5px;}
 
 		}
+
+
 	}
 
 

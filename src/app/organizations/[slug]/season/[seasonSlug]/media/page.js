@@ -1,11 +1,13 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import ScheduleWithDateStrip from "@/components/ScheduleWithDateStrip";
+import MediaGrid from "@/components/MediaGrid";
 import Link from "next/link";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
+import Venue from "@/models/Location";
 import Season from "@/models/Season";
-import Game from "@/models/Game";
+import County from "@/models/County";
+import State from "@/models/State";
 import { formatOrganizationLocations } from "@/lib/organizationLocations";
 
 async function getData(slug, seasonSlug) {
@@ -14,25 +16,52 @@ async function getData(slug, seasonSlug) {
     if (!org) return null;
     const season = await Season.findOne({ organization: org._id, slug: seasonSlug }).lean();
     if (!season) return null;
-    const games = await Game.find({ season: season._id }).sort({ date: 1, time: 1 }).lean();
+
+    // Match venues to org locations by stateAbbr + countyName
+    const orgLocs = org.locations || [];
+    const allVenues = await Venue.find({})
+        .populate({ path: "county", select: "name state", populate: { path: "state", select: "name abbreviation" } })
+        .lean();
+
+    const matchedVenues = allVenues.filter((v) => {
+        const vStateAbbr = v.county?.state?.abbreviation || "";
+        const vCountyName = v.county?.name || "";
+        return orgLocs.some((l) => l.stateAbbr === vStateAbbr && l.countyName === vCountyName);
+    });
+
+    const allImages = [];
+    matchedVenues.forEach((v) => {
+        (v.fields || []).forEach((f) => {
+            (f.images || []).forEach((img) => {
+                allImages.push(img);
+            });
+        });
+    });
+
     return {
         org: JSON.parse(JSON.stringify(org)),
         season: JSON.parse(JSON.stringify(season)),
-        games: JSON.parse(JSON.stringify(games)),
+        images: allImages,
     };
 }
 
-export default async function SeasonSchedulePage({ params }) {
+export default async function SeasonMediaPage({ params }) {
     const { slug, seasonSlug } = await params;
     const data = await getData(slug, seasonSlug);
 
     if (!data) {
         return (
-            <><Header /><section className="innerpage-section type2"><div className="container py-5 text-center"><h1>Season not found</h1></div></section><Footer /></>
+            <>
+                <Header />
+                <section className="innerpage-section type2">
+                    <div className="container py-5 text-center"><h1>Season not found</h1></div>
+                </section>
+                <Footer />
+            </>
         );
     }
 
-    const { org, season, games } = data;
+    const { org, season, images } = data;
     const locationText = formatOrganizationLocations(org);
 
     return (
@@ -72,15 +101,15 @@ export default async function SeasonSchedulePage({ params }) {
 
                     <div className="organization-nav-area">
                         <ul>
-                            <li className="active"><Link href={`/organizations/${slug}/season/${seasonSlug}`}>Schedules</Link></li>
+                            <li><Link href={`/organizations/${slug}/season/${seasonSlug}`}>Schedules</Link></li>
                             <li><Link href={`/organizations/${slug}/season/${seasonSlug}/game-stats`}>Standings</Link></li>
                             <li><Link href={`/organizations/${slug}/season/${seasonSlug}/player-stats`}>Player Stats</Link></li>
                             <li><Link href={`/organizations/${slug}/season/${seasonSlug}/location`}>Location</Link></li>
-                            <li><Link href={`/organizations/${slug}/season/${seasonSlug}/media`}>Media</Link></li>
+                            <li className="active"><Link href={`/organizations/${slug}/season/${seasonSlug}/media`}>Media</Link></li>
                         </ul>
                     </div>
 
-                    <ScheduleWithDateStrip games={games} />
+                    <MediaGrid images={images} />
                 </div>
             </section>
 

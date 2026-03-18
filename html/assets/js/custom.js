@@ -35,11 +35,13 @@ onloadmethod();
 
     // gallery slider
     jQuery(".gallery-carousel").owlCarousel({
-        loop: true,
+        loop: false,
         margin: 10,
         nav: true,
-        autoplay: true,
+        dots: false,
+        autoplay: false,
         autoplayTimeout: 3000,
+        navText: [""],
         responsive:{
             0:{ items:2, nav: false, },
             600:{ items:2 , nav: true,},
@@ -48,6 +50,9 @@ onloadmethod();
             1400:{ items:5 },
         }
     });
+    
+
+
 
 
 

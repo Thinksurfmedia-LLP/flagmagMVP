@@ -123,8 +123,8 @@ export default async function GameStatsPage({ params }) {
                             <li><Link href={`/organizations/${slug}/season/${seasonSlug}`}>Schedules</Link></li>
                             <li className="active"><Link href={`/organizations/${slug}/season/${seasonSlug}/game-stats`}>Standings</Link></li>
                             <li><Link href={`/organizations/${slug}/season/${seasonSlug}/player-stats`}>Player Stats</Link></li>
-                            <li><Link href="#">Location</Link></li>
-                            <li><Link href="#">Media</Link></li>
+                            <li><Link href={`/organizations/${slug}/season/${seasonSlug}/location`}>Location</Link></li>
+                            <li><Link href={`/organizations/${slug}/season/${seasonSlug}/media`}>Media</Link></li>
                         </ul>
                     </div>
 

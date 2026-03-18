@@ -1610,6 +1610,84 @@ header.for-homepage {
   width: auto;
 }
 
+/* Location page styles */
+.leagues-section .location-item-wrapper {
+  counter-reset: item;
+}
+.leagues-section .location-item-wrapper .location-item::before {
+  counter-increment: item;
+  content: counter(item) "";
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-family: "Cros", sans-serif;
+  font-size: 300px;
+  font-weight: 600;
+  background: -webkit-linear-gradient(170deg, rgb(70, 70, 70) 30%, rgb(29, 29, 29) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: #464646;
+}
+.leagues-section .location-item {
+  padding: 30px;
+  border-radius: 26px;
+  background: linear-gradient(180deg, rgb(49, 49, 49) 0%, rgb(6, 6, 6) 100%);
+  border: 1px solid rgb(49, 49, 49);
+  margin-bottom: 40px;
+  position: relative;
+}
+.leagues-section .location-item .map-area img,
+.leagues-section .location-item .map-area iframe {
+  border-radius: 10px;
+  border: 2px solid #fff;
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+}
+.leagues-section .location-item .map-content-area h3 {
+  text-transform: uppercase;
+  margin-bottom: 25px;
+}
+.leagues-section .location-item .map-content-area ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  gap: 15px 20px;
+  display: flex;
+  flex-wrap: wrap;
+}
+.leagues-section .location-item .map-content-area ul li {
+  width: calc(46% - 20px);
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  flex-direction: row;
+  gap: 15px;
+  line-height: 1.2;
+  font-weight: 600;
+  margin: 0;
+}
+.leagues-section .location-item .gallery-area .item img {
+  border-radius: 10px;
+  overflow: hidden;
+}
+.leagues-section .location-item .gallery-area .owl-carousel .owl-nav button.owl-prev {
+  left: -2%;
+}
+.leagues-section .location-item .gallery-area .owl-carousel .owl-nav button.owl-next {
+  right: -2%;
+}
+.leagues-section .location-item .gallery-area h5 {
+  margin-bottom: 20px;
+}
+/* Media page styles */
+.leagues-section .media-item img {
+  border-radius: 10px;
+  overflow: hidden;
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
 .venues-section {
   background: linear-gradient(180deg, rgb(46, 24, 21) 0%, rgb(11, 13, 19) 35%);
 }
@@ -2682,6 +2760,9 @@ footer .copyright-area p {
   .login-register-section .image-area {
     min-height: 500px;
     margin-top: 30px;
+  }
+  .leagues-section .location-item .map-content-area ul li {
+    width: 100%;
   }
 }
 @media only screen and (max-width: 575px) {
