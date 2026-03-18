@@ -30,16 +30,7 @@ const selectStyles = {
     menuPortal: (base) => ({ ...base, zIndex: 9999 }),
 };
 
-const PREDEFINED_AMENITIES = [
-    "Parking availability",
-    "Surface type (grass, turf, artificial)",
-    "Number of fields (single field vs multi-field complex)",
-    "Locker rooms",
-    "Restrooms",
-    "Seating/viewing areas",
-];
-
-function OrgLocationModal({ open, editingVenue, orgLocations, onClose, onSave, loading }) {
+function OrgLocationModal({ open, editingVenue, orgLocations, amenityList, onClose, onSave, loading }) {
     const [selectedState, setSelectedState] = useState(null);
     const [selectedCounty, setSelectedCounty] = useState(null);
     const [selectedCity, setSelectedCity] = useState(null);
@@ -94,8 +85,6 @@ function OrgLocationModal({ open, editingVenue, orgLocations, onClose, onSave, l
                 name: f.name || "",
                 mapEmbed: f.mapEmbed || "",
                 amenities: f.amenities || [],
-                otherAmenity: f.otherAmenity || "",
-                otherChecked: Boolean(f.otherAmenity),
                 images: f.images || [],
             })));
             setExpandedField(editingVenue.fields?.length ? 0 : null);
@@ -121,7 +110,6 @@ function OrgLocationModal({ open, editingVenue, orgLocations, onClose, onSave, l
             name: f.name,
             mapEmbed: f.mapEmbed || "",
             amenities: f.amenities || [],
-            otherAmenity: f.otherChecked ? (f.otherAmenity || "") : "",
             images: f.images || [],
         }));
         await onSave({
@@ -134,7 +122,7 @@ function OrgLocationModal({ open, editingVenue, orgLocations, onClose, onSave, l
     const addField = () => {
         const val = newFieldName.trim();
         if (!val) return;
-        const newField = { name: val, mapEmbed: "", amenities: [], otherAmenity: "", otherChecked: false, images: [] };
+        const newField = { name: val, mapEmbed: "", amenities: [], images: [] };
         setFields(prev => [...prev, newField]);
         setExpandedField(fields.length);
         setNewFieldName("");
@@ -301,39 +289,19 @@ function OrgLocationModal({ open, editingVenue, orgLocations, onClose, onSave, l
                                                 <div>
                                                     <label className="admin-form-label" style={{ marginBottom: 4 }}>Amenities</label>
                                                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 16px" }}>
-                                                        {PREDEFINED_AMENITIES.map(amenity => (
-                                                            <label key={amenity} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: "#1a1d26" }}>
+                                                        {amenityList.map(amenity => (
+                                                            <label key={amenity._id} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: "#1a1d26" }}>
                                                                 <input
                                                                     type="checkbox"
-                                                                    checked={field.amenities.includes(amenity)}
-                                                                    onChange={() => toggleFieldAmenity(idx, amenity)}
+                                                                    checked={field.amenities.includes(amenity.name)}
+                                                                    onChange={() => toggleFieldAmenity(idx, amenity.name)}
                                                                     style={{ accentColor: "#FF1E00" }}
                                                                 />
-                                                                {amenity}
+                                                                {amenity.icon && <img src={amenity.icon} alt="" style={{ width: 18, height: 18, objectFit: "contain" }} />}
+                                                                {amenity.name}
                                                             </label>
                                                         ))}
-                                                        <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: "#1a1d26" }}>
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={field.otherChecked}
-                                                                onChange={e => {
-                                                                    updateField(idx, "otherChecked", e.target.checked);
-                                                                    if (!e.target.checked) updateField(idx, "otherAmenity", "");
-                                                                }}
-                                                                style={{ accentColor: "#FF1E00" }}
-                                                            />
-                                                            Other
-                                                        </label>
                                                     </div>
-                                                    {field.otherChecked && (
-                                                        <input
-                                                            className="admin-form-input"
-                                                            value={field.otherAmenity}
-                                                            onChange={e => updateField(idx, "otherAmenity", e.target.value)}
-                                                            placeholder="Describe other amenity..."
-                                                            style={{ marginTop: 8 }}
-                                                        />
-                                                    )}
                                                 </div>
 
                                                 {/* Photos */}
@@ -396,6 +364,7 @@ function OrgLocationsView() {
     const slug = user?.organization?.slug;
     const [orgLocations, setOrgLocations] = useState([]);
     const [venues, setVenues] = useState([]);
+    const [amenityList, setAmenityList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
     const [modalSaving, setModalSaving] = useState(false);
@@ -418,6 +387,16 @@ function OrgLocationsView() {
             } catch {}
         })();
     }, [slug]);
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const res = await fetch("/api/amenities");
+                const data = await res.json();
+                if (data.success) setAmenityList(data.data || []);
+            } catch {}
+        })();
+    }, []);
 
     const fetchVenues = useCallback(async (locs) => {
         setLoading(true);
@@ -567,6 +546,7 @@ function OrgLocationsView() {
                 open={modalOpen}
                 editingVenue={editingVenue}
                 orgLocations={orgLocations}
+                amenityList={amenityList}
                 onClose={closeModal}
                 onSave={saveVenue}
                 loading={modalSaving}

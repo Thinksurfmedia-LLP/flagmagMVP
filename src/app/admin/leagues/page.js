@@ -75,6 +75,16 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
                         return acc;
                     }, []);
                     setVenuesByCounty(groups);
+
+                    // Remove stale venue names that no longer exist in the DB
+                    const validVenueNames = new Set(groups.flatMap((g) => g.venues.map((v) => v.name)));
+                    setForm((prev) => {
+                        const filtered = prev.locations.filter((n) => validVenueNames.has(n));
+                        if (filtered.length !== prev.locations.length) {
+                            return { ...prev, locations: filtered };
+                        }
+                        return prev;
+                    });
                 }
             })
             .catch(() => {})

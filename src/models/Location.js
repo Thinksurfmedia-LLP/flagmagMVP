@@ -1,20 +1,10 @@
 import mongoose from "mongoose";
 
-const PREDEFINED_AMENITIES = [
-    "Parking availability",
-    "Surface type (grass, turf, artificial)",
-    "Number of fields (single field vs multi-field complex)",
-    "Locker rooms",
-    "Restrooms",
-    "Seating/viewing areas",
-];
-
 const FieldSubSchema = new mongoose.Schema(
     {
         name: { type: String, required: true, trim: true },
         mapEmbed: { type: String, default: "" },
         amenities: { type: [String], default: [] },
-        otherAmenity: { type: String, default: "", trim: true },
         images: { type: [String], default: [] },
     },
     { _id: true }
@@ -81,5 +71,4 @@ function getVenueModel() {
     return mongoose.models.Venue || mongoose.model("Venue", VenueSchema);
 }
 
-export { PREDEFINED_AMENITIES };
 export default getVenueModel();

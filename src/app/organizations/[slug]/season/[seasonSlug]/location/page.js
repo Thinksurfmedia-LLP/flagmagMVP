@@ -8,16 +8,8 @@ import Venue from "@/models/Location";
 import Season from "@/models/Season";
 import County from "@/models/County";
 import State from "@/models/State";
+import Amenity from "@/models/Amenity";
 import { formatOrganizationLocations } from "@/lib/organizationLocations";
-
-const AMENITY_ICON_MAP = {
-    "Parking availability": "/assets/images/v1.png",
-    "Seating/viewing areas": "/assets/images/v2.png",
-    "Number of fields (single field vs multi-field complex)": "/assets/images/v3.png",
-    "Locker rooms": "/assets/images/v4.png",
-    "Restrooms": "/assets/images/v5.png",
-    "Surface type (grass, turf, artificial)": "/assets/images/v6.png",
-};
 
 async function getData(slug, seasonSlug) {
     await dbConnect();
@@ -47,10 +39,16 @@ async function getData(slug, seasonSlug) {
         };
     });
 
+    // Fetch amenity icons from DB
+    const amenities = await Amenity.find({}).lean();
+    const amenityIconMap = {};
+    amenities.forEach((a) => { amenityIconMap[a.name] = a.icon || ""; });
+
     return {
         org: JSON.parse(JSON.stringify(org)),
         season: JSON.parse(JSON.stringify(season)),
         locations: locationsWithVenues,
+        amenityIconMap,
     };
 }
 
@@ -70,7 +68,7 @@ export default async function SeasonLocationPage({ params }) {
         );
     }
 
-    const { org, season, locations } = data;
+    const { org, season, locations, amenityIconMap } = data;
     const locationText = formatOrganizationLocations(org);
 
     return (
@@ -127,7 +125,6 @@ export default async function SeasonLocationPage({ params }) {
 
                             return fields.map((field, fieldIdx) => {
                                 const allAmenities = [...(field.amenities || [])];
-                                if (field.otherAmenity) allAmenities.push(field.otherAmenity);
 
                                 const images = field.images || [];
 
@@ -148,7 +145,7 @@ export default async function SeasonLocationPage({ params }) {
                                                 <ul>
                                                     {allAmenities.map((amenity, aIdx) => (
                                                         <li key={aIdx}>
-                                                            <img src={AMENITY_ICON_MAP[amenity] || "/assets/images/v1.png"} alt="" /> {amenity}
+                                                            {amenityIconMap[amenity] && <img src={amenityIconMap[amenity]} alt="" />} {amenity}
                                                         </li>
                                                     ))}
                                                     <li><img src="/assets/images/v8.png" alt="" /> Field number - {fieldIdx + 1}</li>

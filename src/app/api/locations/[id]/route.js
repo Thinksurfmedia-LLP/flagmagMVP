@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Venue from "@/models/Location";
+import Season from "@/models/Season";
 import { requireAdmin } from "@/lib/apiAuth";
 
 export async function PUT(request, { params }) {
@@ -28,6 +29,28 @@ export async function DELETE(request, { params }) {
 
         await dbConnect();
         const { id } = await params;
+
+        const venue = await Venue.findById(id).select("name").lean();
+        if (!venue) {
+            return NextResponse.json({ success: false, error: "Venue not found" }, { status: 404 });
+        }
+
+        const referencingLeagues = await Season.find({
+            kind: "league",
+            locations: venue.name,
+        }).select("name").lean();
+
+        if (referencingLeagues.length > 0) {
+            const names = referencingLeagues.map((l) => l.name).join(", ");
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: `Cannot delete this venue — it is used by ${referencingLeagues.length} league(s): ${names}. You can edit the venue instead.`,
+                },
+                { status: 400 }
+            );
+        }
+
         await Venue.findByIdAndDelete(id);
 
         return NextResponse.json({ success: true, message: "Venue deleted" });

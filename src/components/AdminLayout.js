@@ -99,6 +99,7 @@ const NAV_ITEMS = [
         items: [
             { label: "Users", href: "/admin/users", icon: "fa-solid fa-users-gear", perm: "manage_users" },
             { label: "Roles", href: "/admin/roles", icon: "fa-solid fa-shield-halved", perm: "manage_users" },
+            { label: "Amenities", href: "/admin/amenities", icon: "fa-solid fa-list-check", perm: "manage_users" },
         ],
     },
 ];
