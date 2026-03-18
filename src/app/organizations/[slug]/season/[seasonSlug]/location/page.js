@@ -18,17 +18,25 @@ async function getData(slug, seasonSlug) {
     const season = await Season.findOne({ organization: org._id, slug: seasonSlug }).lean();
     if (!season) return null;
 
-    // Match venues to org locations by stateAbbr + countyName (org.locations[].location ObjectId is not populated)
+    // Only show venues that are assigned to this league
+    const leagueVenueNames = (season.locations || []).filter(Boolean);
+    if (leagueVenueNames.length === 0) {
+        // No locations assigned to this league
+        const amenities = await Amenity.find({}).lean();
+        const amenityIconMap = {};
+        amenities.forEach((a) => { amenityIconMap[a.name] = a.icon || ""; });
+        return {
+            org: JSON.parse(JSON.stringify(org)),
+            season: JSON.parse(JSON.stringify(season)),
+            locations: [],
+            amenityIconMap,
+        };
+    }
+
     const orgLocs = org.locations || [];
-    const allVenues = await Venue.find({})
+    const matchedVenues = await Venue.find({ name: { $in: leagueVenueNames } })
         .populate({ path: "county", select: "name state", populate: { path: "state", select: "name abbreviation" } })
         .lean();
-
-    const matchedVenues = allVenues.filter((v) => {
-        const vStateAbbr = v.county?.state?.abbreviation || "";
-        const vCountyName = v.county?.name || "";
-        return orgLocs.some((l) => l.stateAbbr === vStateAbbr && l.countyName === vCountyName);
-    });
 
     // Build locations array pairing each matched venue with org location info
     const locationsWithVenues = matchedVenues.map((v) => {
@@ -141,18 +149,16 @@ export default async function SeasonLocationPage({ params }) {
                                                 </div>
                                             </div>
                                             <div className="col-lg map-content-area">
-                                                <h3>{field.name}</h3>
+                                                <h3>{venue.name}</h3>
                                                 <ul>
                                                     {allAmenities.map((amenity, aIdx) => (
                                                         <li key={aIdx}>
                                                             {amenityIconMap[amenity] && <img src={amenityIconMap[amenity]} alt="" />} {amenity}
                                                         </li>
                                                     ))}
-                                                    <li><img src="/assets/images/v8.png" alt="" /> Field number - {fieldIdx + 1}</li>
+                                                    <li><img src="/assets/images/v8.png" alt="" /> Field: {field.name}</li>
                                                     <li>
-                                                        <img src="/assets/images/v7.png" alt="" /> Locations - {loc.cityName
-                                                            ? `${loc.cityName}${loc.stateAbbr ? `, ${loc.stateAbbr}` : ""}`
-                                                            : loc.countyName || loc.stateName || ""}
+                                                        <img src="/assets/images/v7.png" alt="" /> Location – {venue.cityName || loc.cityName || ""}
                                                     </li>
                                                 </ul>
                                             </div>

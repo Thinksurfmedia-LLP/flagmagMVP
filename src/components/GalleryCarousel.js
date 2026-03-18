@@ -21,11 +21,12 @@ export default function GalleryCarousel({ images = [], galleryId = "gallery" }) 
             const $el = $(carouselRef.current);
             if ($el.hasClass("owl-loaded")) $el.trigger("destroy.owl.carousel");
             $el.owlCarousel({
-                loop: false,
+                loop: true,
                 margin: 10,
                 nav: true,
                 dots: false,
-                autoplay: false,
+                autoplay: true,
+                autoplayTimeout: 3000,
                 navText: [""],
                 responsive: {
                     0: { items: 2, nav: false },
