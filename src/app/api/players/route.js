@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Player from "@/models/Player";
-import User from "@/models/User";
 import { requireAdmin } from "@/lib/apiAuth";
 
 // GET all players
@@ -10,32 +9,15 @@ export async function GET(request) {
         await dbConnect();
         const { searchParams } = new URL(request.url);
         const search = searchParams.get("search");
-
-        // Auto-sync: create Player docs for users with "player" role who don't have one
-        const playerUsers = await User.find({
-            $or: [
-                { roles: "player" },
-                { role: "player" },
-            ],
-        }).lean();
-
-        const existingLinks = await Player.find({
-            user: { $in: playerUsers.map((u) => u._id) },
-        }).select("user").lean();
-        const linkedUserIds = new Set(existingLinks.map((p) => String(p.user)));
-
-        const toCreate = playerUsers.filter((u) => !linkedUserIds.has(String(u._id)));
-        if (toCreate.length > 0) {
-            await Player.insertMany(
-                toCreate.map((u) => ({
-                    user: u._id,
-                    name: u.name,
-                    organization: u.organization || null,
-                }))
-            );
-        }
+        const status = searchParams.get("status");
 
         const filter = {};
+
+        // Filter by status if provided; default shows all
+        if (status) {
+            filter.status = status;
+        }
+
         if (search) {
             filter.name = { $regex: search, $options: "i" };
         }

@@ -90,6 +90,7 @@ const NAV_ITEMS = [
             
             { label: "Leagues", href: "/admin/leagues", icon: "fa-solid fa-trophy", perm: "manage_leagues" },
             { label: "Teams", href: "/admin/teams", icon: "fa-solid fa-people-group", perm: "manage_teams" },
+            { label: "Free Agents", href: "/admin/free-agents", icon: "fa-solid fa-user-clock", perm: "manage_players" },
             { label: "Players", href: "/admin/players", icon: "fa-solid fa-users", perm: "manage_players" },
             { label: "Games", href: "/admin/games", icon: "fa-solid fa-football", perm: "manage_games" },
         ],
@@ -112,6 +113,7 @@ function getImpersonationNav(orgSlug) {
                 { label: "Dashboard", href: `/admin/organizations/${orgSlug}`, icon: "fa-solid fa-chart-pie", perm: "view_dashboard" },
                 { label: "Seasons", href: `/admin/organizations/${orgSlug}/seasons`, icon: "fa-solid fa-calendar-days", perm: "manage_seasons" },
                 { label: "Games", href: `/admin/organizations/${orgSlug}/games`, icon: "fa-solid fa-football", perm: "manage_games" },
+                { label: "Free Agents", href: `/admin/free-agents`, icon: "fa-solid fa-user-clock", perm: "manage_players" },
                 { label: "Players", href: `/admin/organizations/${orgSlug}/players`, icon: "fa-solid fa-users", perm: "manage_players" },
                 { label: "Teams", href: `/admin/organizations/${orgSlug}/teams`, icon: "fa-solid fa-people-group", perm: "manage_teams" },
                 { label: "Locations", href: `/admin/organizations/${orgSlug}/locations`, icon: "fa-solid fa-map-location-dot", perm: "manage_organizations" },
@@ -172,6 +174,12 @@ function getOrganizerNav(orgSlug) {
                     href: "/admin/teams",
                     icon: "fa-solid fa-people-group",
                     perms: ["manage_teams", "team_view", "team_create", "team_update", "team_delete"],
+                },
+                {
+                    label: "Free Agents",
+                    href: "/admin/free-agents",
+                    icon: "fa-solid fa-user-clock",
+                    perms: ["manage_players", "player_view", "player_create", "player_update", "player_delete"],
                 },
                 {
                     label: "Players",

@@ -15,7 +15,7 @@ export default function AdminPlayersPage() {
 
     const fetchPlayers = useCallback(async () => {
         try {
-            const res = await fetch("/api/players");
+            const res = await fetch("/api/players?status=player");
             const data = await res.json();
             if (data.success) setPlayers(data.data);
         } catch { showError("Failed to load players"); }

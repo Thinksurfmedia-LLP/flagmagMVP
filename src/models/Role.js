@@ -160,6 +160,11 @@ export const DEFAULT_ROLES = [
             "game_create",
             "game_update",
             "game_delete",
+            "manage_players",
+            "player_view",
+            "player_create",
+            "player_update",
+            "player_delete",
             "manage_teams",
             "team_view",
             "team_create",
@@ -167,6 +172,12 @@ export const DEFAULT_ROLES = [
             "team_delete",
             "view_dashboard",
         ],
+        isSystem: true,
+    },
+    {
+        name: "Free Agent",
+        slug: "free_agent",
+        permissions: [],
         isSystem: true,
     },
     {
@@ -188,8 +199,8 @@ export async function seedDefaultRoles() {
     for (const role of DEFAULT_ROLES) {
         await Role.findOneAndUpdate(
             { slug: role.slug },
-            { $setOnInsert: role },
-            { upsert: true }
+            { $set: { permissions: role.permissions, isSystem: role.isSystem } },
+            { upsert: true, setDefaultsOnInsert: true }
         );
     }
 }

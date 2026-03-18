@@ -6,6 +6,11 @@ const PlayerSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
         },
+        status: {
+            type: String,
+            enum: ["free_agent", "player"],
+            default: "free_agent",
+        },
         organization: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Organization",
@@ -118,6 +123,8 @@ const PlayerSchema = new mongoose.Schema(
         timestamps: true,
     }
 );
+
+PlayerSchema.index({ user: 1, organization: 1 }, { unique: true, sparse: true });
 
 export default mongoose.models.Player ||
     mongoose.model("Player", PlayerSchema);

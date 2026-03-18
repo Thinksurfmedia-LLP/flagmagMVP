@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
+import Player from "@/models/Player";
 import Organization from "@/models/Organization";
 import Role from "@/models/Role";
 import { requirePermission } from "@/lib/apiAuth";
@@ -49,8 +50,18 @@ export async function POST(request) {
             const requester = await User.findById(auth.user.id).select("organization").lean();
             assignedOrg = requester?.organization || null;
             if (assignedRoles.some(r => ["admin", "organizer"].includes(r))) {
-                return NextResponse.json({ success: false, error: "You can only create viewer or player accounts" }, { status: 403 });
+                return NextResponse.json({ success: false, error: "You can only create free agent accounts" }, { status: 403 });
             }
+        }
+
+        // Nobody can create player directly — only via team assignment
+        if (assignedRoles.includes("player")) {
+            return NextResponse.json({ success: false, error: "Players can only be promoted from free agents via team assignment" }, { status: 400 });
+        }
+
+        // Free agent requires an organization
+        if (assignedRoles.includes("free_agent") && !assignedOrg) {
+            return NextResponse.json({ success: false, error: "Organization is required for free agent accounts" }, { status: 400 });
         }
 
         const existingUser = await User.findOne({ email });
@@ -75,6 +86,19 @@ export async function POST(request) {
             .select("-password")
             .populate("organization", "name slug")
             .lean();
+
+        // If free_agent role, also create a Player doc for the assigned org
+        if (assignedRoles.includes("free_agent") && assignedOrg) {
+            const existingPlayer = await Player.findOne({ user: user._id, organization: assignedOrg });
+            if (!existingPlayer) {
+                await Player.create({
+                    user: user._id,
+                    name: user.name,
+                    organization: assignedOrg,
+                    status: "free_agent",
+                });
+            }
+        }
 
         return NextResponse.json({ success: true, data: userData }, { status: 201 });
     } catch (error) {

@@ -7,14 +7,18 @@ import { useToast } from "@/components/AdminToast";
 
 function AddUserModal({ onClose, onSave, organizations, roles, isAdmin }) {
     const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "", organization: "" });
-    const [selectedRoles, setSelectedRoles] = useState(["viewer"]);
+    const [selectedRoles, setSelectedRoles] = useState(isAdmin ? ["viewer"] : ["free_agent"]);
     const [saving, setSaving] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [formError, setFormError] = useState("");
 
-    const availableRoles = isAdmin ? roles : roles.filter(r => !["admin", "organizer"].includes(r.slug));
-    const needsOrg = isAdmin && selectedRoles.includes("organizer");
+    // Admin: all roles except player (player is only via team assignment)
+    // Organizer: only free_agent
+    const availableRoles = isAdmin
+        ? roles.filter(r => r.slug !== "player")
+        : roles.filter(r => r.slug === "free_agent");
+    const needsOrg = isAdmin && (selectedRoles.includes("organizer") || selectedRoles.includes("free_agent"));
 
     const toggleRole = (slug) => {
         setSelectedRoles(prev =>

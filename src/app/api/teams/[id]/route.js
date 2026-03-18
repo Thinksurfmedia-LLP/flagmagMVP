@@ -16,6 +16,23 @@ function normalizeObjectId(value) {
     return value ? String(value) : "";
 }
 
+async function syncUserRole(userId) {
+    const playerDocs = await Player.find({ user: userId }).select("status").lean();
+    const hasPlayer = playerDocs.some((p) => p.status === "player");
+    const hasFreeAgent = playerDocs.some((p) => p.status === "free_agent");
+
+    const user = await User.findById(userId).select("role roles").lean();
+    if (!user || ["admin", "organizer"].includes(user.role)) return;
+
+    const newRole = hasPlayer ? "player" : hasFreeAgent ? "free_agent" : "viewer";
+    const newRoles = user.roles.filter((r) => !["player", "free_agent", "viewer"].includes(r));
+    if (hasPlayer) newRoles.push("player");
+    if (hasFreeAgent) newRoles.push("free_agent");
+    if (newRoles.length === 0) newRoles.push("viewer");
+
+    await User.updateOne({ _id: userId }, { $set: { role: newRole, roles: newRoles } });
+}
+
 async function syncAssignedPlayers({ teamName, teamLogo, organizationId, nextPlayerIds = [], prevPlayerIds = [] }) {
     const nextSet = new Set(nextPlayerIds.map(normalizeObjectId));
     const prevSet = new Set(prevPlayerIds.map(normalizeObjectId));
@@ -28,6 +45,7 @@ async function syncAssignedPlayers({ teamName, teamLogo, organizationId, nextPla
             { _id: { $in: toAdd } },
             {
                 $set: {
+                    status: "player",
                     organization: organizationId,
                     presentTeam: {
                         name: teamName,
@@ -36,6 +54,11 @@ async function syncAssignedPlayers({ teamName, teamLogo, organizationId, nextPla
                 },
             }
         );
+
+        const addedPlayers = await Player.find({ _id: { $in: toAdd }, user: { $ne: null } }).select("user").lean();
+        for (const ap of addedPlayers) {
+            await syncUserRole(ap.user);
+        }
     }
 
     if (toRemove.length > 0) {
@@ -50,6 +73,16 @@ async function syncAssignedPlayers({ teamName, teamLogo, organizationId, nextPla
                 },
             }
         );
+
+        // Demote players back to free_agent if no longer on any team
+        const removedPlayers = await Player.find({ _id: { $in: toRemove }, user: { $ne: null } }).select("user").lean();
+        for (const rp of removedPlayers) {
+            const stillOnTeam = await Team.exists({ players: rp._id });
+            if (!stillOnTeam) {
+                await Player.updateOne({ _id: rp._id }, { $set: { status: "free_agent" } });
+            }
+            await syncUserRole(rp.user);
+        }
     }
 }
 
@@ -175,6 +208,7 @@ export async function DELETE(request, { params }) {
             { _id: { $in: team.players }, "presentTeam.name": team.name },
             {
                 $set: {
+                    status: "free_agent",
                     presentTeam: {
                         name: "",
                         logo: "",
@@ -183,7 +217,12 @@ export async function DELETE(request, { params }) {
             }
         );
 
+        // Sync user roles for all players on the deleted team
+        const teamPlayers = await Player.find({ _id: { $in: team.players }, user: { $ne: null } }).select("user").lean();
         await Team.findByIdAndDelete(id);
+        for (const tp of teamPlayers) {
+            await syncUserRole(tp.user);
+        }
 
         return NextResponse.json({ success: true, message: "Team deleted" });
     } catch (error) {
