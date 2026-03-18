@@ -30,15 +30,27 @@ const selectStyles = {
     menuPortal: (base) => ({ ...base, zIndex: 9999 }),
 };
 
+const PREDEFINED_AMENITIES = [
+    "Parking availability",
+    "Surface type (grass, turf, artificial)",
+    "Number of fields (single field vs multi-field complex)",
+    "Locker rooms",
+    "Restrooms",
+    "Seating/viewing areas",
+];
+
 function OrgLocationModal({ open, editingVenue, orgLocations, onClose, onSave, loading }) {
     const [selectedState, setSelectedState] = useState(null);
     const [selectedCounty, setSelectedCounty] = useState(null);
     const [selectedCity, setSelectedCity] = useState(null);
     const [venueName, setVenueName] = useState("");
     const [venueAddress, setVenueAddress] = useState("");
-    const [fieldCount, setFieldCount] = useState("");
     const [managerName, setManagerName] = useState("");
     const [managerPhone, setManagerPhone] = useState("");
+    const [fields, setFields] = useState([]);
+    const [newFieldName, setNewFieldName] = useState("");
+    const [expandedField, setExpandedField] = useState(null);
+    const [uploadingIdx, setUploadingIdx] = useState(null);
 
     const stateOptions = useMemo(() => {
         const seen = new Set();
@@ -76,9 +88,17 @@ function OrgLocationModal({ open, editingVenue, orgLocations, onClose, onSave, l
             setSelectedCity(editingVenue.cityName ? { value: editingVenue.cityName, label: editingVenue.cityName } : null);
             setVenueName(editingVenue.name || "");
             setVenueAddress(editingVenue.address || "");
-            setFieldCount(editingVenue.fieldCount ?? "");
             setManagerName(editingVenue.managerName || "");
             setManagerPhone(editingVenue.managerPhone || "");
+            setFields((editingVenue.fields || []).map(f => ({
+                name: f.name || "",
+                mapEmbed: f.mapEmbed || "",
+                amenities: f.amenities || [],
+                otherAmenity: f.otherAmenity || "",
+                otherChecked: Boolean(f.otherAmenity),
+                images: f.images || [],
+            })));
+            setExpandedField(editingVenue.fields?.length ? 0 : null);
             return;
         }
         setSelectedState(null);
@@ -86,21 +106,86 @@ function OrgLocationModal({ open, editingVenue, orgLocations, onClose, onSave, l
         setSelectedCity(null);
         setVenueName("");
         setVenueAddress("");
-        setFieldCount("");
         setManagerName("");
         setManagerPhone("");
+        setFields([]);
+        setNewFieldName("");
+        setExpandedField(null);
     }, [open, editingVenue]);
 
     if (!open) return null;
 
     const submit = async (e) => {
         e.preventDefault();
-        await onSave({ editingVenue, selectedState, selectedCounty, selectedCity, venueName, venueAddress, fieldCount, managerName, managerPhone });
+        const cleanFields = fields.map(f => ({
+            name: f.name,
+            mapEmbed: f.mapEmbed || "",
+            amenities: f.amenities || [],
+            otherAmenity: f.otherChecked ? (f.otherAmenity || "") : "",
+            images: f.images || [],
+        }));
+        await onSave({
+            editingVenue, selectedState, selectedCounty, selectedCity,
+            venueName, venueAddress, managerName, managerPhone,
+            fields: cleanFields,
+        });
+    };
+
+    const addField = () => {
+        const val = newFieldName.trim();
+        if (!val) return;
+        const newField = { name: val, mapEmbed: "", amenities: [], otherAmenity: "", otherChecked: false, images: [] };
+        setFields(prev => [...prev, newField]);
+        setExpandedField(fields.length);
+        setNewFieldName("");
+    };
+
+    const removeField = (idx) => {
+        setFields(prev => prev.filter((_, i) => i !== idx));
+        if (expandedField === idx) setExpandedField(null);
+        else if (expandedField > idx) setExpandedField(expandedField - 1);
+    };
+
+    const updateField = (idx, key, value) => {
+        setFields(prev => prev.map((f, i) => i === idx ? { ...f, [key]: value } : f));
+    };
+
+    const toggleFieldAmenity = (idx, amenity) => {
+        setFields(prev => prev.map((f, i) => {
+            if (i !== idx) return f;
+            const has = f.amenities.includes(amenity);
+            return { ...f, amenities: has ? f.amenities.filter(a => a !== amenity) : [...f.amenities, amenity] };
+        }));
+    };
+
+    const uploadFieldImage = async (e, idx) => {
+        const files = Array.from(e.target.files || []);
+        if (!files.length) return;
+        setUploadingIdx(idx);
+        try {
+            const urls = [];
+            for (const file of files) {
+                const formData = new FormData();
+                formData.append("file", file);
+                const res = await fetch("/api/upload", { method: "POST", body: formData });
+                const data = await res.json();
+                if (data.success) urls.push(data.url);
+            }
+            if (urls.length) {
+                setFields(prev => prev.map((f, i) => i === idx ? { ...f, images: [...f.images, ...urls] } : f));
+            }
+        } catch {}
+        finally { setUploadingIdx(null); }
+        e.target.value = "";
+    };
+
+    const removeFieldImage = (fieldIdx, imgIdx) => {
+        setFields(prev => prev.map((f, i) => i === fieldIdx ? { ...f, images: f.images.filter((_, j) => j !== imgIdx) } : f));
     };
 
     return (
         <div className="admin-modal-backdrop" onClick={onClose}>
-            <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 720 }}>
+            <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 780, maxHeight: "90vh", overflowY: "auto" }}>
                 <h3 className="admin-modal-title">{editingVenue ? "Edit Location" : "Add Location"}</h3>
                 <form onSubmit={submit}>
                     <div className="admin-form-group">
@@ -130,19 +215,168 @@ function OrgLocationModal({ open, editingVenue, orgLocations, onClose, onSave, l
                         <input className="admin-form-input" value={venueAddress} onChange={e => setVenueAddress(e.target.value)} placeholder="Street address" />
                     </div>
                     <div className="admin-form-group" style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                        <div style={{ flex: "1 1 180px" }}>
-                            <label className="admin-form-label">Fields</label>
-                            <input type="number" min="0" className="admin-form-input" value={fieldCount} onChange={e => setFieldCount(e.target.value)} placeholder="Number of fields" />
-                        </div>
-                        <div style={{ flex: "1 1 180px" }}>
+                        <div style={{ flex: "1 1 250px" }}>
                             <label className="admin-form-label">Manager</label>
                             <input className="admin-form-input" value={managerName} onChange={e => setManagerName(e.target.value)} placeholder="Manager" />
                         </div>
-                        <div style={{ flex: "1 1 180px" }}>
+                        <div style={{ flex: "1 1 250px" }}>
                             <label className="admin-form-label">Phone Number</label>
                             <input className="admin-form-input" value={managerPhone} onChange={e => setManagerPhone(e.target.value)} placeholder="Phone number" />
                         </div>
                     </div>
+
+                    {/* Fields */}
+                    <div className="admin-form-group">
+                        <label className="admin-form-label">Fields</label>
+                        <div style={{ display: "flex", gap: 8 }}>
+                            <input
+                                className="admin-form-input"
+                                value={newFieldName}
+                                onChange={e => setNewFieldName(e.target.value)}
+                                placeholder="e.g. 1A, Field 2, Sub1"
+                                onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addField(); } }}
+                                style={{ flex: 1 }}
+                            />
+                            <button type="button" className="admin-btn admin-btn-ghost" onClick={addField} style={{ flexShrink: 0 }}>
+                                <i className="fa-solid fa-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Field Accordions */}
+                    {fields.length > 0 && (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
+                            {fields.map((field, idx) => {
+                                const isOpen = expandedField === idx;
+                                return (
+                                    <div key={idx} style={{ border: "1px solid #e8eaef", borderRadius: 8, overflow: "hidden" }}>
+                                        {/* Accordion Header */}
+                                        <div
+                                            style={{
+                                                display: "flex", alignItems: "center", justifyContent: "space-between",
+                                                padding: "10px 14px", background: isOpen ? "#fff8f7" : "#f9fafb",
+                                                cursor: "pointer", userSelect: "none",
+                                            }}
+                                            onClick={() => setExpandedField(isOpen ? null : idx)}
+                                        >
+                                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                                <i className={`fa-solid fa-chevron-${isOpen ? "down" : "right"}`} style={{ fontSize: 11, color: "#8b90a0", width: 12 }}></i>
+                                                <span style={{ fontWeight: 600, fontSize: 14, color: "#1a1d26" }}>{field.name}</span>
+                                                <span style={{ fontSize: 12, color: "#8b90a0" }}>
+                                                    {field.amenities.length > 0 && `${field.amenities.length} amenities`}
+                                                    {field.amenities.length > 0 && field.images.length > 0 && " · "}
+                                                    {field.images.length > 0 && `${field.images.length} photos`}
+                                                </span>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={e => { e.stopPropagation(); removeField(idx); }}
+                                                style={{
+                                                    background: "none", border: "none", color: "#FF1E00",
+                                                    cursor: "pointer", fontSize: 14, padding: "2px 6px",
+                                                }}
+                                                title="Remove field"
+                                            >
+                                                <i className="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </div>
+
+                                        {/* Accordion Body */}
+                                        {isOpen && (
+                                            <div style={{ padding: "12px 14px", borderTop: "1px solid #e8eaef", display: "flex", flexDirection: "column", gap: 14 }}>
+                                                {/* Google Maps Embed */}
+                                                <div>
+                                                    <label className="admin-form-label" style={{ marginBottom: 4 }}>Google Maps Embed Code</label>
+                                                    <textarea
+                                                        className="admin-form-input"
+                                                        rows={3}
+                                                        value={field.mapEmbed}
+                                                        onChange={e => updateField(idx, "mapEmbed", e.target.value)}
+                                                        placeholder='Paste Google Maps embed code here (e.g. <iframe src="https://www.google.com/maps/embed?..." ...></iframe>)'
+                                                        style={{ fontFamily: "monospace", fontSize: 12 }}
+                                                    />
+                                                </div>
+
+                                                {/* Amenities */}
+                                                <div>
+                                                    <label className="admin-form-label" style={{ marginBottom: 4 }}>Amenities</label>
+                                                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 16px" }}>
+                                                        {PREDEFINED_AMENITIES.map(amenity => (
+                                                            <label key={amenity} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: "#1a1d26" }}>
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={field.amenities.includes(amenity)}
+                                                                    onChange={() => toggleFieldAmenity(idx, amenity)}
+                                                                    style={{ accentColor: "#FF1E00" }}
+                                                                />
+                                                                {amenity}
+                                                            </label>
+                                                        ))}
+                                                        <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: "#1a1d26" }}>
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={field.otherChecked}
+                                                                onChange={e => {
+                                                                    updateField(idx, "otherChecked", e.target.checked);
+                                                                    if (!e.target.checked) updateField(idx, "otherAmenity", "");
+                                                                }}
+                                                                style={{ accentColor: "#FF1E00" }}
+                                                            />
+                                                            Other
+                                                        </label>
+                                                    </div>
+                                                    {field.otherChecked && (
+                                                        <input
+                                                            className="admin-form-input"
+                                                            value={field.otherAmenity}
+                                                            onChange={e => updateField(idx, "otherAmenity", e.target.value)}
+                                                            placeholder="Describe other amenity..."
+                                                            style={{ marginTop: 8 }}
+                                                        />
+                                                    )}
+                                                </div>
+
+                                                {/* Photos */}
+                                                <div>
+                                                    <label className="admin-form-label" style={{ marginBottom: 4 }}>Photos</label>
+                                                    {field.images.length > 0 && (
+                                                        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
+                                                            {field.images.map((url, imgIdx) => (
+                                                                <div key={imgIdx} style={{ position: "relative", width: 72, height: 72 }}>
+                                                                    <img
+                                                                        src={url}
+                                                                        alt={`Photo ${imgIdx + 1}`}
+                                                                        style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 6, border: "1px solid #e8eaef" }}
+                                                                    />
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => removeFieldImage(idx, imgIdx)}
+                                                                        style={{
+                                                                            position: "absolute", top: -6, right: -6,
+                                                                            width: 18, height: 18, borderRadius: "50%",
+                                                                            background: "#FF1E00", color: "#fff", border: "none",
+                                                                            cursor: "pointer", fontSize: 11, lineHeight: "18px",
+                                                                            textAlign: "center", padding: 0,
+                                                                        }}
+                                                                    >&times;</button>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                    <label className="admin-btn admin-btn-ghost" style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13 }}>
+                                                        <i className="fa-solid fa-upload"></i>
+                                                        {uploadingIdx === idx ? "Uploading..." : "Upload Photo"}
+                                                        <input type="file" accept="image/*" multiple onChange={e => uploadFieldImage(e, idx)} disabled={uploadingIdx === idx} style={{ display: "none" }} />
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+
                     <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 20 }}>
                         <button type="button" className="admin-btn admin-btn-ghost" onClick={onClose} disabled={loading}>Cancel</button>
                         <button type="submit" className="admin-btn admin-btn-primary" disabled={loading}>
@@ -208,7 +442,7 @@ function OrgLocationsView() {
     const openEditModal = (venue) => { setEditingVenue(venue); setModalOpen(true); };
     const closeModal = () => { setModalOpen(false); setEditingVenue(null); };
 
-    const saveVenue = async ({ editingVenue: venue, selectedState, selectedCounty, selectedCity, venueName, venueAddress, fieldCount, managerName, managerPhone }) => {
+    const saveVenue = async ({ editingVenue: venue, selectedState, selectedCounty, selectedCity, venueName, venueAddress, managerName, managerPhone, fields }) => {
         if (!venue && (!selectedState || !selectedCounty)) {
             showError("Please select state, county, and city");
             return;
@@ -218,6 +452,7 @@ function OrgLocationsView() {
             return;
         }
         setModalSaving(true);
+        const cleanFields = Array.isArray(fields) ? fields : [];
         try {
             if (venue) {
                 const res = await fetch(`/api/locations/${venue._id}`, {
@@ -226,9 +461,9 @@ function OrgLocationsView() {
                     body: JSON.stringify({
                         name: venueName.trim(),
                         address: venueAddress || "",
-                        fieldCount: fieldCount === "" ? null : Number(fieldCount),
                         managerName: managerName || "",
                         managerPhone: managerPhone || "",
+                        fields: cleanFields,
                     }),
                 });
                 const data = await res.json();
@@ -246,9 +481,9 @@ function OrgLocationsView() {
                         cityName: selectedCity?.value || "",
                         venueName: venueName.trim(),
                         venueAddress: venueAddress || "",
-                        fieldCount: fieldCount === "" ? null : Number(fieldCount),
                         managerName: managerName || "",
                         managerPhone: managerPhone || "",
+                        fields: cleanFields,
                     }),
                 });
                 const data = await res.json();
@@ -311,7 +546,7 @@ function OrgLocationsView() {
                                         <td>{venue.cityName || "-"}</td>
                                         <td style={{ fontWeight: 600 }}>{venue.name}</td>
                                         <td>{venue.address || "-"}</td>
-                                        <td>{venue.fieldCount ?? "-"}</td>
+                                        <td>{venue.fields?.length || 0}</td>
                                         <td>{venue.managerName || "-"}</td>
                                         <td>{venue.managerPhone || "-"}</td>
                                         <td>
@@ -345,7 +580,6 @@ function VenueModal({ open, editingVenue, onClose, onSave, loading }) {
     const [selectedCounty, setSelectedCounty] = useState(null);
     const [venueName, setVenueName] = useState("");
     const [venueAddress, setVenueAddress] = useState("");
-    const [fieldCount, setFieldCount] = useState("");
     const [managerName, setManagerName] = useState("");
     const [managerPhone, setManagerPhone] = useState("");
 
@@ -373,7 +607,6 @@ function VenueModal({ open, editingVenue, onClose, onSave, loading }) {
             setSelectedCounty(county);
             setVenueName(editingVenue.name || "");
             setVenueAddress(editingVenue.address || "");
-            setFieldCount(editingVenue.fieldCount ?? "");
             setManagerName(editingVenue.managerName || "");
             setManagerPhone(editingVenue.managerPhone || "");
             return;
@@ -383,7 +616,6 @@ function VenueModal({ open, editingVenue, onClose, onSave, loading }) {
         setSelectedCounty(null);
         setVenueName("");
         setVenueAddress("");
-        setFieldCount("");
         setManagerName("");
         setManagerPhone("");
     }, [open, editingVenue]);
@@ -398,7 +630,6 @@ function VenueModal({ open, editingVenue, onClose, onSave, loading }) {
             selectedCounty,
             venueName,
             venueAddress,
-            fieldCount,
             managerName,
             managerPhone,
         });
@@ -463,18 +694,7 @@ function VenueModal({ open, editingVenue, onClose, onSave, loading }) {
                     </div>
 
                     <div className="admin-form-group" style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                        <div style={{ flex: "1 1 180px" }}>
-                            <label className="admin-form-label">Fields</label>
-                            <input
-                                type="number"
-                                min="0"
-                                className="admin-form-input"
-                                value={fieldCount}
-                                onChange={(event) => setFieldCount(event.target.value)}
-                                placeholder="Number of fields"
-                            />
-                        </div>
-                        <div style={{ flex: "1 1 180px" }}>
+                        <div style={{ flex: "1 1 250px" }}>
                             <label className="admin-form-label">Manager</label>
                             <input
                                 className="admin-form-input"
@@ -483,7 +703,7 @@ function VenueModal({ open, editingVenue, onClose, onSave, loading }) {
                                 placeholder="Manager"
                             />
                         </div>
-                        <div style={{ flex: "1 1 180px" }}>
+                        <div style={{ flex: "1 1 250px" }}>
                             <label className="admin-form-label">Phone Number</label>
                             <input
                                 className="admin-form-input"
@@ -572,7 +792,7 @@ function AdminVenuesView() {
         setEditingVenue(null);
     };
 
-    const saveVenue = async ({ editingVenue: venue, selectedState, selectedCounty, venueName, venueAddress, fieldCount, managerName, managerPhone }) => {
+    const saveVenue = async ({ editingVenue: venue, selectedState, selectedCounty, venueName, venueAddress, managerName, managerPhone }) => {
         if (!venue && (!selectedState || !selectedCounty)) {
             showError("Please select state and county");
             return;
@@ -592,7 +812,6 @@ function AdminVenuesView() {
                     body: JSON.stringify({
                         name: venueName.trim(),
                         address: venueAddress || "",
-                        fieldCount: fieldCount === "" ? null : Number(fieldCount),
                         managerName: managerName || "",
                         managerPhone: managerPhone || "",
                     }),
@@ -613,7 +832,6 @@ function AdminVenuesView() {
                         countyName: selectedCounty.value,
                         venueName: venueName.trim(),
                         venueAddress: venueAddress || "",
-                        fieldCount: fieldCount === "" ? null : Number(fieldCount),
                         managerName: managerName || "",
                         managerPhone: managerPhone || "",
                     }),
@@ -702,7 +920,7 @@ function AdminVenuesView() {
                                             <td>{venue.countyName || "-"}</td>
                                             <td style={{ fontWeight: 600 }}>{venue.name}</td>
                                             <td>{venue.address || "-"}</td>
-                                            <td>{venue.fieldCount ?? "-"}</td>
+                                            <td>{venue.fields?.length || 0}</td>
                                             <td>{venue.managerName || "-"}</td>
                                             <td>{venue.managerPhone || "-"}</td>
                                             <td>

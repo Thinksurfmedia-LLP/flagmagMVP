@@ -25,7 +25,6 @@ export async function GET() {
             _id: venue._id,
             name: venue.name,
             address: venue.address || "",
-            fieldCount: venue.fieldCount ?? null,
             managerName: venue.managerName || "",
             managerPhone: venue.managerPhone || "",
             countyId: venue.county?._id || null,
@@ -34,6 +33,7 @@ export async function GET() {
             stateName: venue.county?.state?.name || "",
             stateAbbr: venue.county?.state?.abbreviation || "",
             cityName: venue.cityName || "",
+            fields: venue.fields || [],
         }));
 
         return NextResponse.json({ success: true, data });

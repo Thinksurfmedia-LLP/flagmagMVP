@@ -1,5 +1,25 @@
 import mongoose from "mongoose";
 
+const PREDEFINED_AMENITIES = [
+    "Parking availability",
+    "Surface type (grass, turf, artificial)",
+    "Number of fields (single field vs multi-field complex)",
+    "Locker rooms",
+    "Restrooms",
+    "Seating/viewing areas",
+];
+
+const FieldSubSchema = new mongoose.Schema(
+    {
+        name: { type: String, required: true, trim: true },
+        mapEmbed: { type: String, default: "" },
+        amenities: { type: [String], default: [] },
+        otherAmenity: { type: String, default: "", trim: true },
+        images: { type: [String], default: [] },
+    },
+    { _id: true }
+);
+
 const VenueSchema = new mongoose.Schema(
     {
         county: {
@@ -22,11 +42,6 @@ const VenueSchema = new mongoose.Schema(
             type: String,
             default: "",
         },
-        fieldCount: {
-            type: Number,
-            default: null,
-            min: 0,
-        },
         managerName: {
             type: String,
             default: "",
@@ -42,6 +57,10 @@ const VenueSchema = new mongoose.Schema(
             default: "",
             trim: true,
         },
+        fields: {
+            type: [FieldSubSchema],
+            default: [],
+        },
     },
     { timestamps: true }
 );
@@ -51,11 +70,10 @@ VenueSchema.index({ county: 1, slug: 1 }, { unique: true });
 function getVenueModel() {
     const existing = mongoose.models.Venue;
     if (existing) {
-        const hasFieldCount = Boolean(existing.schema.path("fieldCount"));
         const hasCityName = Boolean(existing.schema.path("cityName"));
+        const hasFields = Boolean(existing.schema.path("fields"));
 
-        // In dev, HMR can keep an outdated compiled model; rebuild it when schema changes.
-        if (!hasFieldCount || !hasCityName) {
+        if (!hasCityName || !hasFields) {
             delete mongoose.models.Venue;
         }
     }
@@ -63,4 +81,5 @@ function getVenueModel() {
     return mongoose.models.Venue || mongoose.model("Venue", VenueSchema);
 }
 
+export { PREDEFINED_AMENITIES };
 export default getVenueModel();
