@@ -88,7 +88,7 @@ const NAV_ITEMS = [
         items: [
             // { label: "Organizations", href: "/admin/organizations", icon: "fa-solid fa-building", perm: "manage_organizations" },
             
-            { label: "Leagues", href: "/admin/leagues", icon: "fa-solid fa-trophy", perm: "manage_leagues" },
+            // { label: "Leagues", href: "/admin/leagues", icon: "fa-solid fa-trophy", perm: "manage_leagues" },
             { label: "Teams", href: "/admin/teams", icon: "fa-solid fa-people-group", perm: "manage_teams" },
             { label: "Free Agents", href: "/admin/free-agents", icon: "fa-solid fa-user-clock", perm: "manage_players" },
             { label: "Players", href: "/admin/players", icon: "fa-solid fa-users", perm: "manage_players" },

@@ -7,16 +7,16 @@ import { useToast } from "@/components/AdminToast";
 
 function AddUserModal({ onClose, onSave, organizations, roles, isAdmin }) {
     const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "", organization: "" });
-    const [selectedRoles, setSelectedRoles] = useState(isAdmin ? ["viewer"] : ["free_agent"]);
+    const [selectedRoles, setSelectedRoles] = useState(isAdmin ? [] : ["free_agent"]);
     const [saving, setSaving] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [formError, setFormError] = useState("");
 
-    // Admin: all roles except player (player is only via team assignment)
+    // Admin: elevated roles only — viewer is assigned by default to all users
     // Organizer: only free_agent
     const availableRoles = isAdmin
-        ? roles.filter(r => r.slug !== "player")
+        ? roles.filter(r => r.slug !== "player" && r.slug !== "viewer")
         : roles.filter(r => r.slug === "free_agent");
     const needsOrg = isAdmin && (selectedRoles.includes("organizer") || selectedRoles.includes("free_agent"));
 
@@ -28,11 +28,11 @@ function AddUserModal({ onClose, onSave, organizations, roles, isAdmin }) {
 
     const handleSave = async () => {
         setFormError("");
-        if (selectedRoles.length === 0) { setFormError("Please select at least one role"); return; }
         if (needsOrg && !form.organization) { setFormError("Please select an organization for the organizer role"); return; }
         if (form.password !== form.confirmPassword) { setFormError("Passwords do not match"); return; }
+        const effectiveRoles = selectedRoles.length > 0 ? selectedRoles : ["viewer"];
         setSaving(true);
-        await onSave({ ...form, roles: selectedRoles, role: selectedRoles[0] });
+        await onSave({ ...form, roles: effectiveRoles, role: effectiveRoles[0] });
         setSaving(false);
     };
 
@@ -74,7 +74,7 @@ function AddUserModal({ onClose, onSave, organizations, roles, isAdmin }) {
                     </div>
                 </div>
                 <div className="admin-form-group">
-                    <label className="admin-form-label">Roles *</label>
+                    <label className="admin-form-label">Role <span style={{ fontWeight: 400, color: "#8b90a0" }}>(optional — Viewer by default)</span></label>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
                         {availableRoles.map(r => (
                             <label key={r._id} style={{
