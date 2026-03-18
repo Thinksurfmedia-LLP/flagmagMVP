@@ -37,6 +37,7 @@ export async function GET(request) {
 
         const leagues = await Season.find(filter)
             .populate("organization", "name slug")
+            .populate("season", "name")
             .sort({ createdAt: -1 })
             .lean();
 
@@ -95,6 +96,8 @@ export async function POST(request) {
             locations,
             location: locations[0] || "",
             startDate: body.startDate || undefined,
+            season: body.season || undefined,
+            seasonOverridden: body.seasonOverridden || false,
         });
 
         return NextResponse.json({ success: true, data: season }, { status: 201 });

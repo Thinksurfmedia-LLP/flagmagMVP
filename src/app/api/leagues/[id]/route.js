@@ -86,6 +86,10 @@ export async function PUT(request, { params }) {
         delete body.time;
         delete body.organization; // Don't allow changing organization
 
+        if (body.season !== undefined) {
+            body.seasonOverridden = body.seasonOverridden || false;
+        }
+
         const league = await Season.findByIdAndUpdate(id, body, { new: true, runValidators: true });
         if (!league) {
             return NextResponse.json({ success: false, error: "League not found" }, { status: 404 });

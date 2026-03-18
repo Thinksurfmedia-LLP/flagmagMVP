@@ -6,6 +6,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 
 function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrgId, userOrgName, userOrgSlug }) {
+    const { showSuccess, showError } = useToast();
     const [form, setForm] = useState({
         name: initial?.name || "",
         type: initial?.type || "active",
@@ -24,6 +25,14 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
     const [categoryOptions, setCategoryOptions] = useState([]);
     const [venuesByCounty, setVenuesByCounty] = useState([]);
     const [loadingOrg, setLoadingOrg] = useState(false);
+
+    // Season state
+    const [seasons, setSeasons] = useState([]);
+    const [selectedSeasonId, setSelectedSeasonId] = useState(
+        initial?.season?._id || initial?.season || ""
+    );
+    const [seasonLocked, setSeasonLocked] = useState(!initial?.seasonOverridden);
+    const [loadingSeasons, setLoadingSeasons] = useState(false);
 
     // Resolve the slug for the selected org
     const selectedOrgSlug = isAdmin
@@ -76,6 +85,62 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
         return () => { cancelled = true; };
     }, [selectedOrgSlug]);
 
+    // Fetch seasons when org changes
+    useEffect(() => {
+        if (!selectedOrgId) {
+            setSeasons([]);
+            setSelectedSeasonId("");
+            return;
+        }
+        let cancelled = false;
+        setLoadingSeasons(true);
+
+        fetch(`/api/seasons?organization=${selectedOrgId}`)
+            .then((r) => r.json())
+            .then((data) => {
+                if (cancelled) return;
+                const list = data.success ? data.data : [];
+                setSeasons(list);
+
+                // Auto-select default season (only for new leagues or when org changes)
+                if (!initial) {
+                    const defaultSeason = list.find((s) => s.isDefault);
+                    setSelectedSeasonId(defaultSeason?._id || (list.length > 0 ? list[0]._id : ""));
+                    setSeasonLocked(true);
+                }
+            })
+            .catch(() => { if (!cancelled) setSeasons([]); })
+            .finally(() => { if (!cancelled) setLoadingSeasons(false); });
+
+        return () => { cancelled = true; };
+    }, [selectedOrgId]);
+
+    const handleSeasonUnlock = async () => {
+        setSeasonLocked(false);
+        // Notify admin about the override
+        try {
+            const orgName = isAdmin
+                ? organizations.find((o) => o._id === selectedOrgId)?.name
+                : userOrgName;
+            const seasonName = seasons.find((s) => s._id === selectedSeasonId)?.name || "Unknown";
+
+            await fetch("/api/notifications", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    type: "season_override",
+                    message: `Season override: "${orgName}" organizer changed the default season "${seasonName}" while ${initial ? "editing" : "creating"} a league.`,
+                    organization: selectedOrgId,
+                    meta: {
+                        leagueName: form.name || "(untitled)",
+                        previousSeasonId: selectedSeasonId,
+                        previousSeasonName: seasonName,
+                    },
+                }),
+            });
+        } catch {}
+    };
+
     const toggleVenue = (venueName) => {
         setForm((prev) => ({
             ...prev,
@@ -87,7 +152,12 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
 
     const handleSave = async () => {
         setSaving(true);
-        await onSave({ ...form, organization: selectedOrgId });
+        await onSave({
+            ...form,
+            organization: selectedOrgId,
+            season: selectedSeasonId || undefined,
+            seasonOverridden: !seasonLocked,
+        });
         setSaving(false);
     };
 
@@ -126,6 +196,46 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
                         )}
                     </div>
                 )}
+
+                {/* Season */}
+                <div className="admin-form-group">
+                    <label className="admin-form-label">Season *</label>
+                    {loadingSeasons ? (
+                        <div style={{ color: "#8b90a0", fontSize: 13 }}>Loading seasons...</div>
+                    ) : !selectedOrgId ? (
+                        <div style={{ color: "#8b90a0", fontSize: 13 }}>Select an organization first.</div>
+                    ) : seasons.length === 0 ? (
+                        <div style={{ color: "#8b90a0", fontSize: 13 }}>No seasons found for this organization.</div>
+                    ) : (
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <select
+                                className="admin-form-select"
+                                value={selectedSeasonId}
+                                onChange={(e) => setSelectedSeasonId(e.target.value)}
+                                disabled={seasonLocked}
+                                style={seasonLocked ? { background: "#f3f4f6", color: "#6b7280", cursor: "not-allowed", flex: 1 } : { flex: 1 }}
+                            >
+                                <option value="">Select season...</option>
+                                {seasons.map((s) => (
+                                    <option key={s._id} value={s._id}>
+                                        {s.name}{s.isDefault ? " (Default)" : ""}
+                                    </option>
+                                ))}
+                            </select>
+                            {seasonLocked && (
+                                <button
+                                    type="button"
+                                    className="admin-btn admin-btn-ghost admin-btn-sm"
+                                    onClick={handleSeasonUnlock}
+                                    title="Override default season"
+                                    style={{ flexShrink: 0 }}
+                                >
+                                    <i className="fa-solid fa-pen"></i>
+                                </button>
+                            )}
+                        </div>
+                    )}
+                </div>
 
                 <div className="admin-form-group">
                     <label className="admin-form-label">Name *</label>
@@ -384,6 +494,7 @@ export default function LeaguesPage() {
                                     <tr>
                                         <th>Name</th>
                                         {isAdmin && <th>Organization</th>}
+                                        <th>Season</th>
                                         <th>Status</th>
                                         <th>Category</th>
                                         <th>Location</th>
@@ -400,6 +511,14 @@ export default function LeaguesPage() {
                                                     {league.organization?.name || "-"}
                                                 </td>
                                             )}
+                                            <td style={{ color: "#5a5f72" }}>
+                                                {league.season?.name || "-"}
+                                                {league.seasonOverridden && (
+                                                    <span title="Season was overridden" style={{ color: "#FF1E00", marginLeft: 4, fontSize: 11 }}>
+                                                        <i className="fa-solid fa-triangle-exclamation"></i>
+                                                    </span>
+                                                )}
+                                            </td>
                                             <td>
                                                 <span className={`admin-badge ${league.type === "active" ? "player" : ""}`}>
                                                     {league.type === "active" ? "Active" : "Past"}

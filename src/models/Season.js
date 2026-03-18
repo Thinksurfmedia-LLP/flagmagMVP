@@ -40,6 +40,14 @@ const SeasonSchema = new mongoose.Schema(
             type: [String],
             default: [],
         },
+        season: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Season",
+        },
+        seasonOverridden: {
+            type: Boolean,
+            default: false,
+        },
         startDate: {
             type: Date,
         },
@@ -90,7 +98,7 @@ function getSeasonModel() {
     if (mongoose.models.Season) {
         const existing = mongoose.models.Season;
         // If cached model is missing isDefault, re-register with current schema
-        if (!existing.schema.paths.isDefault || !existing.schema.paths.kind) {
+        if (!existing.schema.paths.isDefault || !existing.schema.paths.kind || !existing.schema.paths.season) {
             delete mongoose.models.Season;
             delete mongoose.connection.models?.Season;
             return mongoose.model("Season", SeasonSchema);
