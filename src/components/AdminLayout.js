@@ -146,12 +146,6 @@ function getOrganizerNav(orgSlug) {
             section: "Management",
             items: [
                 {
-                    label: "Organizations",
-                    href: "/admin/organizations",
-                    icon: "fa-solid fa-building",
-                    perms: ["manage_organizations", "organization_view", "organization_create", "organization_update", "organization_delete"],
-                },
-                {
                     label: "Seasons",
                     href: "/admin/seasons",
                     icon: "fa-solid fa-calendar-days",
@@ -162,12 +156,6 @@ function getOrganizerNav(orgSlug) {
                     href: "/admin/leagues",
                     icon: "fa-solid fa-trophy",
                     perms: ["manage_leagues", "league_view", "league_create", "league_update", "league_delete"],
-                },
-                {
-                    label: "Games",
-                    href: "/admin/games",
-                    icon: "fa-solid fa-football",
-                    perms: ["manage_games", "game_view", "game_create", "game_update", "game_delete"],
                 },
                 {
                     label: "Teams",
@@ -182,10 +170,10 @@ function getOrganizerNav(orgSlug) {
                     perms: ["manage_players", "player_view", "player_create", "player_update", "player_delete"],
                 },
                 {
-                    label: "Players",
-                    href: "/admin/players",
-                    icon: "fa-solid fa-users",
-                    perms: ["manage_players", "player_view", "player_create", "player_update", "player_delete"],
+                    label: "Games",
+                    href: "/admin/games",
+                    icon: "fa-solid fa-football",
+                    perms: ["manage_games", "game_view", "game_create", "game_update", "game_delete"],
                 },
                 {
                     label: "Users",

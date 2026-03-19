@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import AdminLayout, { hasAccess } from "@/components/AdminLayout";
+import AdminLayout, { hasAccess, hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 
@@ -212,11 +212,14 @@ export default function AdminGamesPage() {
         } catch { showError("Failed to delete game"); }
     };
 
-    const canManage = user && hasAccess(user, "manage_games");
+    const canView   = user && hasAnyAccess(user, ["manage_games", "game_view", "game_create", "game_update", "game_delete"]);
+    const canCreate = user && hasAnyAccess(user, ["manage_games", "game_create"]);
+    const canUpdate = user && hasAnyAccess(user, ["manage_games", "game_update"]);
+    const canDelete = user && hasAnyAccess(user, ["manage_games", "game_delete"]);
 
     return (
         <AdminLayout title="Games">
-            {!canManage ? (
+            {!canView ? (
                 <div className="admin-empty">
                     <i className="fa-solid fa-lock"></i>
                     <p>You don&apos;t have permission to manage games.</p>
@@ -252,7 +255,7 @@ export default function AdminGamesPage() {
                     <div className="admin-card">
                         <div className="admin-card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                             <h3>Games {selectedSeason ? `(${games.length})` : ""}</h3>
-                            {selectedSeason && (
+                            {selectedSeason && canCreate && (
                                 <button className="admin-btn admin-btn-primary" onClick={() => { setEditTarget(null); setShowModal(true); }}>
                                     <i className="fa-solid fa-plus"></i> Add Game
                                 </button>
@@ -309,12 +312,16 @@ export default function AdminGamesPage() {
                                                 </td>
                                                 <td>
                                                     <div style={{ display: "flex", gap: 6 }}>
-                                                        <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setEditTarget(game); setShowModal(true); }} title="Edit">
-                                                            <i className="fa-solid fa-pen"></i>
-                                                        </button>
-                                                        <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => deleteGame(game._id)} title="Delete">
-                                                            <i className="fa-solid fa-trash"></i>
-                                                        </button>
+                                                        {canUpdate && (
+                                                            <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setEditTarget(game); setShowModal(true); }} title="Edit">
+                                                                <i className="fa-solid fa-pen"></i>
+                                                            </button>
+                                                        )}
+                                                        {canDelete && (
+                                                            <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => deleteGame(game._id)} title="Delete">
+                                                                <i className="fa-solid fa-trash"></i>
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </td>
                                             </tr>

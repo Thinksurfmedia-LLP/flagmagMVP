@@ -264,6 +264,8 @@ export default function AdminFreeAgentsPage() {
         "player_update",
         "player_delete",
     ]);
+    const canCreate = user && hasAnyAccess(user, ["manage_players", "player_create"]);
+    const canDelete = user && hasAnyAccess(user, ["manage_players", "player_delete"]);
 
     const fetchData = useCallback(async () => {
         if (!canManage) { setLoading(false); return; }
@@ -353,12 +355,14 @@ export default function AdminFreeAgentsPage() {
                                     onChange={(e) => setSearch(e.target.value)}
                                     style={{ maxWidth: 220 }}
                                 />
-                                <button
-                                    className="admin-btn admin-btn-primary"
-                                    onClick={() => setModalOpen(true)}
-                                >
-                                    <i className="fa-solid fa-plus"></i> Add Free Agent
-                                </button>
+                                {canCreate && (
+                                    <button
+                                        className="admin-btn admin-btn-primary"
+                                        onClick={() => setModalOpen(true)}
+                                    >
+                                        <i className="fa-solid fa-plus"></i> Add Free Agent
+                                    </button>
+                                )}
                             </div>
                         </div>
 
@@ -398,13 +402,15 @@ export default function AdminFreeAgentsPage() {
                                                     {fa.createdAt ? new Date(fa.createdAt).toLocaleDateString() : "—"}
                                                 </td>
                                                 <td>
-                                                    <button
-                                                        className="admin-btn admin-btn-danger admin-btn-sm"
-                                                        onClick={() => deleteFreeAgent(fa)}
-                                                        title="Remove free agent"
-                                                    >
-                                                        <i className="fa-solid fa-trash"></i>
-                                                    </button>
+                                                    {canDelete && (
+                                                        <button
+                                                            className="admin-btn admin-btn-danger admin-btn-sm"
+                                                            onClick={() => deleteFreeAgent(fa)}
+                                                            title="Remove free agent"
+                                                        >
+                                                            <i className="fa-solid fa-trash"></i>
+                                                        </button>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ))}

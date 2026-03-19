@@ -54,13 +54,13 @@ const MATRIX_COLUMNS = [
 
 const PERMISSION_ROWS = [
     {
-        module: "Organizations",
+        module: "Seasons",
         permissions: {
-            view: "organization_view",
-            create: "organization_create",
-            update: "organization_update",
-            delete: "organization_delete",
-            full: "manage_organizations",
+            view: "season_view",
+            create: "season_create",
+            update: "season_update",
+            delete: "season_delete",
+            full: "manage_seasons",
         },
     },
     {
@@ -74,13 +74,23 @@ const PERMISSION_ROWS = [
         },
     },
     {
-        module: "Seasons",
+        module: "Teams",
         permissions: {
-            view: "season_view",
-            create: "season_create",
-            update: "season_update",
-            delete: "season_delete",
-            full: "manage_seasons",
+            view: "team_view",
+            create: "team_create",
+            update: "team_update",
+            delete: "team_delete",
+            full: "manage_teams",
+        },
+    },
+    {
+        module: "Free Agents",
+        permissions: {
+            view: "player_view",
+            create: "player_create",
+            update: "player_update",
+            delete: "player_delete",
+            full: "manage_players",
         },
     },
     {
@@ -91,26 +101,6 @@ const PERMISSION_ROWS = [
             update: "game_update",
             delete: "game_delete",
             full: "manage_games",
-        },
-    },
-    {
-        module: "Players",
-        permissions: {
-            view: "player_view",
-            create: "player_create",
-            update: "player_update",
-            delete: "player_delete",
-            full: "manage_players",
-        },
-    },
-    {
-        module: "Teams",
-        permissions: {
-            view: "team_view",
-            create: "team_create",
-            update: "team_update",
-            delete: "team_delete",
-            full: "manage_teams",
         },
     },
     {
@@ -371,7 +361,7 @@ export default function AdminRolesPage() {
             ) : (
                 <div className="admin-card">
                     <div className="admin-card-header">
-                        <h3>All Roles ({roles.filter(r => r.slug !== "admin").length})</h3>
+                        <h3>All Roles ({roles.filter(r => !["admin", "viewer", "player", "free_agent"].includes(r.slug)).length})</h3>
                         {user?.role === "admin" && !showAdd && (
                             <button className="admin-btn admin-btn-primary" style={{ whiteSpace: "nowrap" }} onClick={() => setShowAdd(true)}>
                                 <i className="fa-solid fa-plus"></i> Add Role
@@ -423,7 +413,7 @@ export default function AdminRolesPage() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {roles.filter(r => r.slug !== "admin").map(r => (
+                                    {roles.filter(r => !["admin", "viewer", "player", "free_agent"].includes(r.slug)).map(r => (
                                         <tr key={r._id}>
                                             <td style={{ fontWeight: 600 }}>
                                                 {r.name}

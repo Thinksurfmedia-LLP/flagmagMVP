@@ -135,21 +135,17 @@ export default function AdminTeamsPage() {
     const [modalOpen, setModalOpen] = useState(false);
     const [editTarget, setEditTarget] = useState(null);
 
-    const canManageTeams = hasAnyAccess(user, [
-        "manage_teams",
-        "team_view",
-        "team_create",
-        "team_update",
-        "team_delete",
-        "manage_players",
-        "player_view",
-        "player_update",
-        "manage_organizations",
-        "organization_update",
+    const canView = hasAnyAccess(user, [
+        "manage_teams", "team_view", "team_create", "team_update", "team_delete",
+        "manage_players", "player_view", "player_update",
+        "manage_organizations", "organization_update",
     ]);
+    const canCreate = hasAnyAccess(user, ["manage_teams", "team_create"]);
+    const canUpdate = hasAnyAccess(user, ["manage_teams", "team_update"]);
+    const canDelete = hasAnyAccess(user, ["manage_teams", "team_delete"]);
 
     const fetchData = useCallback(async () => {
-        if (!canManageTeams) {
+        if (!canView) {
             setLoading(false);
             return;
         }
@@ -177,7 +173,7 @@ export default function AdminTeamsPage() {
         } finally {
             setLoading(false);
         }
-    }, [canManageTeams, showError, effectiveRole]);
+    }, [canView, showError, effectiveRole]);
 
     useEffect(() => {
         fetchData();
@@ -225,7 +221,7 @@ export default function AdminTeamsPage() {
 
     return (
         <AdminLayout title="Teams">
-            {!canManageTeams ? (
+            {!canView ? (
                 <div className="admin-empty">
                     <i className="fa-solid fa-lock"></i>
                     <p>You don&apos;t have permission to manage teams.</p>
@@ -235,9 +231,11 @@ export default function AdminTeamsPage() {
                     <div className="admin-card">
                         <div className="admin-card-header">
                             <h3>Teams ({teams.length})</h3>
-                            <button className="admin-btn admin-btn-primary" onClick={() => { setEditTarget(null); setModalOpen(true); }}>
-                                <i className="fa-solid fa-plus"></i> Create Team
-                            </button>
+                            {canCreate && (
+                                <button className="admin-btn admin-btn-primary" onClick={() => { setEditTarget(null); setModalOpen(true); }}>
+                                    <i className="fa-solid fa-plus"></i> Create Team
+                                </button>
+                            )}
                         </div>
 
                         {loading ? (
@@ -269,20 +267,24 @@ export default function AdminTeamsPage() {
                                                 <td>{team.players?.length || 0}</td>
                                                 <td>
                                                     <div style={{ display: "flex", gap: 6 }}>
-                                                        <button
-                                                            className="admin-btn admin-btn-ghost admin-btn-sm"
-                                                            onClick={() => { setEditTarget(team); setModalOpen(true); }}
-                                                            title="Edit"
-                                                        >
-                                                            <i className="fa-solid fa-pen"></i>
-                                                        </button>
-                                                        <button
-                                                            className="admin-btn admin-btn-danger admin-btn-sm"
-                                                            onClick={() => deleteTeam(team)}
-                                                            title="Delete"
-                                                        >
-                                                            <i className="fa-solid fa-trash"></i>
-                                                        </button>
+                                                        {canUpdate && (
+                                                            <button
+                                                                className="admin-btn admin-btn-ghost admin-btn-sm"
+                                                                onClick={() => { setEditTarget(team); setModalOpen(true); }}
+                                                                title="Edit"
+                                                            >
+                                                                <i className="fa-solid fa-pen"></i>
+                                                            </button>
+                                                        )}
+                                                        {canDelete && (
+                                                            <button
+                                                                className="admin-btn admin-btn-danger admin-btn-sm"
+                                                                onClick={() => deleteTeam(team)}
+                                                                title="Delete"
+                                                            >
+                                                                <i className="fa-solid fa-trash"></i>
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </td>
                                             </tr>
