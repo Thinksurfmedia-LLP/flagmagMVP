@@ -6,6 +6,7 @@ import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import Venue from "@/models/Location";
 import League from "@/models/League";
+import Player from "@/models/Player";
 import County from "@/models/County";
 import State from "@/models/State";
 import Amenity from "@/models/Amenity";
@@ -18,6 +19,8 @@ async function getData(slug, seasonSlug) {
     const league = await League.findOne({ organization: org._id, slug: seasonSlug }).lean();
     if (!league) return null;
 
+    const playerCount = await Player.countDocuments({ organization: org._id });
+
     // Only show venues that are assigned to this league
     const leagueVenueNames = (league.locations || []).filter(Boolean);
     if (leagueVenueNames.length === 0) {
@@ -26,7 +29,7 @@ async function getData(slug, seasonSlug) {
         const amenityIconMap = {};
         amenities.forEach((a) => { amenityIconMap[a.name] = a.icon || ""; });
         return {
-            org: JSON.parse(JSON.stringify(org)),
+            org: JSON.parse(JSON.stringify({ ...org, playerCount })),
             league: JSON.parse(JSON.stringify(league)),
             locations: [],
             amenityIconMap,
@@ -53,7 +56,7 @@ async function getData(slug, seasonSlug) {
     amenities.forEach((a) => { amenityIconMap[a.name] = a.icon || ""; });
 
     return {
-        org: JSON.parse(JSON.stringify(org)),
+        org: JSON.parse(JSON.stringify({ ...org, playerCount })),
         league: JSON.parse(JSON.stringify(league)),
         locations: locationsWithVenues,
         amenityIconMap,
@@ -96,7 +99,7 @@ export default async function SeasonLocationPage({ params }) {
                             <div className="right-part">
                                 <h1>{org.name}</h1>
                                 <ul>
-                                    <li><img src="/assets/images/icon-star.png" alt="" /> <span>{org.rating}</span> ({org.memberCount} members)</li>
+                                    <li><img src="/assets/images/icon-star.png" alt="" /> <span>{org.rating}</span> ({org.playerCount || 0} members)</li>
                                     <li><img src="/assets/images/icon-calander.png" alt="" /> <span>Founded {org.foundedYear}</span></li>
                                     <li><img src="/assets/images/icon-map.png" alt="" /> <span>{locationText}</span></li>
                                 </ul>

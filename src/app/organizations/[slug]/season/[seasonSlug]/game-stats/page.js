@@ -4,6 +4,7 @@ import Link from "next/link";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import League from "@/models/League";
+import Player from "@/models/Player";
 import { formatOrganizationLocations } from "@/lib/organizationLocations";
 
 async function getData(slug, seasonSlug) {
@@ -12,8 +13,9 @@ async function getData(slug, seasonSlug) {
     if (!org) return null;
     const league = await League.findOne({ organization: org._id, slug: seasonSlug }).lean();
     if (!league) return null;
+    const playerCount = await Player.countDocuments({ organization: org._id });
     return {
-        org: JSON.parse(JSON.stringify(org)),
+        org: JSON.parse(JSON.stringify({ ...org, playerCount })),
         league: JSON.parse(JSON.stringify(league)),
     };
 }
@@ -100,7 +102,7 @@ export default async function GameStatsPage({ params }) {
                             <div className="right-part">
                                 <h1>{org.name}</h1>
                                 <ul>
-                                    <li><img src="/assets/images/icon-star.png" alt="" /> <span>{org.rating}</span> ({org.memberCount} members)</li>
+                                    <li><img src="/assets/images/icon-star.png" alt="" /> <span>{org.rating}</span> ({org.playerCount || 0} members)</li>
                                     <li><img src="/assets/images/icon-calander.png" alt="" /> <span>Founded {org.foundedYear}</span></li>
                                     <li><img src="/assets/images/icon-map.png" alt="" /> <span>{locationText}</span></li>
                                 </ul>

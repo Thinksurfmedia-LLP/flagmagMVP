@@ -6,6 +6,7 @@ import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import Venue from "@/models/Location";
 import League from "@/models/League";
+import Player from "@/models/Player";
 import County from "@/models/County";
 import State from "@/models/State";
 import { formatOrganizationLocations } from "@/lib/organizationLocations";
@@ -16,6 +17,8 @@ async function getData(slug, seasonSlug) {
     if (!org) return null;
     const league = await League.findOne({ organization: org._id, slug: seasonSlug }).lean();
     if (!league) return null;
+
+    const playerCount = await Player.countDocuments({ organization: org._id });
 
     // Match venues to org locations by stateAbbr + countyName
     const orgLocs = org.locations || [];
@@ -39,7 +42,7 @@ async function getData(slug, seasonSlug) {
     });
 
     return {
-        org: JSON.parse(JSON.stringify(org)),
+        org: JSON.parse(JSON.stringify({ ...org, playerCount })),
         league: JSON.parse(JSON.stringify(league)),
         images: allImages,
     };
@@ -81,7 +84,7 @@ export default async function SeasonMediaPage({ params }) {
                             <div className="right-part">
                                 <h1>{org.name}</h1>
                                 <ul>
-                                    <li><img src="/assets/images/icon-star.png" alt="" /> <span>{org.rating}</span> ({org.memberCount} members)</li>
+                                    <li><img src="/assets/images/icon-star.png" alt="" /> <span>{org.rating}</span> ({org.playerCount || 0} members)</li>
                                     <li><img src="/assets/images/icon-calander.png" alt="" /> <span>Founded {org.foundedYear}</span></li>
                                     <li><img src="/assets/images/icon-map.png" alt="" /> <span>{locationText}</span></li>
                                 </ul>

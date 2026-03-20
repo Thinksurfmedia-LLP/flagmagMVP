@@ -45,21 +45,33 @@ function MatchCard({ game, orgSlug, seasonSlug }) {
     );
 }
 
-function formatDate(dateStr) {
-    return new Date(dateStr).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "2-digit" });
-}
-
 export default function ScheduleWithDateStrip({ games, orgSlug, seasonSlug }) {
-    // Get unique game dates sorted
-    const uniqueDates = useMemo(() => {
-        const dates = [...new Set(games.map(g => new Date(g.date).toISOString().split("T")[0]))];
-        dates.sort();
-        return dates;
+    // Group games by calendar week (Mon–Sun)
+    const weeks = useMemo(() => {
+        if (games.length === 0) return [];
+        // Get the Monday of the week for a given date
+        function getWeekStart(dateStr) {
+            const d = new Date(dateStr);
+            const day = d.getUTCDay(); // 0=Sun, 1=Mon, ...
+            const diff = day === 0 ? 6 : day - 1; // days since Monday
+            const monday = new Date(d);
+            monday.setUTCDate(monday.getUTCDate() - diff);
+            return monday.toISOString().split("T")[0];
+        }
+        const weekMap = new Map();
+        for (const game of games) {
+            const weekStart = getWeekStart(game.date);
+            if (!weekMap.has(weekStart)) weekMap.set(weekStart, []);
+            weekMap.get(weekStart).push(game);
+        }
+        return Array.from(weekMap.entries())
+            .sort((a, b) => a[0].localeCompare(b[0]))
+            .map(([, weekGames], idx) => ({ weekNum: idx + 1, games: weekGames }));
     }, [games]);
 
     const [selectedIdx, setSelectedIdx] = useState(0);
 
-    if (uniqueDates.length === 0) {
+    if (weeks.length === 0) {
         return (
             <div className="organization-teams-wrap row g-4 g-xxl-5">
                 <div className="col-12 text-center py-4"><p>No games scheduled yet.</p></div>
@@ -68,24 +80,22 @@ export default function ScheduleWithDateStrip({ games, orgSlug, seasonSlug }) {
     }
 
     const prevIdx = selectedIdx > 0 ? selectedIdx - 1 : null;
-    const nextIdx = selectedIdx < uniqueDates.length - 1 ? selectedIdx + 1 : null;
+    const nextIdx = selectedIdx < weeks.length - 1 ? selectedIdx + 1 : null;
 
-    const filteredGames = games.filter(g =>
-        new Date(g.date).toISOString().split("T")[0] === uniqueDates[selectedIdx]
-    );
+    const filteredGames = weeks[selectedIdx].games;
 
     return (
         <>
             <div className="organization-date-wrap">
                 <div className="prev" onClick={() => prevIdx !== null && setSelectedIdx(prevIdx)} style={{ cursor: prevIdx !== null ? "pointer" : "default", visibility: prevIdx !== null ? "visible" : "hidden" }}>
                     <span>&lt;</span>
-                    <p>{prevIdx !== null ? formatDate(uniqueDates[prevIdx]) : ""}</p>
+                    <p>{prevIdx !== null ? `Week ${weeks[prevIdx].weekNum}` : ""}</p>
                 </div>
                 <div className="current">
-                    <p>{formatDate(uniqueDates[selectedIdx])}</p>
+                    <p>{`Week ${weeks[selectedIdx].weekNum}`}</p>
                 </div>
                 <div className="next" onClick={() => nextIdx !== null && setSelectedIdx(nextIdx)} style={{ cursor: nextIdx !== null ? "pointer" : "default", visibility: nextIdx !== null ? "visible" : "hidden" }}>
-                    <p>{nextIdx !== null ? formatDate(uniqueDates[nextIdx]) : ""}</p>
+                    <p>{nextIdx !== null ? `Week ${weeks[nextIdx].weekNum}` : ""}</p>
                     <span>&gt;</span>
                 </div>
             </div>
@@ -94,7 +104,7 @@ export default function ScheduleWithDateStrip({ games, orgSlug, seasonSlug }) {
                 {filteredGames.length > 0 ? filteredGames.map((game) => (
                     <MatchCard key={game._id} game={game} orgSlug={orgSlug} seasonSlug={seasonSlug} />
                 )) : (
-                    <div className="col-12 text-center py-4"><p>No games on this date.</p></div>
+                    <div className="col-12 text-center py-4"><p>No games this week.</p></div>
                 )}
             </div>
         </>

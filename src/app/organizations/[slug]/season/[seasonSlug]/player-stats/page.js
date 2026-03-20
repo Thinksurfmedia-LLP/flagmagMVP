@@ -29,7 +29,7 @@ async function getData(slug, seasonSlug) {
     }
 
     return {
-        org: JSON.parse(JSON.stringify(org)),
+        org: JSON.parse(JSON.stringify({ ...org, playerCount: players.length })),
         league: JSON.parse(JSON.stringify(league)),
         players: JSON.parse(JSON.stringify(players)),
         teams: JSON.parse(JSON.stringify(teams)),
@@ -90,7 +90,7 @@ export default async function PlayerStatsPage({ params }) {
                             <div className="right-part">
                                 <h1>{org.name}</h1>
                                 <ul>
-                                    <li><img src="/assets/images/icon-star.png" alt="" /> <span>{org.rating}</span> ({org.memberCount} members)</li>
+                                    <li><img src="/assets/images/icon-star.png" alt="" /> <span>{org.rating}</span> ({org.playerCount || 0} members)</li>
                                     <li><img src="/assets/images/icon-calander.png" alt="" /> <span>Founded {org.foundedYear}</span></li>
                                     <li><img src="/assets/images/icon-map.png" alt="" /> <span>{locationText}</span></li>
                                 </ul>
