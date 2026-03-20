@@ -425,6 +425,7 @@ export default function AdminOrganizationsPage() {
                                                 <th>Name</th>
                                                 <th>Sport</th>
                                                 <th>Location</th>
+                                                <th>Seasons</th>
                                                 <th>Leagues</th>
                                                 <th>Players</th>
                                                 <th style={{ width: 120 }}>Actions</th>
@@ -440,6 +441,7 @@ export default function AdminOrganizationsPage() {
                                                             {[...new Set((org.locations || []).map(l => `${l.countyName} (${l.stateAbbr})`).filter(Boolean))].join(", ") || org.location || "—"}
                                                         </td>
                                                         <td>{org.seasonCount ?? 0}</td>
+                                                        <td>{org.leagueCount ?? 0}</td>
                                                         <td>{org.playerCount ?? 0}</td>
                                                         <td>
                                                             <div style={{ display: "flex", gap: 6 }}>
