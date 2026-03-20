@@ -87,19 +87,19 @@ const NAV_ITEMS = [
         section: "Tournament Management",
         items: [
             // { label: "Organizations", href: "/admin/organizations", icon: "fa-solid fa-building", perm: "manage_organizations" },
-            
+
             // { label: "Leagues", href: "/admin/leagues", icon: "fa-solid fa-trophy", perm: "manage_leagues" },
-            { label: "Teams", href: "/admin/teams", icon: "fa-solid fa-people-group", perm: "manage_teams" },
-            { label: "Free Agents", href: "/admin/free-agents", icon: "fa-solid fa-user-clock", perm: "manage_players" },
-            { label: "Players", href: "/admin/players", icon: "fa-solid fa-users", perm: "manage_players" },
-            { label: "Games", href: "/admin/games", icon: "fa-solid fa-football", perm: "manage_games" },
+            // { label: "Teams", href: "/admin/teams", icon: "fa-solid fa-people-group", perm: "manage_teams" },
+            // { label: "Free Agents", href: "/admin/free-agents", icon: "fa-solid fa-user-clock", perm: "manage_players" },
+            // { label: "Players", href: "/admin/players", icon: "fa-solid fa-users", perm: "manage_players" },
+            // { label: "Games", href: "/admin/games", icon: "fa-solid fa-football", perm: "manage_games" },
         ],
     },
     {
         section: "Administration",
         items: [
             { label: "Users", href: "/admin/users", icon: "fa-solid fa-users-gear", perm: "manage_users" },
-            { label: "Roles", href: "/admin/roles", icon: "fa-solid fa-shield-halved", perm: "manage_users" },
+            // { label: "Permission", href: "/admin/roles", icon: "fa-solid fa-shield-halved", perm: "manage_users" },
             { label: "Amenities", href: "/admin/amenities", icon: "fa-solid fa-list-check", perm: "manage_users" },
         ],
     },
@@ -215,7 +215,7 @@ export default function AdminLayout({ children, title }) {
                         setFetchedOrgSlug(data.data[0].slug);
                     }
                 })
-                .catch(() => {});
+                .catch(() => { });
         }
     }, [effectiveRole, user?.organization?.slug]);
 

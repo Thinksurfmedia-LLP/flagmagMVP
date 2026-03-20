@@ -23,7 +23,7 @@ function OrgCard({ org }) {
                 </div>
                 <div className="card-body">
                     <div className="rating">
-                        <img src="/assets/images/icon-star.png" alt="" /> <span>{org.rating}</span> ({org.memberCount} members)
+                        <img src="/assets/images/icon-star.png" alt="" /> <span>{org.rating}</span> ({org.playerCount || org.memberCount || 0} members)
                         <div className="icon">
                             <img src="/assets/images/icon1.png" alt="" />
                         </div>

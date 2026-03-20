@@ -4,6 +4,8 @@ import Link from "next/link";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import League from "@/models/League";
+import Player from "@/models/Player";
+import Game from "@/models/Game";
 
 async function getOrgAndSeasons(slug) {
     await dbConnect();
@@ -11,11 +13,26 @@ async function getOrgAndSeasons(slug) {
     if (!organization) return { organization: null, activeSeasons: [], pastSeasons: [] };
 
     const seasons = await League.find({ organization: organization._id }).sort({ startDate: -1 }).lean();
-    const activeSeasons = seasons.filter((s) => s.type === "active");
-    const pastSeasons = seasons.filter((s) => s.type === "past");
+
+    // Count players belonging to this org
+    const playerCount = await Player.countDocuments({ organization: organization._id });
+
+    // Fetch first game time for each league
+    const leagueIds = seasons.map(s => s._id);
+    const firstGames = leagueIds.length > 0
+        ? await Game.aggregate([
+            { $match: { league: { $in: leagueIds } } },
+            { $sort: { date: 1 } },
+            { $group: { _id: "$league", firstTime: { $first: "$time" }, firstDate: { $first: "$date" } } },
+        ])
+        : [];
+    const firstGameMap = Object.fromEntries(firstGames.map(g => [g._id.toString(), g.firstTime]));
+
+    const activeSeasons = seasons.filter((s) => s.type === "active").map(s => ({ ...s, firstGameTime: firstGameMap[s._id.toString()] || "" }));
+    const pastSeasons = seasons.filter((s) => s.type === "past").map(s => ({ ...s, firstGameTime: firstGameMap[s._id.toString()] || "" }));
 
     return {
-        organization: JSON.parse(JSON.stringify(organization)),
+        organization: JSON.parse(JSON.stringify({ ...organization, playerCount })),
         activeSeasons: JSON.parse(JSON.stringify(activeSeasons)),
         pastSeasons: JSON.parse(JSON.stringify(pastSeasons)),
     };
@@ -35,7 +52,7 @@ function LeagueCard({ season, orgSlug }) {
                     <ul>
                         <li><img src="/assets/images/icon-map.png" alt="" /> Locations - <span>{season.location}</span></li>
                         <li><img src="/assets/images/icon-calander.png" alt="" /> Start date - <span>{new Date(season.startDate).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "2-digit" })}</span></li>
-                        <li><img src="/assets/images/icon-clock.png" alt="" /> Time - <span>{season.time}</span></li>
+                        <li><img src="/assets/images/icon-clock.png" alt="" /> Time - <span>{season.firstGameTime || season.time || "TBD"}</span></li>
                     </ul>
                     <div className="button-area">
                         <Link href={`/organizations/${orgSlug}/season/${season.slug}`} className="btn btn-primary">Enter Season</Link>
@@ -92,7 +109,7 @@ export default async function OrganizationDetailPage({ params }) {
                             <div className="right-part">
                                 <h1>{org.name}</h1>
                                 <ul>
-                                    <li><img src="/assets/images/icon-star.png" alt="" /> <span>{org.rating}</span> ({org.memberCount} members)</li>
+                                    <li><img src="/assets/images/icon-star.png" alt="" /> <span>{org.rating}</span> ({org.playerCount || 0} members)</li>
                                     <li><img src="/assets/images/icon-calander.png" alt="" /> <span>Founded {org.foundedYear}</span></li>
                                 </ul>
                                 <ul className="tag">

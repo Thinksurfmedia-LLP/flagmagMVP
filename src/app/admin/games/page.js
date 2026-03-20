@@ -8,29 +8,106 @@ import { useToast } from "@/components/AdminToast";
 const STAT_FIELDS = ["rate", "atts", "comp", "tds", "pct", "xp2", "yards", "ten", "twenty", "forty", "ints", "intOpen", "intXp"];
 const STAT_LABELS = { rate: "Rate", atts: "Atts", comp: "Comp", tds: "TDs", pct: "%", xp2: "XP2", yards: "Yards", ten: "10+", twenty: "20+", forty: "40+", ints: "INTs", intOpen: "Int Open", intXp: "Int XP" };
 
-function GameModal({ onClose, onSave, initial, teams = [], venues = [] }) {
+function GameModal({ onClose, onSave, initial, seasons = [], leagues = [], venues = [], teams = [], pageSelectedSeason = "" }) {
+    // Cascading selection state
+    const [selectedSeasonId, setSelectedSeasonId] = useState(() => {
+        if (initial) {
+            const league = leagues.find(l => l._id === initial.league);
+            return league?.season?._id || league?.season || "";
+        }
+        // Pre-populate from page filter
+        if (pageSelectedSeason) {
+            const league = leagues.find(l => l._id === pageSelectedSeason);
+            if (league) return league.season?._id || league.season || "";
+            if (seasons.find(s => s._id === pageSelectedSeason)) return pageSelectedSeason;
+        }
+        // Auto-select the first (default) season
+        if (seasons.length > 0) return seasons[0]._id;
+        return "";
+    });
+    const [selectedLeagueId, setSelectedLeagueId] = useState(() => {
+        if (initial) return initial.league || "";
+        if (pageSelectedSeason) {
+            const league = leagues.find(l => l._id === pageSelectedSeason);
+            if (league) return league._id;
+        }
+        return "";
+    });
+    const [selectedVenueName, setSelectedVenueName] = useState(() => {
+        if (!initial?.location) return "";
+        const loc = initial.location;
+        const dashIdx = loc.indexOf(" - ");
+        return dashIdx > -1 ? loc.substring(0, dashIdx) : loc;
+    });
+    const [selectedFieldName, setSelectedFieldName] = useState(() => {
+        if (!initial?.location) return "";
+        const loc = initial.location;
+        const dashIdx = loc.indexOf(" - ");
+        return dashIdx > -1 ? loc.substring(dashIdx + 3) : "";
+    });
+
     const [form, setForm] = useState({
         date: initial?.date ? new Date(initial.date).toISOString().split("T")[0] : "",
         time: initial?.time || "",
         teamAName: initial?.teamA?.name || "",
         teamBName: initial?.teamB?.name || "",
-        location: initial?.location || "",
         status: initial?.status || "upcoming",
         teamAScore: initial?.teamA?.score ?? "",
         teamBScore: initial?.teamB?.score ?? "",
     });
     const [saving, setSaving] = useState(false);
 
+    // Derived values
+    const filteredLeagues = leagues.filter(l => {
+        const leagueSeasonId = l.season?._id || l.season;
+        return leagueSeasonId === selectedSeasonId;
+    });
+    const selectedLeague = leagues.find(l => l._id === selectedLeagueId);
+    // Use all org teams when a league is selected
+    const leagueTeams = selectedLeague ? teams : [];
+    const leagueVenueNames = selectedLeague?.locations || [];
+    const leagueVenues = leagueVenueNames
+        .map(name => venues.find(v => v.name.toLowerCase() === name.toLowerCase()))
+        .filter(Boolean);
+    const selectedVenue = venues.find(v => v.name === selectedVenueName);
+    const showFieldDropdown = selectedVenue && selectedVenue.fields && selectedVenue.fields.length > 1;
+    const composedLocation = selectedVenueName
+        ? (selectedFieldName ? `${selectedVenueName} - ${selectedFieldName}` : selectedVenueName)
+        : "";
+
+    // Cascade reset handlers
+    const handleSeasonChange = (seasonId) => {
+        setSelectedSeasonId(seasonId);
+        setSelectedLeagueId("");
+        setForm(prev => ({ ...prev, teamAName: "", teamBName: "" }));
+        setSelectedVenueName("");
+        setSelectedFieldName("");
+    };
+    const handleLeagueChange = (leagueId) => {
+        setSelectedLeagueId(leagueId);
+        setForm(prev => ({ ...prev, teamAName: "", teamBName: "" }));
+        setSelectedVenueName("");
+        setSelectedFieldName("");
+    };
+    const handleVenueChange = (venueName) => {
+        setSelectedVenueName(venueName);
+        setSelectedFieldName("");
+        const venue = venues.find(v => v.name === venueName);
+        if (venue?.fields?.length === 1) setSelectedFieldName(venue.fields[0].name);
+    };
+
     const handleSave = async () => {
-        if (!form.date) return;
-        if (!form.teamAName || !form.teamBName) return;
+        if (!form.date || !form.teamAName || !form.teamBName || !selectedLeagueId) return;
         setSaving(true);
+        const teamAObj = leagueTeams.find(t => t.name === form.teamAName);
+        const teamBObj = leagueTeams.find(t => t.name === form.teamBName);
         const payload = {
+            leagueId: selectedLeagueId,
             date: form.date,
             time: form.time,
-            teamA: { name: form.teamAName, logo: teams.find(t => t.name === form.teamAName)?.logo || "", score: form.teamAScore !== "" ? Number(form.teamAScore) : null },
-            teamB: { name: form.teamBName, logo: teams.find(t => t.name === form.teamBName)?.logo || "", score: form.teamBScore !== "" ? Number(form.teamBScore) : null },
-            location: form.location,
+            teamA: { name: form.teamAName, logo: teamAObj?.logo || "", score: form.teamAScore !== "" ? Number(form.teamAScore) : null },
+            teamB: { name: form.teamBName, logo: teamBObj?.logo || "", score: form.teamBScore !== "" ? Number(form.teamBScore) : null },
+            location: composedLocation,
             status: form.status,
         };
         await onSave(payload);
@@ -39,8 +116,74 @@ function GameModal({ onClose, onSave, initial, teams = [], venues = [] }) {
 
     return (
         <div className="admin-modal-backdrop" onClick={onClose}>
-            <div className="admin-modal" onClick={e => e.stopPropagation()}>
+            <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 600 }}>
                 <h3 className="admin-modal-title">{initial ? "Edit Game" : "Schedule Game"}</h3>
+
+                {/* Season */}
+                <div className="admin-form-group">
+                    <label className="admin-form-label">Season *</label>
+                    <select className="admin-form-select" value={selectedSeasonId} onChange={e => handleSeasonChange(e.target.value)}>
+                        <option value="">Select season...</option>
+                        {seasons.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
+                    </select>
+                </div>
+
+                {/* League */}
+                <div className="admin-form-group">
+                    <label className="admin-form-label">League *</label>
+                    <select className="admin-form-select" value={selectedLeagueId} onChange={e => handleLeagueChange(e.target.value)} disabled={!selectedSeasonId}>
+                        <option value="">Select league...</option>
+                        {filteredLeagues.map(l => <option key={l._id} value={l._id}>{l.name}</option>)}
+                    </select>
+                </div>
+
+                {/* Team A & Team B */}
+                <div style={{ display: "flex", gap: 12 }}>
+                    <div className="admin-form-group" style={{ flex: 1 }}>
+                        <label className="admin-form-label">Team A *</label>
+                        <select className="admin-form-select" value={form.teamAName} onChange={e => setForm({ ...form, teamAName: e.target.value })} disabled={!selectedLeagueId}>
+                            <option value="">Select team...</option>
+                            {leagueTeams.filter(t => t.name !== form.teamBName).map(t => (
+                                <option key={t._id || t.name} value={t.name}>{t.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="admin-form-group" style={{ flex: 1 }}>
+                        <label className="admin-form-label">Team B *</label>
+                        <select className="admin-form-select" value={form.teamBName} onChange={e => setForm({ ...form, teamBName: e.target.value })} disabled={!selectedLeagueId}>
+                            <option value="">Select team...</option>
+                            {leagueTeams.filter(t => t.name !== form.teamAName).map(t => (
+                                <option key={t._id || t.name} value={t.name}>{t.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+
+                {/* Venue */}
+                <div className="admin-form-group">
+                    <label className="admin-form-label">Venue</label>
+                    <select className="admin-form-select" value={selectedVenueName} onChange={e => handleVenueChange(e.target.value)} disabled={!selectedLeagueId}>
+                        <option value="">Select venue...</option>
+                        {leagueVenues.map(v => (
+                            <option key={v._id} value={v.name}>{v.name}{v.address ? ` — ${v.address}` : ""}</option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Field (conditional) */}
+                {showFieldDropdown && (
+                    <div className="admin-form-group">
+                        <label className="admin-form-label">Field</label>
+                        <select className="admin-form-select" value={selectedFieldName} onChange={e => setSelectedFieldName(e.target.value)}>
+                            <option value="">Select field...</option>
+                            {selectedVenue.fields.map(f => (
+                                <option key={f._id || f.name} value={f.name}>{f.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
+
+                {/* Date & Time */}
                 <div style={{ display: "flex", gap: 12 }}>
                     <div className="admin-form-group" style={{ flex: 1 }}>
                         <label className="admin-form-label">Date *</label>
@@ -48,38 +191,11 @@ function GameModal({ onClose, onSave, initial, teams = [], venues = [] }) {
                     </div>
                     <div className="admin-form-group" style={{ flex: 1 }}>
                         <label className="admin-form-label">Time</label>
-                        <input className="admin-form-input" value={form.time} onChange={e => setForm({ ...form, time: e.target.value })} placeholder="e.g. 6:00 PM" />
+                        <input type="time" className="admin-form-input" value={form.time} onChange={e => setForm({ ...form, time: e.target.value })} />
                     </div>
                 </div>
-                <div style={{ display: "flex", gap: 12 }}>
-                    <div className="admin-form-group" style={{ flex: 1 }}>
-                        <label className="admin-form-label">Team A *</label>
-                        <select className="admin-form-select" value={form.teamAName} onChange={e => setForm({ ...form, teamAName: e.target.value })}>
-                            <option value="">Select team...</option>
-                            {teams.map(t => (
-                                <option key={t._id} value={t.name}>{t.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="admin-form-group" style={{ flex: 1 }}>
-                        <label className="admin-form-label">Team B *</label>
-                        <select className="admin-form-select" value={form.teamBName} onChange={e => setForm({ ...form, teamBName: e.target.value })}>
-                            <option value="">Select team...</option>
-                            {teams.map(t => (
-                                <option key={t._id} value={t.name}>{t.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-                <div className="admin-form-group">
-                    <label className="admin-form-label">Venue</label>
-                    <select className="admin-form-select" value={form.location} onChange={e => setForm({ ...form, location: e.target.value })}>
-                        <option value="">Select venue...</option>
-                        {venues.map(v => (
-                            <option key={v._id || v.name} value={v.name}>{v.name}{v.address ? ` — ${v.address}` : ""}</option>
-                        ))}
-                    </select>
-                </div>
+
+                {/* Status */}
                 <div className="admin-form-group">
                     <label className="admin-form-label">Status</label>
                     <select className="admin-form-select" value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}>
@@ -88,6 +204,8 @@ function GameModal({ onClose, onSave, initial, teams = [], venues = [] }) {
                         <option value="completed">Completed</option>
                     </select>
                 </div>
+
+                {/* Scores (when completed) */}
                 {form.status === "completed" && (
                     <div style={{ display: "flex", gap: 12 }}>
                         <div className="admin-form-group" style={{ flex: 1 }}>
@@ -100,9 +218,10 @@ function GameModal({ onClose, onSave, initial, teams = [], venues = [] }) {
                         </div>
                     </div>
                 )}
+
                 <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
                     <button className="admin-btn admin-btn-ghost" onClick={onClose}>Cancel</button>
-                    <button className="admin-btn admin-btn-primary" onClick={handleSave} disabled={saving || !form.date || !form.teamAName || !form.teamBName}>
+                    <button className="admin-btn admin-btn-primary" onClick={handleSave} disabled={saving || !form.date || !form.teamAName || !form.teamBName || !selectedLeagueId}>
                         {saving ? "Saving..." : initial ? "Save Changes" : "Schedule Game"}
                     </button>
                 </div>
@@ -294,7 +413,6 @@ export default function AdminGamesPage() {
     const [selectedOrg, setSelectedOrg] = useState("");
     const [seasons, setSeasons] = useState([]);
     const [leagues, setLeagues] = useState([]);
-    const [selectedSeason, setSelectedSeason] = useState("");
     const [games, setGames] = useState([]);
     const [teams, setTeams] = useState([]);
     const [venues, setVenues] = useState([]);
@@ -307,9 +425,6 @@ export default function AdminGamesPage() {
 
     const effectiveRole = activeRole || user?.role;
     const isOrganizer = effectiveRole === "organizer" && user?.organization?.slug;
-
-    const seasonItems = seasons;
-    const leagueItems = leagues;
 
     const fetchOrgs = useCallback(async () => {
         if (isOrganizer) {
@@ -325,9 +440,27 @@ export default function AdminGamesPage() {
 
     useEffect(() => { fetchOrgs(); }, [fetchOrgs]);
 
-    // Fetch seasons + teams + venues when org changes
+    // Fetch all games across all leagues for the org
+    const fetchAllGames = useCallback(async (leagueList) => {
+        const leaguesToUse = leagueList || leagues;
+        if (!leaguesToUse.length) { setGames([]); return; }
+        setLoading(true);
+        try {
+            const results = await Promise.all(
+                leaguesToUse.map(l => fetch(`/api/seasons/${l._id}/games`).then(r => r.json()))
+            );
+            const allGames = results
+                .filter(r => r.success)
+                .flatMap(r => r.data);
+            allGames.sort((a, b) => new Date(a.date) - new Date(b.date));
+            setGames(allGames);
+        } catch { showError("Failed to load games"); }
+        setLoading(false);
+    }, [leagues]);
+
+    // Fetch seasons + teams + venues + games when org changes
     useEffect(() => {
-        if (!selectedOrg) { setSeasons([]); setLeagues([]); setSelectedSeason(""); setGames([]); setTeams([]); setVenues([]); return; }
+        if (!selectedOrg) { setSeasons([]); setLeagues([]); setGames([]); setTeams([]); setVenues([]); return; }
         (async () => {
             try {
                 const [seasonRes, leagueRes, teamRes, venueRes] = await Promise.all([
@@ -340,41 +473,46 @@ export default function AdminGamesPage() {
                     seasonRes.json(), leagueRes.json(), teamRes.json(), venueRes.json(),
                 ]);
                 if (seasonData.success) setSeasons(seasonData.data);
-                if (leagueData.success) setLeagues(leagueData.data);
+                let fetchedLeagues = [];
+                if (leagueData.success) { setLeagues(leagueData.data); fetchedLeagues = leagueData.data; }
                 if (teamData.success) setTeams(teamData.data);
                 if (venueData.success) setVenues(venueData.data);
+                // Fetch all games across all leagues
+                if (fetchedLeagues.length) {
+                    const results = await Promise.all(
+                        fetchedLeagues.map(l => fetch(`/api/seasons/${l._id}/games`).then(r => r.json()))
+                    );
+                    const allGames = results.filter(r => r.success).flatMap(r => r.data);
+                    allGames.sort((a, b) => new Date(a.date) - new Date(b.date));
+                    setGames(allGames);
+                } else {
+                    setGames([]);
+                }
             } catch { showError("Failed to load data"); }
-            setSelectedSeason(""); setGames([]);
         })();
     }, [selectedOrg]);
 
-    useEffect(() => {
-        if (!selectedSeason) { setGames([]); return; }
-        setLoading(true);
-        (async () => {
-            const res = await fetch(`/api/seasons/${selectedSeason}/games`);
-            const data = await res.json();
-            if (data.success) setGames(data.data);
-            setLoading(false);
-        })();
-    }, [selectedSeason]);
-
     const handleSave = async (payload) => {
+        const { leagueId, ...gameData } = payload;
         try {
             if (editTarget) {
+                // Include league if it changed
+                if (leagueId && leagueId !== editTarget.league) {
+                    gameData.league = leagueId;
+                }
                 const res = await fetch(`/api/games/${editTarget._id}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload),
+                    body: JSON.stringify(gameData),
                 });
                 const data = await res.json();
                 if (!data.success) { showError(data.error); return; }
                 showSuccess("Game updated!");
             } else {
-                const res = await fetch(`/api/seasons/${selectedSeason}/games`, {
+                const res = await fetch(`/api/seasons/${leagueId}/games`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload),
+                    body: JSON.stringify(gameData),
                 });
                 const data = await res.json();
                 if (!data.success) { showError(data.error); return; }
@@ -382,9 +520,8 @@ export default function AdminGamesPage() {
             }
             setShowModal(false);
             setEditTarget(null);
-            const res = await fetch(`/api/seasons/${selectedSeason}/games`);
-            const data = await res.json();
-            if (data.success) setGames(data.data);
+            // Refresh all games
+            await fetchAllGames();
         } catch { showError("Failed to save game"); }
     };
 
@@ -413,13 +550,10 @@ export default function AdminGamesPage() {
                 </div>
             ) : (
                 <>
-                    {/* Filters */}
-                    <div className="admin-card">
-                        <div className="admin-card-header">
-                            <h3>Filter Games</h3>
-                        </div>
-                        <div className="admin-card-body" style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-                            {!isOrganizer && (
+                    {/* Organization selector for super admins */}
+                    {!isOrganizer && (
+                        <div className="admin-card">
+                            <div className="admin-card-body" style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
                                 <div style={{ flex: 1, minWidth: 200 }}>
                                     <label className="admin-form-label">Organization</label>
                                     <select className="admin-form-select" value={selectedOrg} onChange={e => setSelectedOrg(e.target.value)}>
@@ -427,43 +561,22 @@ export default function AdminGamesPage() {
                                         {orgs.map(o => <option key={o.slug} value={o.slug}>{o.name}</option>)}
                                     </select>
                                 </div>
-                            )}
-                            <div style={{ flex: 1, minWidth: 200 }}>
-                                <label className="admin-form-label">Season / League</label>
-                                <select className="admin-form-select" value={selectedSeason} onChange={e => setSelectedSeason(e.target.value)} disabled={!selectedOrg}>
-                                    <option value="">Select season or league...</option>
-                                    {seasonItems.length > 0 && (
-                                        <optgroup label="Seasons">
-                                            {seasonItems.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
-                                        </optgroup>
-                                    )}
-                                    {leagueItems.length > 0 && (
-                                        <optgroup label="Leagues">
-                                            {leagueItems.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
-                                        </optgroup>
-                                    )}
-                                </select>
                             </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* Games List */}
                     <div className="admin-card">
                         <div className="admin-card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <h3>Games {selectedSeason ? `(${games.length})` : ""}</h3>
-                            {selectedSeason && canCreate && (
+                            <h3>Games ({games.length})</h3>
+                            {canCreate && (
                                 <button className="admin-btn admin-btn-primary" onClick={() => { setEditTarget(null); setShowModal(true); }}>
                                     <i className="fa-solid fa-plus"></i> Schedule Game
                                 </button>
                             )}
                         </div>
 
-                        {!selectedSeason ? (
-                            <div className="admin-empty">
-                                <i className="fa-solid fa-filter"></i>
-                                <p>{isOrganizer ? "Select a season or league to view games." : "Select an organization and season/league to view games."}</p>
-                            </div>
-                        ) : loading ? (
+                        {loading ? (
                             <div className="admin-loading">
                                 <div className="admin-spinner"></div>
                                 Loading games...
@@ -541,8 +654,11 @@ export default function AdminGamesPage() {
             {showModal && (
                 <GameModal
                     initial={editTarget}
-                    teams={teams}
+                    seasons={seasons}
+                    leagues={leagues}
                     venues={venues}
+                    teams={teams}
+                    pageSelectedSeason=""
                     onClose={() => { setShowModal(false); setEditTarget(null); }}
                     onSave={handleSave}
                 />

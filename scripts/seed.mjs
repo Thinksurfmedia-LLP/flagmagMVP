@@ -210,7 +210,7 @@ async function seed() {
     const hashedPassword = await bcrypt.hash("password123", 10);
     const hashedAdmin = await bcrypt.hash("admin123", 10);
     const users = await User.insertMany([
-        { name: "Admin", email: "admin@flagmag.com", phone: "+1-555-0100", password: hashedAdmin, role: "admin" },
+        { name: "Admin", email: "admin@flagmag.com", phone: "", password: hashedAdmin, role: "admin" },
     ]);
 
     // ── Organizations ──
