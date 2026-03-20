@@ -145,6 +145,9 @@ export async function PUT(request, { params }) {
 
         team.name = body.name?.trim() || team.name;
         team.logo = body.logo ?? team.logo;
+        team.description = body.description !== undefined ? (body.description?.trim() || "") : team.description;
+        team.division = body.division !== undefined ? (body.division?.trim() || "") : team.division;
+        if (body.location) team.location = body.location;
         team.players = nextPlayerIds;
         await team.save();
 

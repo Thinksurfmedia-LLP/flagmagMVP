@@ -253,9 +253,11 @@ export default function AdminFreeAgentsPage() {
 
     const [freeAgents, setFreeAgents] = useState([]);
     const [organizations, setOrganizations] = useState([]);
+    const [teams, setTeams] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [modalOpen, setModalOpen] = useState(false);
+    const [assigning, setAssigning] = useState(null); // player ID currently being assigned
 
     const canManage = user && hasAnyAccess(user, [
         "manage_players",
@@ -264,22 +266,24 @@ export default function AdminFreeAgentsPage() {
         "player_update",
         "player_delete",
     ]);
-    const canCreate = user && hasAnyAccess(user, ["manage_players", "player_create"]);
-    const canDelete = user && hasAnyAccess(user, ["manage_players", "player_delete"]);
+    const canCreate = isAdmin && user && hasAnyAccess(user, ["manage_players", "player_create"]);
+    const canDelete = isAdmin && user && hasAnyAccess(user, ["manage_players", "player_delete"]);
 
     const fetchData = useCallback(async () => {
         if (!canManage) { setLoading(false); return; }
         try {
-            const res = await fetch("/api/free-agents");
-            const data = await res.json();
-            if (data.success) setFreeAgents(data.data || []);
-            else showError(data.error || "Failed to load free agents");
+            const fetches = [fetch("/api/free-agents"), fetch("/api/teams")];
+            if (isAdmin) fetches.push(fetch("/api/organizations"));
 
-            if (isAdmin) {
-                const orgRes = await fetch("/api/organizations");
-                const orgData = await orgRes.json();
-                if (orgData.success) setOrganizations(orgData.data || []);
-            }
+            const responses = await Promise.all(fetches);
+            const [faData, teamsData, orgData] = await Promise.all(responses.map(r => r.json()));
+
+            if (faData.success) setFreeAgents(faData.data || []);
+            else showError(faData.error || "Failed to load free agents");
+
+            if (teamsData.success) setTeams(teamsData.data || []);
+
+            if (orgData?.success) setOrganizations(orgData.data || []);
         } catch {
             showError("Failed to load free agents");
         } finally {
@@ -334,6 +338,35 @@ export default function AdminFreeAgentsPage() {
         }
     };
 
+    const assignToTeam = async (fa, teamId) => {
+        if (!teamId) return;
+        const team = teams.find(t => String(t._id) === teamId);
+        if (!team) return;
+
+        setAssigning(fa._id);
+        try {
+            const currentPlayerIds = (team.players || []).map(p => String(p._id || p));
+            const updatedPlayerIds = [...currentPlayerIds, String(fa._id)];
+
+            const res = await fetch(`/api/teams/${teamId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ players: updatedPlayerIds }),
+            });
+            const data = await res.json();
+            if (!data.success) {
+                showError(data.error || "Failed to assign to team");
+                return;
+            }
+            fetchData();
+            showSuccess(`${fa.name} assigned to ${team.name}!`);
+        } catch {
+            showError("Failed to assign to team");
+        } finally {
+            setAssigning(null);
+        }
+    };
+
     return (
         <AdminLayout title="Free Agents">
             {!canManage ? (
@@ -385,33 +418,52 @@ export default function AdminFreeAgentsPage() {
                                             <th>Email</th>
                                             {isAdmin && <th>Organization</th>}
                                             <th>Phone</th>
-                                            <th>Added</th>
-                                            <th style={{ width: 80 }}>Actions</th>
+                                            <th>{isAdmin ? "Added" : "Assign to Team"}</th>
+                                            {isAdmin && <th style={{ width: 80 }}>Actions</th>}
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {filtered.map((fa) => (
                                             <tr key={fa._id}>
                                                 <td style={{ fontWeight: 600 }}>{fa.name}</td>
-                                                <td style={{ color: "rgba(255,255,255,0.5)" }}>{fa.user?.email || "—"}</td>
+                                                <td style={{ color: "#6b7280" }}>{fa.user?.email || "—"}</td>
                                                 {isAdmin && (
                                                     <td>{fa.organization?.name || "—"}</td>
                                                 )}
-                                                <td style={{ color: "rgba(255,255,255,0.5)" }}>{fa.user?.phone || "—"}</td>
-                                                <td style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
-                                                    {fa.createdAt ? new Date(fa.createdAt).toLocaleDateString() : "—"}
-                                                </td>
+                                                <td style={{ color: "#6b7280" }}>{fa.user?.phone || "—"}</td>
                                                 <td>
-                                                    {canDelete && (
-                                                        <button
-                                                            className="admin-btn admin-btn-danger admin-btn-sm"
-                                                            onClick={() => deleteFreeAgent(fa)}
-                                                            title="Remove free agent"
+                                                    {isAdmin ? (
+                                                        <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
+                                                            {fa.createdAt ? new Date(fa.createdAt).toLocaleDateString() : "—"}
+                                                        </span>
+                                                    ) : (
+                                                        <select
+                                                            className="admin-form-select"
+                                                            style={{ minWidth: 160, padding: "4px 8px", fontSize: 13 }}
+                                                            value=""
+                                                            onChange={(e) => assignToTeam(fa, e.target.value)}
+                                                            disabled={assigning === fa._id}
                                                         >
-                                                            <i className="fa-solid fa-trash"></i>
-                                                        </button>
+                                                            <option value="">{assigning === fa._id ? "Assigning..." : "Select team..."}</option>
+                                                            {teams.map((t) => (
+                                                                <option key={t._id} value={t._id}>{t.name}</option>
+                                                            ))}
+                                                        </select>
                                                     )}
                                                 </td>
+                                                {isAdmin && (
+                                                    <td>
+                                                        {canDelete && (
+                                                            <button
+                                                                className="admin-btn admin-btn-danger admin-btn-sm"
+                                                                onClick={() => deleteFreeAgent(fa)}
+                                                                title="Remove free agent"
+                                                            >
+                                                                <i className="fa-solid fa-trash"></i>
+                                                            </button>
+                                                        )}
+                                                    </td>
+                                                )}
                                             </tr>
                                         ))}
                                     </tbody>

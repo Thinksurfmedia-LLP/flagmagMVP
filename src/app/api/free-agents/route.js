@@ -28,6 +28,46 @@ export async function GET(request) {
         const { searchParams } = new URL(request.url);
         const search = searchParams.get("search");
 
+        // Sync: ensure every user with free_agent role has a Player document
+        const freeAgentUsers = await User.find({ roles: "free_agent", organization: { $ne: null } })
+            .select("_id name email phone organization")
+            .lean();
+        for (const u of freeAgentUsers) {
+            const exists = await Player.findOne({ user: u._id, organization: u.organization });
+            if (exists) {
+                // Remove orphan duplicates (same name/org but no user ref)
+                await Player.deleteMany({
+                    user: null,
+                    name: u.name,
+                    organization: u.organization,
+                    status: "free_agent",
+                    _id: { $ne: exists._id },
+                });
+            } else {
+                try {
+                    // Check for an orphan Player (no user ref) with the same name/org
+                    const orphan = await Player.findOne({
+                        user: null,
+                        name: u.name,
+                        organization: u.organization,
+                        status: "free_agent",
+                    });
+                    if (orphan) {
+                        await Player.updateOne({ _id: orphan._id }, { $set: { user: u._id } });
+                    } else {
+                        await Player.create({
+                            user: u._id,
+                            name: u.name,
+                            organization: u.organization,
+                            status: "free_agent",
+                        });
+                    }
+                } catch (syncErr) {
+                    if (syncErr.code !== 11000) throw syncErr;
+                }
+            }
+        }
+
         const filter = { status: "free_agent" };
 
         if (auth.user.role === "organizer") {
@@ -47,6 +87,37 @@ export async function GET(request) {
             .populate("organization", "name slug")
             .sort({ createdAt: -1 })
             .lean();
+
+        // Ensure email/phone are available even if populate didn't resolve
+        for (const fa of freeAgents) {
+            if (!fa.user) {
+                // No user ref — try to find User by name and organization
+                const userDoc = await User.findOne({
+                    name: fa.name,
+                    organization: fa.organization?._id || fa.organization,
+                    roles: "free_agent",
+                }).select("name email phone").lean();
+                if (userDoc) {
+                    fa.user = userDoc;
+                    try {
+                        await Player.updateOne({ _id: fa._id }, { $set: { user: userDoc._id } });
+                    } catch (e) {
+                        // Duplicate key — a linked Player already exists, remove this orphan
+                        if (e.code === 11000) {
+                            await Player.deleteOne({ _id: fa._id });
+                        }
+                    }
+                }
+            } else if (!fa.user.email) {
+                // user field is an ObjectId (populate failed) — fetch manually
+                const userDoc = await User.findById(fa.user._id || fa.user)
+                    .select("name email phone")
+                    .lean();
+                if (userDoc) {
+                    fa.user = userDoc;
+                }
+            }
+        }
 
         return NextResponse.json({ success: true, data: freeAgents });
     } catch (error) {

@@ -11,6 +11,20 @@ const TeamSchema = new mongoose.Schema(
             type: String,
             default: "",
         },
+        description: {
+            type: String,
+            default: "",
+        },
+        division: {
+            type: String,
+            default: "",
+        },
+        location: {
+            stateName: { type: String, default: "" },
+            stateAbbr: { type: String, default: "" },
+            countyName: { type: String, default: "" },
+            cityName: { type: String, default: "" },
+        },
         organization: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Organization",
@@ -32,7 +46,8 @@ function getTeamModel() {
     const existing = mongoose.models.Team;
     if (existing) {
         const hasPlayers = Boolean(existing.schema.path("players"));
-        if (!hasPlayers) {
+        const hasDescription = Boolean(existing.schema.path("description"));
+        if (!hasPlayers || !hasDescription) {
             delete mongoose.models.Team;
         }
     }

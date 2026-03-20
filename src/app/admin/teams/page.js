@@ -1,13 +1,69 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import React from "react";
+import { US_STATES, US_COUNTIES } from "@/lib/usGeoData";
 import AdminLayout, { hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 
-function TeamModal({ team, players, organizations, user, effectiveRole, onClose, onSave }) {
+function ImageUploadField({ value, onChange, placeholder, onError }) {
+    const [uploading, setUploading] = useState(false);
+    const inputRef = React.useRef();
+
+    const handleFile = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setUploading(true);
+        try {
+            const fd = new FormData();
+            fd.append("file", file);
+            const res = await fetch("/api/upload", { method: "POST", body: fd });
+            const data = await res.json();
+            if (data.success) onChange(data.url);
+            else onError(data.error || "Upload failed");
+        } catch {
+            onError("Upload failed");
+        } finally {
+            setUploading(false);
+            e.target.value = "";
+        }
+    };
+
+    return (
+        <div>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <input
+                    className="admin-form-input"
+                    style={{ flex: 1 }}
+                    value={value || ""}
+                    onChange={e => onChange(e.target.value)}
+                    placeholder={placeholder || "https://..."}
+                />
+                <button
+                    type="button"
+                    className="admin-btn admin-btn-ghost admin-btn-sm"
+                    style={{ whiteSpace: "nowrap", height: 42 }}
+                    onClick={() => inputRef.current?.click()}
+                    disabled={uploading}
+                >
+                    {uploading ? "Uploading..." : <><i className="fa-solid fa-upload" style={{ marginRight: 6 }}></i>Upload</>}
+                </button>
+                <input ref={inputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFile} />
+            </div>
+            {value && (
+                <img src={value} alt="" style={{ marginTop: 8, height: 56, borderRadius: 6, border: "1px solid #e5e7ef", objectFit: "cover" }} />
+            )}
+        </div>
+    );
+}
+
+function TeamModal({ team, freeAgents, organizations, user, effectiveRole, onClose, onSave }) {
+    const { showError } = useToast();
     const [name, setName] = useState(team?.name || "");
     const [logo, setLogo] = useState(team?.logo || "");
+    const [description, setDescription] = useState(team?.description || "");
+    const [division, setDivision] = useState(team?.division || "");
     const [organization, setOrganization] = useState(
         team?.organization?._id || team?.organization || user?.organization?.id || ""
     );
@@ -15,21 +71,48 @@ function TeamModal({ team, players, organizations, user, effectiveRole, onClose,
     const [selectedPlayerIds, setSelectedPlayerIds] = useState((team?.players || []).map((player) => String(player._id || player)));
     const [saving, setSaving] = useState(false);
 
-    const eligiblePlayers = useMemo(() => {
-        if (effectiveRole !== "organizer") return players;
+    // Location picker state
+    const [pickerState, setPickerState] = useState(team?.location?.stateAbbr || "");
+    const [pickerCounty, setPickerCounty] = useState(team?.location?.countyName || "");
+    const [pickerCity, setPickerCity] = useState(team?.location?.cityName || "");
+    const [cityOptions, setCityOptions] = useState([]);
+    const [loadingCities, setLoadingCities] = useState(false);
 
-        const organizerOrgId = user?.organization?.id ? String(user.organization.id) : "";
+    const fetchCities = async (state, county) => {
+        if (!state || !county) { setCityOptions([]); return; }
+        setLoadingCities(true);
+        try {
+            const res = await fetch(`/api/cities?state=${encodeURIComponent(state)}&county=${encodeURIComponent(county)}`);
+            const data = await res.json();
+            if (data.success) setCityOptions(data.data);
+            else setCityOptions([]);
+        } catch { setCityOptions([]); }
+        finally { setLoadingCities(false); }
+    };
 
-        return players.filter((player) => {
-            const playerOrgId = player.organization
-                ? String(player.organization._id || player.organization)
-                : "";
-            return !playerOrgId || playerOrgId === organizerOrgId;
-        });
-    }, [players, user, effectiveRole]);
+    const noCityData = pickerCounty && !loadingCities && cityOptions.length === 0;
 
-    const filteredPlayers = eligiblePlayers.filter((player) => {
-        const haystack = `${player.name} ${player.presentTeam?.name || ""}`.toLowerCase();
+    // Pre-fetch cities when editing a team with existing location
+    useEffect(() => {
+        if (pickerState && pickerCounty) {
+            fetchCities(pickerState, pickerCounty);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Merge existing team players with free agents for the candidate list
+    const allCandidates = useMemo(() => {
+        const existingPlayers = (team?.players || []).map(p => ({
+            ...p,
+            _isExistingTeamPlayer: true,
+        }));
+        const existingIds = new Set(existingPlayers.map(p => String(p._id || p)));
+        const newFreeAgents = (freeAgents || []).filter(fa => !existingIds.has(String(fa._id)));
+        return [...existingPlayers, ...newFreeAgents];
+    }, [team, freeAgents]);
+
+    const filteredPlayers = allCandidates.filter((player) => {
+        const haystack = `${player.name} ${player.organization?.name || ""}`.toLowerCase();
         return haystack.includes(query.toLowerCase());
     });
 
@@ -45,9 +128,20 @@ function TeamModal({ team, players, organizations, user, effectiveRole, onClose,
     const handleSave = async () => {
         if (!name.trim()) return;
         setSaving(true);
+
+        const locationPayload = pickerState ? {
+            stateName: US_STATES.find((s) => s.abbr === pickerState)?.name || "",
+            stateAbbr: pickerState,
+            countyName: pickerCounty || "",
+            cityName: pickerCity?.trim() || "",
+        } : {};
+
         await onSave({
             name: name.trim(),
             logo: logo.trim(),
+            description: description.trim(),
+            division: division.trim(),
+            location: locationPayload,
             organization: effectiveRole === "admin" ? organization : undefined,
             players: selectedPlayerIds,
         });
@@ -56,7 +150,7 @@ function TeamModal({ team, players, organizations, user, effectiveRole, onClose,
 
     return (
         <div className="admin-modal-backdrop" onClick={onClose}>
-            <div className="admin-modal" onClick={(event) => event.stopPropagation()} style={{ maxWidth: 640 }}>
+            <div className="admin-modal" onClick={(event) => event.stopPropagation()} style={{ maxWidth: 640, maxHeight: "90vh", overflowY: "auto" }}>
                 <h3 className="admin-modal-title">{team ? "Edit Team" : "Create Team"}</h3>
 
                 <div className="admin-form-group">
@@ -65,8 +159,19 @@ function TeamModal({ team, players, organizations, user, effectiveRole, onClose,
                 </div>
 
                 <div className="admin-form-group">
-                    <label className="admin-form-label">Logo URL (optional)</label>
-                    <input className="admin-form-input" value={logo} onChange={(event) => setLogo(event.target.value)} placeholder="/assets/images/teamlogo1.png" />
+                    <label className="admin-form-label">Logo (optional)</label>
+                    <ImageUploadField
+                        value={logo}
+                        onChange={setLogo}
+                        placeholder="https://... or upload"
+                        onError={showError}
+                    />
+                    {!logo && (
+                        <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6, color: "#8b90a0", fontSize: 13 }}>
+                            <i className="fa-solid fa-shield-halved"></i>
+                            A default placeholder will be used
+                        </div>
+                    )}
                 </div>
 
                 {effectiveRole === "admin" && (
@@ -82,15 +187,97 @@ function TeamModal({ team, players, organizations, user, effectiveRole, onClose,
                 )}
 
                 <div className="admin-form-group">
-                    <label className="admin-form-label">Assign Players</label>
+                    <label className="admin-form-label">Description (optional)</label>
+                    <textarea
+                        className="admin-form-input"
+                        rows={3}
+                        value={description}
+                        onChange={(event) => setDescription(event.target.value)}
+                        placeholder="Brief description of this team..."
+                        style={{ resize: "vertical" }}
+                    />
+                </div>
+
+                <div className="admin-form-group">
+                    <label className="admin-form-label">Division (optional)</label>
+                    <input
+                        className="admin-form-input"
+                        value={division}
+                        onChange={(event) => setDivision(event.target.value)}
+                        placeholder="e.g. Division A, Open, Competitive"
+                    />
+                </div>
+
+                <div className="admin-form-group">
+                    <label className="admin-form-label">Origin Location (optional)</label>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        <select
+                            className="admin-form-select"
+                            style={{ flex: 1, minWidth: 140 }}
+                            value={pickerState}
+                            onChange={(e) => {
+                                setPickerState(e.target.value);
+                                setPickerCounty("");
+                                setPickerCity("");
+                                setCityOptions([]);
+                            }}
+                        >
+                            <option value="">Select state...</option>
+                            {US_STATES.map((s) => (
+                                <option key={s.abbr} value={s.abbr}>{s.name} ({s.abbr})</option>
+                            ))}
+                        </select>
+                        <select
+                            className="admin-form-select"
+                            style={{ flex: 1, minWidth: 140 }}
+                            value={pickerCounty}
+                            onChange={(e) => {
+                                setPickerCounty(e.target.value);
+                                setPickerCity("");
+                                fetchCities(pickerState, e.target.value);
+                            }}
+                            disabled={!pickerState}
+                        >
+                            <option value="">Select county...</option>
+                            {(US_COUNTIES[pickerState] || []).map((c) => (
+                                <option key={c} value={c}>{c}</option>
+                            ))}
+                        </select>
+                        {noCityData ? (
+                            <input
+                                className="admin-form-input"
+                                style={{ flex: 1, minWidth: 140 }}
+                                value={pickerCity}
+                                onChange={(e) => setPickerCity(e.target.value)}
+                                placeholder="City (optional)"
+                            />
+                        ) : (
+                            <select
+                                className="admin-form-select"
+                                style={{ flex: 1, minWidth: 140 }}
+                                value={pickerCity}
+                                onChange={(e) => setPickerCity(e.target.value)}
+                                disabled={!pickerCounty || loadingCities}
+                            >
+                                <option value="">{loadingCities ? "Loading cities..." : "Select city..."}</option>
+                                {cityOptions.map((c) => (
+                                    <option key={c} value={c}>{c}</option>
+                                ))}
+                            </select>
+                        )}
+                    </div>
+                </div>
+
+                <div className="admin-form-group">
+                    <label className="admin-form-label">Assign Free Agents</label>
                     <input
                         className="admin-form-input"
                         value={query}
                         onChange={(event) => setQuery(event.target.value)}
-                        placeholder="Search players..."
+                        placeholder="Search free agents..."
                         style={{ marginBottom: 8 }}
                     />
-                    <div className="admin-location-list" style={{ maxHeight: 240 }}>
+                    <div className="admin-location-list" style={{ maxHeight: 200 }}>
                         {filteredPlayers.length > 0 ? filteredPlayers.map((player) => {
                             const checked = selectedPlayerIds.includes(String(player._id));
                             return (
@@ -98,12 +285,16 @@ function TeamModal({ team, players, organizations, user, effectiveRole, onClose,
                                     <input type="checkbox" checked={checked} onChange={() => togglePlayer(player._id)} />
                                     <span>
                                         <strong>{player.name}</strong>
-                                        <small>Current team: {player.presentTeam?.name || "Unassigned"}</small>
+                                        {player._isExistingTeamPlayer ? (
+                                            <small style={{ color: "#22c55e" }}>Currently on this team</small>
+                                        ) : (
+                                            <small>Free Agent{player.organization?.name ? ` — ${player.organization.name}` : ""}</small>
+                                        )}
                                     </span>
                                 </label>
                             );
                         }) : (
-                            <div style={{ color: "#8b90a0", fontSize: 13 }}>No matching players.</div>
+                            <div style={{ color: "#8b90a0", fontSize: 13, padding: 8 }}>No matching free agents.</div>
                         )}
                     </div>
                 </div>
@@ -129,7 +320,7 @@ export default function AdminTeamsPage() {
     const { showSuccess, showError } = useToast();
 
     const [teams, setTeams] = useState([]);
-    const [players, setPlayers] = useState([]);
+    const [freeAgents, setFreeAgents] = useState([]);
     const [organizations, setOrganizations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
@@ -151,17 +342,17 @@ export default function AdminTeamsPage() {
         }
 
         try {
-            const [teamsRes, playersRes] = await Promise.all([
+            const [teamsRes, freeAgentsRes] = await Promise.all([
                 fetch("/api/teams"),
-                fetch("/api/players"),
+                fetch("/api/free-agents"),
             ]);
-            const [teamsData, playersData] = await Promise.all([teamsRes.json(), playersRes.json()]);
+            const [teamsData, freeAgentsData] = await Promise.all([teamsRes.json(), freeAgentsRes.json()]);
 
             if (teamsData.success) setTeams(teamsData.data || []);
             else showError(teamsData.error || "Failed to load teams");
 
-            if (playersData.success) setPlayers(playersData.data || []);
-            else showError(playersData.error || "Failed to load players");
+            if (freeAgentsData.success) setFreeAgents(freeAgentsData.data || []);
+            else showError(freeAgentsData.error || "Failed to load free agents");
 
             if (effectiveRole === "admin") {
                 const orgRes = await fetch("/api/organizations");
@@ -169,7 +360,7 @@ export default function AdminTeamsPage() {
                 if (orgData.success) setOrganizations(orgData.data || []);
             }
         } catch {
-            showError("Failed to load teams and players");
+            showError("Failed to load teams and free agents");
         } finally {
             setLoading(false);
         }
@@ -298,7 +489,7 @@ export default function AdminTeamsPage() {
                     {modalOpen && (
                         <TeamModal
                             team={editTarget}
-                            players={players}
+                            freeAgents={freeAgents}
                             organizations={organizations}
                             user={user}
                             effectiveRole={effectiveRole}

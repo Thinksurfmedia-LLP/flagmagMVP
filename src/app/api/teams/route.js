@@ -176,6 +176,9 @@ export async function POST(request) {
         const team = await Team.create({
             name: body.name.trim(),
             logo: body.logo || "",
+            description: body.description?.trim() || "",
+            division: body.division?.trim() || "",
+            location: body.location || {},
             organization: organizationId,
             players: playerIds,
         });
