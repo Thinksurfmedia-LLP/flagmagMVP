@@ -4,7 +4,7 @@ import ScheduleWithDateStrip from "@/components/ScheduleWithDateStrip";
 import Link from "next/link";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
-import Season from "@/models/Season";
+import League from "@/models/League";
 import Game from "@/models/Game";
 import { formatOrganizationLocations } from "@/lib/organizationLocations";
 
@@ -12,12 +12,12 @@ async function getData(slug, seasonSlug) {
     await dbConnect();
     const org = await Organization.findOne({ slug }).lean();
     if (!org) return null;
-    const season = await Season.findOne({ organization: org._id, slug: seasonSlug }).lean();
-    if (!season) return null;
-    const games = await Game.find({ season: season._id }).sort({ date: 1, time: 1 }).lean();
+    const league = await League.findOne({ organization: org._id, slug: seasonSlug }).lean();
+    if (!league) return null;
+    const games = await Game.find({ league: league._id }).sort({ date: 1, time: 1 }).lean();
     return {
         org: JSON.parse(JSON.stringify(org)),
-        season: JSON.parse(JSON.stringify(season)),
+        league: JSON.parse(JSON.stringify(league)),
         games: JSON.parse(JSON.stringify(games)),
     };
 }
@@ -32,7 +32,7 @@ export default async function SeasonSchedulePage({ params }) {
         );
     }
 
-    const { org, season, games } = data;
+    const { org, league, games } = data;
     const locationText = formatOrganizationLocations(org);
 
     return (
@@ -68,7 +68,7 @@ export default async function SeasonSchedulePage({ params }) {
 
             <section className="leagues-section section-padding">
                 <div className="container">
-                    <div className="heading-area"><h2>{season.name}</h2></div>
+                    <div className="heading-area"><h2>{league.name}</h2></div>
 
                     <div className="organization-nav-area">
                         <ul>

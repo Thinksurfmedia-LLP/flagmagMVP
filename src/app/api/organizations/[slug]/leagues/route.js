@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
-import Season from "@/models/Season";
+import League from "@/models/League";
 import User from "@/models/User";
 import { requireAnyPermission } from "@/lib/apiAuth";
 
-// GET seasons for an organization
+// GET leagues for an organization
 export async function GET(request, { params }) {
     try {
         await dbConnect();
@@ -24,10 +24,13 @@ export async function GET(request, { params }) {
         const filter = { organization: organization._id };
         if (type) filter.type = type;
 
-        const seasons = await Season.find(filter).sort({ createdAt: -1 }).lean();
+        const leagues = await League.find(filter)
+            .populate("season", "name")
+            .sort({ startDate: -1 })
+            .lean();
 
         return NextResponse.json(
-            { success: true, count: seasons.length, data: seasons },
+            { success: true, count: leagues.length, data: leagues },
             { status: 200 }
         );
     } catch (error) {
@@ -38,73 +41,62 @@ export async function GET(request, { params }) {
     }
 }
 
-// CREATE season for an organization (admin/organizer only)
+// POST create a league under this organization
 export async function POST(request, { params }) {
     try {
-        const auth = await requireAnyPermission(["manage_seasons", "season_create"]);
+        const auth = await requireAnyPermission(["manage_leagues", "league_create"]);
         if (!auth.authorized) return auth.response;
 
         await dbConnect();
         const { slug } = await params;
+        const body = await request.json();
 
-        const organization = await Organization.findOne({ slug });
+        const organization = await Organization.findOne({ slug }).lean();
         if (!organization) {
-            return NextResponse.json(
-                { success: false, error: "Organization not found" },
-                { status: 404 }
-            );
+            return NextResponse.json({ success: false, error: "Organization not found" }, { status: 404 });
         }
 
+        // Organizers can only create leagues for their own org
         if (auth.user.role === "organizer") {
             const currentUser = await User.findById(auth.user.id).select("organization").lean();
             if (!currentUser?.organization || String(currentUser.organization) !== String(organization._id)) {
                 return NextResponse.json(
-                    { success: false, error: "You can only create seasons for your assigned organization" },
-                    { status: 403 }
+                    { success: false, error: "You can only create leagues for your assigned organization" },
+                    { status: 403 },
                 );
             }
         }
 
-        const body = await request.json();
-
         if (!body.name || !body.name.trim()) {
-            return NextResponse.json(
-                { success: false, error: "Season name is required" },
-                { status: 400 }
-            );
+            return NextResponse.json({ success: false, error: "League name is required" }, { status: 400 });
         }
 
-        const seasonSlug = body.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+        const leagueSlug = body.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
-        if (body.isDefault) {
-            await Season.updateMany(
-                { organization: organization._id, isDefault: true },
-                { $set: { isDefault: false } },
-            );
-        }
+        const locations = Array.isArray(body.locations)
+            ? body.locations.map((s) => String(s).trim()).filter(Boolean)
+            : [];
 
-        const season = await Season.create({
+        const league = await League.create({
             organization: organization._id,
             name: body.name.trim(),
-            slug: seasonSlug,
+            slug: leagueSlug,
             type: body.type || "active",
-            isDefault: body.isDefault || false,
+            category: body.category || "",
+            locations,
+            location: locations[0] || "",
+            startDate: body.startDate || undefined,
+            time: body.time || "",
         });
 
-        return NextResponse.json(
-            { success: true, data: season },
-            { status: 201 }
-        );
+        return NextResponse.json({ success: true, data: league }, { status: 201 });
     } catch (error) {
         if (error.code === 11000) {
             return NextResponse.json(
-                { success: false, error: "A season with this name already exists for this organization" },
-                { status: 400 }
+                { success: false, error: "A league with this name already exists for this organization" },
+                { status: 400 },
             );
         }
-        return NextResponse.json(
-            { success: false, error: error.message },
-            { status: 500 }
-        );
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }

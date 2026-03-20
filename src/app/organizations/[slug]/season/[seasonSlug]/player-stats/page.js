@@ -3,7 +3,7 @@ import Footer from "@/components/Footer";
 import Link from "next/link";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
-import Season from "@/models/Season";
+import League from "@/models/League";
 import Player from "@/models/Player";
 import Team from "@/models/Team";
 import { formatOrganizationLocations } from "@/lib/organizationLocations";
@@ -13,8 +13,8 @@ async function getData(slug, seasonSlug) {
     await dbConnect();
     const org = await Organization.findOne({ slug }).lean();
     if (!org) return null;
-    const season = await Season.findOne({ organization: org._id, slug: seasonSlug }).lean();
-    if (!season) return null;
+    const league = await League.findOne({ organization: org._id, slug: seasonSlug }).lean();
+    if (!league) return null;
     const [players, teams] = await Promise.all([
         Player.find({ organization: org._id }).lean(),
         Team.find({ organization: org._id }).populate("players", "_id").lean(),
@@ -30,7 +30,7 @@ async function getData(slug, seasonSlug) {
 
     return {
         org: JSON.parse(JSON.stringify(org)),
-        season: JSON.parse(JSON.stringify(season)),
+        league: JSON.parse(JSON.stringify(league)),
         players: JSON.parse(JSON.stringify(players)),
         teams: JSON.parse(JSON.stringify(teams)),
         playerTeamMap,
@@ -55,7 +55,7 @@ export default async function PlayerStatsPage({ params }) {
         );
     }
 
-    const { org, season, players, teams, playerTeamMap } = data;
+    const { org, league, players, teams, playerTeamMap } = data;
     const locationText = formatOrganizationLocations(org);
 
     // Build player rows from real DB players, or fall back to sample data
@@ -106,7 +106,7 @@ export default async function PlayerStatsPage({ params }) {
 
             <section className="leagues-section section-padding">
                 <div className="container">
-                    <div className="heading-area"><h2>{season.name}</h2></div>
+                    <div className="heading-area"><h2>{league.name}</h2></div>
 
                     <div className="organization-nav-area">
                         <ul>

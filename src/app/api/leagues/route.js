@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
-import Season from "@/models/Season";
+import League from "@/models/League";
 import Organization from "@/models/Organization";
 import User from "@/models/User";
 import { requireAnyPermission } from "@/lib/apiAuth";
@@ -20,22 +20,23 @@ export async function GET(request) {
         const search = searchParams.get("search");
         const type = searchParams.get("type");
 
-        const filter = { kind: "league" };
+        const filter = {};
 
         if (auth.user.role === "admin") {
             if (orgId) filter.organization = orgId;
         } else {
             const currentUser = await User.findById(auth.user.id).select("organization").lean();
-            if (!currentUser?.organization) {
+            const userOrg = currentUser?.organization || auth.user.organization?.id || null;
+            if (!userOrg) {
                 return NextResponse.json({ success: true, data: [] });
             }
-            filter.organization = currentUser.organization;
+            filter.organization = userOrg;
         }
 
         if (search) filter.name = { $regex: search, $options: "i" };
         if (type) filter.type = type;
 
-        const leagues = await Season.find(filter)
+        const leagues = await League.find(filter)
             .populate("organization", "name slug")
             .populate("season", "name")
             .sort({ createdAt: -1 })
@@ -86,11 +87,10 @@ export async function POST(request) {
             ? body.locations.map((s) => String(s).trim()).filter(Boolean)
             : [];
 
-        const season = await Season.create({
+        const league = await League.create({
             organization: organization._id,
             name: body.name.trim(),
             slug,
-            kind: "league",
             type: body.type || "active",
             category: body.category || "",
             locations,
@@ -100,7 +100,7 @@ export async function POST(request) {
             seasonOverridden: body.seasonOverridden || false,
         });
 
-        return NextResponse.json({ success: true, data: season }, { status: 201 });
+        return NextResponse.json({ success: true, data: league }, { status: 201 });
     } catch (error) {
         if (error.code === 11000) {
             return NextResponse.json(

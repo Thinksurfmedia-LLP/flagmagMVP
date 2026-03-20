@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
-import Season from "@/models/Season";
+import League from "@/models/League";
 import User from "@/models/User";
 import Organization from "@/models/Organization";
 import Venue from "@/models/Location";
@@ -20,7 +20,7 @@ export async function PUT(request, { params }) {
         const { id } = await params;
         const body = await request.json();
 
-        const existing = await Season.findById(id).select("organization").lean();
+        const existing = await League.findById(id).select("organization").lean();
         if (!existing) {
             return NextResponse.json({ success: false, error: "League not found" }, { status: 404 });
         }
@@ -90,7 +90,7 @@ export async function PUT(request, { params }) {
             body.seasonOverridden = body.seasonOverridden || false;
         }
 
-        const league = await Season.findByIdAndUpdate(id, body, { new: true, runValidators: true });
+        const league = await League.findByIdAndUpdate(id, body, { new: true, runValidators: true });
         if (!league) {
             return NextResponse.json({ success: false, error: "League not found" }, { status: 404 });
         }
@@ -109,7 +109,7 @@ export async function DELETE(request, { params }) {
 
         await dbConnect();
         const { id } = await params;
-        const league = await Season.findById(id).select("organization");
+        const league = await League.findById(id).select("organization");
 
         if (!league) {
             return NextResponse.json({ success: false, error: "League not found" }, { status: 404 });
@@ -125,7 +125,7 @@ export async function DELETE(request, { params }) {
             }
         }
 
-        await Season.deleteOne({ _id: id });
+        await League.deleteOne({ _id: id });
 
         return NextResponse.json({ success: true, message: "League deleted" }, { status: 200 });
     } catch (error) {

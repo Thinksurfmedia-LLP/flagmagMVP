@@ -2,14 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Season from "@/models/Season";
 import User from "@/models/User";
-import Organization from "@/models/Organization";
 import { requireAnyPermission } from "@/lib/apiAuth";
-import { formatOrganizationLocationEntry } from "@/lib/organizationLocations";
-import Venue from "@/models/Location";
-
-function normalizeText(value = "") {
-    return String(value).trim().toLowerCase();
-}
 
 // GET single season
 export async function GET(request, { params }) {
@@ -63,70 +56,23 @@ export async function PUT(request, { params }) {
                     { status: 403 }
                 );
             }
-
-            const organization = await Organization.findById(existingSeason.organization).select("categories locations").lean();
-            if (!organization) {
-                return NextResponse.json(
-                    { success: false, error: "Organization not found" },
-                    { status: 404 }
-                );
-            }
-
-            if (body.category !== undefined) {
-                const allowedCategorySet = new Set(
-                    (organization.categories || []).map((entry) => normalizeText(entry)).filter(Boolean)
-                );
-                if (body.category && !allowedCategorySet.has(normalizeText(body.category))) {
-                    return NextResponse.json(
-                        { success: false, error: "Category must be one of your organization's registered categories" },
-                        { status: 400 }
-                    );
-                }
-            }
-
-            if (body.locations !== undefined) {
-                const locations = Array.isArray(body.locations)
-                    ? body.locations.map((entry) => String(entry).trim()).filter(Boolean)
-                    : [];
-                const orgLocationKeys = new Set(
-                    (organization.locations || [])
-                        .filter((loc) => loc.countyName && loc.stateAbbr)
-                        .map((loc) => `${normalizeText(loc.countyName)}|${normalizeText(loc.stateAbbr)}`)
-                );
-
-                const venues = await Venue.find({ name: { $in: locations } })
-                    .populate({ path: "county", populate: { path: "state" } })
-                    .lean();
-
-                const hasInvalidLocation = locations.some((venueName) => {
-                    const venue = venues.find((v) => normalizeText(v.name) === normalizeText(venueName));
-                    if (!venue || !venue.county) return true;
-                    const key = `${normalizeText(venue.county.name)}|${normalizeText(venue.county.state?.abbreviation || "")}`;
-                    return !orgLocationKeys.has(key);
-                });
-                if (hasInvalidLocation) {
-                    return NextResponse.json(
-                        { success: false, error: "Location must be selected from your organization's configured locations" },
-                        { status: 400 }
-                    );
-                }
-
-                body.locations = locations;
-                body.location = locations[0] || "";
-            }
         }
 
-        delete body.time;
+        // Only allow updating season-specific fields
+        const updates = {};
+        if (body.name !== undefined) updates.name = body.name;
+        if (body.type !== undefined) updates.type = body.type;
+        if (body.isDefault !== undefined) updates.isDefault = body.isDefault;
 
         // If setting as default, unset other defaults for this org
-        if (body.isDefault) {
+        if (updates.isDefault) {
             await Season.updateMany(
                 { organization: existingSeason.organization, _id: { $ne: id }, isDefault: true },
                 { $set: { isDefault: false } },
             );
         }
 
-        const season = await Season.findByIdAndUpdate(id, body, { new: true, runValidators: true });
+        const season = await Season.findByIdAndUpdate(id, updates, { new: true, runValidators: true });
         if (!season) {
             return NextResponse.json(
                 { success: false, error: "Season not found" },

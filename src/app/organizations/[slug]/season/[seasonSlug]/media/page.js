@@ -5,7 +5,7 @@ import Link from "next/link";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import Venue from "@/models/Location";
-import Season from "@/models/Season";
+import League from "@/models/League";
 import County from "@/models/County";
 import State from "@/models/State";
 import { formatOrganizationLocations } from "@/lib/organizationLocations";
@@ -14,8 +14,8 @@ async function getData(slug, seasonSlug) {
     await dbConnect();
     const org = await Organization.findOne({ slug }).lean();
     if (!org) return null;
-    const season = await Season.findOne({ organization: org._id, slug: seasonSlug }).lean();
-    if (!season) return null;
+    const league = await League.findOne({ organization: org._id, slug: seasonSlug }).lean();
+    if (!league) return null;
 
     // Match venues to org locations by stateAbbr + countyName
     const orgLocs = org.locations || [];
@@ -40,7 +40,7 @@ async function getData(slug, seasonSlug) {
 
     return {
         org: JSON.parse(JSON.stringify(org)),
-        season: JSON.parse(JSON.stringify(season)),
+        league: JSON.parse(JSON.stringify(league)),
         images: allImages,
     };
 }
@@ -61,7 +61,7 @@ export default async function SeasonMediaPage({ params }) {
         );
     }
 
-    const { org, season, images } = data;
+    const { org, league, images } = data;
     const locationText = formatOrganizationLocations(org);
 
     return (
@@ -97,7 +97,7 @@ export default async function SeasonMediaPage({ params }) {
 
             <section className="leagues-section section-padding">
                 <div className="container">
-                    <div className="heading-area"><h2>{season.name}</h2></div>
+                    <div className="heading-area"><h2>{league.name}</h2></div>
 
                     <div className="organization-nav-area">
                         <ul>

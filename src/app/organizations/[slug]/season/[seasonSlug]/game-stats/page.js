@@ -3,18 +3,18 @@ import Footer from "@/components/Footer";
 import Link from "next/link";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
-import Season from "@/models/Season";
+import League from "@/models/League";
 import { formatOrganizationLocations } from "@/lib/organizationLocations";
 
 async function getData(slug, seasonSlug) {
     await dbConnect();
     const org = await Organization.findOne({ slug }).lean();
     if (!org) return null;
-    const season = await Season.findOne({ organization: org._id, slug: seasonSlug }).lean();
-    if (!season) return null;
+    const league = await League.findOne({ organization: org._id, slug: seasonSlug }).lean();
+    if (!league) return null;
     return {
         org: JSON.parse(JSON.stringify(org)),
-        season: JSON.parse(JSON.stringify(season)),
+        league: JSON.parse(JSON.stringify(league)),
     };
 }
 
@@ -80,7 +80,7 @@ export default async function GameStatsPage({ params }) {
         );
     }
 
-    const { org, season } = data;
+    const { org, league } = data;
     const locationText = formatOrganizationLocations(org);
 
     return (
@@ -116,7 +116,7 @@ export default async function GameStatsPage({ params }) {
 
             <section className="leagues-section section-padding">
                 <div className="container">
-                    <div className="heading-area"><h2>{season.name}</h2></div>
+                    <div className="heading-area"><h2>{league.name}</h2></div>
 
                     <div className="organization-nav-area">
                         <ul>
@@ -128,21 +128,21 @@ export default async function GameStatsPage({ params }) {
                         </ul>
                     </div>
 
-                    {season.divisions && season.divisions.length > 0 && (
+                    {league.divisions && league.divisions.length > 0 && (
                         <div className="organization-stats-table-wrap row">
-                            {season.divisions.map((div, i) => (
+                            {league.divisions.map((div, i) => (
                                 <DivisionTable key={i} division={div} />
                             ))}
                         </div>
                     )}
 
-                    {season.gameRecords && season.gameRecords.length > 0 && (
+                    {league.gameRecords && league.gameRecords.length > 0 && (
                         <>
                             <hr />
                             <div className="game-record-area">
                                 <div className="heading-area"><h2>Game Records</h2></div>
                                 <div className="row">
-                                    {season.gameRecords.map((record, i) => (
+                                    {league.gameRecords.map((record, i) => (
                                         <GameRecord key={i} record={record} />
                                     ))}
                                 </div>

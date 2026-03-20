@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
-import Season from "@/models/Season";
+import League from "@/models/League";
 import { requireAdmin } from "@/lib/apiAuth";
 
 // GET teams aggregated from all seasons for this org
@@ -18,17 +18,17 @@ export async function GET(request, { params }) {
             return NextResponse.json({ success: false, error: "Organization not found" }, { status: 404 });
         }
 
-        const seasons = await Season.find({ organization: org._id }).lean();
+        const leagues = await League.find({ organization: org._id }).lean();
 
-        // Aggregate teams across all seasons/divisions
+        // Aggregate teams across all leagues/divisions
         const teams = [];
-        for (const season of seasons) {
-            for (const div of season.divisions || []) {
+        for (const league of leagues) {
+            for (const div of league.divisions || []) {
                 for (const team of div.teams || []) {
                     teams.push({
                         ...team,
-                        seasonId: season._id,
-                        seasonName: season.name,
+                        leagueId: league._id,
+                        leagueName: league.name,
                         divisionName: div.name || "Default",
                     });
                 }
@@ -55,25 +55,25 @@ export async function POST(request, { params }) {
             return NextResponse.json({ success: false, error: "Organization not found" }, { status: 404 });
         }
 
-        const { seasonId, divisionName, name, logo } = await request.json();
-        if (!seasonId || !name) {
-            return NextResponse.json({ success: false, error: "seasonId and name are required" }, { status: 400 });
+        const { leagueId, divisionName, name, logo } = await request.json();
+        if (!leagueId || !name) {
+            return NextResponse.json({ success: false, error: "leagueId and name are required" }, { status: 400 });
         }
 
-        const season = await Season.findOne({ _id: seasonId, organization: org._id });
-        if (!season) {
-            return NextResponse.json({ success: false, error: "Season not found in this organization" }, { status: 404 });
+        const league = await League.findOne({ _id: leagueId, organization: org._id });
+        if (!league) {
+            return NextResponse.json({ success: false, error: "League not found in this organization" }, { status: 404 });
         }
 
         // Find or create the division
-        let division = season.divisions.find(d => d.name === (divisionName || "Default"));
+        let division = league.divisions.find(d => d.name === (divisionName || "Default"));
         if (!division) {
-            season.divisions.push({ name: divisionName || "Default", teams: [] });
-            division = season.divisions[season.divisions.length - 1];
+            league.divisions.push({ name: divisionName || "Default", teams: [] });
+            division = league.divisions[league.divisions.length - 1];
         }
 
         division.teams.push({ name, logo: logo || "", wins: 0, losses: 0, pct: 0, pf: 0, pa: 0, diff: 0 });
-        await season.save();
+        await league.save();
 
         return NextResponse.json({ success: true, data: division.teams[division.teams.length - 1] }, { status: 201 });
     } catch (error) {

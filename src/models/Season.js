@@ -7,11 +7,6 @@ const SeasonSchema = new mongoose.Schema(
             ref: "Organization",
             required: true,
         },
-        kind: {
-            type: String,
-            enum: ["season", "league"],
-            default: "league",
-        },
         name: {
             type: String,
             required: [true, "Season name is required"],
@@ -28,77 +23,22 @@ const SeasonSchema = new mongoose.Schema(
             enum: ["active", "past"],
             default: "active",
         },
-        category: {
-            type: String,
-            default: "",
-        },
-        location: {
-            type: String,
-            default: "",
-        },
-        locations: {
-            type: [String],
-            default: [],
-        },
-        season: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Season",
-        },
-        seasonOverridden: {
-            type: Boolean,
-            default: false,
-        },
-        startDate: {
-            type: Date,
-        },
-        time: {
-            type: String,
-            default: "",
-        },
         isDefault: {
             type: Boolean,
             default: false,
         },
-        divisions: [
-            {
-                name: { type: String },
-                teams: [
-                    {
-                        name: { type: String },
-                        logo: { type: String },
-                        wins: { type: Number, default: 0 },
-                        losses: { type: Number, default: 0 },
-                        pct: { type: Number, default: 0 },
-                        pf: { type: Number, default: 0 },
-                        pa: { type: Number, default: 0 },
-                        diff: { type: Number, default: 0 },
-                    },
-                ],
-            },
-        ],
-        gameRecords: [
-            {
-                playerName: { type: String },
-                playerImage: { type: String },
-                seasonLabel: { type: String },
-                statValue: { type: Number },
-                statLabel: { type: String },
-            },
-        ],
     },
     {
         timestamps: true,
     }
 );
 
-// Compound index so slugs are unique within an organization
 SeasonSchema.index({ organization: 1, slug: 1 }, { unique: true });
 
 function getSeasonModel() {
     if (mongoose.models.Season) {
         const existing = mongoose.models.Season;
-        // If cached model is missing isDefault, re-register with current schema
-        if (!existing.schema.paths.isDefault || !existing.schema.paths.kind || !existing.schema.paths.season) {
+        if (!existing.schema.paths.isDefault || existing.schema.paths.kind) {
             delete mongoose.models.Season;
             delete mongoose.connection.models?.Season;
             return mongoose.model("Season", SeasonSchema);

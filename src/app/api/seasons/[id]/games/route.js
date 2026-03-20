@@ -12,7 +12,7 @@ export async function GET(request, { params }) {
         const status = searchParams.get("status");
         const date = searchParams.get("date");
 
-        const filter = { season: id };
+        const filter = { league: id };
         if (status) filter.status = status;
         if (date) {
             const d = new Date(date);
@@ -45,7 +45,7 @@ export async function POST(request, { params }) {
         await dbConnect();
         const { id } = await params;
         const body = await request.json();
-        body.season = id;
+        body.league = id;
 
         const game = await Game.create(body);
 

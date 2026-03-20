@@ -3,7 +3,7 @@ import Footer from "@/components/Footer";
 import GameTeamStats from "@/components/GameTeamStats";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
-import Season from "@/models/Season";
+import League from "@/models/League";
 import Game from "@/models/Game";
 import { formatOrganizationLocations } from "@/lib/organizationLocations";
 
@@ -19,7 +19,7 @@ const DUMMY_DATA = {
         foundedYear: 2010,
         location: "Los Angeles, CA",
     },
-    season: { _id: "dummy", name: "Spring 2025 Season" },
+    league: { _id: "dummy", name: "Spring 2025 Season" },
     game: {
         _id: "dummy",
         teamA: { name: "Red Hawks", logo: "/assets/images/t-logo.jpg", score: 27 },
@@ -41,13 +41,13 @@ async function getData(slug, seasonSlug, gameId) {
         await dbConnect();
         const org = await Organization.findOne({ slug }).lean();
         if (!org) return null;
-        const season = await Season.findOne({ organization: org._id, slug: seasonSlug }).lean();
-        if (!season) return null;
+        const league = await League.findOne({ organization: org._id, slug: seasonSlug }).lean();
+        if (!league) return null;
         const game = await Game.findById(gameId).lean();
         if (!game) return null;
         return {
             org: JSON.parse(JSON.stringify(org)),
-            season: JSON.parse(JSON.stringify(season)),
+            league: JSON.parse(JSON.stringify(league)),
             game: JSON.parse(JSON.stringify(game)),
             isDummy: false,
         };
@@ -60,7 +60,7 @@ export default async function GameTeamStatsPage({ params }) {
     const { slug, seasonSlug, gameId } = await params;
     const data = (await getData(slug, seasonSlug, gameId)) || { ...DUMMY_DATA, isDummy: true };
 
-    const { org, season, game } = data;
+    const { org, league, game } = data;
     const isDummy = data.isDummy;
     const locationText = formatOrganizationLocations(org);
 
@@ -93,7 +93,7 @@ export default async function GameTeamStatsPage({ params }) {
 
             <section className="leagues-section section-padding">
                 <div className="container">
-                    <div className="heading-area"><h2>{season.name}</h2></div>
+                    <div className="heading-area"><h2>{league.name}</h2></div>
 
                     <GameTeamStats
                         teamA={game.teamA}

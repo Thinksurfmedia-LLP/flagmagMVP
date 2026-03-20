@@ -19,16 +19,17 @@ export async function GET(request) {
         const orgId = searchParams.get("organization");
         const search = searchParams.get("search");
 
-        const filter = { kind: "season" };
+        const filter = {};
 
         if (auth.user.role === "admin") {
             if (orgId) filter.organization = orgId;
         } else {
             const currentUser = await User.findById(auth.user.id).select("organization").lean();
-            if (!currentUser?.organization) {
+            const userOrg = currentUser?.organization || auth.user.organization?.id || null;
+            if (!userOrg) {
                 return NextResponse.json({ success: true, data: [] });
             }
-            filter.organization = currentUser.organization;
+            filter.organization = userOrg;
         }
 
         if (search) {
@@ -93,7 +94,6 @@ export async function POST(request) {
             organization: organization._id,
             name: body.name.trim(),
             slug,
-            kind: "season",
             isDefault: body.isDefault || false,
         });
 

@@ -7,7 +7,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { useImpersonation } from "@/components/ImpersonationProvider";
 import { useToast } from "@/components/AdminToast";
 
-function SeasonModal({ onClose, onSave, initial, orgCategories, venuesByCounty = [] }) {
+function LeagueModal({ onClose, onSave, initial, orgCategories, venuesByCounty = [] }) {
     const [form, setForm] = useState({
         name: initial?.name || "",
         type: initial?.type || "active",
@@ -42,10 +42,10 @@ function SeasonModal({ onClose, onSave, initial, orgCategories, venuesByCounty =
     return (
         <div className="admin-modal-backdrop" onClick={onClose}>
             <div className="admin-modal" onClick={e => e.stopPropagation()}>
-                <h3 className="admin-modal-title">{initial ? "Edit Season" : "Add Season"}</h3>
+                <h3 className="admin-modal-title">{initial ? "Edit League" : "Add League"}</h3>
                 <div className="admin-form-group">
                     <label className="admin-form-label">Name *</label>
-                    <input className="admin-form-input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g. Spring 2026" />
+                    <input className="admin-form-input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g. Spring 2026 League" />
                 </div>
                 <div className="admin-form-group">
                     <label className="admin-form-label">Status</label>
@@ -108,7 +108,7 @@ function SeasonModal({ onClose, onSave, initial, orgCategories, venuesByCounty =
                 <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
                     <button className="admin-btn admin-btn-ghost" onClick={onClose}>Cancel</button>
                     <button className="admin-btn admin-btn-primary" onClick={handleSave} disabled={saving}>
-                        {saving ? "Saving..." : initial ? "Save Changes" : "Create Season"}
+                        {saving ? "Saving..." : initial ? "Save Changes" : "Create League"}
                     </button>
                 </div>
             </div>
@@ -122,7 +122,7 @@ export default function OrgSeasonsPage() {
     const { org: impersonatedOrg, enterImpersonation } = useImpersonation();
     const { showSuccess, showError } = useToast();
 
-    const [seasons, setSeasons] = useState([]);
+    const [leagues, setLeagues] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editTarget, setEditTarget] = useState(null);
@@ -155,80 +155,80 @@ export default function OrgSeasonsPage() {
         return groups;
     }, []);
 
-    const fetchSeasons = useCallback(async () => {
+    const fetchLeagues = useCallback(async () => {
         try {
-            const res = await fetch(`/api/organizations/${slug}/seasons`);
+            const res = await fetch(`/api/organizations/${slug}/leagues`);
             const data = await res.json();
-            if (data.success) setSeasons(data.data);
-        } catch { showError("Failed to load seasons"); }
+            if (data.success) setLeagues(data.data);
+        } catch { showError("Failed to load leagues"); }
         finally { setLoading(false); }
     }, [slug]);
 
-    useEffect(() => { fetchSeasons(); }, [fetchSeasons]);
+    useEffect(() => { fetchLeagues(); }, [fetchLeagues]);
 
     const handleSave = async (formData) => {
         try {
             if (editTarget) {
-                const res = await fetch(`/api/seasons/${editTarget._id}`, {
+                const res = await fetch(`/api/leagues/${editTarget._id}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(formData),
                 });
                 const data = await res.json();
                 if (!data.success) { showError(data.error); return; }
-                showSuccess("Season updated!");
+                showSuccess("League updated!");
             } else {
-                const res = await fetch(`/api/organizations/${slug}/seasons`, {
+                const res = await fetch(`/api/organizations/${slug}/leagues`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(formData),
                 });
                 const data = await res.json();
                 if (!data.success) { showError(data.error); return; }
-                showSuccess("Season created!");
+                showSuccess("League created!");
             }
             setShowModal(false);
             setEditTarget(null);
-            fetchSeasons();
-        } catch { showError("Failed to save season"); }
+            fetchLeagues();
+        } catch { showError("Failed to save league"); }
     };
 
-    const deleteSeason = async (season) => {
-        if (!confirm(`Delete season "${season.name}"? This cannot be undone.`)) return;
+    const deleteLeague = async (league) => {
+        if (!confirm(`Delete league "${league.name}"? This cannot be undone.`)) return;
         try {
-            const res = await fetch(`/api/seasons/${season._id}`, { method: "DELETE" });
+            const res = await fetch(`/api/leagues/${league._id}`, { method: "DELETE" });
             const data = await res.json();
             if (!data.success) { showError(data.error); return; }
-            fetchSeasons();
-            showSuccess("Season deleted!");
-        } catch { showError("Failed to delete season"); }
+            fetchLeagues();
+            showSuccess("League deleted!");
+        } catch { showError("Failed to delete league"); }
     };
 
     const canManage = user && hasAccess(user, "manage_seasons");
     const orgName = impersonatedOrg?.name || slug;
 
     return (
-        <AdminLayout title="Seasons">
+        <AdminLayout title="Leagues">
             {!canManage ? (
                 <div className="admin-empty">
                     <i className="fa-solid fa-lock"></i>
-                    <p>You don&apos;t have permission to manage seasons.</p>
+                    <p>You don&apos;t have permission to manage leagues.</p>
                 </div>
             ) : (
                 <div className="admin-card">
                     <div className="admin-card-header">
-                        <h3>{orgName} — Seasons ({seasons.length})</h3>
+                        <h3>{orgName} — Leagues ({leagues.length})</h3>
                         <button className="admin-btn admin-btn-primary" onClick={() => { setEditTarget(null); setShowModal(true); }}>
-                            <i className="fa-solid fa-plus"></i> Add Season
+                            <i className="fa-solid fa-plus"></i> Add League
                         </button>
                     </div>
 
                     {loading ? (
-                        <div className="admin-loading"><div className="admin-spinner"></div>Loading seasons...</div>
-                    ) : seasons.length === 0 ? (
+                        <div className="admin-loading"><div className="admin-spinner"></div>Loading leagues...</div>
+                    ) : leagues.length === 0 ? (
                         <div className="admin-empty">
                             <i className="fa-solid fa-calendar-days"></i>
-                            <p>No seasons yet. Create one to get started.</p>
+                            <p>No leagues yet. Create one to get started.</p>
                         </div>
                     ) : (
                         <div style={{ overflowX: "auto" }}>
@@ -244,7 +244,7 @@ export default function OrgSeasonsPage() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {seasons.map(s => (
+                                    {leagues.map(s => (
                                         <tr key={s._id}>
                                             <td style={{ fontWeight: 600 }}>{s.name}</td>
                                             <td>
@@ -262,7 +262,7 @@ export default function OrgSeasonsPage() {
                                                     <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setEditTarget(s); setShowModal(true); }} title="Edit">
                                                         <i className="fa-solid fa-pen"></i>
                                                     </button>
-                                                    <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => deleteSeason(s)} title="Delete">
+                                                    <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => deleteLeague(s)} title="Delete">
                                                         <i className="fa-solid fa-trash"></i>
                                                     </button>
                                                 </div>
@@ -276,7 +276,7 @@ export default function OrgSeasonsPage() {
                 </div>
             )}
             {showModal && (
-                <SeasonModal
+                <LeagueModal
                     initial={editTarget}
                     onClose={() => { setShowModal(false); setEditTarget(null); }}
                     onSave={handleSave}

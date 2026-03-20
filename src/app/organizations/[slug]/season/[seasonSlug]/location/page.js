@@ -5,7 +5,7 @@ import Link from "next/link";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import Venue from "@/models/Location";
-import Season from "@/models/Season";
+import League from "@/models/League";
 import County from "@/models/County";
 import State from "@/models/State";
 import Amenity from "@/models/Amenity";
@@ -15,11 +15,11 @@ async function getData(slug, seasonSlug) {
     await dbConnect();
     const org = await Organization.findOne({ slug }).lean();
     if (!org) return null;
-    const season = await Season.findOne({ organization: org._id, slug: seasonSlug }).lean();
-    if (!season) return null;
+    const league = await League.findOne({ organization: org._id, slug: seasonSlug }).lean();
+    if (!league) return null;
 
     // Only show venues that are assigned to this league
-    const leagueVenueNames = (season.locations || []).filter(Boolean);
+    const leagueVenueNames = (league.locations || []).filter(Boolean);
     if (leagueVenueNames.length === 0) {
         // No locations assigned to this league
         const amenities = await Amenity.find({}).lean();
@@ -27,7 +27,7 @@ async function getData(slug, seasonSlug) {
         amenities.forEach((a) => { amenityIconMap[a.name] = a.icon || ""; });
         return {
             org: JSON.parse(JSON.stringify(org)),
-            season: JSON.parse(JSON.stringify(season)),
+            league: JSON.parse(JSON.stringify(league)),
             locations: [],
             amenityIconMap,
         };
@@ -54,7 +54,7 @@ async function getData(slug, seasonSlug) {
 
     return {
         org: JSON.parse(JSON.stringify(org)),
-        season: JSON.parse(JSON.stringify(season)),
+        league: JSON.parse(JSON.stringify(league)),
         locations: locationsWithVenues,
         amenityIconMap,
     };
@@ -76,7 +76,7 @@ export default async function SeasonLocationPage({ params }) {
         );
     }
 
-    const { org, season, locations, amenityIconMap } = data;
+    const { org, league, locations, amenityIconMap } = data;
     const locationText = formatOrganizationLocations(org);
 
     return (
@@ -112,7 +112,7 @@ export default async function SeasonLocationPage({ params }) {
 
             <section className="leagues-section section-padding">
                 <div className="container">
-                    <div className="heading-area"><h2>{season.name}</h2></div>
+                    <div className="heading-area"><h2>{league.name}</h2></div>
 
                     <div className="organization-nav-area">
                         <ul>

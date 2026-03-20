@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Venue from "@/models/Location";
-import Season from "@/models/Season";
+import League from "@/models/League";
 import { requireAdmin } from "@/lib/apiAuth";
 
 export async function PUT(request, { params }) {
@@ -35,8 +35,7 @@ export async function DELETE(request, { params }) {
             return NextResponse.json({ success: false, error: "Venue not found" }, { status: 404 });
         }
 
-        const referencingLeagues = await Season.find({
-            kind: "league",
+        const referencingLeagues = await League.find({
             locations: venue.name,
         }).select("name").lean();
 

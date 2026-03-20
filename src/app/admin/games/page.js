@@ -5,6 +5,9 @@ import AdminLayout, { hasAccess, hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 
+const STAT_FIELDS = ["rate", "atts", "comp", "tds", "pct", "xp2", "yards", "ten", "twenty", "forty", "ints", "intOpen", "intXp"];
+const STAT_LABELS = { rate: "Rate", atts: "Atts", comp: "Comp", tds: "TDs", pct: "%", xp2: "XP2", yards: "Yards", ten: "10+", twenty: "20+", forty: "40+", ints: "INTs", intOpen: "Int Open", intXp: "Int XP" };
+
 function GameModal({ onClose, onSave, initial, teams = [], venues = [] }) {
     const [form, setForm] = useState({
         date: initial?.date ? new Date(initial.date).toISOString().split("T")[0] : "",
@@ -37,7 +40,7 @@ function GameModal({ onClose, onSave, initial, teams = [], venues = [] }) {
     return (
         <div className="admin-modal-backdrop" onClick={onClose}>
             <div className="admin-modal" onClick={e => e.stopPropagation()}>
-                <h3 className="admin-modal-title">{initial ? "Edit Game" : "Add Game"}</h3>
+                <h3 className="admin-modal-title">{initial ? "Edit Game" : "Schedule Game"}</h3>
                 <div style={{ display: "flex", gap: 12 }}>
                     <div className="admin-form-group" style={{ flex: 1 }}>
                         <label className="admin-form-label">Date *</label>
@@ -100,8 +103,185 @@ function GameModal({ onClose, onSave, initial, teams = [], venues = [] }) {
                 <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
                     <button className="admin-btn admin-btn-ghost" onClick={onClose}>Cancel</button>
                     <button className="admin-btn admin-btn-primary" onClick={handleSave} disabled={saving || !form.date || !form.teamAName || !form.teamBName}>
-                        {saving ? "Saving..." : initial ? "Save Changes" : "Create Game"}
+                        {saving ? "Saving..." : initial ? "Save Changes" : "Schedule Game"}
                     </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function GameStatsModal({ game, teams, onClose }) {
+    const { showSuccess, showError } = useToast();
+    const [activeTeam, setActiveTeam] = useState(game.teamA.name);
+    const [statType, setStatType] = useState("passing");
+    const [playerStats, setPlayerStats] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+
+    // Find the Team doc matching the active team name
+    const teamDoc = teams.find(t => t.name.toLowerCase() === activeTeam.toLowerCase());
+    const teamPlayers = teamDoc?.players || [];
+
+    // Fetch existing stats when team or statType changes
+    useEffect(() => {
+        let cancelled = false;
+        setLoading(true);
+        (async () => {
+            try {
+                const res = await fetch(`/api/games/${game._id}/stats?teamName=${encodeURIComponent(activeTeam)}&statType=${statType}`);
+                const data = await res.json();
+                const existingStats = data.success ? data.data : [];
+
+                // Build stat rows: one per player on the team
+                const rows = teamPlayers.map(p => {
+                    const playerId = String(p._id || p);
+                    const playerName = p.name || "Unknown";
+                    const existing = existingStats.find(s => String(s.player?._id || s.player) === playerId);
+                    const row = { player: playerId, playerName };
+                    STAT_FIELDS.forEach(f => { row[f] = existing ? (existing[f] ?? 0) : 0; });
+                    return row;
+                });
+
+                if (!cancelled) setPlayerStats(rows);
+            } catch {
+                if (!cancelled) setPlayerStats([]);
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, [activeTeam, statType, game._id, teamPlayers.length]);
+
+    const updateStat = (index, field, value) => {
+        setPlayerStats(prev => {
+            const next = [...prev];
+            next[index] = { ...next[index], [field]: value };
+            return next;
+        });
+    };
+
+    const handleSave = async () => {
+        setSaving(true);
+        try {
+            const res = await fetch(`/api/games/${game._id}/stats`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    teamName: activeTeam,
+                    statType,
+                    stats: playerStats.map(ps => {
+                        const entry = { player: ps.player };
+                        STAT_FIELDS.forEach(f => { entry[f] = Number(ps[f]) || 0; });
+                        return entry;
+                    }),
+                }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                showSuccess(`Saved ${statType} stats for ${activeTeam}!`);
+            } else {
+                showError(data.error || "Failed to save stats");
+            }
+        } catch {
+            showError("Failed to save stats");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <div className="admin-modal-backdrop" onClick={onClose}>
+            <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 1100, maxHeight: "90vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+                <h3 className="admin-modal-title" style={{ marginBottom: 16 }}>
+                    Game Stats &mdash; {game.teamA.name} vs {game.teamB.name}
+                    <span style={{ fontWeight: 400, fontSize: 13, marginLeft: 10, color: "#6b7280" }}>
+                        {new Date(game.date).toLocaleDateString()}
+                    </span>
+                </h3>
+
+                {/* Team toggle + Stat type selector */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", gap: 6 }}>
+                        {[game.teamA.name, game.teamB.name].map(tn => (
+                            <button
+                                key={tn}
+                                className={`admin-btn admin-btn-sm ${activeTeam === tn ? "admin-btn-primary" : "admin-btn-ghost"}`}
+                                onClick={() => setActiveTeam(tn)}
+                            >
+                                {tn}
+                            </button>
+                        ))}
+                    </div>
+                    <select
+                        className="admin-form-select"
+                        value={statType}
+                        onChange={e => setStatType(e.target.value)}
+                        style={{ width: "auto", minWidth: 140 }}
+                    >
+                        <option value="passing">Passing</option>
+                        <option value="rushing">Rushing</option>
+                        <option value="receiving">Receiving</option>
+                    </select>
+                </div>
+
+                {/* Stats table */}
+                <div style={{ flex: 1, overflowY: "auto", overflowX: "auto" }}>
+                    {!teamDoc ? (
+                        <div className="admin-empty" style={{ padding: "30px 0" }}>
+                            <i className="fa-solid fa-triangle-exclamation"></i>
+                            <p>No matching team found for &ldquo;{activeTeam}&rdquo;. Make sure a team with this name exists in the Teams section.</p>
+                        </div>
+                    ) : teamPlayers.length === 0 ? (
+                        <div className="admin-empty" style={{ padding: "30px 0" }}>
+                            <i className="fa-solid fa-users-slash"></i>
+                            <p>No players assigned to {activeTeam}. Assign players in the Teams section first.</p>
+                        </div>
+                    ) : loading ? (
+                        <div className="admin-loading">
+                            <div className="admin-spinner"></div>
+                            Loading stats...
+                        </div>
+                    ) : (
+                        <table className="admin-table" style={{ fontSize: 13 }}>
+                            <thead>
+                                <tr>
+                                    <th style={{ minWidth: 120, position: "sticky", left: 0, background: "#1a1d2d", zIndex: 1 }}>Player</th>
+                                    {STAT_FIELDS.map(f => (
+                                        <th key={f} style={{ textAlign: "center", minWidth: 60 }}>{STAT_LABELS[f]}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {playerStats.map((ps, i) => (
+                                    <tr key={ps.player}>
+                                        <td style={{ fontWeight: 600, position: "sticky", left: 0, background: "#12141f", zIndex: 1 }}>{ps.playerName}</td>
+                                        {STAT_FIELDS.map(f => (
+                                            <td key={f} style={{ padding: 2 }}>
+                                                <input
+                                                    type="number"
+                                                    className="admin-form-input"
+                                                    value={ps[f]}
+                                                    onChange={e => updateStat(i, f, e.target.value)}
+                                                    style={{ width: 60, padding: "4px 6px", fontSize: 12, textAlign: "center" }}
+                                                />
+                                            </td>
+                                        ))}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+
+                {/* Actions */}
+                <div style={{ display: "flex", gap: 10, marginTop: 16, justifyContent: "flex-end", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 16 }}>
+                    <button className="admin-btn admin-btn-ghost" onClick={onClose}>Close</button>
+                    {teamDoc && teamPlayers.length > 0 && (
+                        <button className="admin-btn admin-btn-primary" onClick={handleSave} disabled={saving}>
+                            {saving ? "Saving..." : "Save Stats"}
+                        </button>
+                    )}
                 </div>
             </div>
         </div>
@@ -113,6 +293,7 @@ export default function AdminGamesPage() {
     const [orgs, setOrgs] = useState([]);
     const [selectedOrg, setSelectedOrg] = useState("");
     const [seasons, setSeasons] = useState([]);
+    const [leagues, setLeagues] = useState([]);
     const [selectedSeason, setSelectedSeason] = useState("");
     const [games, setGames] = useState([]);
     const [teams, setTeams] = useState([]);
@@ -120,10 +301,15 @@ export default function AdminGamesPage() {
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editTarget, setEditTarget] = useState(null);
+    const [showStatsModal, setShowStatsModal] = useState(false);
+    const [statsTarget, setStatsTarget] = useState(null);
     const { showSuccess, showError } = useToast();
 
     const effectiveRole = activeRole || user?.role;
     const isOrganizer = effectiveRole === "organizer" && user?.organization?.slug;
+
+    const seasonItems = seasons;
+    const leagueItems = leagues;
 
     const fetchOrgs = useCallback(async () => {
         if (isOrganizer) {
@@ -141,18 +327,20 @@ export default function AdminGamesPage() {
 
     // Fetch seasons + teams + venues when org changes
     useEffect(() => {
-        if (!selectedOrg) { setSeasons([]); setSelectedSeason(""); setGames([]); setTeams([]); setVenues([]); return; }
+        if (!selectedOrg) { setSeasons([]); setLeagues([]); setSelectedSeason(""); setGames([]); setTeams([]); setVenues([]); return; }
         (async () => {
             try {
-                const [seasonRes, teamRes, venueRes] = await Promise.all([
+                const [seasonRes, leagueRes, teamRes, venueRes] = await Promise.all([
                     fetch(`/api/organizations/${selectedOrg}/seasons`),
+                    fetch(`/api/organizations/${selectedOrg}/leagues`),
                     fetch("/api/teams"),
                     fetch("/api/locations"),
                 ]);
-                const [seasonData, teamData, venueData] = await Promise.all([
-                    seasonRes.json(), teamRes.json(), venueRes.json(),
+                const [seasonData, leagueData, teamData, venueData] = await Promise.all([
+                    seasonRes.json(), leagueRes.json(), teamRes.json(), venueRes.json(),
                 ]);
                 if (seasonData.success) setSeasons(seasonData.data);
+                if (leagueData.success) setLeagues(leagueData.data);
                 if (teamData.success) setTeams(teamData.data);
                 if (venueData.success) setVenues(venueData.data);
             } catch { showError("Failed to load data"); }
@@ -190,11 +378,10 @@ export default function AdminGamesPage() {
                 });
                 const data = await res.json();
                 if (!data.success) { showError(data.error); return; }
-                showSuccess("Game created!");
+                showSuccess("Game scheduled!");
             }
             setShowModal(false);
             setEditTarget(null);
-            // Refresh games
             const res = await fetch(`/api/seasons/${selectedSeason}/games`);
             const data = await res.json();
             if (data.success) setGames(data.data);
@@ -242,10 +429,19 @@ export default function AdminGamesPage() {
                                 </div>
                             )}
                             <div style={{ flex: 1, minWidth: 200 }}>
-                                <label className="admin-form-label">Season</label>
+                                <label className="admin-form-label">Season / League</label>
                                 <select className="admin-form-select" value={selectedSeason} onChange={e => setSelectedSeason(e.target.value)} disabled={!selectedOrg}>
-                                    <option value="">Select season...</option>
-                                    {seasons.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
+                                    <option value="">Select season or league...</option>
+                                    {seasonItems.length > 0 && (
+                                        <optgroup label="Seasons">
+                                            {seasonItems.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
+                                        </optgroup>
+                                    )}
+                                    {leagueItems.length > 0 && (
+                                        <optgroup label="Leagues">
+                                            {leagueItems.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
+                                        </optgroup>
+                                    )}
                                 </select>
                             </div>
                         </div>
@@ -257,7 +453,7 @@ export default function AdminGamesPage() {
                             <h3>Games {selectedSeason ? `(${games.length})` : ""}</h3>
                             {selectedSeason && canCreate && (
                                 <button className="admin-btn admin-btn-primary" onClick={() => { setEditTarget(null); setShowModal(true); }}>
-                                    <i className="fa-solid fa-plus"></i> Add Game
+                                    <i className="fa-solid fa-plus"></i> Schedule Game
                                 </button>
                             )}
                         </div>
@@ -265,7 +461,7 @@ export default function AdminGamesPage() {
                         {!selectedSeason ? (
                             <div className="admin-empty">
                                 <i className="fa-solid fa-filter"></i>
-                                <p>{isOrganizer ? "Select a season to view games." : "Select an organization and season to view games."}</p>
+                                <p>{isOrganizer ? "Select a season or league to view games." : "Select an organization and season/league to view games."}</p>
                             </div>
                         ) : loading ? (
                             <div className="admin-loading">
@@ -275,7 +471,7 @@ export default function AdminGamesPage() {
                         ) : games.length === 0 ? (
                             <div className="admin-empty">
                                 <i className="fa-solid fa-football"></i>
-                                <p>No games in this season yet. Add one to get started.</p>
+                                <p>No games scheduled yet. Add one to get started.</p>
                             </div>
                         ) : (
                             <div style={{ overflowX: "auto" }}>
@@ -289,7 +485,7 @@ export default function AdminGamesPage() {
                                             <th>Venue</th>
                                             <th>Status</th>
                                             <th>Score</th>
-                                            <th style={{ width: 120 }}>Actions</th>
+                                            <th style={{ width: 140 }}>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -312,6 +508,15 @@ export default function AdminGamesPage() {
                                                 </td>
                                                 <td>
                                                     <div style={{ display: "flex", gap: 6 }}>
+                                                        {game.status === "completed" && canUpdate && (
+                                                            <button
+                                                                className="admin-btn admin-btn-ghost admin-btn-sm"
+                                                                onClick={() => { setStatsTarget(game); setShowStatsModal(true); }}
+                                                                title="Record Stats"
+                                                            >
+                                                                <i className="fa-solid fa-chart-bar"></i>
+                                                            </button>
+                                                        )}
                                                         {canUpdate && (
                                                             <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setEditTarget(game); setShowModal(true); }} title="Edit">
                                                                 <i className="fa-solid fa-pen"></i>
@@ -340,6 +545,13 @@ export default function AdminGamesPage() {
                     venues={venues}
                     onClose={() => { setShowModal(false); setEditTarget(null); }}
                     onSave={handleSave}
+                />
+            )}
+            {showStatsModal && statsTarget && (
+                <GameStatsModal
+                    game={statsTarget}
+                    teams={teams}
+                    onClose={() => { setShowStatsModal(false); setStatsTarget(null); }}
                 />
             )}
         </AdminLayout>

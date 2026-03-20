@@ -6,7 +6,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 
 export default function SeasonsPage() {
-    const { user } = useAuth();
+    const { user, activeRole } = useAuth();
     const { showSuccess, showError } = useToast();
 
     const [seasons, setSeasons] = useState([]);
@@ -54,7 +54,8 @@ export default function SeasonsPage() {
     const [formOrgId, setFormOrgId] = useState("");
     const [saving, setSaving] = useState(false);
 
-    const isAdmin = user?.role === "admin";
+    const effectiveRole = activeRole || user?.role;
+    const isAdmin = effectiveRole === "admin";
     const canView = hasAnyAccess(user, ["manage_seasons", "season_view", "season_create", "season_update", "season_delete"]);
     const canCreate = hasAnyAccess(user, ["manage_seasons", "season_create"]);
     const canUpdate = hasAnyAccess(user, ["manage_seasons", "season_update"]);
@@ -66,14 +67,15 @@ export default function SeasonsPage() {
         return () => clearTimeout(t);
     }, [searchInput]);
 
-    // Fetch organizations (admin picks; organizer auto-selects)
+    // Fetch organizations (admin gets dropdown for picking)
+    const needsOrgPicker = user?.role === "admin";
     useEffect(() => {
-        if (!isAdmin) return;
+        if (!needsOrgPicker) return;
         fetch("/api/organizations")
             .then((r) => r.json())
             .then((d) => { if (d.success) setOrganizations(d.data); })
             .catch(() => {});
-    }, [isAdmin]);
+    }, [needsOrgPicker]);
 
     const fetchSeasons = useCallback(async () => {
         if (!canView) { setLoading(false); return; }
@@ -87,7 +89,7 @@ export default function SeasonsPage() {
             else showError(data.error || "Failed to load seasons");
         } catch { showError("Failed to load seasons"); }
         finally { setLoading(false); }
-    }, [canView, search, showError]);
+    }, [canView, search]);
 
     useEffect(() => { fetchSeasons(); }, [fetchSeasons]);
 
@@ -180,7 +182,14 @@ export default function SeasonsPage() {
                                 {!editTarget && (
                                     <div className="admin-form-group" style={{ maxWidth: 400 }}>
                                         <label className="admin-form-label">Organization *</label>
-                                        {isAdmin ? (
+                                        {userOrgName ? (
+                                            <input
+                                                className="admin-form-input"
+                                                value={userOrgName}
+                                                disabled
+                                                style={{ background: "#f3f4f6", color: "#6b7280", cursor: "not-allowed" }}
+                                            />
+                                        ) : (
                                             <select
                                                 className="admin-form-select"
                                                 value={formOrgId}
@@ -191,13 +200,6 @@ export default function SeasonsPage() {
                                                     <option key={o._id} value={o._id}>{o.name}</option>
                                                 ))}
                                             </select>
-                                        ) : (
-                                            <input
-                                                className="admin-form-input"
-                                                value={userOrgName}
-                                                disabled
-                                                style={{ background: "#f3f4f6", color: "#6b7280", cursor: "not-allowed" }}
-                                            />
                                         )}
                                     </div>
                                 )}

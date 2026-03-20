@@ -3,14 +3,14 @@ import Footer from "@/components/Footer";
 import Link from "next/link";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
-import Season from "@/models/Season";
+import League from "@/models/League";
 
 async function getOrgAndSeasons(slug) {
     await dbConnect();
     const organization = await Organization.findOne({ slug }).lean();
     if (!organization) return { organization: null, activeSeasons: [], pastSeasons: [] };
 
-    const seasons = await Season.find({ organization: organization._id }).sort({ startDate: -1 }).lean();
+    const seasons = await League.find({ organization: organization._id }).sort({ startDate: -1 }).lean();
     const activeSeasons = seasons.filter((s) => s.type === "active");
     const pastSeasons = seasons.filter((s) => s.type === "past");
 

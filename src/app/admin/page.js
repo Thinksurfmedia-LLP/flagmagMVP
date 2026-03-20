@@ -67,6 +67,7 @@ export default function AdminDashboard() {
                 <StatCard icon="fa-solid fa-users" color="blue" value={stats?.users ?? "—"} label="Total Users" />
                 <StatCard icon="fa-solid fa-building" color="green" value={stats?.organizations ?? "—"} label="Organizations" />
                 <StatCard icon="fa-solid fa-calendar" color="orange" value={stats?.seasons ?? "—"} label="Seasons" />
+                <StatCard icon="fa-solid fa-trophy" color="yellow" value={stats?.leagues ?? "—"} label="Leagues" />
                 <StatCard icon="fa-solid fa-football" color="purple" value={stats?.games ?? "—"} label="Games" />
             </div>
 

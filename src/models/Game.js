@@ -2,9 +2,9 @@ import mongoose from "mongoose";
 
 const GameSchema = new mongoose.Schema(
     {
-        season: {
+        league: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "Season",
+            ref: "League",
             required: true,
         },
         date: {
