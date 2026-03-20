@@ -199,7 +199,7 @@ export async function seedDefaultRoles() {
     for (const role of DEFAULT_ROLES) {
         await Role.findOneAndUpdate(
             { slug: role.slug },
-            { $set: { permissions: role.permissions, isSystem: role.isSystem } },
+            { $set: { name: role.name, permissions: role.permissions, isSystem: role.isSystem } },
             { upsert: true, setDefaultsOnInsert: true }
         );
     }

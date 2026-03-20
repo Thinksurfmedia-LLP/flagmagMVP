@@ -70,7 +70,12 @@ export default async function OrganizationDetailPage({ params }) {
             <Header />
 
             <section className="innerpage-section type2">
-                <div className="banner-area"><img src={org.bannerImage || "/assets/images/inner-banner2.jpg"} alt="" /></div>
+                <div className="banner-area">
+                    {org.bannerImage
+                        ? <img src={org.bannerImage} alt="" />
+                        : <div style={{ width: "100%", height: "100%", minHeight: 200, background: "linear-gradient(135deg, #1a1d26 0%, #2d3040 100%)" }}></div>
+                    }
+                </div>
                 <div className="container"></div>
             </section>
 
@@ -79,7 +84,10 @@ export default async function OrganizationDetailPage({ params }) {
                     <div className="row">
                         <div className="col info-area">
                             <div className="logo-area">
-                                <img src={org.logo || "/assets/images/teamlogo1.png"} alt="" />
+                                {org.logo
+                                    ? <img src={org.logo} alt="" />
+                                    : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#2d3040", borderRadius: "inherit", color: "rgba(255,255,255,0.3)", fontSize: 36 }}><i className="fa-solid fa-building"></i></div>
+                                }
                             </div>
                             <div className="right-part">
                                 <h1>{org.name}</h1>
@@ -105,12 +113,12 @@ export default async function OrganizationDetailPage({ params }) {
                         <h4>About</h4>
                         <p>{org.description}</p>
                         <h4>Locations List</h4>
-                        {org.venues && org.venues.length > 0 ? (
+                        {org.locations && org.locations.length > 0 ? (
                             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexWrap: "wrap", alignItems: "center" }}>
-                                {org.venues.map((venue, i) => (
-                                    <li key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 15, padding: "0 20px 0 0", margin: "0 20px 0 0", borderRight: i < org.venues.length - 1 ? "1px solid #A4A1A1" : "none" }}>
+                                {org.locations.map((loc, i) => (
+                                    <li key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 15, padding: "0 20px 0 0", margin: "0 20px 0 0", borderRight: i < org.locations.length - 1 ? "1px solid #A4A1A1" : "none" }}>
                                         <span style={{ color: "#FF8C00", fontSize: 14, lineHeight: 1 }}>●</span>
-                                        <strong>{venue.name}</strong>
+                                        <strong>{loc.locationName || `${loc.cityName ? `${loc.cityName}, ` : ""}${loc.countyName} (${loc.stateAbbr})`}</strong>
                                     </li>
                                 ))}
                             </ul>

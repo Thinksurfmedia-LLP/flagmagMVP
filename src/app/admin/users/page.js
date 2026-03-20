@@ -16,7 +16,7 @@ function AddUserModal({ onClose, onSave, organizations, roles, isAdmin }) {
     // Admin: elevated roles only — viewer is assigned by default to all users
     // Organizer: only free_agent
     const availableRoles = isAdmin
-        ? roles.filter(r => r.slug !== "player" && r.slug !== "viewer")
+        ? roles.filter(r => r.slug !== "player" && r.slug !== "viewer" && r.slug !== "admin")
         : roles.filter(r => r.slug === "free_agent");
     const needsOrg = isAdmin && (selectedRoles.includes("organizer") || selectedRoles.includes("free_agent"));
 
@@ -30,7 +30,7 @@ function AddUserModal({ onClose, onSave, organizations, roles, isAdmin }) {
         setFormError("");
         if (needsOrg && !form.organization) { setFormError("Please select an organization for the organizer role"); return; }
         if (form.password !== form.confirmPassword) { setFormError("Passwords do not match"); return; }
-        const effectiveRoles = selectedRoles.length > 0 ? selectedRoles : ["viewer"];
+        const effectiveRoles = [...new Set([...(selectedRoles.length > 0 ? selectedRoles : []), "viewer"])];
         setSaving(true);
         await onSave({ ...form, roles: effectiveRoles, role: effectiveRoles[0] });
         setSaving(false);
@@ -80,9 +80,9 @@ function AddUserModal({ onClose, onSave, organizations, roles, isAdmin }) {
                             <label key={r._id} style={{
                                 display: "flex", alignItems: "center", gap: 6,
                                 padding: "6px 12px", borderRadius: 8, cursor: "pointer",
-                                border: `1.5px solid ${selectedRoles.includes(r.slug) ? "#6366f1" : "rgba(255,255,255,0.1)"}`,
-                                background: selectedRoles.includes(r.slug) ? "rgba(99,102,241,0.15)" : "transparent",
-                                color: selectedRoles.includes(r.slug) ? "#818cf8" : "#8b90a0",
+                                border: `1.5px solid ${selectedRoles.includes(r.slug) ? "#6366f1" : "#d1d5db"}`,
+                                background: selectedRoles.includes(r.slug) ? "rgba(99,102,241,0.1)" : "#f9fafb",
+                                color: selectedRoles.includes(r.slug) ? "#6366f1" : "#374151",
                                 fontSize: 13, fontWeight: 500, userSelect: "none", transition: "all 0.15s",
                             }}>
                                 <input
@@ -92,7 +92,7 @@ function AddUserModal({ onClose, onSave, organizations, roles, isAdmin }) {
                                     style={{ display: "none" }}
                                 />
                                 {selectedRoles.includes(r.slug) && <i className="fa-solid fa-check" style={{ fontSize: 11 }}></i>}
-                                {r.name}
+                                {r.name || r.slug.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
                             </label>
                         ))}
                     </div>
@@ -128,8 +128,10 @@ function EditUserModal({ target, onClose, onSave, organizations, roles, isAdmin 
     const [organization, setOrganization] = useState(target.organization?._id || target.organization || "");
     const [saving, setSaving] = useState(false);
 
-    const availableRoles = isAdmin ? roles : roles.filter(r => !["admin", "organizer"].includes(r.slug));
-    const needsOrg = isAdmin && selectedRoles.includes("organizer");
+    const availableRoles = isAdmin
+        ? roles.filter(r => !["admin", "player", "viewer"].includes(r.slug))
+        : roles.filter(r => !["admin", "organizer"].includes(r.slug));
+    const needsOrg = isAdmin && (selectedRoles.includes("organizer") || selectedRoles.includes("free_agent"));
 
     const toggleRole = (slug) => {
         setSelectedRoles(prev =>
@@ -160,9 +162,9 @@ function EditUserModal({ target, onClose, onSave, organizations, roles, isAdmin 
                             <label key={r._id} style={{
                                 display: "flex", alignItems: "center", gap: 6,
                                 padding: "6px 12px", borderRadius: 8, cursor: "pointer",
-                                border: `1.5px solid ${selectedRoles.includes(r.slug) ? "#6366f1" : "rgba(255,255,255,0.1)"}`,
-                                background: selectedRoles.includes(r.slug) ? "rgba(99,102,241,0.15)" : "transparent",
-                                color: selectedRoles.includes(r.slug) ? "#818cf8" : "#8b90a0",
+                                border: `1.5px solid ${selectedRoles.includes(r.slug) ? "#6366f1" : "#d1d5db"}`,
+                                background: selectedRoles.includes(r.slug) ? "rgba(99,102,241,0.1)" : "#f9fafb",
+                                color: selectedRoles.includes(r.slug) ? "#6366f1" : "#374151",
                                 fontSize: 13, fontWeight: 500, userSelect: "none", transition: "all 0.15s",
                             }}>
                                 <input
@@ -172,7 +174,7 @@ function EditUserModal({ target, onClose, onSave, organizations, roles, isAdmin 
                                     style={{ display: "none" }}
                                 />
                                 {selectedRoles.includes(r.slug) && <i className="fa-solid fa-check" style={{ fontSize: 11 }}></i>}
-                                {r.name}
+                                {r.name || r.slug.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
                             </label>
                         ))}
                     </div>
