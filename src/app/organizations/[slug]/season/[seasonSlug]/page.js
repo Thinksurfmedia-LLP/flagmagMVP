@@ -84,7 +84,7 @@ export default async function SeasonSchedulePage({ params }) {
                         </ul>
                     </div>
 
-                    <ScheduleWithDateStrip games={games} />
+                    <ScheduleWithDateStrip games={games} orgSlug={slug} seasonSlug={seasonSlug} />
                 </div>
             </section>
 

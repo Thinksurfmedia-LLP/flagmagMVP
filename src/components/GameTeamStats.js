@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-export default function GameTeamStats({ teamA, teamB, orgSlug, seasonSlug, gameId, dummyPlayers }) {
-    const [activeTeam, setActiveTeam] = useState(teamA.name);
+export default function GameTeamStats({ teamA, teamB, orgSlug, seasonSlug, gameId }) {
+    const [activeTeam, setActiveTeam] = useState("all");
     const [statType, setStatType] = useState("passing");
     const [players, setPlayers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -16,15 +16,16 @@ export default function GameTeamStats({ teamA, teamB, orgSlug, seasonSlug, gameI
         async function fetchStats() {
             setLoading(true);
             try {
+                const teamParam = activeTeam === "all" ? "" : encodeURIComponent(activeTeam);
                 const res = await fetch(
-                    `/api/organizations/${orgSlug}/season/${seasonSlug}/game/${gameId}/player-stats?team=${encodeURIComponent(activeTeam)}&statType=${statType}`
+                    `/api/organizations/${orgSlug}/season/${seasonSlug}/game/${gameId}/player-stats?team=${teamParam}&statType=${statType}`
                 );
                 const data = await res.json();
                 const fetched = data.players || [];
-                setPlayers(fetched.length > 0 ? fetched : (dummyPlayers || []));
+                setPlayers(fetched);
             } catch (err) {
                 console.error("Failed to fetch stats:", err);
-                setPlayers(dummyPlayers || []);
+                setPlayers([]);
             }
             setLoading(false);
         }
@@ -36,6 +37,11 @@ export default function GameTeamStats({ teamA, teamB, orgSlug, seasonSlug, gameI
             <div className="row justify-content-between align-items-center players-stats-heading-area">
                 <div className="col-auto">
                     <ul className="team-nav">
+                        <li className={activeTeam === "all" ? "active" : ""}>
+                            <a href="#" onClick={(e) => { e.preventDefault(); setActiveTeam("all"); }}>
+                                All Stats
+                            </a>
+                        </li>
                         <li className={activeTeam === teamA.name ? "active" : ""}>
                             <a href="#" onClick={(e) => { e.preventDefault(); setActiveTeam(teamA.name); }}>
                                 {teamA.name}
