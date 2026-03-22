@@ -1,0 +1,1366 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap");
+
+/* ===== FONTS ===== */
+@font-face {
+    font-family: "Cros";
+    src: url("/assets/webfonts/Cros.woff2") format("woff2"),
+        url("/assets/webfonts/Cros.woff") format("woff"),
+        url("/assets/webfonts/Cros.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ===== RESET & BASE ===== */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: 15px;
+    scroll-behavior: smooth;
+}
+
+body {
+    color: #eaeaea;
+    font: 400 1rem/1.6 "DM Sans", sans-serif;
+    background-color: #0b0d14;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+    outline: none;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+button {
+    border: 0;
+    background: none;
+    cursor: pointer;
+}
+
+button:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+input:focus {
+    box-shadow: none;
+    outline: none;
+}
+
+/* ===== TYPOGRAPHY ===== */
+h1 {
+    font-size: 3.65rem;
+    font-weight: 500;
+    line-height: 1.2;
+    font-family: "Cros", sans-serif;
+    color: #fff;
+    letter-spacing: 1.5px;
+}
+
+h2 {
+    font-size: 3.2rem;
+    font-weight: 500;
+    line-height: 1;
+    font-family: "Cros", sans-serif;
+    color: #fff;
+    margin-bottom: 15px;
+    letter-spacing: 1px;
+}
+
+h3 {
+    font-size: 2.25rem;
+    font-weight: 500;
+    line-height: 1.3;
+    font-family: "Cros", sans-serif;
+    color: #fff;
+}
+
+h4 {
+    font-size: 2.15rem;
+    font-weight: 500;
+    line-height: 1.3;
+    font-family: "Cros", sans-serif;
+    color: #fff;
+}
+
+h5 {
+    font-size: 1.625rem;
+    font-weight: 500;
+    line-height: 1.3;
+    font-family: "Cros", sans-serif;
+    color: #fff;
+}
+
+h6 {
+    font-size: 1.25rem;
+    font-weight: 500;
+    line-height: 1.3;
+    font-family: "Cros", sans-serif;
+    color: #fff;
+}
+
+p {
+    font: 400 1rem/1.6 "DM Sans", sans-serif;
+    margin-bottom: 1.25rem;
+    color: #eaeaea;
+}
+
+/* ===== BUTTONS ===== */
+.btn {
+    font: 500 0.9rem/1.2 "DM Sans", sans-serif;
+    padding: 1px 25px;
+    min-height: 45px;
+    border-radius: 30px;
+    text-transform: uppercase;
+    color: #000;
+    cursor: pointer;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    text-decoration: none;
+}
+
+.btn:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.btn-primary {
+    background-color: #ff1e00;
+    color: #fff;
+    border: 1px solid #ff1e00;
+    overflow: hidden;
+    position: relative;
+}
+
+.btn-primary:hover {
+    background-color: #000;
+    color: #fff;
+    border-color: rgba(255, 30, 0, 0.77);
+}
+
+.btn-info-primary {
+    background-color: transparent;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+}
+
+.btn-info-primary:hover {
+    background-color: #fff;
+    color: #ff1e00;
+}
+
+/* ===== FORMS ===== */
+.form-control {
+    width: 100%;
+    background-color: #2b2726;
+    height: 48px;
+    padding: 5px 15px;
+    border: 0;
+    border-radius: 35px;
+    color: #e7e7e7;
+    font: 400 1rem/1.6 "DM Sans", sans-serif;
+}
+
+.form-control:focus {
+    box-shadow: none;
+    background-color: #2b2726;
+    color: #e7e7e7;
+    outline: none;
+    border: 1px solid rgba(255, 30, 0, 0.4);
+}
+
+.form-control.icon-email {
+    background: url("/assets/images/icon-email.png") 20px center no-repeat #000;
+    padding: 5px 15px 5px 50px;
+}
+
+.form-control.icon-password {
+    background: url("/assets/images/icon-password.png") 20px center no-repeat #000;
+    padding: 5px 15px 5px 50px;
+}
+
+.form-control.icon-user {
+    background: url("/assets/images/icon-user.png") 20px center no-repeat #000;
+    padding: 5px 15px 5px 50px;
+}
+
+.form-control.icon-phone {
+    background: url("/assets/images/icon-phone.png") 20px center no-repeat #000;
+    padding: 5px 15px 5px 50px;
+}
+
+.form-control.icon-search {
+    background: url("/assets/images/icon-search-red.png") 20px center no-repeat #000;
+    padding: 5px 15px 5px 50px;
+}
+
+.form-control::placeholder {
+    color: #797979;
+    opacity: 1 !important;
+}
+
+.select-form-control {
+    width: 100%;
+    padding: 5px 15px;
+    background: url("/assets/images/down-arrow-red.png") no-repeat 95% center #2b2726;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.select-form-control option {
+    background-color: #000;
+    color: #e7e7e7;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    color: #b0b0b0;
+    margin-bottom: 5px;
+    display: block;
+    font-size: 14px;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes rotate {
+    from {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+/* ===== WRAPPER ===== */
+.wrapper {
+    overflow: hidden;
+    background: url("/assets/images/main-bg.jpg") center center no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+    min-height: 100vh;
+}
+
+/* ===== LANDING / SPLASH ===== */
+.landing-page {
+    background-color: #17120b;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.landing-page::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100vh;
+    height: 100vh;
+    background: url("/assets/images/landing-bg.png") center center no-repeat;
+    background-size: auto;
+    opacity: 1;
+    z-index: 1;
+    animation: rotate 40s linear infinite;
+    transform: translate(-50%, -50%);
+}
+
+.landing-page > * {
+    position: relative;
+    z-index: 2;
+}
+
+.landing-page .logo-area {
+    text-align: center;
+}
+
+.landing-page .logo-area img {
+    max-width: 90%;
+    margin: auto;
+}
+
+.landing-page .loader {
+    position: absolute;
+    top: 85%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* ===== MAIN SECTION WRAPPER ===== */
+.main-section-wrapper {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    flex-direction: column;
+    padding: 10px 15px;
+}
+
+.main-section-wrapper .logo-area {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.main-section-wrapper .logo-area img {
+    max-width: 60%;
+    margin: auto;
+}
+
+/* ===== HEADER ===== */
+.main-section-wrapper header {
+    width: 100%;
+    padding: 0;
+}
+
+.main-section-wrapper header .back-btn-area {
+    display: flex;
+    align-items: center;
+    justify-content: start;
+}
+
+.main-section-wrapper header .back-btn-area a,
+.main-section-wrapper header .back-btn-area button {
+    color: #fff;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.main-section-wrapper header .back-btn-area span {
+    color: #fff;
+    font-family: "DM Sans", sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    margin-left: 10px;
+}
+
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.hamburger-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+.hamburger-btn img {
+    width: 28px;
+    height: auto;
+}
+
+.profile-area {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.profile-image {
+    width: 42px;
+    height: 42px;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.profile-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+}
+
+.profile-edit a {
+    display: flex;
+}
+
+/* ===== NAV OVERLAY ===== */
+.nav-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 9998;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.nav-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.nav-menu {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    width: 280px;
+    height: 100%;
+    background: #000;
+    z-index: 9999;
+    transition: left 0.3s ease;
+    padding-top: 20px;
+    box-shadow: 0 0 60px rgba(246, 181, 21, 0.45);
+}
+
+.nav-menu.active {
+    left: 0;
+}
+
+.nav-menu .nav-close {
+    text-align: right;
+    padding: 10px 15px;
+}
+
+.nav-menu .nav-close button {
+    color: #fff;
+    font-size: 20px;
+    background: none;
+    border: none;
+}
+
+.nav-menu ul li {
+    margin: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.nav-menu ul li a {
+    color: #fff;
+    padding: 15px;
+    display: block;
+    font-size: 15px;
+    transition: background 0.2s ease;
+}
+
+.nav-menu ul li a:hover {
+    background: rgba(255, 30, 0, 0.15);
+}
+
+.nav-menu ul li:last-child {
+    border-bottom: 0;
+}
+
+/* ===== SEARCH AREA ===== */
+.search-area {
+    display: flex;
+    align-items: center;
+    position: relative;
+    border-radius: 35px;
+    margin: 20px 0 0;
+    width: 100%;
+}
+
+.search-area .filter-btn {
+    position: absolute;
+    right: 0;
+    height: 100%;
+    width: 50px;
+    background-color: #ff1e00;
+    border-radius: 0 35px 35px 0;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.search-area .filter-btn img {
+    width: 20px;
+}
+
+/* ===== FILTER DROPDOWN ===== */
+.filter-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: calc(100vw - 30px);
+    background-color: #000;
+    border-radius: 20px;
+    border: 1px solid #6b6b6b;
+    padding: 20px 15px;
+    display: none;
+    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 13px;
+    box-shadow: 0 0 60px rgba(246, 181, 21, 0.45);
+    z-index: 100;
+    animation: slideUp 0.3s ease;
+}
+
+.filter-dropdown.active {
+    display: flex;
+}
+
+.filter-dropdown h4 {
+    font-family: "DM Sans", sans-serif;
+    font-size: 16px;
+    color: #fff;
+    text-transform: capitalize;
+    margin-bottom: 0;
+    border-bottom: 1px solid #3f3f3f;
+    padding-bottom: 10px;
+}
+
+/* ===== TAB NAVIGATION ===== */
+.match-area-nav {
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    gap: 10px;
+    margin: 20px 0 0;
+    width: 100%;
+}
+
+.match-area-nav li {
+    flex: 1 0 0%;
+    text-align: center;
+    background-color: rgb(59, 38, 31);
+    color: #fff;
+    padding: 6px 5px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.match-area-nav li a {
+    color: #fff;
+}
+
+.match-area-nav li.active {
+    background-color: #ff1e00;
+}
+
+.match-area-nav li:hover:not(.active) {
+    background-color: rgb(80, 50, 40);
+}
+
+/* ===== MATCH CARDS ===== */
+.match-box-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    margin: 20px 0 0;
+    width: 100%;
+}
+
+.match-box {
+    background-color: rgb(43, 39, 38);
+    padding: 15px 20px;
+    border: 1px solid rgba(126, 126, 126, 0.21);
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    animation: fadeIn 0.5s ease;
+}
+
+.match-box:hover {
+    background: linear-gradient(190deg, rgb(45, 33, 33) 0%, rgb(28, 29, 31) 100%) !important;
+}
+
+.match-box:hover::before {
+    content: "";
+    z-index: 1;
+    text-align: center;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(0deg);
+    position: absolute;
+    width: 99999px;
+    height: 99999px;
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    background-image: conic-gradient(
+        rgba(0, 0, 0, 0),
+        rgba(254, 53, 3, 0.576),
+        #efad02,
+        rgba(254, 53, 3, 0.506),
+        rgba(0, 0, 0, 0) 6%
+    );
+    animation: rotate 12s linear infinite;
+    transition: 0.4s;
+}
+
+.match-box:hover::after {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    inset: 2px;
+    background: linear-gradient(190deg, rgb(45, 33, 33) 0%, rgb(28, 29, 31) 100%);
+    border-radius: 18px;
+}
+
+.match-box > * {
+    position: relative;
+    z-index: 2;
+}
+
+.match-box .badge-wrap {
+    margin-bottom: 10px;
+}
+
+.match-box .badge-wrap .badge {
+    background: url("/assets/images/badge-bg.png") center center no-repeat;
+    background-size: contain;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 12px;
+    text-transform: uppercase;
+    display: inline-block;
+    letter-spacing: 1px;
+}
+
+.match-box .top {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.match-box .top .a {
+    text-align: center;
+    flex: 1;
+}
+
+.match-box .top .a .team-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto 8px;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+}
+
+.match-box .top .a .team-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.match-box .top .a h5 {
+    font-size: 14px;
+    font-family: "DM Sans", sans-serif;
+    font-weight: 600;
+    margin: 0;
+}
+
+.match-box .top .b {
+    padding: 0 5px;
+}
+
+.match-box .top .b img {
+    width: 35px;
+}
+
+.match-box hr {
+    border-color: rgba(255, 255, 255, 0.15);
+    margin: 12px 0;
+}
+
+.match-box .bottom {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.match-box .bottom .left ul li {
+    font-size: 13px;
+    color: #b0b0b0;
+    margin-bottom: 3px;
+    padding: 0;
+}
+
+.match-box .bottom .left ul li span {
+    color: #fff;
+    font-weight: 500;
+}
+
+.match-box .bottom .right .btn {
+    font-size: 12px;
+    min-height: 38px;
+    padding: 1px 18px;
+    white-space: nowrap;
+}
+
+/* ===== CONTENT WRAPPER (Login/Welcome) ===== */
+.content-wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.content-area {
+    max-width: 80%;
+    margin: auto;
+    min-width: 290px;
+}
+
+.content-area h1 {
+    text-align: center;
+    color: #fff;
+    margin-bottom: 0;
+    text-transform: uppercase;
+}
+
+.content-area p {
+    line-height: 1.45;
+    color: #d6d6d6;
+}
+
+.button-area {
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+    width: 100%;
+}
+
+.button-area a,
+.button-area button {
+    width: 100%;
+}
+
+/* ===== SOCIAL LOGIN ===== */
+.social-login-area {
+    margin-top: 30px;
+}
+
+.social-login-area h5 {
+    font-family: "DM Sans", sans-serif;
+    font-size: 15px;
+    color: #979797;
+    text-transform: capitalize;
+    margin-bottom: 10px;
+    display: inline-block;
+}
+
+.social-login-area ul {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+    gap: 7px;
+}
+
+.social-login-area ul li a {
+    display: block;
+}
+
+.social-login-area ul li a img {
+    width: 40px;
+    height: 40px;
+    transition: transform 0.2s ease;
+}
+
+.social-login-area ul li a:hover img {
+    transform: scale(1.1);
+}
+
+/* ===== FORM AREA (Login/Signup) ===== */
+.form-area {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-area .password-group {
+    display: flex;
+    align-items: center;
+    border-radius: 35px;
+    overflow: hidden;
+    position: relative;
+}
+
+.form-area .password-group input {
+    position: relative;
+    z-index: 1;
+}
+
+.form-area .password-group button {
+    position: absolute;
+    right: 10px;
+    border: 0;
+    background: transparent;
+    z-index: 2;
+    cursor: pointer;
+    padding: 8px;
+}
+
+.form-area .password-group button i,
+.form-area .password-group button svg {
+    color: #ff1e00;
+    font-size: 16px;
+}
+
+.form-area .forgot-pass {
+    text-align: right;
+    font-size: 14px;
+}
+
+.form-area .forgot-pass a {
+    color: rgb(167, 161, 159);
+}
+
+.form-area .forgot-pass a:hover {
+    color: #ff1e00;
+}
+
+/* ===== LIVE MATCH WRAPPER ===== */
+.live-match-wrapper {
+    width: 100%;
+    padding: 15px 0;
+}
+
+.live-match-wrapper .top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 10px;
+}
+
+.live-match-wrapper .team-box {
+    flex: 1;
+    text-align: center;
+}
+
+.live-match-wrapper .team-box h5 {
+    font-size: 14px;
+    font-family: "DM Sans", sans-serif;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.live-match-wrapper .team-box .image-area {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto 8px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.live-match-wrapper .team-box .image-area img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.live-match-wrapper .team-box h4 {
+    font-size: 14px;
+    font-family: "DM Sans", sans-serif;
+    color: #b0b0b0;
+    margin-bottom: 5px;
+}
+
+.live-match-wrapper .team-box .progress-area {
+    padding: 0 10px;
+}
+
+.live-match-wrapper .team-box .progress-area .progress {
+    height: 6px;
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.live-match-wrapper .team-box .progress-area .progress-bar {
+    background-color: #ff1e00;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.live-match-wrapper .team-box .progress-area .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #b0b0b0;
+    margin-top: 3px;
+}
+
+.live-match-wrapper .team-score {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+}
+
+.live-match-wrapper .team-score .logo {
+    margin-bottom: 8px;
+}
+
+.live-match-wrapper .team-score .logo img {
+    width: 50px;
+}
+
+.live-match-wrapper .team-score h3 {
+    font-size: 2rem;
+    font-family: "Cros", sans-serif;
+    margin: 0;
+}
+
+.live-match-wrapper .team-score h3 span {
+    color: #ff1e00;
+}
+
+.live-match-wrapper .team-score h6 {
+    font-family: "DM Sans", sans-serif;
+    font-size: 12px;
+    color: #b0b0b0;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 0;
+}
+
+/* ===== INFO TEXT ===== */
+.info-text {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 15px 0;
+    flex-wrap: wrap;
+}
+
+.info-text .text {
+    font-size: 13px;
+    color: #b0b0b0;
+}
+
+.info-text .text span {
+    color: #fff;
+    font-weight: 600;
+}
+
+/* ===== DRIVE AREA ===== */
+.drive-area {
+    text-align: center;
+    margin: 15px 0;
+}
+
+.drive-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+.drive-box button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    transition: background 0.2s ease;
+}
+
+.drive-box button:hover {
+    background: rgba(255, 30, 0, 0.3);
+}
+
+.drive-box button img {
+    width: 20px;
+}
+
+.drive-box h6 {
+    font-family: "DM Sans", sans-serif;
+    font-size: 16px;
+    margin: 0;
+}
+
+.drive-box h6 span {
+    color: #ff1e00;
+    font-weight: 700;
+    font-size: 20px;
+}
+
+/* ===== MANAGEMENT BOX AREA ===== */
+.managment-box-area {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 15px 0;
+    width: 100%;
+}
+
+.control-box {
+    background-color: rgb(43, 39, 38);
+    border: 1px solid rgba(126, 126, 126, 0.21);
+    border-radius: 15px;
+    padding: 15px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.control-box:hover {
+    background-color: rgba(255, 30, 0, 0.15);
+    border-color: rgba(255, 30, 0, 0.4);
+    transform: translateY(-2px);
+}
+
+.control-box:active {
+    transform: scale(0.95);
+}
+
+.control-box img {
+    width: 35px;
+    height: 35px;
+    margin-bottom: 8px;
+}
+
+.control-box h6 {
+    font-family: "DM Sans", sans-serif;
+    font-size: 12px;
+    text-transform: capitalize;
+    margin: 0;
+    color: #d6d6d6;
+}
+
+/* ===== BOTTOM FOOTER ===== */
+.bottom-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(0deg, rgba(11, 13, 20, 1) 0%, rgba(11, 13, 20, 0.95) 100%);
+    padding: 12px 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+}
+
+.bottom-footer ul {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+.bottom-footer ul li a,
+.bottom-footer ul li button {
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.bottom-footer ul li a:hover,
+.bottom-footer ul li button:hover {
+    background: rgba(255, 30, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.bottom-footer ul li a img,
+.bottom-footer ul li button img {
+    width: 22px;
+}
+
+/* ===== CREATE MATCH ===== */
+.create-match-area {
+    width: 100%;
+    text-align: left;
+    animation: slideUp 0.4s ease;
+}
+
+.create-match-area .row {
+    display: flex;
+    gap: 10px;
+}
+
+.create-match-area .row > * {
+    flex: 1;
+}
+
+.create-match-area h6 {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.create-match-area h6 a {
+    color: #ff1e00;
+}
+
+/* ===== TOAST ===== */
+.toast-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 30, 0, 0.9);
+    color: #fff;
+    padding: 10px 25px;
+    border-radius: 30px;
+    font-size: 14px;
+    z-index: 10000;
+    animation: slideUp 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.toast-message.error {
+    background: rgba(220, 38, 38, 0.9);
+}
+
+.toast-message.success {
+    background: rgba(22, 163, 74, 0.9);
+}
+
+/* ===== LOADING SPINNER ===== */
+.loading-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    width: 100%;
+}
+
+.loading-spinner::after {
+    content: "";
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.15);
+    border-top-color: #ff1e00;
+    border-radius: 50%;
+    animation: rotate 0.8s linear infinite;
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #797979;
+}
+
+.empty-state h5 {
+    font-family: "DM Sans", sans-serif;
+    color: #797979;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+/* ===== LOGIN BOTTOM LINK ===== */
+.auth-link {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.auth-link h6 {
+    font-family: "DM Sans", sans-serif;
+    font-size: 14px;
+    color: #979797;
+}
+
+.auth-link h6 a {
+    color: #ff1e00;
+    font-weight: 600;
+}
+
+/* ===== MATCH LIST MAIN WRAP ===== */
+.match-list-main-wrap {
+    width: 100%;
+    flex: 1;
+    padding-bottom: 20px;
+}
+
+/* ===== SCORE DISPLAY (for completed games in list) ===== */
+.score-display {
+    text-align: center;
+    padding: 5px 0;
+}
+
+.score-display h3 {
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.score-display h3 span {
+    color: #ff1e00;
+}
+
+/* ===== UTILITY ===== */
+.text-center {
+    text-align: center;
+}
+
+.w-100 {
+    width: 100%;
+}
+
+.my-3 {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.mt-3 {
+    margin-top: 15px;
+}
+
+.mb-3 {
+    margin-bottom: 15px;
+}
+
+/* ===== LOGIN PAGE SPECIFIC ===== */
+.login-page {
+    justify-content: center;
+}
+
+.login-page .content-wrapper {
+    flex: 1;
+    justify-content: center;
+}
+
+.login2 {
+    padding-top: 20px;
+    justify-content: flex-start;
+}
+
+.login2 .content-wrapper {
+    justify-content: flex-start;
+}
+
+.login2 .content-area {
+    margin: 20px auto 25px;
+}
+
+/* ===== GAME STATUS BADGES ===== */
+.status-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-badge.upcoming {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+}
+
+.status-badge.in_progress {
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+    animation: pulse 2s infinite;
+}
+
+.status-badge.completed {
+    background: rgba(156, 163, 175, 0.2);
+    color: #9ca3af;
+}
