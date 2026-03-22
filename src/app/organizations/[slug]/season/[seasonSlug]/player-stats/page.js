@@ -6,6 +6,8 @@ import Organization from "@/models/Organization";
 import League from "@/models/League";
 import Player from "@/models/Player";
 import Team from "@/models/Team";
+import GameStat from "@/models/GameStat";
+import Game from "@/models/Game";
 import { formatOrganizationLocations } from "@/lib/organizationLocations";
 import PlayerStatsFilter from "@/components/PlayerStatsFilter";
 
@@ -28,22 +30,22 @@ async function getData(slug, seasonSlug) {
         }
     }
 
+    // Check if any real game stats exist for this league's games
+    const games = await Game.find({ league: league._id }).select("_id").lean();
+    const gameIds = games.map((g) => g._id);
+    const hasStats = gameIds.length > 0
+        ? (await GameStat.countDocuments({ game: { $in: gameIds } })) > 0
+        : false;
+
     return {
         org: JSON.parse(JSON.stringify({ ...org, playerCount: players.length })),
         league: JSON.parse(JSON.stringify(league)),
         players: JSON.parse(JSON.stringify(players)),
         teams: JSON.parse(JSON.stringify(teams)),
         playerTeamMap,
+        hasStats,
     };
 }
-
-// Fallback sample data if no players exist in DB
-const samplePlayerStats = [
-    { _id: null, name: "Aaron Benton", rate: "102.08", atts: 12, comp: 102, tds: 10, pct: 60, xp2: "-", yards: 1, ten: 114, twenty: 2, forty: 22, ints: 50, intOpen: 25, intXp: 25 },
-    { _id: null, name: "Aaron Benton", rate: "102.08", atts: 12, comp: 102, tds: 10, pct: 60, xp2: "-", yards: 1, ten: 114, twenty: 2, forty: 22, ints: 50, intOpen: 25, intXp: 25 },
-    { _id: null, name: "Aaron Benton", rate: "102.08", atts: 12, comp: 102, tds: 10, pct: 60, xp2: "-", yards: 1, ten: 114, twenty: 2, forty: 22, ints: 50, intOpen: 25, intXp: 25 },
-    { _id: null, name: "Aaron Benton", rate: "102.08", atts: 12, comp: 102, tds: 10, pct: 60, xp2: "-", yards: 1, ten: 114, twenty: 2, forty: 22, ints: 50, intOpen: 25, intXp: 25 },
-];
 
 export default async function PlayerStatsPage({ params }) {
     const { slug, seasonSlug } = await params;
@@ -55,11 +57,11 @@ export default async function PlayerStatsPage({ params }) {
         );
     }
 
-    const { org, league, players, teams, playerTeamMap } = data;
+    const { org, league, players, teams, playerTeamMap, hasStats } = data;
     const locationText = formatOrganizationLocations(org);
 
-    // Build player rows from real DB players, or fall back to sample data
-    const playerRows = players.length > 0
+    // Only build player rows if real game stats exist
+    const playerRows = hasStats
         ? players.map((p) => ({
             _id: p._id,
             name: p.name,
@@ -68,7 +70,7 @@ export default async function PlayerStatsPage({ params }) {
             teamName: playerTeamMap[String(p._id)] || p.presentTeam?.name || "",
             rate: "102.08", atts: 12, comp: 102, tds: 10, pct: 60, xp2: "-", yards: 1, ten: 114, twenty: 2, forty: 22, ints: 50, intOpen: 25, intXp: 25,
         }))
-        : samplePlayerStats;
+        : [];
 
     // Collect teams from Team collection
     const allTeams = teams.map((t) => ({ name: t.name, logo: t.logo || "" }));

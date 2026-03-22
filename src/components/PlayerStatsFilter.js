@@ -6,6 +6,19 @@ import Link from "next/link";
 export default function PlayerStatsFilter({ playerRows, allTeams }) {
     const [activeTeam, setActiveTeam] = useState("all");
 
+    // No real stats data yet — show coming soon message
+    if (playerRows.length === 0) {
+        return (
+            <div className="organization-stats-table-wrap players-stats">
+                <div className="text-center" style={{ padding: "60px 20px" }}>
+                    <img src="/assets/images/icon-star.png" alt="" style={{ width: 48, opacity: 0.4, marginBottom: 16 }} />
+                    <h3 style={{ marginBottom: 8 }}>Player Stats Coming Soon</h3>
+                    <p style={{ opacity: 0.6, fontSize: 15 }}>Stats will appear here once games have been played and recorded.</p>
+                </div>
+            </div>
+        );
+    }
+
     const filteredRows = activeTeam === "all"
         ? playerRows
         : playerRows.filter((p) => p.teamName === activeTeam);

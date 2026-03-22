@@ -50,6 +50,10 @@ const LeagueSchema = new mongoose.Schema(
             type: String,
             default: "",
         },
+        image: {
+            type: String,
+            default: "",
+        },
         divisions: [
             {
                 name: { type: String },
@@ -87,7 +91,7 @@ LeagueSchema.index({ organization: 1, slug: 1 }, { unique: true });
 function getLeagueModel() {
     if (mongoose.models.League) {
         const existing = mongoose.models.League;
-        if (!existing.schema.paths.divisions || !existing.schema.paths.seasonOverridden) {
+        if (!existing.schema.paths.divisions || !existing.schema.paths.seasonOverridden || !existing.schema.paths.image) {
             delete mongoose.models.League;
             delete mongoose.connection.models?.League;
             return mongoose.model("League", LeagueSchema);

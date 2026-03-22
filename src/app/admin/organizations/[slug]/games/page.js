@@ -71,7 +71,7 @@ function GameModal({ onClose, onSave, initial, seasons = [], leagues = [], venue
         .map(name => venues.find(v => v.name.toLowerCase() === name.toLowerCase()))
         .filter(Boolean);
     const selectedVenue = venues.find(v => v.name === selectedVenueName);
-    const showFieldDropdown = selectedVenue && selectedVenue.fields && selectedVenue.fields.length > 1;
+    const showFieldDropdown = selectedVenue && selectedVenue.fields && selectedVenue.fields.length > 0;
     const composedLocation = selectedVenueName
         ? (selectedFieldName ? `${selectedVenueName} - ${selectedFieldName}` : selectedVenueName)
         : "";

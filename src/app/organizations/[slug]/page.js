@@ -4,15 +4,17 @@ import Link from "next/link";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import League from "@/models/League";
+import Season from "@/models/Season";
 import Player from "@/models/Player";
 import Game from "@/models/Game";
+import LeagueFilteredList from "@/components/LeagueFilteredList";
 
 async function getOrgAndSeasons(slug) {
     await dbConnect();
     const organization = await Organization.findOne({ slug }).lean();
     if (!organization) return { organization: null, activeSeasons: [], pastSeasons: [] };
 
-    const seasons = await League.find({ organization: organization._id }).sort({ startDate: -1 }).lean();
+    const seasons = await League.find({ organization: organization._id }).sort({ startDate: -1 }).populate("season", "name slug").lean();
 
     // Count players belonging to this org
     const playerCount = await Player.countDocuments({ organization: organization._id });
@@ -28,40 +30,19 @@ async function getOrgAndSeasons(slug) {
         : [];
     const firstGameMap = Object.fromEntries(firstGames.map(g => [g._id.toString(), g.firstTime]));
 
-    const activeSeasons = seasons.filter((s) => s.type === "active").map(s => ({ ...s, firstGameTime: firstGameMap[s._id.toString()] || "" }));
-    const pastSeasons = seasons.filter((s) => s.type === "past").map(s => ({ ...s, firstGameTime: firstGameMap[s._id.toString()] || "" }));
+    const enriched = seasons.map(s => ({
+        ...s,
+        firstGameTime: firstGameMap[s._id.toString()] || "",
+        seasonName: s.season?.name || "",
+    }));
+    const activeSeasons = enriched.filter((s) => s.type === "active");
+    const pastSeasons = enriched.filter((s) => s.type === "past");
 
     return {
         organization: JSON.parse(JSON.stringify({ ...organization, playerCount })),
         activeSeasons: JSON.parse(JSON.stringify(activeSeasons)),
         pastSeasons: JSON.parse(JSON.stringify(pastSeasons)),
     };
-}
-
-function LeagueCard({ season, orgSlug }) {
-    return (
-        <div className="col-lg-6">
-            <div className="leagues-card">
-                <div className="badge">{season.category}</div>
-                <div className="left">
-                    <div className="bg"><img src="/assets/images/teamlogo2.png" alt="" /></div>
-                    <img src="/assets/images/teamlogo2.png" alt="" />
-                </div>
-                <div className="right">
-                    <h5>{season.name}</h5>
-                    <ul>
-                        <li><img src="/assets/images/icon-map.png" alt="" /> Locations - <span>{season.location}</span></li>
-                        <li><img src="/assets/images/icon-calander.png" alt="" /> Start date - <span>{new Date(season.startDate).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "2-digit" })}</span></li>
-                        <li><img src="/assets/images/icon-clock.png" alt="" /> Time - <span>{season.firstGameTime || season.time || "TBD"}</span></li>
-                    </ul>
-                    <div className="button-area">
-                        <Link href={`/organizations/${orgSlug}/season/${season.slug}`} className="btn btn-primary">Enter Season</Link>
-                        <Link href="#" className="btn btn-info-primary">Sign-In</Link>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
 }
 
 export default async function OrganizationDetailPage({ params }) {
@@ -161,22 +142,10 @@ export default async function OrganizationDetailPage({ params }) {
 
                     <div className="tab-content" id="pills-tabContent">
                         <div className="tab-pane fade show active" id="leagues-one" role="tabpanel" aria-labelledby="leagues-one-tab" tabIndex="0">
-                            <div className="row mt-3 g-4">
-                                {activeSeasons.length > 0 ? activeSeasons.map((season) => (
-                                    <LeagueCard key={season._id} season={season} orgSlug={slug} />
-                                )) : (
-                                    <div className="col-12 text-center py-4"><p>No active leagues at the moment.</p></div>
-                                )}
-                            </div>
+                            <LeagueFilteredList leagues={activeSeasons} orgSlug={slug} />
                         </div>
                         <div className="tab-pane fade" id="leagues-two" role="tabpanel" aria-labelledby="leagues-two-tab" tabIndex="0">
-                            <div className="row mt-3 g-4">
-                                {pastSeasons.length > 0 ? pastSeasons.map((season) => (
-                                    <LeagueCard key={season._id} season={season} orgSlug={slug} />
-                                )) : (
-                                    <div className="col-12 text-center py-4"><p>No past leagues.</p></div>
-                                )}
-                            </div>
+                            <LeagueFilteredList leagues={pastSeasons} orgSlug={slug} />
                         </div>
                     </div>
                 </div>

@@ -17,11 +17,13 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
                 ? [initial.location]
                 : [],
         startDate: initial?.startDate ? new Date(initial.startDate).toISOString().split("T")[0] : "",
+        image: initial?.image || "",
     });
     const [selectedOrgId, setSelectedOrgId] = useState(
         initial?.organization?._id || initial?.organization || (isAdmin ? "" : userOrgId)
     );
     const [saving, setSaving] = useState(false);
+    const [uploading, setUploading] = useState(false);
     const [categoryOptions, setCategoryOptions] = useState([]);
     const [venuesByCounty, setVenuesByCounty] = useState([]);
     const [loadingOrg, setLoadingOrg] = useState(false);
@@ -151,6 +153,20 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
         } catch {}
     };
 
+    const handleImageUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setUploading(true);
+        try {
+            const fd = new FormData();
+            fd.append("file", file);
+            const res = await fetch("/api/upload", { method: "POST", body: fd });
+            const data = await res.json();
+            if (data.success) setForm(prev => ({ ...prev, image: data.url }));
+        } catch {}
+        setUploading(false);
+    };
+
     const toggleVenue = (venueName) => {
         setForm((prev) => ({
             ...prev,
@@ -255,6 +271,22 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
                         onChange={(e) => setForm({ ...form, name: e.target.value })}
                         placeholder="e.g. Spring 2026"
                     />
+                </div>
+
+                <div className="admin-form-group">
+                    <label className="admin-form-label">League Image</label>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        {form.image && (
+                            <img src={form.image} alt="League" style={{ width: 56, height: 56, objectFit: "cover", borderRadius: 8, border: "1px solid #333" }} />
+                        )}
+                        <label className="admin-btn admin-btn-ghost admin-btn-sm" style={{ cursor: "pointer", margin: 0 }}>
+                            {uploading ? "Uploading..." : form.image ? "Change Image" : "Upload Image"}
+                            <input type="file" accept="image/*" onChange={handleImageUpload} hidden disabled={uploading} />
+                        </label>
+                        {form.image && (
+                            <button type="button" className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => setForm(prev => ({ ...prev, image: "" }))} style={{ color: "#ef4444" }}>Remove</button>
+                        )}
+                    </div>
                 </div>
 
                 <div className="admin-form-group">
