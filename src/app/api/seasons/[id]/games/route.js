@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Game from "@/models/Game";
+import Team from "@/models/Team";
+import League from "@/models/League";
 import { requireAdmin } from "@/lib/apiAuth";
 
 // GET games for a season
@@ -23,6 +25,30 @@ export async function GET(request, { params }) {
         }
 
         const games = await Game.find(filter).sort({ date: 1, time: 1 }).lean();
+
+        // Populate latest team logos and details from the Team model
+        const league = await League.findById(id).lean();
+        if (league && league.organization) {
+            const teams = await Team.find({ organization: league.organization }).lean();
+            const teamMap = {};
+            teams.forEach((t) => {
+                teamMap[t.name] = t;
+            });
+
+            games.forEach((game) => {
+                const teamAData = teamMap[game.teamA?.name];
+                if (teamAData) {
+                    game.teamA.logo = teamAData.logo || game.teamA.logo;
+                    game.teamA.details = teamAData;
+                }
+
+                const teamBData = teamMap[game.teamB?.name];
+                if (teamBData) {
+                    game.teamB.logo = teamBData.logo || game.teamB.logo;
+                    game.teamB.details = teamBData;
+                }
+            });
+        }
 
         return NextResponse.json(
             { success: true, count: games.length, data: games },

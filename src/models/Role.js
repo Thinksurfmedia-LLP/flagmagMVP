@@ -54,6 +54,8 @@ const RoleSchema = new mongoose.Schema(
                 "user_update",
                 "user_delete",
                 "view_dashboard",
+                "manage_stats",
+                "stats_record",
             ],
             default: [],
         },
@@ -75,6 +77,7 @@ const REQUIRED_PERMISSION_KEYS = [
     "player_view",
     "team_view",
     "user_view",
+    "stats_record",
 ];
 
 function getRoleModel() {
@@ -133,6 +136,8 @@ export const DEFAULT_ROLES = [
             "user_update",
             "user_delete",
             "view_dashboard",
+            "manage_stats",
+            "stats_record",
         ],
         isSystem: true,
     },
@@ -171,6 +176,8 @@ export const DEFAULT_ROLES = [
             "team_update",
             "team_delete",
             "view_dashboard",
+            "manage_stats",
+            "stats_record",
         ],
         isSystem: true,
     },
@@ -190,6 +197,12 @@ export const DEFAULT_ROLES = [
         name: "Viewer",
         slug: "viewer",
         permissions: [],
+        isSystem: true,
+    },
+    {
+        name: "Statistician",
+        slug: "statistician",
+        permissions: ["game_view", "stats_record", "manage_stats"],
         isSystem: true,
     },
 ];

@@ -3,7 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import Team from "@/models/Team";
 import Player from "@/models/Player";
 import User from "@/models/User";
-import { requireAnyPermission } from "@/lib/apiAuth";
+import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
 
 async function getOrgIdForOrganizer(authUser) {
     if (authUser.organization?.id) return authUser.organization.id;
@@ -90,7 +90,7 @@ async function getTeamForUser(id, user) {
     const team = await Team.findById(id);
     if (!team) return null;
 
-    if (user.role === "organizer") {
+    if (hasRole(user, "organizer")) {
         const organizerOrgId = await getOrgIdForOrganizer(user);
         if (!organizerOrgId || String(team.organization) !== organizerOrgId) {
             return "forbidden";
@@ -128,7 +128,7 @@ export async function PUT(request, { params }) {
         const prevPlayerIds = team.players || [];
         const nextPlayerIds = Array.isArray(body.players) ? body.players : prevPlayerIds;
 
-        if (auth.user.role === "organizer" && nextPlayerIds.length > 0) {
+        if (hasRole(auth.user, "organizer") && nextPlayerIds.length > 0) {
             const organizerOrgId = await getOrgIdForOrganizer(auth.user);
             const disallowed = await Player.countDocuments({
                 _id: { $in: nextPlayerIds },

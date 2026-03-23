@@ -4,7 +4,7 @@ import League from "@/models/League";
 import User from "@/models/User";
 import Organization from "@/models/Organization";
 import Venue from "@/models/Location";
-import { requireAnyPermission } from "@/lib/apiAuth";
+import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
 
 function normalizeText(value = "") {
     return String(value).trim().toLowerCase();
@@ -25,7 +25,7 @@ export async function PUT(request, { params }) {
             return NextResponse.json({ success: false, error: "League not found" }, { status: 404 });
         }
 
-        if (auth.user.role === "organizer") {
+        if (hasRole(auth.user, "organizer")) {
             const currentUser = await User.findById(auth.user.id).select("organization").lean();
             if (!currentUser?.organization || String(currentUser.organization) !== String(existing.organization)) {
                 return NextResponse.json(
@@ -115,7 +115,7 @@ export async function DELETE(request, { params }) {
             return NextResponse.json({ success: false, error: "League not found" }, { status: 404 });
         }
 
-        if (auth.user.role === "organizer") {
+        if (hasRole(auth.user, "organizer")) {
             const currentUser = await User.findById(auth.user.id).select("organization").lean();
             if (!currentUser?.organization || String(currentUser.organization) !== String(league.organization)) {
                 return NextResponse.json(

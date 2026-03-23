@@ -37,7 +37,8 @@ export async function requireAdmin() {
     const auth = await requireAuth();
     if (!auth.authorized) return auth;
 
-    if (auth.user.role !== "admin" && auth.user.role !== "organizer") {
+    const allRoles = auth.user.roles?.length ? auth.user.roles : [auth.user.role];
+    if (!allRoles.includes("admin") && !allRoles.includes("organizer")) {
         return {
             authorized: false,
             response: NextResponse.json(
@@ -50,6 +51,14 @@ export async function requireAdmin() {
 }
 
 /**
+ * Check if a user has a specific role (checks both primary role and roles array).
+ */
+export function hasRole(user, role) {
+    const allRoles = user.roles?.length ? user.roles : [user.role];
+    return allRoles.includes(role);
+}
+
+/**
  * Check if the user has a specific permission or is an admin.
  * Admins bypass all permission checks.
  */
@@ -57,7 +66,7 @@ export async function requirePermission(permission) {
     const auth = await requireAuth();
     if (!auth.authorized) return auth;
 
-    if (auth.user.role === "admin") return auth;
+    if (hasRole(auth.user, "admin")) return auth;
     if (permission === "view_dashboard") return auth;
 
     const perms = auth.user.permissions || [];
@@ -83,7 +92,7 @@ export async function requireAnyPermission(permissions = []) {
     const auth = await requireAuth();
     if (!auth.authorized) return auth;
 
-    if (auth.user.role === "admin") return auth;
+    if (hasRole(auth.user, "admin")) return auth;
 
     const perms = auth.user.permissions || [];
     const hasAny = permissions.some((permission) => {

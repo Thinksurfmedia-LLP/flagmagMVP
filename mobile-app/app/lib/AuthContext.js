@@ -25,13 +25,13 @@ export function AuthProvider({ children }) {
     }, [fetchUser]);
 
     const login = async (email, password) => {
-        const res = await apiPost("/api/auth/login", { email, password });
+        const res = await apiPost("/api/auth/login/mobile", { email, password });
         setUser(res.data);
         return res;
     };
 
     const signup = async (data) => {
-        const res = await apiPost("/api/auth/register", data);
+        const res = await apiPost("/api/auth/register/mobile", data);
         setUser(res.data);
         return res;
     };

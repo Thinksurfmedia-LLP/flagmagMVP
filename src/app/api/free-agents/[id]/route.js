@@ -3,7 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import Player from "@/models/Player";
 import User from "@/models/User";
 import Team from "@/models/Team";
-import { requireAnyPermission } from "@/lib/apiAuth";
+import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
 
 async function getOrgIdForOrganizer(authUser) {
     if (authUser.organization?.id) return authUser.organization.id;
@@ -55,7 +55,7 @@ export async function DELETE(request, { params }) {
             );
         }
 
-        if (auth.user.role === "organizer") {
+        if (hasRole(auth.user, "organizer")) {
             const orgId = await getOrgIdForOrganizer(auth.user);
             if (!orgId || String(player.organization) !== orgId) {
                 return NextResponse.json({ success: false, error: "You can only manage free agents for your organization" }, { status: 403 });

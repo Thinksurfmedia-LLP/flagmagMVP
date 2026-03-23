@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/dbConnect";
 import Player from "@/models/Player";
 import User from "@/models/User";
-import { requireAnyPermission } from "@/lib/apiAuth";
+import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
 
 async function getOrgIdForOrganizer(authUser) {
     if (authUser.organization?.id) return authUser.organization.id;
@@ -70,7 +70,7 @@ export async function GET(request) {
 
         const filter = { status: "free_agent" };
 
-        if (auth.user.role === "organizer") {
+        if (hasRole(auth.user, "organizer")) {
             const orgId = await getOrgIdForOrganizer(auth.user);
             if (!orgId) {
                 return NextResponse.json({ success: false, error: "Organizer is not assigned to an organization" }, { status: 400 });
@@ -139,7 +139,7 @@ export async function POST(request) {
 
         // Determine organization
         let organizationId;
-        if (auth.user.role === "organizer") {
+        if (hasRole(auth.user, "organizer")) {
             organizationId = await getOrgIdForOrganizer(auth.user);
             if (!organizationId) {
                 return NextResponse.json({ success: false, error: "Organizer is not assigned to an organization" }, { status: 400 });

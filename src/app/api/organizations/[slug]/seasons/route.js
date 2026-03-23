@@ -3,7 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import Season from "@/models/Season";
 import User from "@/models/User";
-import { requireAnyPermission } from "@/lib/apiAuth";
+import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
 
 // GET seasons for an organization
 export async function GET(request, { params }) {
@@ -55,7 +55,7 @@ export async function POST(request, { params }) {
             );
         }
 
-        if (auth.user.role === "organizer") {
+        if (hasRole(auth.user, "organizer")) {
             const currentUser = await User.findById(auth.user.id).select("organization").lean();
             if (!currentUser?.organization || String(currentUser.organization) !== String(organization._id)) {
                 return NextResponse.json(

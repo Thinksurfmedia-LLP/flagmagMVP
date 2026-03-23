@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Season from "@/models/Season";
 import User from "@/models/User";
-import { requireAnyPermission } from "@/lib/apiAuth";
+import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
 
 // GET single season
 export async function GET(request, { params }) {
@@ -48,7 +48,7 @@ export async function PUT(request, { params }) {
             );
         }
 
-        if (auth.user.role === "organizer") {
+        if (hasRole(auth.user, "organizer")) {
             const currentUser = await User.findById(auth.user.id).select("organization").lean();
             if (!currentUser?.organization || String(currentUser.organization) !== String(existingSeason.organization)) {
                 return NextResponse.json(
@@ -103,7 +103,7 @@ export async function DELETE(request, { params }) {
             );
         }
 
-        if (auth.user.role === "organizer") {
+        if (hasRole(auth.user, "organizer")) {
             const currentUser = await User.findById(auth.user.id).select("organization").lean();
             if (!currentUser?.organization || String(currentUser.organization) !== String(season.organization)) {
                 return NextResponse.json(

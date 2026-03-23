@@ -1,0 +1,87 @@
+import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
+import dbConnect from "@/lib/dbConnect";
+import User from "@/models/User";
+import Role from "@/models/Role";
+import { signToken, setAuthCookie } from "@/lib/auth";
+
+export async function POST(request) {
+    try {
+        await dbConnect();
+        const { name, email, phone, password, confirmPassword } =
+            await request.json();
+
+        if (!name || !email || !password) {
+            return NextResponse.json(
+                { success: false, error: "Name, email, and password are required" },
+                { status: 400 }
+            );
+        }
+
+        if (password.length < 6) {
+            return NextResponse.json(
+                { success: false, error: "Password must be at least 6 characters" },
+                { status: 400 }
+            );
+        }
+
+        if (confirmPassword && password !== confirmPassword) {
+            return NextResponse.json(
+                { success: false, error: "Passwords do not match" },
+                { status: 400 }
+            );
+        }
+
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return NextResponse.json(
+                { success: false, error: "User with this email already exists" },
+                { status: 409 }
+            );
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        const user = await User.create({
+            name,
+            email,
+            phone: phone || "",
+            password: hashedPassword,
+            role: "statistician",
+            roles: ["statistician"],
+        });
+
+        const roleDoc = await Role.findOne({ slug: "statistician" }).lean();
+        const perms = roleDoc ? [...roleDoc.permissions] : [];
+        const token = await signToken({
+            id: user._id.toString(),
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            roles: ["statistician"],
+            permissions: perms,
+        });
+        await setAuthCookie(token);
+
+        return NextResponse.json(
+            {
+                success: true,
+                data: {
+                    id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role,
+                    roles: ["statistician"],
+                    permissions: perms,
+                },
+            },
+            { status: 201 }
+        );
+    } catch (error) {
+        return NextResponse.json(
+            { success: false, error: error.message },
+            { status: 500 }
+        );
+    }
+}

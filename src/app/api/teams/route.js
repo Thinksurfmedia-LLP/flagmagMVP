@@ -107,7 +107,9 @@ export async function GET(request) {
         const organization = searchParams.get("organization");
         const filter = {};
 
-        if (auth.user.role === "organizer") {
+        const allRoles = auth.user.roles?.length ? auth.user.roles : [auth.user.role];
+        const isOrganizer = allRoles.includes("organizer");
+        if (isOrganizer) {
             const orgId = await getOrgIdForOrganizer(auth.user);
             if (!orgId) {
                 return NextResponse.json({ success: false, error: "Organizer is not assigned to an organization" }, { status: 400 });
@@ -147,7 +149,9 @@ export async function POST(request) {
         const body = await request.json();
 
         const playerIds = Array.isArray(body.players) ? body.players : [];
-        const organizationId = auth.user.role === "organizer"
+        const allRoles = auth.user.roles?.length ? auth.user.roles : [auth.user.role];
+        const isOrganizer = allRoles.includes("organizer");
+        const organizationId = isOrganizer
             ? await getOrgIdForOrganizer(auth.user)
             : body.organization;
 
@@ -159,7 +163,7 @@ export async function POST(request) {
             return NextResponse.json({ success: false, error: "Team name is required" }, { status: 400 });
         }
 
-        if (auth.user.role === "organizer" && playerIds.length > 0) {
+        if (isOrganizer && playerIds.length > 0) {
             const disallowed = await Player.countDocuments({
                 _id: { $in: playerIds },
                 organization: { $nin: [null, organizationId] },
