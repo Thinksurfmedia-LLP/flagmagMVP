@@ -922,6 +922,15 @@ p {
 .live-match-wrapper .team-box {
     flex: 1;
     text-align: center;
+    padding: 12px 10px;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    opacity: 0.6;
+}
+
+.live-match-wrapper .team-box.active {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.08);
 }
 
 .live-match-wrapper .team-box h5 {

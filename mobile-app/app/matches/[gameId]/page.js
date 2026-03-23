@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from "../../lib/AuthContext";
 import { apiGet, apiPut } from "../../lib/api";
 import MobileHeader from "../../components/MobileHeader";
 import BottomFooter from "../../components/BottomFooter";
+import CompletionPage from "../../components/CompletionPage";
 
 function LiveGameContent({ gameId }) {
     const router = useRouter();
@@ -19,6 +20,7 @@ function LiveGameContent({ gameId }) {
     const [half, setHalf] = useState("1st");
     const [actionLog, setActionLog] = useState([]);
     const [toast, setToast] = useState(null);
+    const [showCompletionPage, setShowCompletionPage] = useState(false);
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -123,17 +125,34 @@ function LiveGameContent({ gameId }) {
     };
 
     const handleUndo = () => {
-        if (actionLog.length > 0) {
-            const last = actionLog[0];
-            setActionLog(actionLog.slice(1));
-            showToast(`Undid: ${last.action}`, "");
-        }
+        setActionLog((prev) => {
+            if (prev.length > 0) {
+                const last = prev[0];
+                showToast(`Undid: ${last.action}`, "success");
+                return prev.slice(1);
+            }
+            showToast("Nothing to undo", "error");
+            return prev;
+        });
     };
 
-    const handleReload = () => {
-        fetchGame();
-        fetchStats();
-        showToast("Data refreshed", "success");
+    const handleReset = async () => {
+        if (window.confirm("Are you sure you want to reset this match to its initial state? All scores will be cleared.")) {
+            try {
+                await apiPut(`/api/games/${gameId}`, {
+                    status: "upcoming",
+                    "teamA.score": 0,
+                    "teamB.score": 0
+                });
+                setActionLog([]);
+                setHalf("1st");
+                setDrive(1);
+                fetchGame();
+                showToast("Match reset to initial state", "success");
+            } catch (err) {
+                showToast(err.message, "error");
+            }
+        }
     };
 
     if (authLoading || loadingGame) {
@@ -165,13 +184,49 @@ function LiveGameContent({ gameId }) {
     const teamBScore = game.teamB?.score ?? 0;
 
     const statActions = [
-        { icon: "/assets/images/icon-qb.png", label: "Change QB", action: "Change QB" },
-        { icon: "/assets/images/icon-run.png", label: "Run", action: "Run" },
         { icon: "/assets/images/icon-completion.png", label: "Completion", action: "Completion" },
         { icon: "/assets/images/icon-incompletion.png", label: "Incompletion", action: "Incompletion" },
         { icon: "/assets/images/icon-interception.png", label: "Interception", action: "Interception" },
         { icon: "/assets/images/icon-sack.png", label: "Sack", action: "Sack" },
+        { icon: "/assets/images/icon-qb.png", label: "Fumble", action: "Fumble" },
+        { icon: "/assets/images/icon-run.png", label: "Run", action: "Run" },
     ];
+
+    if (showCompletionPage) {
+        return (
+            <CompletionPage
+                game={game}
+                activeTeam={activeTeam}
+                onSave={(data) => {
+                    let ptsToAdd = 0;
+                    if (data.points === "Touch Down") ptsToAdd = 6;
+                    if (data.points === "1 Pt.") ptsToAdd = 1;
+                    if (data.points === "2 Pt.") ptsToAdd = 2;
+
+                    if (data.flagPull && data.flagPull.trim() !== "") {
+                        ptsToAdd = 0; // Flag pull cancels out the score
+                    }
+
+                    if (ptsToAdd > 0) {
+                        updateScore(activeTeam, ptsToAdd);
+                    }
+
+                    const teamName = activeTeam === "A" ? game.teamA.name : game.teamB.name;
+                    const logDesc = `Compl ${data.yards}yd P${data.passer}-R${data.receiver}${data.flagPull ? ` FP:${data.flagPull}` : ''}`;
+                    const logEntry = {
+                        time: new Date().toLocaleTimeString(),
+                        action: logDesc,
+                        team: teamName,
+                        drive,
+                    };
+                    setActionLog(prev => [logEntry, ...prev]);
+                    showToast("Completion saved", "success");
+                    setShowCompletionPage(false);
+                }}
+                onCancel={() => setShowCompletionPage(false)}
+            />
+        );
+    }
 
     return (
         <div className="wrapper">
@@ -184,12 +239,10 @@ function LiveGameContent({ gameId }) {
                 <div className="live-match-wrapper">
                     <div className="top">
                         <div
-                            className="team-box"
+                            className={`team-box ${activeTeam === "A" ? "active" : ""}`}
                             onClick={() => setActiveTeam("A")}
                             style={{
                                 cursor: "pointer",
-                                opacity: activeTeam === "A" ? 1 : 0.6,
-                                transition: "opacity 0.3s",
                             }}
                         >
                             <h5>{game.teamA?.name || "Team A"}</h5>
@@ -252,12 +305,10 @@ function LiveGameContent({ gameId }) {
                         </div>
 
                         <div
-                            className="team-box"
+                            className={`team-box ${activeTeam === "B" ? "active" : ""}`}
                             onClick={() => setActiveTeam("B")}
                             style={{
                                 cursor: "pointer",
-                                opacity: activeTeam === "B" ? 1 : 0.6,
-                                transition: "opacity 0.3s",
                             }}
                         >
                             <h5>{game.teamB?.name || "Team B"}</h5>
@@ -313,9 +364,6 @@ function LiveGameContent({ gameId }) {
                     {/* Game info */}
                     <div className="info-text">
                         <div className="text">
-                            Round : <span>{round}</span>
-                        </div>
-                        <div className="text">
                             Half : <span>{half}</span>
                         </div>
                         <div className="text">
@@ -345,7 +393,13 @@ function LiveGameContent({ gameId }) {
                         <div
                             key={action.action}
                             className="control-box"
-                            onClick={() => recordAction(action.action)}
+                            onClick={() => {
+                                if (action.action === "Completion") {
+                                    setShowCompletionPage(true);
+                                } else {
+                                    recordAction(action.action);
+                                }
+                            }}
                         >
                             <img src={action.icon} alt={action.label} />
                             <h6>{action.label}</h6>
@@ -375,7 +429,7 @@ function LiveGameContent({ gameId }) {
                                     <span>
                                         <strong style={{ color: "#fff" }}>{log.action}</strong> — {log.team}
                                     </span>
-                                    <span>D{log.drive} R{log.round}</span>
+                                    <span>D{log.drive}</span>
                                 </div>
                             ))}
                         </div>
@@ -384,16 +438,22 @@ function LiveGameContent({ gameId }) {
 
                 <BottomFooter
                     onUndo={handleUndo}
-                    onInfo={() => {
-                        setRound(round + 1);
-                        showToast(`Round ${round + 1}`, "");
-                    }}
                     onStart={handleStartGame}
-                    onConfirm={() => {
-                        setHalf(half === "1st" ? "2nd" : "1st");
-                        showToast(`Switched to ${half === "1st" ? "2nd" : "1st"} Half`, "");
+                    onConfirm={async () => {
+                        if (half === "1st") {
+                            setHalf("2nd");
+                            showToast("Switched to 2nd Half", "success");
+                        } else if (half === "2nd") {
+                            try {
+                                await apiPut(`/api/games/${gameId}`, { status: "completed" });
+                                showToast("Game completed!", "success");
+                                fetchGame();
+                            } catch (err) {
+                                showToast(err.message, "error");
+                            }
+                        }
                     }}
-                    onReload={handleReload}
+                    onReset={handleReset}
                 />
             </div>
         </div>

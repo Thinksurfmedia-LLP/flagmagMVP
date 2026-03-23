@@ -1,17 +1,12 @@
 "use client";
 
-export default function BottomFooter({ onUndo, onInfo, onStart, onConfirm, onReload }) {
+export default function BottomFooter({ onUndo, onStart, onConfirm, onReset }) {
     return (
         <footer className="bottom-footer">
             <ul>
                 <li>
                     <button onClick={onUndo} title="Undo">
                         <img src="/assets/images/icon-reply.png" alt="Undo" />
-                    </button>
-                </li>
-                <li>
-                    <button onClick={onInfo} title="Info">
-                        <img src="/assets/images/icon-info.png" alt="Info" />
                     </button>
                 </li>
                 <li>
@@ -25,8 +20,8 @@ export default function BottomFooter({ onUndo, onInfo, onStart, onConfirm, onRel
                     </button>
                 </li>
                 <li>
-                    <button onClick={onReload} title="Reload">
-                        <img src="/assets/images/icon-reload.png" alt="Reload" />
+                    <button onClick={onReset} title="Reset Match">
+                        <img src="/assets/images/icon-reload.png" alt="Reset Match" />
                     </button>
                 </li>
             </ul>
