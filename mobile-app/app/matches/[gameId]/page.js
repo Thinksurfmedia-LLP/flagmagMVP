@@ -7,6 +7,7 @@ import { apiGet, apiPut } from "../../lib/api";
 import MobileHeader from "../../components/MobileHeader";
 import BottomFooter from "../../components/BottomFooter";
 import CompletionPage from "../../components/CompletionPage";
+import InterceptionPage from "../../components/InterceptionPage";
 
 function LiveGameContent({ gameId }) {
     const router = useRouter();
@@ -21,6 +22,7 @@ function LiveGameContent({ gameId }) {
     const [actionLog, setActionLog] = useState([]);
     const [toast, setToast] = useState(null);
     const [showCompletionPage, setShowCompletionPage] = useState(false);
+    const [showInterceptionPage, setShowInterceptionPage] = useState(false);
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -228,6 +230,42 @@ function LiveGameContent({ gameId }) {
         );
     }
 
+    if (showInterceptionPage) {
+        return (
+            <InterceptionPage
+                game={game}
+                activeTeam={activeTeam}
+                onSave={(data) => {
+                    let ptsToAdd = 0;
+                    if (data.points === "Touch Down") ptsToAdd = 6;
+                    if (data.points === "2 Pt.") ptsToAdd = 2;
+
+                    if (data.flagPull && data.flagPull.trim() !== "") {
+                        ptsToAdd = 0; // Flag pull cancels out the score
+                    }
+
+                    if (ptsToAdd > 0) {
+                        const opponentTeam = activeTeam === "A" ? "B" : "A";
+                        updateScore(opponentTeam, ptsToAdd);
+                    }
+
+                    const teamName = activeTeam === "A" ? game.teamA.name : game.teamB.name;
+                    const logDesc = `INT P${data.passer}-D${data.defender}${data.flagPull ? ` FP:${data.flagPull}` : ''}`;
+                    const logEntry = {
+                        time: new Date().toLocaleTimeString(),
+                        action: logDesc,
+                        team: teamName,
+                        drive,
+                    };
+                    setActionLog(prev => [logEntry, ...prev]);
+                    showToast("Interception saved", "success");
+                    setShowInterceptionPage(false);
+                }}
+                onCancel={() => setShowInterceptionPage(false)}
+            />
+        );
+    }
+
     return (
         <div className="wrapper">
             <div className="main-section-wrapper" style={{ alignItems: "flex-start", paddingBottom: 80 }}>
@@ -396,6 +434,8 @@ function LiveGameContent({ gameId }) {
                             onClick={() => {
                                 if (action.action === "Completion") {
                                     setShowCompletionPage(true);
+                                } else if (action.action === "Interception") {
+                                    setShowInterceptionPage(true);
                                 } else {
                                     recordAction(action.action);
                                 }
