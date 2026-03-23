@@ -24,7 +24,7 @@ export default function CompletionPage({ game, activeTeam, onSave, onCancel }) {
             receiver,
             yards: Number(yards) || 0,
             points, // string value
-            flagPull: points === "None" ? "" : flagPull,
+            flagPull: points !== null ? "" : flagPull,
         });
     };
 
