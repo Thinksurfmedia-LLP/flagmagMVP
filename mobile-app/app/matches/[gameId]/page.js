@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, use } from "react";
 import { useRouter } from "next/navigation";
 import { AuthProvider, useAuth } from "../../lib/AuthContext";
-import { apiGet, apiPut } from "../../lib/api";
+import { apiGet, apiPost, apiPut } from "../../lib/api";
 import MobileHeader from "../../components/MobileHeader";
 import BottomFooter from "../../components/BottomFooter";
 import CompletionPage from "../../components/CompletionPage";
@@ -209,6 +209,31 @@ function LiveGameContent({ gameId }) {
     const teamAScore = game.teamA?.score ?? 0;
     const teamBScore = game.teamB?.score ?? 0;
 
+    // Persist a play to the database
+    const persistPlay = async (playType, logEntry, playData) => {
+        try {
+            const teamName = logEntry.team;
+            await apiPost(`/api/games/${gameId}/plays`, {
+                type: playType,
+                activeTeam: logEntry.activeTeam,
+                teamName,
+                half: logEntry.half,
+                passer: playData.passer || "",
+                receiver: playData.receiver || "",
+                rusher: playData.rusher || "",
+                defender: playData.defender || "",
+                flagPull: playData.flagPull || "",
+                yards: Number(playData.yards) || 0,
+                points: playData.points || "",
+                safety: Boolean(playData.safety),
+                ptsAdded: logEntry.ptsAdded,
+                targetTeam: logEntry.targetTeam,
+            });
+        } catch (err) {
+            console.error("Failed to persist play:", err);
+        }
+    };
+
     const statActions = [
         { icon: "/assets/images/icon-completion.png", label: "Completion", action: "Completion" },
         { icon: "/assets/images/icon-incompletion.png", label: "Incompletion", action: "Incompletion" },
@@ -281,6 +306,7 @@ function LiveGameContent({ gameId }) {
                         showToast("Completion updated", "success");
                     } else {
                         setActionLog(prev => [logEntry, ...prev]);
+                        persistPlay("completion", logEntry, data);
                         showToast("Completion saved", "success");
                     }
                     setShowCompletionPage(false);
@@ -323,6 +349,7 @@ function LiveGameContent({ gameId }) {
                         showToast("Incompletion updated", "success");
                     } else {
                         setActionLog(prev => [logEntry, ...prev]);
+                        persistPlay("incomplete", logEntry, data);
                         showToast("Incompletion saved", "success");
                     }
                     setShowIncompletePassPage(false);
@@ -390,6 +417,7 @@ function LiveGameContent({ gameId }) {
                         showToast("Fumble updated", "success");
                     } else {
                         setActionLog(prev => [logEntry, ...prev]);
+                        persistPlay("fumble", logEntry, data);
                         showToast("Fumble saved", "success");
                     }
                     setShowFumblePage(false);
@@ -457,6 +485,7 @@ function LiveGameContent({ gameId }) {
                         showToast("Interception updated", "success");
                     } else {
                         setActionLog(prev => [logEntry, ...prev]);
+                        persistPlay("interception", logEntry, data);
                         showToast("Interception saved", "success");
                     }
                     setShowInterceptionPage(false);
@@ -519,6 +548,7 @@ function LiveGameContent({ gameId }) {
                         showToast("Sack updated", "success");
                     } else {
                         setActionLog(prev => [logEntry, ...prev]);
+                        persistPlay("sack", logEntry, data);
                         showToast("Sack saved", "success");
                     }
                     setShowSackPage(false);
@@ -587,6 +617,7 @@ function LiveGameContent({ gameId }) {
                         showToast("Run updated", "success");
                     } else {
                         setActionLog(prev => [logEntry, ...prev]);
+                        persistPlay("run", logEntry, data);
                         showToast("Run saved", "success");
                     }
                     setShowRunPage(false);

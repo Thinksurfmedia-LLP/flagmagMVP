@@ -75,8 +75,6 @@ export default async function GameTeamStatsPage({ params }) {
                     <GameTeamStats
                         teamA={game.teamA}
                         teamB={game.teamB}
-                        orgSlug={slug}
-                        seasonSlug={seasonSlug}
                         gameId={gameId}
                     />
                 </div>

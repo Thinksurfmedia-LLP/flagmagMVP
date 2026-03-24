@@ -3,6 +3,51 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
+const statTypeLabels = {
+    passing: "Passing",
+    receiving: "Receiving",
+    rushing: "Rushing",
+    defensive: "Defensive",
+};
+
+const statColumns = {
+    passing: [
+        { key: "atts", label: "ATT" },
+        { key: "comp", label: "COMP" },
+        { key: "yards", label: "YDS" },
+        { key: "tds", label: "TD" },
+        { key: "pat", label: "PAT" },
+        { key: "ints", label: "INT" },
+        { key: "sacks", label: "SCK" },
+        { key: "safety", label: "SAF" },
+        { key: "pct", label: "CMP%" },
+        { key: "ypc", label: "Y/C" },
+    ],
+    receiving: [
+        { key: "receptions", label: "REC" },
+        { key: "yards", label: "YDS" },
+        { key: "tds", label: "TD" },
+        { key: "pat", label: "PAT" },
+        { key: "ypr", label: "Y/R" },
+    ],
+    rushing: [
+        { key: "atts", label: "ATT" },
+        { key: "yards", label: "YDS" },
+        { key: "tds", label: "TD" },
+        { key: "pat", label: "PAT" },
+        { key: "ypc", label: "Y/C" },
+    ],
+    defensive: [
+        { key: "dint", label: "INT" },
+        { key: "dintTD", label: "INT TD" },
+        { key: "dtd", label: "DTD" },
+        { key: "dpat", label: "DPAT" },
+        { key: "dsacks", label: "SCK" },
+        { key: "dsafety", label: "SAF" },
+        { key: "flagPulls", label: "FP" },
+    ],
+};
+
 export default function GameTeamStats({ teamA, teamB, orgSlug, seasonSlug, gameId }) {
     const [activeTeam, setActiveTeam] = useState("all");
     const [statType, setStatType] = useState("passing");
@@ -10,19 +55,16 @@ export default function GameTeamStats({ teamA, teamB, orgSlug, seasonSlug, gameI
     const [loading, setLoading] = useState(true);
     const [dropdownOpen, setDropdownOpen] = useState(false);
 
-    const statTypeLabels = { passing: "Passing", rushing: "Rushing", receiving: "Receiving" };
-
     useEffect(() => {
         async function fetchStats() {
             setLoading(true);
             try {
                 const teamParam = activeTeam === "all" ? "" : encodeURIComponent(activeTeam);
                 const res = await fetch(
-                    `/api/organizations/${orgSlug}/season/${seasonSlug}/game/${gameId}/player-stats?team=${teamParam}&statType=${statType}`
+                    `/api/games/${gameId}/stats/computed?team=${teamParam}&statType=${statType}`
                 );
                 const data = await res.json();
-                const fetched = data.players || [];
-                setPlayers(fetched);
+                setPlayers(data.players || []);
             } catch (err) {
                 console.error("Failed to fetch stats:", err);
                 setPlayers([]);
@@ -30,7 +72,10 @@ export default function GameTeamStats({ teamA, teamB, orgSlug, seasonSlug, gameI
             setLoading(false);
         }
         fetchStats();
-    }, [activeTeam, statType, orgSlug, seasonSlug, gameId]);
+    }, [activeTeam, statType, gameId]);
+
+    const columns = statColumns[statType] || statColumns.passing;
+    const totalCols = columns.length + 2; // +2 for player and team columns
 
     return (
         <>
@@ -91,58 +136,36 @@ export default function GameTeamStats({ teamA, teamB, orgSlug, seasonSlug, gameI
                     <table className="table">
                         <thead>
                             <tr>
-                                <th>players</th>
-                                <th>team</th>
-                                <th>Rate</th>
-                                <th>atts</th>
-                                <th>comp</th>
-                                <th>tds</th>
-                                <th>%</th>
-                                <th>xp2</th>
-                                <th>yards</th>
-                                <th>10+</th>
-                                <th>20+</th>
-                                <th>40+</th>
-                                <th>ints</th>
-                                <th>int open</th>
-                                <th>int xp</th>
+                                <th>PLAYER</th>
+                                <th>TEAM</th>
+                                {columns.map((col) => (
+                                    <th key={col.key}>{col.label}</th>
+                                ))}
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td colSpan="15" style={{ textAlign: "center", padding: "30px 0" }}>Loading...</td>
+                                    <td colSpan={totalCols} style={{ textAlign: "center", padding: "30px 0" }}>Loading...</td>
                                 </tr>
                             ) : players.length === 0 ? (
                                 <tr>
-                                    <td colSpan="15" style={{ textAlign: "center", padding: "30px 0" }}>No player stats found for this team.</td>
+                                    <td colSpan={totalCols} style={{ textAlign: "center", padding: "30px 0" }}>
+                                        No stats recorded yet.
+                                    </td>
                                 </tr>
                             ) : (
                                 players.map((player, i) => (
-                                    <tr key={player._id || i}>
+                                    <tr key={player.playerId || i}>
                                         <td>
-                                            <img src={player.photo || "/assets/images/t-logo.jpg"} alt="" />
+                                            <img src={player.playerPhoto || "/assets/images/t-logo.jpg"} alt="" />
                                             {" "}
-                                            <Link href={`/players/${player._id}`}>{player.name}</Link>
+                                            <Link href={`/players/${player.playerId}`}>{player.playerName}</Link>
                                         </td>
-                                        <td>
-                                            <Link href={`/players/${player._id}`}>
-                                                <img src={player.teamLogo || "/assets/images/t-logo.jpg"} alt="" />
-                                            </Link>
-                                        </td>
-                                        <td>{player.rate}</td>
-                                        <td>{player.atts}</td>
-                                        <td>{player.comp}</td>
-                                        <td>{player.tds}</td>
-                                        <td>{player.pct}</td>
-                                        <td>{player.xp2}</td>
-                                        <td>{player.yards}</td>
-                                        <td>{player.ten}</td>
-                                        <td>{player.twenty}</td>
-                                        <td>{player.forty}</td>
-                                        <td>{player.ints}</td>
-                                        <td>{player.intOpen}</td>
-                                        <td>{player.intXp}</td>
+                                        <td>{player.teamName}</td>
+                                        {columns.map((col) => (
+                                            <td key={col.key}>{player[col.key] ?? 0}</td>
+                                        ))}
                                     </tr>
                                 ))
                             )}
