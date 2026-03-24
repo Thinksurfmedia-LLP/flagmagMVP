@@ -32,8 +32,14 @@ const TeamSchema = new mongoose.Schema(
         },
         players: [
             {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Player",
+                player: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: "Player",
+                },
+                jerseyNumber: {
+                    type: Number,
+                    required: [true, "Jersey number is required"],
+                },
             },
         ],
     },
@@ -47,7 +53,8 @@ function getTeamModel() {
     if (existing) {
         const hasPlayers = Boolean(existing.schema.path("players"));
         const hasDescription = Boolean(existing.schema.path("description"));
-        if (!hasPlayers || !hasDescription) {
+        const hasJerseyNumber = Boolean(existing.schema.path("players.jerseyNumber"));
+        if (!hasPlayers || !hasDescription || !hasJerseyNumber) {
             delete mongoose.models.Team;
         }
     }

@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import MobileHeader from "./MobileHeader";
+import PlayerNumberWarning from "./PlayerNumberWarning";
+import { validatePlayerNumber, getTeamRoster, hasInvalidPlayerNumbers } from "../lib/rosterValidation";
 
-export default function CompletionPage({ game, activeTeam, onSave, onCancel, initialData }) {
+export default function CompletionPage({ game, activeTeam, roster, onSave, onCancel, initialData }) {
     const teamName = activeTeam === "A" ? game?.teamA?.name : game?.teamB?.name;
     const teamLogo = activeTeam === "A" ? game?.teamA?.logo : game?.teamB?.logo;
     const teamScore = activeTeam === "A" ? game?.teamA?.score : game?.teamB?.score;
@@ -12,11 +14,20 @@ export default function CompletionPage({ game, activeTeam, onSave, onCancel, ini
     const otherTeamScore = activeTeam === "A" ? game?.teamB?.score : game?.teamA?.score;
     const otherTeamLogo = activeTeam === "A" ? game?.teamB?.logo : game?.teamA?.logo;
 
+    const activeRoster = getTeamRoster(roster, activeTeam);
+    const otherRoster = getTeamRoster(roster, activeTeam === "A" ? "B" : "A");
+
     const [passer, setPasser] = useState(initialData?.passer || "");
     const [receiver, setReceiver] = useState(initialData?.receiver || "");
     const [yards, setYards] = useState(initialData?.yards !== undefined ? initialData.yards : "");
     const [points, setPoints] = useState(initialData?.points || null); // "Touch Down", "1 Pt.", "2 Pt.", "None"
     const [flagPull, setFlagPull] = useState(initialData?.flagPull || "");
+
+    const hasInvalid = hasInvalidPlayerNumbers([
+        { value: passer, roster: activeRoster },
+        { value: receiver, roster: activeRoster },
+        ...(points === null ? [{ value: flagPull, roster: otherRoster }] : []),
+    ]);
 
     const handleSave = () => {
         onSave({
@@ -79,6 +90,7 @@ export default function CompletionPage({ game, activeTeam, onSave, onCancel, ini
                             value={passer}
                             onChange={(e) => setPasser(e.target.value)}
                         />
+                        <PlayerNumberWarning valid={validatePlayerNumber(passer, activeRoster).valid} playerNumber={passer} label="passer" />
                     </div>
                     <div className="form-group">
                         <input
@@ -88,6 +100,7 @@ export default function CompletionPage({ game, activeTeam, onSave, onCancel, ini
                             value={receiver}
                             onChange={(e) => setReceiver(e.target.value)}
                         />
+                        <PlayerNumberWarning valid={validatePlayerNumber(receiver, activeRoster).valid} playerNumber={receiver} label="receiver" />
                     </div>
                     <div className="form-group">
                         <input
@@ -135,11 +148,12 @@ export default function CompletionPage({ game, activeTeam, onSave, onCancel, ini
                             disabled={points !== null}
                             style={{ backgroundColor: points !== null ? "rgba(0,0,0,0.2)" : "#2b2726" }}
                         />
+                        {points === null && <PlayerNumberWarning valid={validatePlayerNumber(flagPull, otherRoster).valid} playerNumber={flagPull} label="flag pull player" />}
                     </div>
                 </div>
 
                 <div className="button-area" style={{ marginTop: 30 }}>
-                    <button className="btn btn-primary w-100" onClick={handleSave}>
+                    <button className="btn btn-primary w-100" onClick={handleSave} disabled={hasInvalid} style={hasInvalid ? { opacity: 0.4, pointerEvents: "none" } : {}}>
                         SAVE
                     </button>
                 </div>

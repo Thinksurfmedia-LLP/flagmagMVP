@@ -33,6 +33,7 @@ function LiveGameContent({ gameId }) {
     const [showSackPage, setShowSackPage] = useState(false);
     const [showRunPage, setShowRunPage] = useState(false);
     const [editingLogIndex, setEditingLogIndex] = useState(null);
+    const [roster, setRoster] = useState({ teamA: [], teamB: [] });
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -62,10 +63,21 @@ function LiveGameContent({ gameId }) {
         }
     }, [gameId]);
 
+    // Fetch roster (players with jersey numbers for both teams)
+    const fetchRoster = useCallback(async () => {
+        try {
+            const res = await apiGet(`/api/games/${gameId}/roster`);
+            if (res.data) setRoster(res.data);
+        } catch {
+            // ignore - roster may not be available
+        }
+    }, [gameId]);
+
     useEffect(() => {
         fetchGame();
         fetchStats();
-    }, [fetchGame, fetchStats]);
+        fetchRoster();
+    }, [fetchGame, fetchStats, fetchRoster]);
 
     const showToast = (message, type = "") => {
         setToast({ message, type });
@@ -218,6 +230,7 @@ function LiveGameContent({ gameId }) {
             <CompletionPage
                 game={game}
                 activeTeam={activeTeam}
+                roster={roster}
                 initialData={getInitialData("Completion")}
                 onSave={(data) => {
                     let ptsToAdd = 0;
@@ -285,6 +298,7 @@ function LiveGameContent({ gameId }) {
             <IncompletePassPage
                 game={game}
                 activeTeam={activeTeam}
+                roster={roster}
                 initialData={getInitialData("Incompletion")}
                 onSave={(data) => {
                     const teamName = activeTeam === "A" ? game.teamA.name : game.teamB.name;
@@ -326,6 +340,7 @@ function LiveGameContent({ gameId }) {
             <FumblePage
                 game={game}
                 activeTeam={activeTeam}
+                roster={roster}
                 initialData={getInitialData("Fumble")}
                 onSave={(data) => {
                     let ptsToAdd = 0;
@@ -392,6 +407,7 @@ function LiveGameContent({ gameId }) {
             <InterceptionPage
                 game={game}
                 activeTeam={activeTeam}
+                roster={roster}
                 initialData={getInitialData("Interception")}
                 onSave={(data) => {
                     let ptsToAdd = 0;
@@ -458,6 +474,7 @@ function LiveGameContent({ gameId }) {
             <SackPage
                 game={game}
                 activeTeam={activeTeam}
+                roster={roster}
                 initialData={getInitialData("Sack")}
                 onSave={(data) => {
                     let ptsToAdd = 0;
@@ -519,6 +536,7 @@ function LiveGameContent({ gameId }) {
             <RunPage
                 game={game}
                 activeTeam={activeTeam}
+                roster={roster}
                 initialData={getInitialData("Run")}
                 onSave={(data) => {
                     let ptsToAdd = 0;

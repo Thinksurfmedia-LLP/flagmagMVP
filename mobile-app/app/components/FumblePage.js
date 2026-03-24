@@ -1,10 +1,19 @@
 import { useState } from "react";
+import PlayerNumberWarning from "./PlayerNumberWarning";
+import { validatePlayerNumber, getTeamRoster, hasInvalidPlayerNumbers } from "../lib/rosterValidation";
 
-export default function FumblePage({ game, activeTeam, onSave, onCancel, initialData }) {
+export default function FumblePage({ game, activeTeam, roster, onSave, onCancel, initialData }) {
     // For fumble, the defender recovering is on the otherTeam.
+    const activeRoster = getTeamRoster(roster, activeTeam);
+    const otherRoster = getTeamRoster(roster, activeTeam === "A" ? "B" : "A");
     const [defender, setDefender] = useState(initialData?.defender || "");
     const [points, setPoints] = useState(initialData?.points || null); // "Touch Down", "2 Pt.", "None"
     const [flagPull, setFlagPull] = useState(initialData?.flagPull || "");
+
+    const hasInvalid = hasInvalidPlayerNumbers([
+        { value: defender, roster: otherRoster },
+        ...(points === null ? [{ value: flagPull, roster: activeRoster }] : []),
+    ]);
 
     const handleSave = () => {
         if (!defender) {
@@ -72,6 +81,7 @@ export default function FumblePage({ game, activeTeam, onSave, onCancel, initial
                             value={defender}
                             onChange={(e) => setDefender(e.target.value)}
                         />
+                        <PlayerNumberWarning valid={validatePlayerNumber(defender, otherRoster).valid} playerNumber={defender} label="defender" />
                     </div>
                 </div>
 
@@ -110,11 +120,12 @@ export default function FumblePage({ game, activeTeam, onSave, onCancel, initial
                             disabled={points !== null}
                             style={{ backgroundColor: points !== null ? "rgba(0,0,0,0.2)" : "#2b2726" }}
                         />
+                        {points === null && <PlayerNumberWarning valid={validatePlayerNumber(flagPull, activeRoster).valid} playerNumber={flagPull} label="flag pull player" />}
                     </div>
                 </div>
 
                 <div className="button-area" style={{ marginTop: 30 }}>
-                    <button className="btn btn-primary w-100" onClick={handleSave}>
+                    <button className="btn btn-primary w-100" onClick={handleSave} disabled={hasInvalid} style={hasInvalid ? { opacity: 0.4, pointerEvents: "none" } : {}}>
                         SAVE
                     </button>
                 </div>

@@ -1,12 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import PlayerNumberWarning from "./PlayerNumberWarning";
+import { validatePlayerNumber, getTeamRoster, hasInvalidPlayerNumbers } from "../lib/rosterValidation";
 
-export default function RunPage({ game, activeTeam, onSave, onCancel, initialData }) {
+export default function RunPage({ game, activeTeam, roster, onSave, onCancel, initialData }) {
+    const activeRoster = getTeamRoster(roster, activeTeam);
+    const otherRoster = getTeamRoster(roster, activeTeam === "A" ? "B" : "A");
     const [rusher, setRusher] = useState(initialData?.rusher || "");
     const [yards, setYards] = useState(initialData?.yards !== undefined ? initialData.yards : "");
     const [points, setPoints] = useState(initialData?.points || null); // "Touch Down", "1 Pt.", "2 Pt.", "None"
     const [flagPull, setFlagPull] = useState(initialData?.flagPull || "");
+
+    const hasInvalid = hasInvalidPlayerNumbers([
+        { value: rusher, roster: activeRoster },
+        ...(points === null ? [{ value: flagPull, roster: otherRoster }] : []),
+    ]);
 
     const handleSave = () => {
         onSave({
@@ -68,6 +77,7 @@ export default function RunPage({ game, activeTeam, onSave, onCancel, initialDat
                             value={rusher}
                             onChange={(e) => setRusher(e.target.value)}
                         />
+                        <PlayerNumberWarning valid={validatePlayerNumber(rusher, activeRoster).valid} playerNumber={rusher} label="rusher" />
                     </div>
                     <div className="form-group">
                         <input
@@ -115,11 +125,12 @@ export default function RunPage({ game, activeTeam, onSave, onCancel, initialDat
                             disabled={points !== null}
                             style={{ backgroundColor: points !== null ? "rgba(0,0,0,0.2)" : "#2b2726" }}
                         />
+                        {points === null && <PlayerNumberWarning valid={validatePlayerNumber(flagPull, otherRoster).valid} playerNumber={flagPull} label="flag pull player" />}
                     </div>
                 </div>
 
                 <div className="button-area" style={{ marginTop: 30 }}>
-                    <button className="btn btn-primary w-100" onClick={handleSave}>
+                    <button className="btn btn-primary w-100" onClick={handleSave} disabled={hasInvalid} style={hasInvalid ? { opacity: 0.4, pointerEvents: "none" } : {}}>
                         SAVE
                     </button>
                 </div>

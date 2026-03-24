@@ -77,7 +77,7 @@ async function syncAssignedPlayers({ teamName, teamLogo, organizationId, nextPla
         // Demote players back to free_agent if no longer on any team
         const removedPlayers = await Player.find({ _id: { $in: toRemove }, user: { $ne: null } }).select("user").lean();
         for (const rp of removedPlayers) {
-            const stillOnTeam = await Team.exists({ players: rp._id });
+            const stillOnTeam = await Team.exists({ "players.player": rp._id });
             if (!stillOnTeam) {
                 await Player.updateOne({ _id: rp._id }, { $set: { status: "free_agent" } });
             }
@@ -125,8 +125,34 @@ export async function PUT(request, { params }) {
         }
 
         const prevName = team.name;
-        const prevPlayerIds = team.players || [];
-        const nextPlayerIds = Array.isArray(body.players) ? body.players : prevPlayerIds;
+        const prevPlayerIds = (team.players || []).map(p => String(p.player));
+
+        // body.players is now an array of { player, jerseyNumber } objects
+        const nextPlayersArray = Array.isArray(body.players) ? body.players : null;
+        const nextPlayerIds = nextPlayersArray
+            ? nextPlayersArray.map(p => typeof p === "object" ? String(p.player) : String(p))
+            : prevPlayerIds;
+
+        // Validate jersey numbers when players are provided
+        if (nextPlayersArray) {
+            for (const entry of nextPlayersArray) {
+                if (typeof entry === "object" && (entry.jerseyNumber === undefined || entry.jerseyNumber === null || entry.jerseyNumber === "")) {
+                    return NextResponse.json(
+                        { success: false, error: "Jersey number is required for all players" },
+                        { status: 400 }
+                    );
+                }
+            }
+            // Check for duplicate jersey numbers
+            const jerseyNumbers = nextPlayersArray.map(p => typeof p === "object" ? Number(p.jerseyNumber) : null).filter(n => n !== null);
+            const uniqueJerseys = new Set(jerseyNumbers);
+            if (uniqueJerseys.size !== jerseyNumbers.length) {
+                return NextResponse.json(
+                    { success: false, error: "Duplicate jersey numbers are not allowed within the same team" },
+                    { status: 400 }
+                );
+            }
+        }
 
         if (hasRole(auth.user, "organizer") && nextPlayerIds.length > 0) {
             const organizerOrgId = await getOrgIdForOrganizer(auth.user);
@@ -148,7 +174,12 @@ export async function PUT(request, { params }) {
         team.description = body.description !== undefined ? (body.description?.trim() || "") : team.description;
         team.division = body.division !== undefined ? (body.division?.trim() || "") : team.division;
         if (body.location) team.location = body.location;
-        team.players = nextPlayerIds;
+        if (nextPlayersArray) {
+            team.players = nextPlayersArray.map(p => ({
+                player: typeof p === "object" ? p.player : p,
+                jerseyNumber: typeof p === "object" ? Number(p.jerseyNumber) : 0,
+            }));
+        }
         await team.save();
 
         if (prevName !== team.name) {
@@ -175,7 +206,7 @@ export async function PUT(request, { params }) {
 
         const updated = await Team.findById(team._id)
             .populate("organization", "name slug")
-            .populate("players", "name photo presentTeam organization")
+            .populate("players.player", "name photo presentTeam organization")
             .lean();
 
         return NextResponse.json({ success: true, data: updated });
@@ -207,8 +238,9 @@ export async function DELETE(request, { params }) {
             return NextResponse.json({ success: false, error: "You cannot manage teams outside your organization" }, { status: 403 });
         }
 
+        const teamPlayerIds = (team.players || []).map(p => p.player);
         await Player.updateMany(
-            { _id: { $in: team.players }, "presentTeam.name": team.name },
+            { _id: { $in: teamPlayerIds }, "presentTeam.name": team.name },
             {
                 $set: {
                     status: "free_agent",
@@ -221,7 +253,7 @@ export async function DELETE(request, { params }) {
         );
 
         // Sync user roles for all players on the deleted team
-        const teamPlayers = await Player.find({ _id: { $in: team.players }, user: { $ne: null } }).select("user").lean();
+        const teamPlayers = await Player.find({ _id: { $in: teamPlayerIds }, user: { $ne: null } }).select("user").lean();
         await Team.findByIdAndDelete(id);
         for (const tp of teamPlayers) {
             await syncUserRole(tp.user);

@@ -1,14 +1,22 @@
 import { useState } from "react";
 import MobileHeader from "./MobileHeader";
+import PlayerNumberWarning from "./PlayerNumberWarning";
+import { validatePlayerNumber, getTeamRoster, hasInvalidPlayerNumbers } from "../lib/rosterValidation";
 
-export default function IncompletePassPage({ game, activeTeam, onSave, onCancel, initialData }) {
+export default function IncompletePassPage({ game, activeTeam, roster, onSave, onCancel, initialData }) {
     const teamName = activeTeam === "A" ? game?.teamA?.name : game?.teamB?.name;
     const teamScore = activeTeam === "A" ? game?.teamA?.score : game?.teamB?.score;
 
     const otherTeamName = activeTeam === "A" ? game?.teamB?.name : game?.teamA?.name;
     const otherTeamScore = activeTeam === "A" ? game?.teamB?.score : game?.teamA?.score;
 
+    const activeRoster = getTeamRoster(roster, activeTeam);
+
     const [passer, setPasser] = useState(initialData?.passer || "");
+
+    const hasInvalid = hasInvalidPlayerNumbers([
+        { value: passer, roster: activeRoster },
+    ]);
 
     const handleSave = () => {
         if (!passer) {
@@ -69,11 +77,12 @@ export default function IncompletePassPage({ game, activeTeam, onSave, onCancel,
                             value={passer}
                             onChange={(e) => setPasser(e.target.value)}
                         />
+                        <PlayerNumberWarning valid={validatePlayerNumber(passer, activeRoster).valid} playerNumber={passer} label="passer" />
                     </div>
                 </div>
 
                 <div className="btn-group mt-5" style={{ width: "100%" }}>
-                    <button className="btn btn-primary w-100" onClick={handleSave} style={{ borderRadius: 25, padding: "12px 0", fontSize: 16, fontWeight: 700 }}>
+                    <button className="btn btn-primary w-100" onClick={handleSave} disabled={hasInvalid} style={{ borderRadius: 25, padding: "12px 0", fontSize: 16, fontWeight: 700, ...(hasInvalid ? { opacity: 0.4, pointerEvents: "none" } : {}) }}>
                         SAVE
                     </button>
                 </div>

@@ -68,7 +68,13 @@ function TeamModal({ team, freeAgents, organizations, user, effectiveRole, onClo
         team?.organization?._id || team?.organization || user?.organization?.id || ""
     );
     const [query, setQuery] = useState("");
-    const [selectedPlayerIds, setSelectedPlayerIds] = useState((team?.players || []).map((player) => String(player._id || player)));
+    // Track selected players as { player: id, jerseyNumber: num }
+    const [selectedPlayers, setSelectedPlayers] = useState(() => {
+        return (team?.players || []).map((entry) => ({
+            player: String(entry.player?._id || entry.player || entry._id || entry),
+            jerseyNumber: entry.jerseyNumber ?? "",
+        }));
+    });
     const [saving, setSaving] = useState(false);
 
     // Location picker state
@@ -102,14 +108,17 @@ function TeamModal({ team, freeAgents, organizations, user, effectiveRole, onClo
 
     // Merge existing team players with free agents for the candidate list
     const allCandidates = useMemo(() => {
-        const existingPlayers = (team?.players || []).map(p => ({
-            ...p,
+        const existingPlayers = (team?.players || []).map(entry => ({
+            ...(entry.player || {}),
+            _id: entry.player?._id || entry.player,
             _isExistingTeamPlayer: true,
         }));
-        const existingIds = new Set(existingPlayers.map(p => String(p._id || p)));
+        const existingIds = new Set(existingPlayers.map(p => String(p._id)));
         const newFreeAgents = (freeAgents || []).filter(fa => !existingIds.has(String(fa._id)));
         return [...existingPlayers, ...newFreeAgents];
     }, [team, freeAgents]);
+
+    const selectedPlayerIds = selectedPlayers.map(p => p.player);
 
     const filteredPlayers = allCandidates.filter((player) => {
         const haystack = `${player.name} ${player.organization?.name || ""}`.toLowerCase();
@@ -118,15 +127,40 @@ function TeamModal({ team, freeAgents, organizations, user, effectiveRole, onClo
 
     const togglePlayer = (playerId) => {
         const id = String(playerId);
-        setSelectedPlayerIds((prev) => (
-            prev.includes(id)
-                ? prev.filter((entry) => entry !== id)
-                : [...prev, id]
-        ));
+        setSelectedPlayers((prev) => {
+            const exists = prev.find(p => p.player === id);
+            if (exists) {
+                return prev.filter(p => p.player !== id);
+            }
+            return [...prev, { player: id, jerseyNumber: "" }];
+        });
+    };
+
+    const updateJerseyNumber = (playerId, jerseyNumber) => {
+        const id = String(playerId);
+        setSelectedPlayers((prev) =>
+            prev.map(p => p.player === id ? { ...p, jerseyNumber } : p)
+        );
     };
 
     const handleSave = async () => {
         if (!name.trim()) return;
+
+        // Validate jersey numbers for all selected players
+        const missingJersey = selectedPlayers.some(p => p.jerseyNumber === "" || p.jerseyNumber === undefined || p.jerseyNumber === null);
+        if (selectedPlayers.length > 0 && missingJersey) {
+            showError("Jersey number is required for all players");
+            return;
+        }
+
+        // Check for duplicate jersey numbers
+        const jerseyNums = selectedPlayers.map(p => Number(p.jerseyNumber));
+        const uniqueJerseys = new Set(jerseyNums);
+        if (uniqueJerseys.size !== jerseyNums.length) {
+            showError("Duplicate jersey numbers are not allowed within the same team");
+            return;
+        }
+
         setSaving(true);
 
         const locationPayload = pickerState ? {
@@ -143,7 +177,7 @@ function TeamModal({ team, freeAgents, organizations, user, effectiveRole, onClo
             division: division.trim(),
             location: locationPayload,
             organization: effectiveRole === "admin" ? organization : undefined,
-            players: selectedPlayerIds,
+            players: selectedPlayers,
         });
         setSaving(false);
     };
@@ -279,11 +313,13 @@ function TeamModal({ team, freeAgents, organizations, user, effectiveRole, onClo
                     />
                     <div className="admin-location-list" style={{ maxHeight: 200 }}>
                         {filteredPlayers.length > 0 ? filteredPlayers.map((player) => {
-                            const checked = selectedPlayerIds.includes(String(player._id));
+                            const playerId = String(player._id);
+                            const checked = selectedPlayerIds.includes(playerId);
+                            const selectedEntry = selectedPlayers.find(p => p.player === playerId);
                             return (
-                                <label key={player._id} className={`admin-location-option ${checked ? "selected" : ""}`}>
-                                    <input type="checkbox" checked={checked} onChange={() => togglePlayer(player._id)} />
-                                    <span>
+                                <label key={player._id} className={`admin-location-option ${checked ? "selected" : ""}`} style={{ alignItems: "flex-start" }}>
+                                    <input type="checkbox" checked={checked} onChange={() => togglePlayer(player._id)} style={{ marginTop: 4 }} />
+                                    <span style={{ flex: 1 }}>
                                         <strong>{player.name}</strong>
                                         {player._isExistingTeamPlayer ? (
                                             <small style={{ color: "#22c55e" }}>Currently on this team</small>
@@ -291,6 +327,19 @@ function TeamModal({ team, freeAgents, organizations, user, effectiveRole, onClo
                                             <small>Free Agent{player.organization?.name ? ` — ${player.organization.name}` : ""}</small>
                                         )}
                                     </span>
+                                    {checked && (
+                                        <input
+                                            type="number"
+                                            className="admin-form-input"
+                                            value={selectedEntry?.jerseyNumber ?? ""}
+                                            onChange={(e) => updateJerseyNumber(playerId, e.target.value)}
+                                            placeholder="#"
+                                            onClick={(e) => e.stopPropagation()}
+                                            style={{ width: 64, padding: "4px 8px", fontSize: 13, textAlign: "center", marginLeft: 8, flexShrink: 0 }}
+                                            min="0"
+                                            max="99"
+                                        />
+                                    )}
                                 </label>
                             );
                         }) : (

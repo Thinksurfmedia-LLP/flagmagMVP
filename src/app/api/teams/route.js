@@ -77,7 +77,7 @@ async function syncAssignedPlayers({ teamId, teamName, teamLogo, organizationId,
         // Demote players back to free_agent if no longer on any team
         const removedPlayers = await Player.find({ _id: { $in: toRemove }, user: { $ne: null } }).select("user").lean();
         for (const rp of removedPlayers) {
-            const stillOnTeam = await Team.exists({ players: rp._id });
+            const stillOnTeam = await Team.exists({ "players.player": rp._id });
             if (!stillOnTeam) {
                 await Player.updateOne({ _id: rp._id }, { $set: { status: "free_agent" } });
             }
@@ -121,7 +121,7 @@ export async function GET(request) {
 
         const teams = await Team.find(filter)
             .populate("organization", "name slug")
-            .populate("players", "name photo presentTeam organization")
+            .populate("players.player", "name photo presentTeam organization")
             .sort({ name: 1 })
             .lean();
 
@@ -148,7 +148,28 @@ export async function POST(request) {
         await dbConnect();
         const body = await request.json();
 
-        const playerIds = Array.isArray(body.players) ? body.players : [];
+        const playersArray = Array.isArray(body.players) ? body.players : [];
+
+        // Validate jersey numbers
+        for (const entry of playersArray) {
+            if (typeof entry === "object" && (entry.jerseyNumber === undefined || entry.jerseyNumber === null || entry.jerseyNumber === "")) {
+                return NextResponse.json(
+                    { success: false, error: "Jersey number is required for all players" },
+                    { status: 400 }
+                );
+            }
+        }
+        // Check for duplicate jersey numbers
+        const jerseyNumbers = playersArray.map(p => typeof p === "object" ? Number(p.jerseyNumber) : null).filter(n => n !== null);
+        const uniqueJerseys = new Set(jerseyNumbers);
+        if (uniqueJerseys.size !== jerseyNumbers.length) {
+            return NextResponse.json(
+                { success: false, error: "Duplicate jersey numbers are not allowed within the same team" },
+                { status: 400 }
+            );
+        }
+
+        const playerIds = playersArray.map(p => typeof p === "object" ? String(p.player) : String(p));
         const allRoles = auth.user.roles?.length ? auth.user.roles : [auth.user.role];
         const isOrganizer = allRoles.includes("organizer");
         const organizationId = isOrganizer
@@ -184,7 +205,10 @@ export async function POST(request) {
             division: body.division?.trim() || "",
             location: body.location || {},
             organization: organizationId,
-            players: playerIds,
+            players: playersArray.map(p => ({
+                player: typeof p === "object" ? p.player : p,
+                jerseyNumber: typeof p === "object" ? Number(p.jerseyNumber) : 0,
+            })),
         });
 
         await syncAssignedPlayers({
@@ -198,7 +222,7 @@ export async function POST(request) {
 
         const created = await Team.findById(team._id)
             .populate("organization", "name slug")
-            .populate("players", "name photo presentTeam organization")
+            .populate("players.player", "name photo presentTeam organization")
             .lean();
 
         return NextResponse.json({ success: true, data: created }, { status: 201 });

@@ -19,14 +19,15 @@ async function getData(slug, seasonSlug) {
     if (!league) return null;
     const [players, teams] = await Promise.all([
         Player.find({ organization: org._id }).lean(),
-        Team.find({ organization: org._id }).populate("players", "_id").lean(),
+        Team.find({ organization: org._id }).populate("players.player", "_id").lean(),
     ]);
 
     // Build a map of playerId -> team name
     const playerTeamMap = {};
     for (const team of teams) {
-        for (const p of team.players || []) {
-            playerTeamMap[String(p._id || p)] = team.name;
+        for (const entry of team.players || []) {
+            const pid = String(entry.player?._id || entry.player);
+            playerTeamMap[pid] = team.name;
         }
     }
 

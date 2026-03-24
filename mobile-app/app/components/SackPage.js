@@ -1,12 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import PlayerNumberWarning from "./PlayerNumberWarning";
+import { validatePlayerNumber, getTeamRoster, hasInvalidPlayerNumbers } from "../lib/rosterValidation";
 
-export default function SackPage({ game, activeTeam, onSave, onCancel, initialData }) {
+export default function SackPage({ game, activeTeam, roster, onSave, onCancel, initialData }) {
     // For sack, the passer is on the activeTeam, and defender is on the otherTeam.
+    const activeRoster = getTeamRoster(roster, activeTeam);
+    const otherRoster = getTeamRoster(roster, activeTeam === "A" ? "B" : "A");
     const [passer, setPasser] = useState(initialData?.passer || "");
     const [defender, setDefender] = useState(initialData?.defender || "");
     const [safetyOption, setSafetyOption] = useState(initialData?.safety ? "Safety" : "No Safety");
+
+    const hasInvalid = hasInvalidPlayerNumbers([
+        { value: passer, roster: activeRoster },
+        { value: defender, roster: otherRoster },
+    ]);
 
     const handleSave = () => {
         onSave({
@@ -67,6 +76,7 @@ export default function SackPage({ game, activeTeam, onSave, onCancel, initialDa
                             value={passer}
                             onChange={(e) => setPasser(e.target.value)}
                         />
+                        <PlayerNumberWarning valid={validatePlayerNumber(passer, activeRoster).valid} playerNumber={passer} label="passer" />
                     </div>
                     <div className="form-group">
                         <input
@@ -76,6 +86,7 @@ export default function SackPage({ game, activeTeam, onSave, onCancel, initialDa
                             value={defender}
                             onChange={(e) => setDefender(e.target.value)}
                         />
+                        <PlayerNumberWarning valid={validatePlayerNumber(defender, otherRoster).valid} playerNumber={defender} label="defender" />
                     </div>
                 </div>
 
@@ -96,7 +107,7 @@ export default function SackPage({ game, activeTeam, onSave, onCancel, initialDa
                 </div>
 
                 <div className="button-area" style={{ marginTop: 30 }}>
-                    <button className="btn btn-primary w-100" onClick={handleSave}>
+                    <button className="btn btn-primary w-100" onClick={handleSave} disabled={hasInvalid} style={hasInvalid ? { opacity: 0.4, pointerEvents: "none" } : {}}>
                         SAVE
                     </button>
                 </div>
