@@ -1,30 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import MobileHeader from "./MobileHeader";
 
-export default function CompletionPage({ game, activeTeam, onSave, onCancel }) {
-    const teamName = activeTeam === "A" ? game?.teamA?.name : game?.teamB?.name;
-    const teamLogo = activeTeam === "A" ? game?.teamA?.logo : game?.teamB?.logo;
-    const teamScore = activeTeam === "A" ? game?.teamA?.score : game?.teamB?.score;
-
-    const otherTeamName = activeTeam === "A" ? game?.teamB?.name : game?.teamA?.name;
-    const otherTeamScore = activeTeam === "A" ? game?.teamB?.score : game?.teamA?.score;
-    const otherTeamLogo = activeTeam === "A" ? game?.teamB?.logo : game?.teamA?.logo;
-
-    const [passer, setPasser] = useState("");
-    const [receiver, setReceiver] = useState("");
+export default function RunPage({ game, activeTeam, onSave, onCancel }) {
+    const [rusher, setRusher] = useState("");
     const [yards, setYards] = useState("");
     const [points, setPoints] = useState(null); // "Touch Down", "1 Pt.", "2 Pt.", "None"
     const [flagPull, setFlagPull] = useState("");
 
     const handleSave = () => {
         onSave({
-            passer,
-            receiver,
+            rusher,
             yards: Number(yards) || 0,
             points, // string value
-            flagPull: points !== null ? "" : flagPull,
+            flagPull: points !== null ? "" : flagPull, // If points selected, flag pull is cleared
         });
     };
 
@@ -39,7 +28,7 @@ export default function CompletionPage({ game, activeTeam, onSave, onCancel }) {
                                 <path d="M19 12H5M12 19l-7-7 7-7" />
                             </svg>
                         </button>
-                        <span>Complete Pass</span>
+                        <span>Run</span>
                     </div>
                 </header>
 
@@ -75,25 +64,16 @@ export default function CompletionPage({ game, activeTeam, onSave, onCancel }) {
                         <input
                             type="text"
                             className="form-control"
-                            placeholder="Passer Number*"
-                            value={passer}
-                            onChange={(e) => setPasser(e.target.value)}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <input
-                            type="text"
-                            className="form-control"
-                            placeholder="Receiver Number*"
-                            value={receiver}
-                            onChange={(e) => setReceiver(e.target.value)}
+                            placeholder="Rusher Number*"
+                            value={rusher}
+                            onChange={(e) => setRusher(e.target.value)}
                         />
                     </div>
                     <div className="form-group">
                         <input
                             type="number"
                             className="form-control"
-                            placeholder="Yard"
+                            placeholder="Rushing Yard*"
                             value={yards}
                             onChange={(e) => setYards(e.target.value)}
                         />

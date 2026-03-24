@@ -8,6 +8,8 @@ import MobileHeader from "../../components/MobileHeader";
 import BottomFooter from "../../components/BottomFooter";
 import CompletionPage from "../../components/CompletionPage";
 import InterceptionPage from "../../components/InterceptionPage";
+import SackPage from "../../components/SackPage";
+import RunPage from "../../components/RunPage";
 
 function LiveGameContent({ gameId }) {
     const router = useRouter();
@@ -23,6 +25,8 @@ function LiveGameContent({ gameId }) {
     const [toast, setToast] = useState(null);
     const [showCompletionPage, setShowCompletionPage] = useState(false);
     const [showInterceptionPage, setShowInterceptionPage] = useState(false);
+    const [showSackPage, setShowSackPage] = useState(false);
+    const [showRunPage, setShowRunPage] = useState(false);
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -266,6 +270,73 @@ function LiveGameContent({ gameId }) {
         );
     }
 
+    if (showSackPage) {
+        return (
+            <SackPage
+                game={game}
+                activeTeam={activeTeam}
+                onSave={(data) => {
+                    let ptsToAdd = 0;
+                    if (data.safety) ptsToAdd = 2; // if safe, add 2 points to opponent
+
+                    if (ptsToAdd > 0) {
+                        const opponentTeam = activeTeam === "A" ? "B" : "A";
+                        updateScore(opponentTeam, ptsToAdd);
+                    }
+
+                    const teamName = activeTeam === "A" ? game.teamA.name : game.teamB.name;
+                    const logDesc = `Sack P${data.passer}-D${data.defender}${data.safety ? ' (Safety)' : ''}`;
+                    const logEntry = {
+                        time: new Date().toLocaleTimeString(),
+                        action: logDesc,
+                        team: teamName,
+                        drive,
+                    };
+                    setActionLog(prev => [logEntry, ...prev]);
+                    showToast("Sack saved", "success");
+                    setShowSackPage(false);
+                }}
+                onCancel={() => setShowSackPage(false)}
+            />
+        );
+    }
+
+    if (showRunPage) {
+        return (
+            <RunPage
+                game={game}
+                activeTeam={activeTeam}
+                onSave={(data) => {
+                    let ptsToAdd = 0;
+                    if (data.points === "Touch Down") ptsToAdd = 6;
+                    if (data.points === "1 Pt.") ptsToAdd = 1;
+                    if (data.points === "2 Pt.") ptsToAdd = 2;
+
+                    if (data.flagPull && data.flagPull.trim() !== "") {
+                        ptsToAdd = 0; // Flag pull cancels out the score
+                    }
+
+                    if (ptsToAdd > 0) {
+                        updateScore(activeTeam, ptsToAdd);
+                    }
+
+                    const teamName = activeTeam === "A" ? game.teamA.name : game.teamB.name;
+                    const logDesc = `Run ${data.yards}yd R${data.rusher}${data.flagPull ? ` FP:${data.flagPull}` : ''}`;
+                    const logEntry = {
+                        time: new Date().toLocaleTimeString(),
+                        action: logDesc,
+                        team: teamName,
+                        drive,
+                    };
+                    setActionLog(prev => [logEntry, ...prev]);
+                    showToast("Run saved", "success");
+                    setShowRunPage(false);
+                }}
+                onCancel={() => setShowRunPage(false)}
+            />
+        );
+    }
+
     return (
         <div className="wrapper">
             <div className="main-section-wrapper" style={{ alignItems: "flex-start", paddingBottom: 80 }}>
@@ -436,6 +507,10 @@ function LiveGameContent({ gameId }) {
                                     setShowCompletionPage(true);
                                 } else if (action.action === "Interception") {
                                     setShowInterceptionPage(true);
+                                } else if (action.action === "Sack") {
+                                    setShowSackPage(true);
+                                } else if (action.action === "Run") {
+                                    setShowRunPage(true);
                                 } else {
                                     recordAction(action.action);
                                 }
