@@ -3,7 +3,7 @@
 import { useState } from "react";
 import MobileHeader from "./MobileHeader";
 
-export default function CompletionPage({ game, activeTeam, onSave, onCancel }) {
+export default function CompletionPage({ game, activeTeam, onSave, onCancel, initialData }) {
     const teamName = activeTeam === "A" ? game?.teamA?.name : game?.teamB?.name;
     const teamLogo = activeTeam === "A" ? game?.teamA?.logo : game?.teamB?.logo;
     const teamScore = activeTeam === "A" ? game?.teamA?.score : game?.teamB?.score;
@@ -12,11 +12,11 @@ export default function CompletionPage({ game, activeTeam, onSave, onCancel }) {
     const otherTeamScore = activeTeam === "A" ? game?.teamB?.score : game?.teamA?.score;
     const otherTeamLogo = activeTeam === "A" ? game?.teamB?.logo : game?.teamA?.logo;
 
-    const [passer, setPasser] = useState("");
-    const [receiver, setReceiver] = useState("");
-    const [yards, setYards] = useState("");
-    const [points, setPoints] = useState(null); // "Touch Down", "1 Pt.", "2 Pt.", "None"
-    const [flagPull, setFlagPull] = useState("");
+    const [passer, setPasser] = useState(initialData?.passer || "");
+    const [receiver, setReceiver] = useState(initialData?.receiver || "");
+    const [yards, setYards] = useState(initialData?.yards !== undefined ? initialData.yards : "");
+    const [points, setPoints] = useState(initialData?.points || null); // "Touch Down", "1 Pt.", "2 Pt.", "None"
+    const [flagPull, setFlagPull] = useState(initialData?.flagPull || "");
 
     const handleSave = () => {
         onSave({

@@ -1,19 +1,21 @@
-"use client";
-
 import { useState } from "react";
+import MobileHeader from "./MobileHeader";
 
-export default function SackPage({ game, activeTeam, onSave, onCancel, initialData }) {
-    // For sack, the passer is on the activeTeam, and defender is on the otherTeam.
+export default function IncompletePassPage({ game, activeTeam, onSave, onCancel, initialData }) {
+    const teamName = activeTeam === "A" ? game?.teamA?.name : game?.teamB?.name;
+    const teamScore = activeTeam === "A" ? game?.teamA?.score : game?.teamB?.score;
+
+    const otherTeamName = activeTeam === "A" ? game?.teamB?.name : game?.teamA?.name;
+    const otherTeamScore = activeTeam === "A" ? game?.teamB?.score : game?.teamA?.score;
+
     const [passer, setPasser] = useState(initialData?.passer || "");
-    const [defender, setDefender] = useState(initialData?.defender || "");
-    const [safetyOption, setSafetyOption] = useState(initialData?.safety ? "Safety" : "No Safety");
 
     const handleSave = () => {
-        onSave({
-            passer,
-            defender,
-            safety: safetyOption === "Safety",
-        });
+        if (!passer) {
+            alert("Passer Number is required");
+            return;
+        }
+        onSave({ passer });
     };
 
     return (
@@ -27,7 +29,7 @@ export default function SackPage({ game, activeTeam, onSave, onCancel, initialDa
                                 <path d="M19 12H5M12 19l-7-7 7-7" />
                             </svg>
                         </button>
-                        <span>Sack</span>
+                        <span>Incomplete Pass</span>
                     </div>
                 </header>
 
@@ -68,35 +70,10 @@ export default function SackPage({ game, activeTeam, onSave, onCancel, initialDa
                             onChange={(e) => setPasser(e.target.value)}
                         />
                     </div>
-                    <div className="form-group">
-                        <input
-                            type="text"
-                            className="form-control"
-                            placeholder="Defender Number*"
-                            value={defender}
-                            onChange={(e) => setDefender(e.target.value)}
-                        />
-                    </div>
                 </div>
 
-                <div style={{ width: "100%", padding: "15px", marginBottom: 20, display: "flex", justifyContent: "space-evenly" }}>
-                    {["No Safety", "Safety"].map(opt => (
-                        <label key={opt} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", color: "#d6d6d6", fontSize: 14 }}>
-                            <input
-                                type="radio"
-                                name="safetyOption"
-                                value={opt}
-                                checked={safetyOption === opt}
-                                onChange={() => setSafetyOption(opt)}
-                                style={{ accentColor: "#ff1e00", width: 18, height: 18 }}
-                            />
-                            {opt}
-                        </label>
-                    ))}
-                </div>
-
-                <div className="button-area" style={{ marginTop: 30 }}>
-                    <button className="btn btn-primary w-100" onClick={handleSave}>
+                <div className="btn-group mt-5" style={{ width: "100%" }}>
+                    <button className="btn btn-primary w-100" onClick={handleSave} style={{ borderRadius: 25, padding: "12px 0", fontSize: 16, fontWeight: 700 }}>
                         SAVE
                     </button>
                 </div>

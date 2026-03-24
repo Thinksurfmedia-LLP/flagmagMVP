@@ -7,6 +7,8 @@ import { apiGet, apiPut } from "../../lib/api";
 import MobileHeader from "../../components/MobileHeader";
 import BottomFooter from "../../components/BottomFooter";
 import CompletionPage from "../../components/CompletionPage";
+import FumblePage from "../../components/FumblePage";
+import IncompletePassPage from "../../components/IncompletePassPage";
 import InterceptionPage from "../../components/InterceptionPage";
 import SackPage from "../../components/SackPage";
 import RunPage from "../../components/RunPage";
@@ -18,15 +20,19 @@ function LiveGameContent({ gameId }) {
     const [stats, setStats] = useState([]);
     const [loadingGame, setLoadingGame] = useState(true);
     const [activeTeam, setActiveTeam] = useState("A"); // "A" or "B"
-    const [drive, setDrive] = useState(1);
+    const [timeoutsA, setTimeoutsA] = useState(0);
+    const [timeoutsB, setTimeoutsB] = useState(0);
     const [round, setRound] = useState(1);
     const [half, setHalf] = useState("1st");
     const [actionLog, setActionLog] = useState([]);
     const [toast, setToast] = useState(null);
     const [showCompletionPage, setShowCompletionPage] = useState(false);
+    const [showFumblePage, setShowFumblePage] = useState(false);
+    const [showIncompletePassPage, setShowIncompletePassPage] = useState(false);
     const [showInterceptionPage, setShowInterceptionPage] = useState(false);
     const [showSackPage, setShowSackPage] = useState(false);
     const [showRunPage, setShowRunPage] = useState(false);
+    const [editingLogIndex, setEditingLogIndex] = useState(null);
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -90,8 +96,9 @@ function LiveGameContent({ gameId }) {
             time: new Date().toLocaleTimeString(),
             action: actionType,
             team: teamName,
-            drive,
+            half,
             round,
+            type: actionType,
         };
 
         setActionLog([logEntry, ...actionLog]);
@@ -152,7 +159,8 @@ function LiveGameContent({ gameId }) {
                 });
                 setActionLog([]);
                 setHalf("1st");
-                setDrive(1);
+                setTimeoutsA(0);
+                setTimeoutsB(0);
                 fetchGame();
                 showToast("Match reset to initial state", "success");
             } catch (err) {
@@ -198,11 +206,19 @@ function LiveGameContent({ gameId }) {
         { icon: "/assets/images/icon-run.png", label: "Run", action: "Run" },
     ];
 
+    const getInitialData = (type) => {
+        if (editingLogIndex !== null && actionLog[editingLogIndex]?.type === type) {
+            return actionLog[editingLogIndex].data;
+        }
+        return null;
+    };
+
     if (showCompletionPage) {
         return (
             <CompletionPage
                 game={game}
                 activeTeam={activeTeam}
+                initialData={getInitialData("Completion")}
                 onSave={(data) => {
                     let ptsToAdd = 0;
                     if (data.points === "Touch Down") ptsToAdd = 6;
@@ -210,11 +226,24 @@ function LiveGameContent({ gameId }) {
                     if (data.points === "2 Pt.") ptsToAdd = 2;
 
                     if (data.flagPull && data.flagPull.trim() !== "") {
-                        ptsToAdd = 0; // Flag pull cancels out the score
+                        ptsToAdd = 0;
                     }
 
-                    if (ptsToAdd > 0) {
-                        updateScore(activeTeam, ptsToAdd);
+                    const targetTeam = activeTeam;
+                    let netDelta = ptsToAdd;
+                    
+                    if (editingLogIndex !== null) {
+                        const oldLog = actionLog[editingLogIndex];
+                        if (oldLog.targetTeam === targetTeam) {
+                            netDelta = ptsToAdd - oldLog.ptsAdded;
+                        } else {
+                            updateScore(oldLog.targetTeam, -oldLog.ptsAdded);
+                            netDelta = ptsToAdd;
+                        }
+                    }
+
+                    if (netDelta !== 0) {
+                        updateScore(targetTeam, netDelta);
                     }
 
                     const teamName = activeTeam === "A" ? game.teamA.name : game.teamB.name;
@@ -223,13 +252,137 @@ function LiveGameContent({ gameId }) {
                         time: new Date().toLocaleTimeString(),
                         action: logDesc,
                         team: teamName,
-                        drive,
+                        half,
+                        type: "Completion",
+                        activeTeam,
+                        data,
+                        ptsAdded: ptsToAdd,
+                        targetTeam
                     };
-                    setActionLog(prev => [logEntry, ...prev]);
-                    showToast("Completion saved", "success");
+                    
+                    if (editingLogIndex !== null) {
+                        const newLogs = [...actionLog];
+                        newLogs[editingLogIndex] = { ...newLogs[editingLogIndex], ...logEntry };
+                        setActionLog(newLogs);
+                        setEditingLogIndex(null);
+                        showToast("Completion updated", "success");
+                    } else {
+                        setActionLog(prev => [logEntry, ...prev]);
+                        showToast("Completion saved", "success");
+                    }
                     setShowCompletionPage(false);
                 }}
-                onCancel={() => setShowCompletionPage(false)}
+                onCancel={() => {
+                    setShowCompletionPage(false);
+                    setEditingLogIndex(null);
+                }}
+            />
+        );
+    }
+
+    if (showIncompletePassPage) {
+        return (
+            <IncompletePassPage
+                game={game}
+                activeTeam={activeTeam}
+                initialData={getInitialData("Incompletion")}
+                onSave={(data) => {
+                    const teamName = activeTeam === "A" ? game.teamA.name : game.teamB.name;
+                    const logDesc = `Inc P${data.passer}`;
+                    const logEntry = {
+                        time: new Date().toLocaleTimeString(),
+                        action: logDesc,
+                        team: teamName,
+                        half,
+                        type: "Incompletion",
+                        activeTeam,
+                        data,
+                        ptsAdded: 0,
+                        targetTeam: activeTeam
+                    };
+                    
+                    if (editingLogIndex !== null) {
+                        const newLogs = [...actionLog];
+                        newLogs[editingLogIndex] = { ...newLogs[editingLogIndex], ...logEntry };
+                        setActionLog(newLogs);
+                        setEditingLogIndex(null);
+                        showToast("Incompletion updated", "success");
+                    } else {
+                        setActionLog(prev => [logEntry, ...prev]);
+                        showToast("Incompletion saved", "success");
+                    }
+                    setShowIncompletePassPage(false);
+                }}
+                onCancel={() => {
+                    setShowIncompletePassPage(false);
+                    setEditingLogIndex(null);
+                }}
+            />
+        );
+    }
+
+    if (showFumblePage) {
+        return (
+            <FumblePage
+                game={game}
+                activeTeam={activeTeam}
+                initialData={getInitialData("Fumble")}
+                onSave={(data) => {
+                    let ptsToAdd = 0;
+                    if (data.points === "Touch Down") ptsToAdd = 6;
+                    if (data.points === "2 Pt.") ptsToAdd = 2;
+
+                    if (data.flagPull && data.flagPull.trim() !== "") {
+                        ptsToAdd = 0;
+                    }
+
+                    const targetTeam = activeTeam === "A" ? "B" : "A";
+                    let netDelta = ptsToAdd;
+
+                    if (editingLogIndex !== null) {
+                        const oldLog = actionLog[editingLogIndex];
+                        if (oldLog.targetTeam === targetTeam) {
+                            netDelta = ptsToAdd - oldLog.ptsAdded;
+                        } else {
+                            updateScore(oldLog.targetTeam, -oldLog.ptsAdded);
+                            netDelta = ptsToAdd;
+                        }
+                    }
+
+                    if (netDelta !== 0) {
+                        updateScore(targetTeam, netDelta);
+                    }
+
+                    const teamName = activeTeam === "A" ? game.teamA.name : game.teamB.name;
+                    const logDesc = `Fumble D${data.defender}${data.flagPull ? ` FP:${data.flagPull}` : ''}`;
+                    const logEntry = {
+                        time: new Date().toLocaleTimeString(),
+                        action: logDesc,
+                        team: teamName,
+                        half,
+                        type: "Fumble",
+                        activeTeam,
+                        data,
+                        ptsAdded: ptsToAdd,
+                        targetTeam
+                    };
+                    
+                    if (editingLogIndex !== null) {
+                        const newLogs = [...actionLog];
+                        newLogs[editingLogIndex] = { ...newLogs[editingLogIndex], ...logEntry };
+                        setActionLog(newLogs);
+                        setEditingLogIndex(null);
+                        showToast("Fumble updated", "success");
+                    } else {
+                        setActionLog(prev => [logEntry, ...prev]);
+                        showToast("Fumble saved", "success");
+                    }
+                    setShowFumblePage(false);
+                }}
+                onCancel={() => {
+                    setShowFumblePage(false);
+                    setEditingLogIndex(null);
+                }}
             />
         );
     }
@@ -239,18 +392,31 @@ function LiveGameContent({ gameId }) {
             <InterceptionPage
                 game={game}
                 activeTeam={activeTeam}
+                initialData={getInitialData("Interception")}
                 onSave={(data) => {
                     let ptsToAdd = 0;
                     if (data.points === "Touch Down") ptsToAdd = 6;
                     if (data.points === "2 Pt.") ptsToAdd = 2;
 
                     if (data.flagPull && data.flagPull.trim() !== "") {
-                        ptsToAdd = 0; // Flag pull cancels out the score
+                        ptsToAdd = 0;
                     }
 
-                    if (ptsToAdd > 0) {
-                        const opponentTeam = activeTeam === "A" ? "B" : "A";
-                        updateScore(opponentTeam, ptsToAdd);
+                    const targetTeam = activeTeam === "A" ? "B" : "A";
+                    let netDelta = ptsToAdd;
+
+                    if (editingLogIndex !== null) {
+                        const oldLog = actionLog[editingLogIndex];
+                        if (oldLog.targetTeam === targetTeam) {
+                            netDelta = ptsToAdd - oldLog.ptsAdded;
+                        } else {
+                            updateScore(oldLog.targetTeam, -oldLog.ptsAdded);
+                            netDelta = ptsToAdd;
+                        }
+                    }
+
+                    if (netDelta !== 0) {
+                        updateScore(targetTeam, netDelta);
                     }
 
                     const teamName = activeTeam === "A" ? game.teamA.name : game.teamB.name;
@@ -259,13 +425,30 @@ function LiveGameContent({ gameId }) {
                         time: new Date().toLocaleTimeString(),
                         action: logDesc,
                         team: teamName,
-                        drive,
+                        half,
+                        type: "Interception",
+                        activeTeam,
+                        data,
+                        ptsAdded: ptsToAdd,
+                        targetTeam
                     };
-                    setActionLog(prev => [logEntry, ...prev]);
-                    showToast("Interception saved", "success");
+                    
+                    if (editingLogIndex !== null) {
+                        const newLogs = [...actionLog];
+                        newLogs[editingLogIndex] = { ...newLogs[editingLogIndex], ...logEntry };
+                        setActionLog(newLogs);
+                        setEditingLogIndex(null);
+                        showToast("Interception updated", "success");
+                    } else {
+                        setActionLog(prev => [logEntry, ...prev]);
+                        showToast("Interception saved", "success");
+                    }
                     setShowInterceptionPage(false);
                 }}
-                onCancel={() => setShowInterceptionPage(false)}
+                onCancel={() => {
+                    setShowInterceptionPage(false);
+                    setEditingLogIndex(null);
+                }}
             />
         );
     }
@@ -275,13 +458,26 @@ function LiveGameContent({ gameId }) {
             <SackPage
                 game={game}
                 activeTeam={activeTeam}
+                initialData={getInitialData("Sack")}
                 onSave={(data) => {
                     let ptsToAdd = 0;
-                    if (data.safety) ptsToAdd = 2; // if safe, add 2 points to opponent
+                    if (data.safety) ptsToAdd = 2;
 
-                    if (ptsToAdd > 0) {
-                        const opponentTeam = activeTeam === "A" ? "B" : "A";
-                        updateScore(opponentTeam, ptsToAdd);
+                    const targetTeam = activeTeam === "A" ? "B" : "A";
+                    let netDelta = ptsToAdd;
+
+                    if (editingLogIndex !== null) {
+                        const oldLog = actionLog[editingLogIndex];
+                        if (oldLog.targetTeam === targetTeam) {
+                            netDelta = ptsToAdd - oldLog.ptsAdded;
+                        } else {
+                            updateScore(oldLog.targetTeam, -oldLog.ptsAdded);
+                            netDelta = ptsToAdd;
+                        }
+                    }
+
+                    if (netDelta !== 0) {
+                        updateScore(targetTeam, netDelta);
                     }
 
                     const teamName = activeTeam === "A" ? game.teamA.name : game.teamB.name;
@@ -290,13 +486,30 @@ function LiveGameContent({ gameId }) {
                         time: new Date().toLocaleTimeString(),
                         action: logDesc,
                         team: teamName,
-                        drive,
+                        half,
+                        type: "Sack",
+                        activeTeam,
+                        data,
+                        ptsAdded: ptsToAdd,
+                        targetTeam
                     };
-                    setActionLog(prev => [logEntry, ...prev]);
-                    showToast("Sack saved", "success");
+                    
+                    if (editingLogIndex !== null) {
+                        const newLogs = [...actionLog];
+                        newLogs[editingLogIndex] = { ...newLogs[editingLogIndex], ...logEntry };
+                        setActionLog(newLogs);
+                        setEditingLogIndex(null);
+                        showToast("Sack updated", "success");
+                    } else {
+                        setActionLog(prev => [logEntry, ...prev]);
+                        showToast("Sack saved", "success");
+                    }
                     setShowSackPage(false);
                 }}
-                onCancel={() => setShowSackPage(false)}
+                onCancel={() => {
+                    setShowSackPage(false);
+                    setEditingLogIndex(null);
+                }}
             />
         );
     }
@@ -306,6 +519,7 @@ function LiveGameContent({ gameId }) {
             <RunPage
                 game={game}
                 activeTeam={activeTeam}
+                initialData={getInitialData("Run")}
                 onSave={(data) => {
                     let ptsToAdd = 0;
                     if (data.points === "Touch Down") ptsToAdd = 6;
@@ -313,11 +527,24 @@ function LiveGameContent({ gameId }) {
                     if (data.points === "2 Pt.") ptsToAdd = 2;
 
                     if (data.flagPull && data.flagPull.trim() !== "") {
-                        ptsToAdd = 0; // Flag pull cancels out the score
+                        ptsToAdd = 0;
                     }
 
-                    if (ptsToAdd > 0) {
-                        updateScore(activeTeam, ptsToAdd);
+                    const targetTeam = activeTeam;
+                    let netDelta = ptsToAdd;
+
+                    if (editingLogIndex !== null) {
+                        const oldLog = actionLog[editingLogIndex];
+                        if (oldLog.targetTeam === targetTeam) {
+                            netDelta = ptsToAdd - oldLog.ptsAdded;
+                        } else {
+                            updateScore(oldLog.targetTeam, -oldLog.ptsAdded);
+                            netDelta = ptsToAdd;
+                        }
+                    }
+
+                    if (netDelta !== 0) {
+                        updateScore(targetTeam, netDelta);
                     }
 
                     const teamName = activeTeam === "A" ? game.teamA.name : game.teamB.name;
@@ -326,13 +553,30 @@ function LiveGameContent({ gameId }) {
                         time: new Date().toLocaleTimeString(),
                         action: logDesc,
                         team: teamName,
-                        drive,
+                        half,
+                        type: "Run",
+                        activeTeam,
+                        data,
+                        ptsAdded: ptsToAdd,
+                        targetTeam
                     };
-                    setActionLog(prev => [logEntry, ...prev]);
-                    showToast("Run saved", "success");
+                    
+                    if (editingLogIndex !== null) {
+                        const newLogs = [...actionLog];
+                        newLogs[editingLogIndex] = { ...newLogs[editingLogIndex], ...logEntry };
+                        setActionLog(newLogs);
+                        setEditingLogIndex(null);
+                        showToast("Run updated", "success");
+                    } else {
+                        setActionLog(prev => [logEntry, ...prev]);
+                        showToast("Run saved", "success");
+                    }
                     setShowRunPage(false);
                 }}
-                onCancel={() => setShowRunPage(false)}
+                onCancel={() => {
+                    setShowRunPage(false);
+                    setEditingLogIndex(null);
+                }}
             />
         );
     }
@@ -480,17 +724,39 @@ function LiveGameContent({ gameId }) {
                         </div>
                     </div>
 
-                    {/* Drive counter */}
+                    {/* Timeouts */}
                     <div className="drive-area">
                         <div className="drive-box">
-                            <button onClick={() => setDrive(Math.max(1, drive - 1))}>
-                                <img src="/assets/images/spin1.png" alt="Decrease" />
+                            <button onClick={() => {
+                                const current = activeTeam === "A" ? timeoutsA : timeoutsB;
+                                if (current > 0) {
+                                    if (activeTeam === "A") setTimeoutsA(current - 1);
+                                    else setTimeoutsB(current - 1);
+                                }
+                            }}>
+                                <img src="/assets/images/spin1.png" alt="Decrease Refund" />
                             </button>
                             <h6>
-                                Drive : <span>{drive}</span>
+                                Timeout : <span>{activeTeam === "A" ? timeoutsA : timeoutsB}</span>
                             </h6>
-                            <button onClick={() => setDrive(drive + 1)}>
-                                <img src="/assets/images/spin2.png" alt="Increase" />
+                            <button onClick={() => {
+                                const current = activeTeam === "A" ? timeoutsA : timeoutsB;
+                                if (current < 3) {
+                                    if (activeTeam === "A") setTimeoutsA(current + 1);
+                                    else setTimeoutsB(current + 1);
+                                    
+                                    const teamName = activeTeam === "A" ? game.teamA?.name : game.teamB?.name;
+                                    const logEntry = {
+                                        time: new Date().toLocaleTimeString(),
+                                        action: "Timeout",
+                                        team: teamName,
+                                        half,
+                                    };
+                                    setActionLog(prev => [logEntry, ...prev]);
+                                    showToast(`Timeout taken by ${teamName}`, "success");
+                                }
+                            }}>
+                                <img src="/assets/images/spin2.png" alt="Increase Use" />
                             </button>
                         </div>
                     </div>
@@ -505,6 +771,10 @@ function LiveGameContent({ gameId }) {
                             onClick={() => {
                                 if (action.action === "Completion") {
                                     setShowCompletionPage(true);
+                                } else if (action.action === "Incompletion") {
+                                    setShowIncompletePassPage(true);
+                                } else if (action.action === "Fumble") {
+                                    setShowFumblePage(true);
                                 } else if (action.action === "Interception") {
                                     setShowInterceptionPage(true);
                                 } else if (action.action === "Sack") {
@@ -544,7 +814,26 @@ function LiveGameContent({ gameId }) {
                                     <span>
                                         <strong style={{ color: "#fff" }}>{log.action}</strong> — {log.team}
                                     </span>
-                                    <span>D{log.drive}</span>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                        <span>{log.half}</span>
+                                        {['Completion', 'Incompletion', 'Interception', 'Sack', 'Run', 'Fumble'].includes(log.type) && (
+                                            <button 
+                                                onClick={() => {
+                                                    setEditingLogIndex(i);
+                                                    setActiveTeam(log.activeTeam);
+                                                    if (log.type === "Completion") setShowCompletionPage(true);
+                                                    if (log.type === "Incompletion") setShowIncompletePassPage(true);
+                                                    if (log.type === "Interception") setShowInterceptionPage(true);
+                                                    if (log.type === "Sack") setShowSackPage(true);
+                                                    if (log.type === "Fumble") setShowFumblePage(true);
+                                                    if (log.type === "Run") setShowRunPage(true);
+                                                }}
+                                                style={{ background: 'none', border: 'none', color: '#ff1e00', padding: 0, fontSize: 12, cursor: 'pointer', textDecoration: 'underline' }}
+                                            >
+                                                Edit
+                                            </button>
+                                        )}
+                                    </span>
                                 </div>
                             ))}
                         </div>
@@ -557,6 +846,8 @@ function LiveGameContent({ gameId }) {
                     onConfirm={async () => {
                         if (half === "1st") {
                             setHalf("2nd");
+                            setTimeoutsA(0);
+                            setTimeoutsB(0);
                             showToast("Switched to 2nd Half", "success");
                         } else if (half === "2nd") {
                             try {

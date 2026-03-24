@@ -1,21 +1,25 @@
-"use client";
-
 import { useState } from "react";
 
-export default function RunPage({ game, activeTeam, onSave, onCancel, initialData }) {
-    const [rusher, setRusher] = useState(initialData?.rusher || "");
-    const [yards, setYards] = useState(initialData?.yards !== undefined ? initialData.yards : "");
-    const [points, setPoints] = useState(initialData?.points || null); // "Touch Down", "1 Pt.", "2 Pt.", "None"
+export default function FumblePage({ game, activeTeam, onSave, onCancel, initialData }) {
+    // For fumble, the defender recovering is on the otherTeam.
+    const [defender, setDefender] = useState(initialData?.defender || "");
+    const [points, setPoints] = useState(initialData?.points || null); // "Touch Down", "2 Pt.", "None"
     const [flagPull, setFlagPull] = useState(initialData?.flagPull || "");
 
     const handleSave = () => {
+        if (!defender) {
+            alert("Defender Number is required");
+            return;
+        }
+
         onSave({
-            rusher,
-            yards: Number(yards) || 0,
-            points, // string value
-            flagPull: points !== null ? "" : flagPull, // If points selected, flag pull is cleared
+            defender,
+            points,
+            flagPull: points !== null ? "" : flagPull,
         });
     };
+
+    const isFlagPullDisabled = points !== null;
 
     return (
         <div className="wrapper" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, background: "#0b0d14", overflowY: "auto" }}>
@@ -28,7 +32,7 @@ export default function RunPage({ game, activeTeam, onSave, onCancel, initialDat
                                 <path d="M19 12H5M12 19l-7-7 7-7" />
                             </svg>
                         </button>
-                        <span>Run</span>
+                        <span>Fumble</span>
                     </div>
                 </header>
 
@@ -64,18 +68,9 @@ export default function RunPage({ game, activeTeam, onSave, onCancel, initialDat
                         <input
                             type="text"
                             className="form-control"
-                            placeholder="Rusher Number*"
-                            value={rusher}
-                            onChange={(e) => setRusher(e.target.value)}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <input
-                            type="number"
-                            className="form-control"
-                            placeholder="Rushing Yard*"
-                            value={yards}
-                            onChange={(e) => setYards(e.target.value)}
+                            placeholder="Defender Number*"
+                            value={defender}
+                            onChange={(e) => setDefender(e.target.value)}
                         />
                     </div>
                 </div>
@@ -87,7 +82,7 @@ export default function RunPage({ game, activeTeam, onSave, onCancel, initialDat
                     </div>
                     
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 15 }}>
-                        {["Touch Down", "1 Pt.", "2 Pt.", "None"].map(pt => (
+                        {["Touch Down", "2 Pt.", "None"].map(pt => (
                             <label key={pt} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", color: "#d6d6d6", fontSize: 14 }}>
                                 <input
                                     type="radio"

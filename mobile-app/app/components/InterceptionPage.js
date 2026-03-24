@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 
-export default function InterceptionPage({ game, activeTeam, onSave, onCancel }) {
+export default function InterceptionPage({ game, activeTeam, onSave, onCancel, initialData }) {
     // For interception, the passer is on the activeTeam, and defender is on the otherTeam.
-    const [passer, setPasser] = useState("");
-    const [defender, setDefender] = useState("");
-    const [points, setPoints] = useState(null); // "Touch Down", "2 Pt.", "None"
-    const [flagPull, setFlagPull] = useState("");
+    const [passer, setPasser] = useState(initialData?.passer || "");
+    const [defender, setDefender] = useState(initialData?.defender || "");
+    const [points, setPoints] = useState(initialData?.points || null); // "Touch Down", "2 Pt.", "None"
+    const [flagPull, setFlagPull] = useState(initialData?.flagPull || "");
 
     const handleSave = () => {
         onSave({
