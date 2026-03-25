@@ -34,6 +34,10 @@ function LiveGameContent({ gameId }) {
     const [showRunPage, setShowRunPage] = useState(false);
     const [editingLogIndex, setEditingLogIndex] = useState(null);
     const [roster, setRoster] = useState({ teamA: [], teamB: [] });
+    const [firstHalfCompleted, setFirstHalfCompleted] = useState(false);
+    const [viewingHalf, setViewingHalf] = useState("1st"); // which half tab is selected for viewing
+    const [showHalfConfirm, setShowHalfConfirm] = useState(false);
+    const [firstHalfSnapshot, setFirstHalfSnapshot] = useState(null); // { timeoutsA, timeoutsB, scoreA, scoreB, actionLog }
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -208,6 +212,10 @@ function LiveGameContent({ gameId }) {
 
     const teamAScore = game.teamA?.score ?? 0;
     const teamBScore = game.teamB?.score ?? 0;
+    const isViewOnly = viewingHalf === "1st" && firstHalfCompleted;
+    const displayTimeoutsA = isViewOnly ? firstHalfSnapshot.timeoutsA : timeoutsA;
+    const displayTimeoutsB = isViewOnly ? firstHalfSnapshot.timeoutsB : timeoutsB;
+    const displayActionLog = isViewOnly ? firstHalfSnapshot.actionLog : actionLog;
 
     // Persist a play to the database
     const persistPlay = async (playType, logEntry, playData) => {
@@ -655,7 +663,8 @@ function LiveGameContent({ gameId }) {
                                 />
                             </div>
                             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 8 }}>
-                                <span style={{ color: "#ccc", fontSize: 12 }}>TO: {timeoutsA}/3</span>
+                                <span style={{ color: "#ccc", fontSize: 12 }}>TO: {displayTimeoutsA}/3</span>
+                                {!isViewOnly && (
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -683,6 +692,7 @@ function LiveGameContent({ gameId }) {
                                 >
                                     +
                                 </button>
+                                )}
                             </div>
                         </div>
 
@@ -711,7 +721,8 @@ function LiveGameContent({ gameId }) {
                                 />
                             </div>
                             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 8 }}>
-                                <span style={{ color: "#ccc", fontSize: 12 }}>TO: {timeoutsB}/3</span>
+                                <span style={{ color: "#ccc", fontSize: 12 }}>TO: {displayTimeoutsB}/3</span>
+                                {!isViewOnly && (
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -739,6 +750,7 @@ function LiveGameContent({ gameId }) {
                                 >
                                     +
                                 </button>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -757,9 +769,7 @@ function LiveGameContent({ gameId }) {
                 <div style={{ display: "flex", alignItems: "center", gap: 0, alignSelf: "flex-start", margin: "12px 0 8px 0" }}>
                     <button
                         onClick={() => {
-                            setHalf("1st");
-                            setTimeoutsA(0);
-                            setTimeoutsB(0);
+                            setViewingHalf("1st");
                         }}
                         style={{
                             padding: "6px 16px",
@@ -768,17 +778,19 @@ function LiveGameContent({ gameId }) {
                             border: "none",
                             borderRadius: "6px 0 0 6px",
                             cursor: "pointer",
-                            background: half === "1st" ? "#ff1e00" : "rgba(255,255,255,0.1)",
-                            color: half === "1st" ? "#fff" : "#aaa",
+                            background: viewingHalf === "1st" ? "#ff1e00" : "rgba(255,255,255,0.1)",
+                            color: viewingHalf === "1st" ? "#fff" : "#aaa",
                         }}
                     >
                         1st Half
                     </button>
                     <button
                         onClick={() => {
-                            setHalf("2nd");
-                            setTimeoutsA(0);
-                            setTimeoutsB(0);
+                            if (!firstHalfCompleted) {
+                                setShowHalfConfirm(true);
+                            } else {
+                                setViewingHalf("2nd");
+                            }
                         }}
                         style={{
                             padding: "6px 16px",
@@ -787,16 +799,57 @@ function LiveGameContent({ gameId }) {
                             border: "none",
                             borderRadius: "0 6px 6px 0",
                             cursor: "pointer",
-                            background: half === "2nd" ? "#ff1e00" : "rgba(255,255,255,0.1)",
-                            color: half === "2nd" ? "#fff" : "#aaa",
+                            background: viewingHalf === "2nd" ? "#ff1e00" : "rgba(255,255,255,0.1)",
+                            color: viewingHalf === "2nd" ? "#fff" : "#aaa",
                         }}
                     >
                         2nd Half
                     </button>
                 </div>
 
+                {/* Half change confirmation */}
+                {showHalfConfirm && (
+                    <div className="confirm-overlay" onClick={() => setShowHalfConfirm(false)}>
+                        <div className="confirm-box" onClick={(e) => e.stopPropagation()}>
+                            <h4>End 1st Half?</h4>
+                            <p>Are you sure you want to mark the 1st half as complete and move to the 2nd half?</p>
+                            <p style={{ color: "#999", fontSize: 12 }}>The 1st half stats will become view-only.</p>
+                            <div className="confirm-actions">
+                                <button
+                                    className="btn btn-secondary"
+                                    onClick={() => setShowHalfConfirm(false)}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className="btn btn-primary"
+                                    onClick={() => {
+                                        setFirstHalfSnapshot({
+                                            timeoutsA,
+                                            timeoutsB,
+                                            scoreA: teamAScore,
+                                            scoreB: teamBScore,
+                                            actionLog: [...actionLog],
+                                        });
+                                        setFirstHalfCompleted(true);
+                                        setHalf("2nd");
+                                        setViewingHalf("2nd");
+                                        setTimeoutsA(0);
+                                        setTimeoutsB(0);
+                                        setActionLog([]);
+                                        setShowHalfConfirm(false);
+                                        showToast("1st half completed. Now in 2nd half.", "success");
+                                    }}
+                                >
+                                    Yes, Start 2nd Half
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Stat action buttons */}
-                <div className="managment-box-area">
+                <div className="managment-box-area" style={isViewOnly ? { opacity: 0.4, pointerEvents: "none" } : {}}>
                     {statActions.map((action) => (
                         <div
                             key={action.action}
@@ -826,13 +879,13 @@ function LiveGameContent({ gameId }) {
                 </div>
 
                 {/* Recent actions log */}
-                {actionLog.length > 0 && (
+                {displayActionLog.length > 0 && (
                     <div style={{ width: "100%", marginTop: 15 }}>
                         <h6 style={{ fontSize: 14, marginBottom: 8, color: "#b0b0b0", fontFamily: "'DM Sans', sans-serif" }}>
-                            Recent Actions
+                            Recent Actions {isViewOnly ? "(1st Half)" : ""}
                         </h6>
                         <div style={{ maxHeight: 150, overflowY: "auto" }}>
-                            {actionLog.slice(0, 10).map((log, i) => (
+                            {displayActionLog.slice(0, 10).map((log, i) => (
                                 <div
                                     key={i}
                                     style={{
@@ -849,7 +902,7 @@ function LiveGameContent({ gameId }) {
                                     </span>
                                     <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                         <span>{log.half}</span>
-                                        {['Completion', 'Incompletion', 'Interception', 'Sack', 'Run', 'Fumble'].includes(log.type) && (
+                                        {!isViewOnly && ['Completion', 'Incompletion', 'Interception', 'Sack', 'Run', 'Fumble'].includes(log.type) && (
                                             <button 
                                                 onClick={() => {
                                                     setEditingLogIndex(i);
