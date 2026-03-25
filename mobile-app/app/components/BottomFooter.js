@@ -1,27 +1,22 @@
 "use client";
 
-export default function BottomFooter({ onUndo, onStart, onConfirm, onReset }) {
+export default function BottomFooter({ onCancel, onComplete, onReset, isPaused }) {
     return (
         <footer className="bottom-footer">
             <ul>
                 <li>
-                    <button onClick={onUndo} title="Undo">
-                        <img src="/assets/images/icon-reply.png" alt="Undo" />
+                    <button onClick={onCancel} title="Cancel Game" className="footer-btn-cancel">
+                        <i className="fa-solid fa-ban"></i>
                     </button>
                 </li>
                 <li>
-                    <button onClick={onStart} title="Start">
-                        <img src="/assets/images/icon-start.png" alt="Start" />
+                    <button onClick={onComplete} title={isPaused ? "Resume Game" : "Complete Game"} className={`footer-btn-complete${isPaused ? " paused" : ""}`}>
+                        <i className={`fa-solid ${isPaused ? "fa-play" : "fa-stop"}`}></i>
                     </button>
                 </li>
                 <li>
-                    <button onClick={onConfirm} title="Confirm">
-                        <img src="/assets/images/icon-tick.png" alt="Confirm" />
-                    </button>
-                </li>
-                <li>
-                    <button onClick={onReset} title="Reset Match">
-                        <img src="/assets/images/icon-reload.png" alt="Reset Match" />
+                    <button onClick={onReset} title="Reset Match" className="footer-btn-reset">
+                        <i className="fa-solid fa-rotate-right"></i>
                     </button>
                 </li>
             </ul>

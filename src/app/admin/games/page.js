@@ -202,6 +202,7 @@ function GameModal({ onClose, onSave, initial, seasons = [], leagues = [], venue
                         <option value="upcoming">Upcoming</option>
                         <option value="in_progress">In Progress</option>
                         <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
                     </select>
                 </div>
 
@@ -673,6 +674,20 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
         } catch { showError("Failed to complete game"); }
     };
 
+    const handleCancelGame = async () => {
+        if (!confirm("Are you sure you want to cancel this game? This cannot be undone.")) return;
+        try {
+            await fetch(`/api/games/${game._id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: "cancelled" }),
+            });
+            showSuccess("Game cancelled.");
+            refreshGame();
+            if (onGameUpdate) onGameUpdate();
+        } catch { showError("Failed to cancel game"); }
+    };
+
     const handleDeletePlay = async (playId) => {
         if (!confirm("Delete this play?")) return;
         try {
@@ -760,7 +775,7 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
                     <h3 className="admin-modal-title" style={{ margin: 0 }}>
                         Live Stats — {liveGame.teamA.name} vs {liveGame.teamB.name}
                     </h3>
-                    <span className={`admin-badge ${liveGame.status === "completed" ? "player" : liveGame.status === "in_progress" ? "organizer" : ""}`}>
+                    <span className={`admin-badge ${liveGame.status === "completed" ? "player" : liveGame.status === "in_progress" ? "organizer" : liveGame.status === "cancelled" ? "danger" : ""}`}>
                         {liveGame.status}
                     </span>
                 </div>
@@ -988,9 +1003,14 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
                 <div style={{ display: "flex", gap: 10, marginTop: 16, justifyContent: "space-between", borderTop: "1px solid #e8eaef", paddingTop: 16 }}>
                     <button className="admin-btn admin-btn-ghost" onClick={onClose}>Close</button>
                     {liveGame.status === "in_progress" && (
-                        <button className="admin-btn admin-btn-danger" onClick={handleCompleteGame}>
-                            <i className="fa-solid fa-flag-checkered"></i> Complete Game
-                        </button>
+                        <div style={{ display: "flex", gap: 8 }}>
+                            <button className="admin-btn admin-btn-ghost" onClick={handleCancelGame} style={{ color: "#dc2626" }}>
+                                <i className="fa-solid fa-ban"></i> Cancel Game
+                            </button>
+                            <button className="admin-btn admin-btn-danger" onClick={handleCompleteGame}>
+                                <i className="fa-solid fa-flag-checkered"></i> Complete Game
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>
@@ -1201,7 +1221,7 @@ export default function AdminGamesPage() {
                                                 <td style={{ fontWeight: 600 }}>{game.teamB.name}</td>
                                                 <td>{game.location || "—"}</td>
                                                 <td>
-                                                    <span className={`admin-badge ${game.status === "completed" ? "player" : game.status === "in_progress" ? "organizer" : ""}`}>
+                                                    <span className={`admin-badge ${game.status === "completed" ? "player" : game.status === "in_progress" ? "organizer" : game.status === "cancelled" ? "danger" : ""}`}>
                                                         {game.status}
                                                     </span>
                                                 </td>

@@ -1222,12 +1222,53 @@ p {
     transition: all 0.2s ease;
     border: none;
     cursor: pointer;
+    color: #fff;
+    font-size: 18px;
 }
 
 .bottom-footer ul li a:hover,
 .bottom-footer ul li button:hover {
-    background: rgba(255, 30, 0, 0.3);
     transform: scale(1.1);
+}
+
+.bottom-footer ul li button.footer-btn-cancel {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ccc;
+}
+.bottom-footer ul li button.footer-btn-cancel:hover {
+    background: rgba(255, 30, 0, 0.3);
+    color: #ff1e00;
+}
+
+.bottom-footer ul li button.footer-btn-complete {
+    background: #ff6a00;
+    color: #fff;
+    width: 52px;
+    height: 52px;
+    font-size: 20px;
+    box-shadow: 0 4px 16px rgba(255, 106, 0, 0.4);
+}
+.bottom-footer ul li button.footer-btn-complete:hover {
+    background: #ff8a2e;
+    box-shadow: 0 6px 20px rgba(255, 106, 0, 0.5);
+}
+
+.bottom-footer ul li button.footer-btn-complete.paused {
+    background: #22c55e;
+    box-shadow: 0 4px 16px rgba(34, 197, 94, 0.4);
+}
+.bottom-footer ul li button.footer-btn-complete.paused:hover {
+    background: #16a34a;
+    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.5);
+}
+
+.bottom-footer ul li button.footer-btn-reset {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ccc;
+}
+.bottom-footer ul li button.footer-btn-reset:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
 }
 
 .bottom-footer ul li a img,

@@ -38,6 +38,9 @@ function LiveGameContent({ gameId }) {
     const [viewingHalf, setViewingHalf] = useState("1st"); // which half tab is selected for viewing
     const [showHalfConfirm, setShowHalfConfirm] = useState(false);
     const [firstHalfSnapshot, setFirstHalfSnapshot] = useState(null); // { timeoutsA, timeoutsB, scoreA, scoreB, actionLog }
+    const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+    const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
+    const [isPaused, setIsPaused] = useState(false);
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -82,6 +85,39 @@ function LiveGameContent({ gameId }) {
         fetchStats();
         fetchRoster();
     }, [fetchGame, fetchStats, fetchRoster]);
+
+    // Load persisted plays into action log for completed/cancelled games
+    useEffect(() => {
+        if (!game || (game.status !== "completed" && game.status !== "cancelled")) return;
+        const loadPlays = async () => {
+            try {
+                const res = await apiGet(`/api/games/${gameId}/plays`);
+                if (res.data && res.data.length > 0) {
+                    const playTypeMap = { completion: "Completion", incomplete: "Incompletion", interception: "Interception", sack: "Sack", fumble: "Fumble", run: "Run" };
+                    const logs = res.data.map(play => ({
+                        time: new Date(play.createdAt).toLocaleTimeString(),
+                        action: playTypeMap[play.type] || play.type,
+                        team: play.teamName || "",
+                        half: play.half || "1st",
+                        type: playTypeMap[play.type] || play.type,
+                        activeTeam: play.activeTeam || "A",
+                        data: {
+                            passer: play.passer || "",
+                            receiver: play.receiver || "",
+                            rusher: play.rusher || "",
+                            defender: play.defender || "",
+                            flagPull: play.flagPull || "",
+                            yards: play.yards || 0,
+                            points: play.points || "",
+                            safety: play.safety || false,
+                        },
+                    })).reverse();
+                    setActionLog(logs);
+                }
+            } catch { /* ignore */ }
+        };
+        loadPlays();
+    }, [game?.status, gameId]);
 
     const showToast = (message, type = "") => {
         setToast({ message, type });
@@ -177,8 +213,8 @@ function LiveGameContent({ gameId }) {
                 setHalf("1st");
                 setTimeoutsA(0);
                 setTimeoutsB(0);
-                fetchGame();
                 showToast("Match reset to initial state", "success");
+                router.push("/matches");
             } catch (err) {
                 showToast(err.message, "error");
             }
@@ -212,10 +248,13 @@ function LiveGameContent({ gameId }) {
 
     const teamAScore = game.teamA?.score ?? 0;
     const teamBScore = game.teamB?.score ?? 0;
-    const isViewOnly = viewingHalf === "1st" && firstHalfCompleted;
-    const displayTimeoutsA = isViewOnly ? firstHalfSnapshot.timeoutsA : timeoutsA;
-    const displayTimeoutsB = isViewOnly ? firstHalfSnapshot.timeoutsB : timeoutsB;
-    const displayActionLog = isViewOnly ? firstHalfSnapshot.actionLog : actionLog;
+    const isGameFinished = game.status === "completed" || game.status === "cancelled";
+    const isViewOnly = isGameFinished || (viewingHalf === "1st" && firstHalfCompleted);
+    const displayTimeoutsA = (viewingHalf === "1st" && firstHalfCompleted && firstHalfSnapshot) ? firstHalfSnapshot.timeoutsA : timeoutsA;
+    const displayTimeoutsB = (viewingHalf === "1st" && firstHalfCompleted && firstHalfSnapshot) ? firstHalfSnapshot.timeoutsB : timeoutsB;
+    const displayActionLog = (viewingHalf === "1st" && firstHalfCompleted && firstHalfSnapshot) ? firstHalfSnapshot.actionLog : actionLog;
+    const displayScoreA = (viewingHalf === "1st" && firstHalfCompleted && firstHalfSnapshot) ? firstHalfSnapshot.scoreA : teamAScore;
+    const displayScoreB = (viewingHalf === "1st" && firstHalfCompleted && firstHalfSnapshot) ? firstHalfSnapshot.scoreB : teamBScore;
 
     // Persist a play to the database
     const persistPlay = async (playType, logEntry, playData) => {
@@ -650,7 +689,10 @@ function LiveGameContent({ gameId }) {
                     <div className="top">
                         <div
                             className={`team-box ${activeTeam === "A" ? "active" : ""}`}
-                            onClick={() => setActiveTeam("A")}
+                            onClick={() => {
+                                if (isPaused) { showToast("Resume the game first", "error"); return; }
+                                setActiveTeam("A");
+                            }}
                             style={{
                                 cursor: "pointer",
                             }}
@@ -668,8 +710,10 @@ function LiveGameContent({ gameId }) {
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
+                                        if (isPaused) { showToast("Resume the game first", "error"); return; }
                                         if (timeoutsA < 3) {
                                             setTimeoutsA(timeoutsA + 1);
+                                            setIsPaused(true);
                                             const logEntry = {
                                                 time: new Date().toLocaleTimeString(),
                                                 action: "Timeout",
@@ -684,10 +728,10 @@ function LiveGameContent({ gameId }) {
                                     }}
                                     style={{
                                         width: 24, height: 24, borderRadius: "50%",
-                                        background: timeoutsA < 3 ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.05)",
-                                        color: timeoutsA < 3 ? "#fff" : "#555",
+                                        background: (isPaused || timeoutsA >= 3) ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.15)",
+                                        color: (isPaused || timeoutsA >= 3) ? "#555" : "#fff",
                                         display: "flex", alignItems: "center", justifyContent: "center",
-                                        fontSize: 16, border: "none", cursor: timeoutsA < 3 ? "pointer" : "not-allowed",
+                                        fontSize: 16, border: "none", cursor: (isPaused || timeoutsA >= 3) ? "not-allowed" : "pointer",
                                     }}
                                 >
                                     +
@@ -701,14 +745,17 @@ function LiveGameContent({ gameId }) {
                                 <img src="/assets/images/logo.png" alt="FlagMag" />
                             </div>
                             <h3>
-                                <span>{teamAScore}</span>:<span>{teamBScore}</span>
+                                <span>{displayScoreA}</span>:<span>{displayScoreB}</span>
                             </h3>
                             <h6>Score</h6>
                         </div>
 
                         <div
                             className={`team-box ${activeTeam === "B" ? "active" : ""}`}
-                            onClick={() => setActiveTeam("B")}
+                            onClick={() => {
+                                if (isPaused) { showToast("Resume the game first", "error"); return; }
+                                setActiveTeam("B");
+                            }}
                             style={{
                                 cursor: "pointer",
                             }}
@@ -726,8 +773,10 @@ function LiveGameContent({ gameId }) {
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
+                                        if (isPaused) { showToast("Resume the game first", "error"); return; }
                                         if (timeoutsB < 3) {
                                             setTimeoutsB(timeoutsB + 1);
+                                            setIsPaused(true);
                                             const logEntry = {
                                                 time: new Date().toLocaleTimeString(),
                                                 action: "Timeout",
@@ -742,10 +791,10 @@ function LiveGameContent({ gameId }) {
                                     }}
                                     style={{
                                         width: 24, height: 24, borderRadius: "50%",
-                                        background: timeoutsB < 3 ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.05)",
-                                        color: timeoutsB < 3 ? "#fff" : "#555",
+                                        background: (isPaused || timeoutsB >= 3) ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.15)",
+                                        color: (isPaused || timeoutsB >= 3) ? "#555" : "#fff",
                                         display: "flex", alignItems: "center", justifyContent: "center",
-                                        fontSize: 16, border: "none", cursor: timeoutsB < 3 ? "pointer" : "not-allowed",
+                                        fontSize: 16, border: "none", cursor: (isPaused || timeoutsB >= 3) ? "not-allowed" : "pointer",
                                     }}
                                 >
                                     +
@@ -786,10 +835,10 @@ function LiveGameContent({ gameId }) {
                     </button>
                     <button
                         onClick={() => {
-                            if (!firstHalfCompleted) {
-                                setShowHalfConfirm(true);
-                            } else {
+                            if (isGameFinished || firstHalfCompleted) {
                                 setViewingHalf("2nd");
+                            } else {
+                                setShowHalfConfirm(true);
                             }
                         }}
                         style={{
@@ -849,7 +898,8 @@ function LiveGameContent({ gameId }) {
                 )}
 
                 {/* Stat action buttons */}
-                <div className="managment-box-area" style={isViewOnly ? { opacity: 0.4, pointerEvents: "none" } : {}}>
+                {!isGameFinished && (
+                <div className="managment-box-area" style={(isViewOnly || isPaused) ? { opacity: 0.4, pointerEvents: "none" } : {}}>
                     {statActions.map((action) => (
                         <div
                             key={action.action}
@@ -877,6 +927,7 @@ function LiveGameContent({ gameId }) {
                         </div>
                     ))}
                 </div>
+                )}
 
                 {/* Recent actions log */}
                 {displayActionLog.length > 0 && (
@@ -884,69 +935,177 @@ function LiveGameContent({ gameId }) {
                         <h6 style={{ fontSize: 14, marginBottom: 8, color: "#b0b0b0", fontFamily: "'DM Sans', sans-serif" }}>
                             Recent Actions {isViewOnly ? "(1st Half)" : ""}
                         </h6>
-                        <div style={{ maxHeight: 150, overflowY: "auto" }}>
-                            {displayActionLog.slice(0, 10).map((log, i) => (
-                                <div
-                                    key={i}
-                                    style={{
-                                        display: "flex",
-                                        justifyContent: "space-between",
-                                        padding: "6px 10px",
-                                        fontSize: 12,
-                                        color: "#b0b0b0",
-                                        borderBottom: "1px solid rgba(255,255,255,0.05)",
-                                    }}
-                                >
-                                    <span>
-                                        <strong style={{ color: "#fff" }}>{log.action}</strong> — {log.team}
-                                    </span>
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                        <span>{log.half}</span>
-                                        {!isViewOnly && ['Completion', 'Incompletion', 'Interception', 'Sack', 'Run', 'Fumble'].includes(log.type) && (
-                                            <button 
-                                                onClick={() => {
-                                                    setEditingLogIndex(i);
-                                                    setActiveTeam(log.activeTeam);
-                                                    if (log.type === "Completion") setShowCompletionPage(true);
-                                                    if (log.type === "Incompletion") setShowIncompletePassPage(true);
-                                                    if (log.type === "Interception") setShowInterceptionPage(true);
-                                                    if (log.type === "Sack") setShowSackPage(true);
-                                                    if (log.type === "Fumble") setShowFumblePage(true);
-                                                    if (log.type === "Run") setShowRunPage(true);
-                                                }}
-                                                style={{ background: 'none', border: 'none', color: '#ff1e00', padding: 0, fontSize: 12, cursor: 'pointer', textDecoration: 'underline' }}
-                                            >
-                                                Edit
-                                            </button>
-                                        )}
-                                    </span>
-                                </div>
-                            ))}
+                        <div style={{ maxHeight: 220, overflowY: "auto" }}>
+                            {displayActionLog.slice(0, 10).map((log, i) => {
+                                const d = log.data || {};
+                                const typeColors = {
+                                    Completion: { bg: "rgba(34,197,94,0.15)", color: "#22c55e" },
+                                    Incompletion: { bg: "rgba(156,163,175,0.15)", color: "#9ca3af" },
+                                    Interception: { bg: "rgba(245,158,11,0.15)", color: "#f59e0b" },
+                                    Sack: { bg: "rgba(239,68,68,0.15)", color: "#ef4444" },
+                                    Fumble: { bg: "rgba(239,68,68,0.15)", color: "#ef4444" },
+                                    Run: { bg: "rgba(59,130,246,0.15)", color: "#3b82f6" },
+                                    Timeout: { bg: "rgba(168,85,247,0.15)", color: "#a855f7" },
+                                };
+                                const tc = typeColors[log.type] || { bg: "rgba(255,255,255,0.08)", color: "#b0b0b0" };
+
+                                let detailParts = [];
+                                if (log.type === "Completion") {
+                                    if (d.yards) detailParts.push(`${d.yards} Yards`);
+                                    if (d.passer) detailParts.push(`Passer #${d.passer}`);
+                                    if (d.receiver) detailParts.push(`Receiver #${d.receiver}`);
+                                    if (d.flagPull) detailParts.push(`Flag Pull: #${d.flagPull}`);
+                                    if (d.points && d.points !== "None") detailParts.push(d.points);
+                                } else if (log.type === "Incompletion") {
+                                    if (d.passer) detailParts.push(`Passer #${d.passer}`);
+                                } else if (log.type === "Interception") {
+                                    if (d.passer) detailParts.push(`Passer #${d.passer}`);
+                                    if (d.defender) detailParts.push(`Defender #${d.defender}`);
+                                    if (d.flagPull) detailParts.push(`Flag Pull: #${d.flagPull}`);
+                                    if (d.points && d.points !== "None") detailParts.push(d.points);
+                                } else if (log.type === "Sack") {
+                                    if (d.passer) detailParts.push(`Passer #${d.passer}`);
+                                    if (d.defender) detailParts.push(`Defender #${d.defender}`);
+                                    if (d.safety) detailParts.push("Safety");
+                                } else if (log.type === "Fumble") {
+                                    if (d.defender) detailParts.push(`Defender #${d.defender}`);
+                                    if (d.flagPull) detailParts.push(`Flag Pull: #${d.flagPull}`);
+                                    if (d.points && d.points !== "None") detailParts.push(d.points);
+                                } else if (log.type === "Run") {
+                                    if (d.yards) detailParts.push(`${d.yards} Yards`);
+                                    if (d.rusher) detailParts.push(`Rusher #${d.rusher}`);
+                                    if (d.flagPull) detailParts.push(`Flag Pull: #${d.flagPull}`);
+                                    if (d.points && d.points !== "None") detailParts.push(d.points);
+                                }
+
+                                const typeLabel = log.type === "Incompletion" ? "Incomplete Pass" : (log.type || log.action);
+
+                                return (
+                                    <div
+                                        key={i}
+                                        style={{
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            alignItems: "flex-start",
+                                            padding: "8px 10px",
+                                            fontSize: 12,
+                                            color: "#b0b0b0",
+                                            borderBottom: "1px solid rgba(255,255,255,0.05)",
+                                            gap: 8,
+                                        }}
+                                    >
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: detailParts.length > 0 ? 3 : 0 }}>
+                                                <span style={{
+                                                    display: "inline-block",
+                                                    padding: "1px 7px",
+                                                    borderRadius: 4,
+                                                    fontSize: 11,
+                                                    fontWeight: 700,
+                                                    background: tc.bg,
+                                                    color: tc.color,
+                                                    whiteSpace: "nowrap",
+                                                }}>
+                                                    {typeLabel}
+                                                </span>
+                                                <span style={{ color: "#888", fontSize: 11 }}>— {log.team}</span>
+                                            </div>
+                                            {detailParts.length > 0 && (
+                                                <div style={{ fontSize: 11, color: "#999", lineHeight: 1.5, paddingLeft: 2 }}>
+                                                    {detailParts.join(" · ")}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, paddingTop: 2 }}>
+                                            <span style={{ fontSize: 11, color: "#666" }}>{log.half}</span>
+                                            {!isViewOnly && ['Completion', 'Incompletion', 'Interception', 'Sack', 'Run', 'Fumble'].includes(log.type) && (
+                                                <button 
+                                                    onClick={() => {
+                                                        setEditingLogIndex(i);
+                                                        setActiveTeam(log.activeTeam);
+                                                        if (log.type === "Completion") setShowCompletionPage(true);
+                                                        if (log.type === "Incompletion") setShowIncompletePassPage(true);
+                                                        if (log.type === "Interception") setShowInterceptionPage(true);
+                                                        if (log.type === "Sack") setShowSackPage(true);
+                                                        if (log.type === "Fumble") setShowFumblePage(true);
+                                                        if (log.type === "Run") setShowRunPage(true);
+                                                    }}
+                                                    style={{ background: 'none', border: 'none', color: '#ff1e00', padding: 0, fontSize: 12, cursor: 'pointer', textDecoration: 'underline' }}
+                                                >
+                                                    Edit
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
                 )}
 
+                {!isGameFinished && (
                 <BottomFooter
-                    onUndo={handleUndo}
-                    onStart={handleStartGame}
-                    onConfirm={async () => {
-                        if (half === "1st") {
-                            setHalf("2nd");
-                            setTimeoutsA(0);
-                            setTimeoutsB(0);
-                            showToast("Switched to 2nd Half", "success");
-                        } else if (half === "2nd") {
-                            try {
-                                await apiPut(`/api/games/${gameId}`, { status: "completed" });
-                                showToast("Game completed!", "success");
-                                fetchGame();
-                            } catch (err) {
-                                showToast(err.message, "error");
-                            }
+                    onCancel={() => setShowCancelConfirm(true)}
+                    onComplete={() => {
+                        if (isPaused) {
+                            setIsPaused(false);
+                            showToast("Game resumed", "success");
+                        } else {
+                            setShowCompleteConfirm(true);
                         }
                     }}
                     onReset={handleReset}
+                    isPaused={isPaused}
                 />
+                )}
+
+                {/* Cancel Game Confirmation */}
+                {showCancelConfirm && (
+                    <div className="confirm-overlay" onClick={() => setShowCancelConfirm(false)}>
+                        <div className="confirm-box" onClick={e => e.stopPropagation()}>
+                            <h4>Cancel Game?</h4>
+                            <p>Are you sure you want to cancel this game?</p>
+                            <p className="confirm-detail">This will mark the game as cancelled.</p>
+                            <div className="confirm-actions">
+                                <button className="btn btn-secondary" onClick={() => setShowCancelConfirm(false)}>No, Go Back</button>
+                                <button className="btn btn-danger" onClick={async () => {
+                                    try {
+                                        await apiPut(`/api/games/${gameId}`, { status: "cancelled" });
+                                        showToast("Game cancelled", "success");
+                                        setShowCancelConfirm(false);
+                                        router.push("/matches");
+                                    } catch (err) {
+                                        showToast(err.message, "error");
+                                    }
+                                }}>Yes, Cancel Game</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Complete Game Confirmation */}
+                {showCompleteConfirm && (
+                    <div className="confirm-overlay" onClick={() => setShowCompleteConfirm(false)}>
+                        <div className="confirm-box" onClick={e => e.stopPropagation()}>
+                            <h4>Complete Game?</h4>
+                            <p>Are you sure you want to end this game?</p>
+                            <p className="confirm-detail">{game?.teamA?.name} {game?.teamA?.score ?? 0} — {game?.teamB?.score ?? 0} {game?.teamB?.name}</p>
+                            <div className="confirm-actions">
+                                <button className="btn btn-secondary" onClick={() => setShowCompleteConfirm(false)}>No, Go Back</button>
+                                <button className="btn btn-primary" onClick={async () => {
+                                    try {
+                                        await apiPut(`/api/games/${gameId}`, { status: "completed" });
+                                        showToast("Game completed!", "success");
+                                        setShowCompleteConfirm(false);
+                                        router.push("/matches");
+                                    } catch (err) {
+                                        showToast(err.message, "error");
+                                    }
+                                }}>Yes, Complete Game</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

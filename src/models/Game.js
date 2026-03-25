@@ -31,7 +31,7 @@ const GameSchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            enum: ["upcoming", "in_progress", "completed"],
+            enum: ["upcoming", "in_progress", "completed", "cancelled"],
             default: "upcoming",
         },
     },
