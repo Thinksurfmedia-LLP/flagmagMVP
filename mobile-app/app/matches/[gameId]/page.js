@@ -654,45 +654,35 @@ function LiveGameContent({ gameId }) {
                                     alt={game.teamA?.name}
                                 />
                             </div>
-                            <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 5 }}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 8 }}>
+                                <span style={{ color: "#ccc", fontSize: 12 }}>TO: {timeoutsA}/3</span>
                                 <button
-                                    onClick={(e) => { e.stopPropagation(); updateScore("A", -1); }}
-                                    style={{
-                                        width: 28, height: 28, borderRadius: "50%",
-                                        background: "rgba(255,255,255,0.1)", color: "#fff",
-                                        display: "flex", alignItems: "center", justifyContent: "center",
-                                        fontSize: 16, border: "none", cursor: "pointer",
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (timeoutsA < 3) {
+                                            setTimeoutsA(timeoutsA + 1);
+                                            const logEntry = {
+                                                time: new Date().toLocaleTimeString(),
+                                                action: "Timeout",
+                                                team: game.teamA?.name,
+                                                half,
+                                            };
+                                            setActionLog(prev => [logEntry, ...prev]);
+                                            showToast(`Timeout taken by ${game.teamA?.name} (${timeoutsA + 1}/3 this half)`, "success");
+                                        } else {
+                                            showToast(`${game.teamA?.name} has no timeouts left this half`, "error");
+                                        }
                                     }}
-                                >
-                                    −
-                                </button>
-                                <span style={{ color: "#ff1e00", fontWeight: 700, fontSize: 18 }}>
-                                    {teamAScore}
-                                </span>
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); updateScore("A", 1); }}
                                     style={{
-                                        width: 28, height: 28, borderRadius: "50%",
-                                        background: "rgba(255,255,255,0.1)", color: "#fff",
+                                        width: 24, height: 24, borderRadius: "50%",
+                                        background: timeoutsA < 3 ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.05)",
+                                        color: timeoutsA < 3 ? "#fff" : "#555",
                                         display: "flex", alignItems: "center", justifyContent: "center",
-                                        fontSize: 16, border: "none", cursor: "pointer",
+                                        fontSize: 16, border: "none", cursor: timeoutsA < 3 ? "pointer" : "not-allowed",
                                     }}
                                 >
                                     +
                                 </button>
-                            </div>
-                            <div className="progress-area" style={{ marginTop: 8 }}>
-                                <div className="progress" role="progressbar">
-                                    <div
-                                        className="progress-bar"
-                                        style={{
-                                            width: `${teamAScore + teamBScore > 0
-                                                ? (teamAScore / (teamAScore + teamBScore)) * 100
-                                                : 50
-                                            }%`,
-                                        }}
-                                    />
-                                </div>
                             </div>
                         </div>
 
@@ -720,45 +710,35 @@ function LiveGameContent({ gameId }) {
                                     alt={game.teamB?.name}
                                 />
                             </div>
-                            <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 5 }}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 8 }}>
+                                <span style={{ color: "#ccc", fontSize: 12 }}>TO: {timeoutsB}/3</span>
                                 <button
-                                    onClick={(e) => { e.stopPropagation(); updateScore("B", -1); }}
-                                    style={{
-                                        width: 28, height: 28, borderRadius: "50%",
-                                        background: "rgba(255,255,255,0.1)", color: "#fff",
-                                        display: "flex", alignItems: "center", justifyContent: "center",
-                                        fontSize: 16, border: "none", cursor: "pointer",
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (timeoutsB < 3) {
+                                            setTimeoutsB(timeoutsB + 1);
+                                            const logEntry = {
+                                                time: new Date().toLocaleTimeString(),
+                                                action: "Timeout",
+                                                team: game.teamB?.name,
+                                                half,
+                                            };
+                                            setActionLog(prev => [logEntry, ...prev]);
+                                            showToast(`Timeout taken by ${game.teamB?.name} (${timeoutsB + 1}/3 this half)`, "success");
+                                        } else {
+                                            showToast(`${game.teamB?.name} has no timeouts left this half`, "error");
+                                        }
                                     }}
-                                >
-                                    −
-                                </button>
-                                <span style={{ color: "#ff1e00", fontWeight: 700, fontSize: 18 }}>
-                                    {teamBScore}
-                                </span>
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); updateScore("B", 1); }}
                                     style={{
-                                        width: 28, height: 28, borderRadius: "50%",
-                                        background: "rgba(255,255,255,0.1)", color: "#fff",
+                                        width: 24, height: 24, borderRadius: "50%",
+                                        background: timeoutsB < 3 ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.05)",
+                                        color: timeoutsB < 3 ? "#fff" : "#555",
                                         display: "flex", alignItems: "center", justifyContent: "center",
-                                        fontSize: 16, border: "none", cursor: "pointer",
+                                        fontSize: 16, border: "none", cursor: timeoutsB < 3 ? "pointer" : "not-allowed",
                                     }}
                                 >
                                     +
                                 </button>
-                            </div>
-                            <div className="progress-area" style={{ marginTop: 8 }}>
-                                <div className="progress" role="progressbar">
-                                    <div
-                                        className="progress-bar"
-                                        style={{
-                                            width: `${teamAScore + teamBScore > 0
-                                                ? (teamBScore / (teamAScore + teamBScore)) * 100
-                                                : 50
-                                            }%`,
-                                        }}
-                                    />
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -773,42 +753,7 @@ function LiveGameContent({ gameId }) {
                         </div>
                     </div>
 
-                    {/* Timeouts */}
-                    <div className="drive-area">
-                        <div className="drive-box">
-                            <button onClick={() => {
-                                const current = activeTeam === "A" ? timeoutsA : timeoutsB;
-                                if (current > 0) {
-                                    if (activeTeam === "A") setTimeoutsA(current - 1);
-                                    else setTimeoutsB(current - 1);
-                                }
-                            }}>
-                                <img src="/assets/images/spin1.png" alt="Decrease Refund" />
-                            </button>
-                            <h6>
-                                Timeout : <span>{activeTeam === "A" ? timeoutsA : timeoutsB}</span>
-                            </h6>
-                            <button onClick={() => {
-                                const current = activeTeam === "A" ? timeoutsA : timeoutsB;
-                                if (current < 3) {
-                                    if (activeTeam === "A") setTimeoutsA(current + 1);
-                                    else setTimeoutsB(current + 1);
-                                    
-                                    const teamName = activeTeam === "A" ? game.teamA?.name : game.teamB?.name;
-                                    const logEntry = {
-                                        time: new Date().toLocaleTimeString(),
-                                        action: "Timeout",
-                                        team: teamName,
-                                        half,
-                                    };
-                                    setActionLog(prev => [logEntry, ...prev]);
-                                    showToast(`Timeout taken by ${teamName}`, "success");
-                                }
-                            }}>
-                                <img src="/assets/images/spin2.png" alt="Increase Use" />
-                            </button>
-                        </div>
-                    </div>
+
                 </div>
 
                 {/* Stat action buttons */}
