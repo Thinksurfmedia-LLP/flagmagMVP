@@ -746,14 +746,53 @@ function LiveGameContent({ gameId }) {
                     {/* Game info */}
                     <div className="info-text">
                         <div className="text">
-                            Half : <span>{half}</span>
-                        </div>
-                        <div className="text">
                             Status : <span className={`status-badge ${game.status}`}>{game.status}</span>
                         </div>
                     </div>
 
 
+                </div>
+
+                {/* Half toggler */}
+                <div style={{ display: "flex", alignItems: "center", gap: 0, alignSelf: "flex-start", margin: "12px 0 8px 0" }}>
+                    <button
+                        onClick={() => {
+                            setHalf("1st");
+                            setTimeoutsA(0);
+                            setTimeoutsB(0);
+                        }}
+                        style={{
+                            padding: "6px 16px",
+                            fontSize: 13,
+                            fontWeight: 600,
+                            border: "none",
+                            borderRadius: "6px 0 0 6px",
+                            cursor: "pointer",
+                            background: half === "1st" ? "#ff1e00" : "rgba(255,255,255,0.1)",
+                            color: half === "1st" ? "#fff" : "#aaa",
+                        }}
+                    >
+                        1st Half
+                    </button>
+                    <button
+                        onClick={() => {
+                            setHalf("2nd");
+                            setTimeoutsA(0);
+                            setTimeoutsB(0);
+                        }}
+                        style={{
+                            padding: "6px 16px",
+                            fontSize: 13,
+                            fontWeight: 600,
+                            border: "none",
+                            borderRadius: "0 6px 6px 0",
+                            cursor: "pointer",
+                            background: half === "2nd" ? "#ff1e00" : "rgba(255,255,255,0.1)",
+                            color: half === "2nd" ? "#fff" : "#aaa",
+                        }}
+                    >
+                        2nd Half
+                    </button>
                 </div>
 
                 {/* Stat action buttons */}
