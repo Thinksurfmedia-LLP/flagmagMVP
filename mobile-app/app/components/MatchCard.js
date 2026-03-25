@@ -1,8 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function MatchCard({ game, onStart }) {
+    const [showConfirm, setShowConfirm] = useState(false);
+    const router = useRouter();
     const formatDate = (dateStr) => {
         if (!dateStr) return "";
         const d = new Date(dateStr);
@@ -80,9 +84,12 @@ export default function MatchCard({ game, onStart }) {
                 </div>
                 <div className="right">
                     {game.status === "upcoming" && (
-                        <Link href={`/matches/${game._id}`} className="btn btn-primary">
+                        <button
+                            className="btn btn-primary"
+                            onClick={() => setShowConfirm(true)}
+                        >
                             Start Match
-                        </Link>
+                        </button>
                     )}
                     {game.status === "in_progress" && (
                         <Link href={`/matches/${game._id}`} className="btn btn-primary">
@@ -96,6 +103,40 @@ export default function MatchCard({ game, onStart }) {
                     )}
                 </div>
             </div>
+
+            {showConfirm && (
+                <div className="confirm-overlay" onClick={() => setShowConfirm(false)}>
+                    <div className="confirm-box" onClick={(e) => e.stopPropagation()}>
+                        <h4>Start This Match?</h4>
+                        <p>
+                            <strong>{game.teamA?.name || "Team A"}</strong> vs <strong>{game.teamB?.name || "Team B"}</strong>
+                        </p>
+                        {game.date && (
+                            <p className="confirm-detail">
+                                {formatDate(game.date)}{game.time ? `, ${formatTime(game.time)}` : ""}
+                                {game.location ? ` — ${game.location}` : ""}
+                            </p>
+                        )}
+                        <div className="confirm-actions">
+                            <button
+                                className="btn btn-secondary"
+                                onClick={() => setShowConfirm(false)}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="btn btn-primary"
+                                onClick={() => {
+                                    setShowConfirm(false);
+                                    router.push(`/matches/${game._id}`);
+                                }}
+                            >
+                                Yes, Start Match
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
