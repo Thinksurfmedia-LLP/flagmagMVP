@@ -71,6 +71,78 @@ export async function POST(request, { params }) {
     }
 }
 
+// PUT — update a specific play by _id (passed as query param ?playId=xxx)
+export async function PUT(request, { params }) {
+    try {
+        await dbConnect();
+        const { gameId } = await params;
+        const { searchParams } = new URL(request.url);
+        const playId = searchParams.get("playId");
+
+        if (!playId) {
+            return NextResponse.json(
+                { success: false, error: "playId query parameter is required" },
+                { status: 400 }
+            );
+        }
+
+        const body = await request.json();
+        const validTypes = ["completion", "incomplete", "interception", "fumble", "sack", "run"];
+
+        const updates = {};
+        if (body.type !== undefined) {
+            if (!validTypes.includes(body.type)) {
+                return NextResponse.json(
+                    { success: false, error: "Invalid play type" },
+                    { status: 400 }
+                );
+            }
+            updates.type = body.type;
+        }
+        if (body.activeTeam !== undefined) {
+            if (!["A", "B"].includes(body.activeTeam)) {
+                return NextResponse.json(
+                    { success: false, error: "activeTeam must be A or B" },
+                    { status: 400 }
+                );
+            }
+            updates.activeTeam = body.activeTeam;
+        }
+        if (body.teamName !== undefined) updates.teamName = body.teamName;
+        if (body.half !== undefined) updates.half = body.half;
+        if (body.passer !== undefined) updates.passer = body.passer;
+        if (body.receiver !== undefined) updates.receiver = body.receiver;
+        if (body.rusher !== undefined) updates.rusher = body.rusher;
+        if (body.defender !== undefined) updates.defender = body.defender;
+        if (body.flagPull !== undefined) updates.flagPull = body.flagPull;
+        if (body.yards !== undefined) updates.yards = Number(body.yards) || 0;
+        if (body.points !== undefined) updates.points = body.points;
+        if (body.safety !== undefined) updates.safety = Boolean(body.safety);
+        if (body.ptsAdded !== undefined) updates.ptsAdded = Number(body.ptsAdded) || 0;
+        if (body.targetTeam !== undefined) updates.targetTeam = body.targetTeam;
+
+        const updated = await Play.findOneAndUpdate(
+            { _id: playId, game: gameId },
+            { $set: updates },
+            { new: true }
+        );
+
+        if (!updated) {
+            return NextResponse.json(
+                { success: false, error: "Play not found" },
+                { status: 404 }
+            );
+        }
+
+        return NextResponse.json({ success: true, data: updated });
+    } catch (error) {
+        return NextResponse.json(
+            { success: false, error: error.message },
+            { status: 500 }
+        );
+    }
+}
+
 // DELETE — delete a specific play by _id (passed as query param ?playId=xxx)
 export async function DELETE(request, { params }) {
     try {
