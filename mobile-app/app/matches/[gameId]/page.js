@@ -746,7 +746,7 @@ function LiveGameContent({ gameId }) {
                     {/* Game info */}
                     <div className="info-text">
                         <div className="text">
-                            Status : <span className={`status-badge ${game.status}`}>{game.status}</span>
+                            <span className={`status-badge ${game.status}`}>{game.status}</span>
                         </div>
                     </div>
 

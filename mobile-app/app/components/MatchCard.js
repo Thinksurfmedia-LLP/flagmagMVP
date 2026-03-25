@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { apiPut } from "../lib/api";
 
 export default function MatchCard({ game, onStart }) {
     const [showConfirm, setShowConfirm] = useState(false);
@@ -126,7 +127,12 @@ export default function MatchCard({ game, onStart }) {
                             </button>
                             <button
                                 className="btn btn-primary"
-                                onClick={() => {
+                                onClick={async () => {
+                                    try {
+                                        await apiPut(`/api/games/${game._id}`, { status: "in_progress" });
+                                    } catch (err) {
+                                        console.error("Failed to start game:", err);
+                                    }
                                     setShowConfirm(false);
                                     router.push(`/matches/${game._id}`);
                                 }}
