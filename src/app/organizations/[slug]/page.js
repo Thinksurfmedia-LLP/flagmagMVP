@@ -108,9 +108,9 @@ export default async function OrganizationDetailPage({ params }) {
                     </div>
 
                     <div className="content-area">
-                        <h4>About</h4>
+                        <h4>About:</h4>
                         <p>{org.description}</p>
-                        <h4>Locations List</h4>
+                        <h4>Locations:</h4>
                         {org.locations && org.locations.length > 0 ? (
                             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexWrap: "wrap", alignItems: "center" }}>
                                 {org.locations.map((loc, i) => (
