@@ -197,7 +197,7 @@ function getOrganizerNav(orgSlug) {
 }
 
 export default function AdminLayout({ children, title }) {
-    const { user, loading, logout, activeRole, clearActiveRole } = useAuth();
+    const { user, loading, logout, activeRole, clearActiveRole, setActiveRole } = useAuth();
     const { org: impersonatedOrg, exitImpersonation } = useImpersonation();
     const pathname = usePathname();
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -218,6 +218,23 @@ export default function AdminLayout({ children, title }) {
                 .catch(() => { });
         }
     }, [effectiveRole, user?.organization?.slug]);
+
+    // Active Role Enforcer
+    useEffect(() => {
+        if (loading || !user) return;
+        const userRoles = user.roles?.length ? user.roles : [user.role];
+        const dashboardRoles = userRoles.filter((r) => ["admin", "organizer"].includes(r));
+        if (dashboardRoles.length === 0) {
+            router.replace("/");
+        } else if (!dashboardRoles.includes(effectiveRole)) {
+            if (dashboardRoles.length === 1) {
+                setActiveRole(dashboardRoles[0]);
+            } else {
+                clearActiveRole();
+                router.replace("/admin/select-role");
+            }
+        }
+    }, [user, loading, effectiveRole, router, clearActiveRole, setActiveRole]);
 
     if (loading) {
         return (
