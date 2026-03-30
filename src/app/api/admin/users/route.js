@@ -32,7 +32,7 @@ export async function POST(request) {
 
     try {
         await dbConnect();
-        const { name, email, phone, password, role, roles: rolesInput, organization } = await request.json();
+        const { name, email, phone, password, role, roles: rolesInput, organization, roleOrganizations } = await request.json();
 
         if (!name || !email || !password) {
             return NextResponse.json({ success: false, error: "Name, email, and password are required" }, { status: 400 });
@@ -45,13 +45,21 @@ export async function POST(request) {
         let assignedRoles = Array.isArray(rolesInput) && rolesInput.length > 0 ? rolesInput : [role || "viewer"];
         const primaryRole = assignedRoles[0];
 
+        let passedRoleOrgs = roleOrganizations || {};
         let assignedOrg = organization || null;
+
         if (auth.user.role !== "admin") {
             const requester = await User.findById(auth.user.id).select("organization").lean();
             assignedOrg = requester?.organization || null;
             if (assignedRoles.some(r => ["admin", "organizer"].includes(r))) {
                 return NextResponse.json({ success: false, error: "You can only create free agent accounts" }, { status: 403 });
             }
+            // Non-admins assign their own org to all managed roles
+            assignedRoles.forEach(r => {
+                if (!["viewer", "player", "admin"].includes(r)) {
+                    passedRoleOrgs[r] = assignedOrg;
+                }
+            });
         }
 
         // Nobody can create player directly — only via team assignment
@@ -59,9 +67,17 @@ export async function POST(request) {
             return NextResponse.json({ success: false, error: "Players can only be promoted from free agents via team assignment" }, { status: 400 });
         }
 
-        // Free agent requires an organization
-        if (assignedRoles.includes("free_agent") && !assignedOrg) {
-            return NextResponse.json({ success: false, error: "Organization is required for free agent accounts" }, { status: 400 });
+        // Validate required organizations per role
+        for (const r of assignedRoles) {
+            // we assume free_agent, organizer, statistician, viewer are the roles
+            // maybe custom roles require org too, let's enforce org for anything not viewer/admin
+            const requiresOrg = !["viewer", "player", "admin"].includes(r);
+            if (requiresOrg && !passedRoleOrgs[r] && !assignedOrg) {
+                return NextResponse.json({ success: false, error: `Organization is required for the ${r.replace(/_/g, " ")} role` }, { status: 400 });
+            }
+            if (requiresOrg && !passedRoleOrgs[r] && assignedOrg) {
+                passedRoleOrgs[r] = assignedOrg; // Fallback mapping
+            }
         }
 
         const existingUser = await User.findOne({ email });
@@ -80,6 +96,7 @@ export async function POST(request) {
             role: primaryRole,
             roles: assignedRoles,
             ...(assignedOrg ? { organization: assignedOrg } : {}),
+            roleOrganizations: passedRoleOrgs,
         });
 
         const userData = await User.findById(user._id)
@@ -88,15 +105,18 @@ export async function POST(request) {
             .lean();
 
         // If free_agent role, also create a Player doc for the assigned org
-        if (assignedRoles.includes("free_agent") && assignedOrg) {
-            const existingPlayer = await Player.findOne({ user: user._id, organization: assignedOrg });
-            if (!existingPlayer) {
-                await Player.create({
-                    user: user._id,
-                    name: user.name,
-                    organization: assignedOrg,
-                    status: "free_agent",
-                });
+        if (assignedRoles.includes("free_agent")) {
+            const faOrg = passedRoleOrgs["free_agent"] || assignedOrg;
+            if (faOrg) {
+                const existingPlayer = await Player.findOne({ user: user._id, organization: faOrg });
+                if (!existingPlayer) {
+                    await Player.create({
+                        user: user._id,
+                        name: user.name,
+                        organization: faOrg,
+                        status: "free_agent",
+                    });
+                }
             }
         }
 

@@ -245,8 +245,9 @@ export default function AdminLayout({ children, title }) {
     const isImpersonating = !!impersonatedOrg;
     const isOrganizer = effectiveRole === "organizer";
     const userRoles = user.roles?.length ? user.roles : [user.role];
-    const isMultiRole = userRoles.length > 1;
-    const organizerOrg = user.organization;
+    const dashboardRoles = userRoles.filter((r) => ["admin", "organizer"].includes(r));
+    const isMultiRole = dashboardRoles.length > 1;
+    const organizerOrg = user.roleOrganizations?.[effectiveRole] || user.organization;
     const orgSlug = organizerOrg?.slug || fetchedOrgSlug;
     const navSections = isImpersonating
         ? getImpersonationNav(impersonatedOrg.slug)

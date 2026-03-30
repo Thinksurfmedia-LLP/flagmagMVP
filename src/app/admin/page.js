@@ -39,10 +39,13 @@ export default function AdminDashboard() {
     useEffect(() => {
         if (loading || !user) return;
         const userRoles = user.roles?.length ? user.roles : [user.role];
-        if (userRoles.length > 1 && !activeRole) {
+        const dashboardRoles = userRoles.filter(r => ["admin", "organizer"].includes(r));
+        if (dashboardRoles.length > 1 && !activeRole) {
             router.replace("/admin/select-role");
-        } else if (userRoles.length === 1 && !activeRole) {
-            setActiveRole(userRoles[0]);
+        } else if (dashboardRoles.length === 1 && !activeRole) {
+            setActiveRole(dashboardRoles[0]);
+        } else if (dashboardRoles.length === 0) {
+            router.replace("/");
         }
     }, [user, loading, activeRole, setActiveRole, router]);
 

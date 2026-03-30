@@ -48,8 +48,11 @@ export default function SelectRolePage() {
         if (loading) return;
         if (!user) { router.replace("/login"); return; }
         const userRoles = user.roles?.length ? user.roles : [user.role];
-        if (userRoles.length === 1) {
-            setActiveRole(userRoles[0]);
+        const dashboardRoles = userRoles.filter(r => ["admin", "organizer"].includes(r));
+        if (dashboardRoles.length === 0) {
+            router.replace("/");
+        } else if (dashboardRoles.length === 1) {
+            setActiveRole(dashboardRoles[0]);
             router.replace("/admin");
         }
     }, [user, loading, router, setActiveRole]);
@@ -57,6 +60,9 @@ export default function SelectRolePage() {
     if (loading || !user) return null;
 
     const userRoles = user.roles?.length ? user.roles : [user.role];
+    const dashboardRoles = userRoles.filter(role => ["admin", "organizer"].includes(role));
+
+    if (dashboardRoles.length <= 1) return null;
 
     const handleSelect = (role) => {
         setActiveRole(role);
@@ -97,7 +103,7 @@ export default function SelectRolePage() {
                 justifyContent: "center",
                 maxWidth: 700,
             }}>
-                {userRoles.map((slug) => {
+                {dashboardRoles.map((slug) => {
                     const cfg = ROLE_CONFIG[slug] || getDefaultConfig(slug);
                     return (
                         <button

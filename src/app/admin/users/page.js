@@ -6,7 +6,8 @@ import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 
 function AddUserModal({ onClose, onSave, organizations, roles, isAdmin }) {
-    const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "", organization: "" });
+    const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "" });
+    const [roleOrganizations, setRoleOrganizations] = useState({});
     const [selectedRoles, setSelectedRoles] = useState(isAdmin ? [] : ["free_agent"]);
     const [saving, setSaving] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -18,7 +19,6 @@ function AddUserModal({ onClose, onSave, organizations, roles, isAdmin }) {
     const availableRoles = isAdmin
         ? roles.filter(r => r.slug !== "player" && r.slug !== "viewer" && r.slug !== "admin")
         : roles.filter(r => r.slug === "free_agent");
-    const needsOrg = isAdmin && (selectedRoles.includes("organizer") || selectedRoles.includes("free_agent"));
 
     const toggleRole = (slug) => {
         setSelectedRoles(prev =>
@@ -28,11 +28,22 @@ function AddUserModal({ onClose, onSave, organizations, roles, isAdmin }) {
 
     const handleSave = async () => {
         setFormError("");
-        if (needsOrg && !form.organization) { setFormError("Please select an organization for the organizer role"); return; }
         if (form.password !== form.confirmPassword) { setFormError("Passwords do not match"); return; }
         const effectiveRoles = [...new Set([...(selectedRoles.length > 0 ? selectedRoles : []), "viewer"])];
+
+        if (isAdmin) {
+             for (const r of effectiveRoles) {
+                  if (!["admin", "viewer", "player"].includes(r)) {
+                       if (!roleOrganizations[r]) {
+                           setFormError(`Please select an organization for the ${r.replace(/_/g, " ")} role`);
+                           return;
+                       }
+                  }
+             }
+        }
+
         setSaving(true);
-        await onSave({ ...form, roles: effectiveRoles, role: effectiveRoles[0] });
+        await onSave({ ...form, roles: effectiveRoles, role: effectiveRoles[0], roleOrganizations });
         setSaving(false);
     };
 
@@ -98,17 +109,24 @@ function AddUserModal({ onClose, onSave, organizations, roles, isAdmin }) {
                     </div>
                     {!isAdmin && <p style={{ fontSize: 12, color: "#8b90a0", marginTop: 6 }}>User will be automatically added to your organization.</p>}
                 </div>
-                {needsOrg && (
-                    <div className="admin-form-group">
-                        <label className="admin-form-label">Organization *</label>
-                        <select className="admin-form-select" value={form.organization} onChange={e => setForm({ ...form, organization: e.target.value })}>
-                            <option value="">— Select Organization —</option>
-                            {(organizations || []).map(o => (
-                                <option key={o._id} value={o._id}>{o.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                )}
+                {isAdmin && selectedRoles.filter(r => !["admin", "viewer", "player"].includes(r)).map(roleSlug => {
+                    const roleName = roles.find(r => r.slug === roleSlug)?.name || roleSlug.replace(/_/g, " ");
+                    return (
+                        <div className="admin-form-group" key={roleSlug}>
+                            <label className="admin-form-label" style={{ textTransform: "capitalize" }}>{roleName} Organization *</label>
+                            <select 
+                                className="admin-form-select" 
+                                value={roleOrganizations[roleSlug] || ""} 
+                                onChange={e => setRoleOrganizations({ ...roleOrganizations, [roleSlug]: e.target.value })}
+                            >
+                                <option value="">— Select Organization —</option>
+                                {(organizations || []).map(o => (
+                                    <option key={o._id} value={o._id}>{o.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    );
+                })}
 
                 <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
                     <button className="admin-btn admin-btn-ghost" onClick={onClose}>Cancel</button>
@@ -125,13 +143,12 @@ function EditUserModal({ target, onClose, onSave, organizations, roles, isAdmin 
     const [selectedRoles, setSelectedRoles] = useState(
         target.roles?.length ? target.roles : [target.role]
     );
-    const [organization, setOrganization] = useState(target.organization?._id || target.organization || "");
+    const [roleOrganizations, setRoleOrganizations] = useState(target.roleOrganizations || {});
     const [saving, setSaving] = useState(false);
 
     const availableRoles = isAdmin
         ? roles.filter(r => !["admin", "player", "viewer"].includes(r.slug))
         : roles.filter(r => !["admin", "organizer"].includes(r.slug));
-    const needsOrg = isAdmin && (selectedRoles.includes("organizer") || selectedRoles.includes("free_agent"));
 
     const toggleRole = (slug) => {
         setSelectedRoles(prev =>
@@ -145,7 +162,7 @@ function EditUserModal({ target, onClose, onSave, organizations, roles, isAdmin 
         await onSave(target._id, {
             roles: selectedRoles,
             role: selectedRoles[0],
-            organization: needsOrg ? organization : null,
+            roleOrganizations,
         });
         setSaving(false);
     };
@@ -180,17 +197,24 @@ function EditUserModal({ target, onClose, onSave, organizations, roles, isAdmin 
                     </div>
                 </div>
 
-                {needsOrg && (
-                    <div className="admin-form-group">
-                        <label className="admin-form-label">Organization *</label>
-                        <select className="admin-form-select" value={organization} onChange={e => setOrganization(e.target.value)}>
-                            <option value="">— Select Organization —</option>
-                            {(organizations || []).map(o => (
-                                <option key={o._id} value={o._id}>{o.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                )}
+                {isAdmin && selectedRoles.filter(r => !["admin", "viewer", "player"].includes(r)).map(roleSlug => {
+                    const roleName = roles.find(r => r.slug === roleSlug)?.name || roleSlug.replace(/_/g, " ");
+                    return (
+                        <div className="admin-form-group" key={roleSlug}>
+                            <label className="admin-form-label" style={{ textTransform: "capitalize" }}>{roleName} Organization *</label>
+                            <select 
+                                className="admin-form-select" 
+                                value={roleOrganizations[roleSlug] || ""} 
+                                onChange={e => setRoleOrganizations({ ...roleOrganizations, [roleSlug]: e.target.value })}
+                            >
+                                <option value="">— Select Organization —</option>
+                                {(organizations || []).map(o => (
+                                    <option key={o._id} value={o._id}>{o.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    );
+                })}
 
                 <div style={{ marginTop: 12, fontSize: 12, color: "#8b90a0" }}>
                     Permissions are managed in the <strong>Roles</strong> page.

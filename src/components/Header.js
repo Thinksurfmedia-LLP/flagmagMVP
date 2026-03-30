@@ -71,12 +71,7 @@ export default function Header({ variant = "default" }) {
                                                 <li className="nav-item"><Link className="nav-link" href="#">Sponsors</Link></li>
                                                 <li className="nav-item"><Link className="nav-link" href="#">Resources</Link></li>
                                             </ul>
-                                            <div className="header-btn-col for-mobile">
-                                                <Link href="/login" className="btn btn-info-primary">LOGIN</Link>
-                                                <Link href="#" className="btn btn-primary btn-with-arrow">
-                                                    BOOK a Demo <span><img src="/assets/images/btn-arrow.png" alt="" /></span>
-                                                </Link>
-                                            </div>
+                                            <HeaderAuth className="for-mobile" />
                                             <div className="social">
                                                 <h5>Follow Us on</h5>
                                                 <ul>

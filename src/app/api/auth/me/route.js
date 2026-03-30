@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Role from "@/models/Role";
 import User from "@/models/User";
-import "@/models/Organization"; // register schema for populate
+import Organization from "@/models/Organization";
 import { getCurrentUser } from "@/lib/auth";
 
 export async function GET() {
@@ -19,12 +19,29 @@ export async function GET() {
         // Look up fresh permissions from all assigned roles
         await dbConnect();
         const userDoc = await User.findById(user.id)
-            .select("organization roles")
+            .select("organization roles roleOrganizations")
             .populate("organization", "name slug logo")
             .lean();
         const roles = userDoc?.roles?.length ? [...userDoc.roles] : [user.role];
         const roleDocs = await Role.find({ slug: { $in: roles } }).lean();
         const permissions = [...new Set(roleDocs.flatMap(r => r.permissions))];
+
+        let roleOrganizations = {};
+        if (userDoc?.roleOrganizations) {
+            const orgIds = Object.values(userDoc.roleOrganizations);
+            const orgs = await Organization.find({ _id: { $in: orgIds } }).select("name slug logo").lean();
+            for (const [r, orgId] of Object.entries(userDoc.roleOrganizations)) {
+                const matchingOrg = orgs.find(o => String(o._id) === String(orgId));
+                if (matchingOrg) {
+                    roleOrganizations[r] = {
+                        id: matchingOrg._id,
+                        name: matchingOrg.name,
+                        slug: matchingOrg.slug,
+                        logo: matchingOrg.logo || "",
+                    };
+                }
+            }
+        }
 
         return NextResponse.json(
             {
@@ -44,6 +61,7 @@ export async function GET() {
                             logo: userDoc.organization.logo || "",
                         }
                         : null,
+                    roleOrganizations,
                 },
             },
             { status: 200 }

@@ -20,9 +20,12 @@ export async function PUT(request, { params }) {
             if (!requester?.organization) {
                 return NextResponse.json({ success: false, error: "You are not associated with an organization" }, { status: 403 });
             }
-            const target = await User.findById(id).select("organization").lean();
+            const target = await User.findById(id).select("organization roleOrganizations").lean();
             if (!target) return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
-            if (String(target.organization) !== String(requester.organization)) {
+            const targetOrgs = target.roleOrganizations ? Object.values(target.roleOrganizations).map(String) : [];
+            if (target.organization) targetOrgs.push(String(target.organization));
+            
+            if (!targetOrgs.includes(String(requester.organization))) {
                 return NextResponse.json({ success: false, error: "You can only manage users in your organization" }, { status: 403 });
             }
             const incomingRoles = Array.isArray(body.roles) ? body.roles : (body.role ? [body.role] : []);
@@ -50,6 +53,20 @@ export async function PUT(request, { params }) {
 
         if (body.organization !== undefined && auth.user.role === "admin") {
             update.organization = body.organization || null;
+        }
+        if (body.roleOrganizations !== undefined) {
+            let passedRoleOrgs = body.roleOrganizations || {};
+            if (auth.user.role !== "admin") {
+                 const requester = await User.findById(auth.user.id).select("organization").lean();
+                 const assignedOrg = requester?.organization || null;
+                 const incomingRoles = Array.isArray(body.roles) ? body.roles : (body.role ? [body.role] : []);
+                 incomingRoles.forEach(r => {
+                     if (!["viewer", "player", "admin"].includes(r)) {
+                         passedRoleOrgs[r] = assignedOrg;
+                     }
+                 });
+            }
+            update.roleOrganizations = passedRoleOrgs;
         }
 
         const user = await User.findByIdAndUpdate(id, update, { new: true, runValidators: true })
@@ -87,9 +104,12 @@ export async function PATCH(request, { params }) {
             if (!requester?.organization) {
                 return NextResponse.json({ success: false, error: "You are not associated with an organization" }, { status: 403 });
             }
-            const target = await User.findById(id).select("organization").lean();
+            const target = await User.findById(id).select("organization roleOrganizations").lean();
             if (!target) return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
-            if (String(target.organization) !== String(requester.organization)) {
+            const targetOrgs = target.roleOrganizations ? Object.values(target.roleOrganizations).map(String) : [];
+            if (target.organization) targetOrgs.push(String(target.organization));
+            
+            if (!targetOrgs.includes(String(requester.organization))) {
                 return NextResponse.json({ success: false, error: "You can only manage users in your organization" }, { status: 403 });
             }
         }
@@ -139,9 +159,12 @@ export async function DELETE(request, { params }) {
             if (!requester?.organization) {
                 return NextResponse.json({ success: false, error: "You are not associated with an organization" }, { status: 403 });
             }
-            const target = await User.findById(id).select("organization").lean();
+            const target = await User.findById(id).select("organization roleOrganizations").lean();
             if (!target) return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
-            if (String(target.organization) !== String(requester.organization)) {
+            const targetOrgs = target.roleOrganizations ? Object.values(target.roleOrganizations).map(String) : [];
+            if (target.organization) targetOrgs.push(String(target.organization));
+            
+            if (!targetOrgs.includes(String(requester.organization))) {
                 return NextResponse.json({ success: false, error: "You can only manage users in your organization" }, { status: 403 });
             }
         }
