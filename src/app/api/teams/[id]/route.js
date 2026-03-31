@@ -7,8 +7,15 @@ import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
 
 async function getOrgIdForOrganizer(authUser) {
     if (authUser.organization?.id) return authUser.organization.id;
-    const userDoc = await User.findById(authUser.id).select("organization").lean()
-        || await User.findOne({ email: authUser.email }).select("organization").lean();
+    const userDoc = await User.findById(authUser.id).select("organization roleOrganizations").lean()
+        || await User.findOne({ email: authUser.email }).select("organization roleOrganizations").lean();
+        
+    if (userDoc?.roleOrganizations?.organizer) {
+        const orgs = userDoc.roleOrganizations.organizer;
+        if (Array.isArray(orgs) && orgs.length > 0) return String(orgs[0]);
+        if (typeof orgs === "string") return String(orgs);
+    }
+    
     return userDoc?.organization ? String(userDoc.organization) : null;
 }
 

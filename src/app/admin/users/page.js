@@ -118,15 +118,20 @@ function AddUserModal({ onClose, onSave, organizations, roles, isAdmin }) {
                     
                     return (
                         <div className="admin-form-group" key={roleSlug}>
-                            <label className="admin-form-label" style={{ textTransform: "capitalize" }}>{roleName} Organizations *</label>
+                            <label className="admin-form-label" style={{ textTransform: "capitalize" }}>{roleName} Organization{roleSlug === 'free_agent' ? 's' : ''} *</label>
                             <Select 
-                                isMulti
+                                isMulti={roleSlug === 'free_agent'}
                                 className="admin-form-select-multi" 
                                 classNamePrefix="react-select"
                                 options={selectOptions}
-                                value={selectValue}
-                                onChange={selected => setRoleOrganizations({ ...roleOrganizations, [roleSlug]: selected ? selected.map(s => s.value) : [] })}
-                                placeholder="— Select Organizations —"
+                                value={roleSlug === 'free_agent' ? selectValue : (selectValue[0] || null)}
+                                onChange={selected => setRoleOrganizations({ 
+                                    ...roleOrganizations, 
+                                    [roleSlug]: roleSlug === 'free_agent' 
+                                        ? (selected ? selected.map(s => s.value) : []) 
+                                        : (selected ? [selected.value] : []) 
+                                })}
+                                placeholder={`— Select Organization${roleSlug === 'free_agent' ? 's' : ''} —`}
                                 styles={{
                                     control: (provided) => ({ ...provided, borderColor: '#d1d5db', borderRadius: '8px', padding: '0px', fontSize: '14px', minHeight: '40px' }),
                                     option: (provided, state) => ({ ...provided, color: '#374151', backgroundColor: state.isFocused ? '#f3f4f6' : 'white' }),
@@ -271,15 +276,20 @@ function EditUserModal({ target, onClose, onSave, organizations, roles, isAdmin 
 
                     return (
                         <div className="admin-form-group" key={roleSlug}>
-                            <label className="admin-form-label" style={{ textTransform: "capitalize" }}>{roleName} Organizations *</label>
+                            <label className="admin-form-label" style={{ textTransform: "capitalize" }}>{roleName} Organization{roleSlug === 'free_agent' ? 's' : ''} *</label>
                             <Select 
-                                isMulti
+                                isMulti={roleSlug === 'free_agent'}
                                 className="admin-form-select-multi" 
                                 classNamePrefix="react-select"
                                 options={selectOptions}
-                                value={selectValue}
-                                onChange={selected => setRoleOrganizations({ ...roleOrganizations, [roleSlug]: selected ? selected.map(s => s.value) : [] })}
-                                placeholder="— Select Organizations —"
+                                value={roleSlug === 'free_agent' ? selectValue : (selectValue[0] || null)}
+                                onChange={selected => setRoleOrganizations({ 
+                                    ...roleOrganizations, 
+                                    [roleSlug]: roleSlug === 'free_agent' 
+                                        ? (selected ? selected.map(s => s.value) : []) 
+                                        : (selected ? [selected.value] : []) 
+                                })}
+                                placeholder={`— Select Organization${roleSlug === 'free_agent' ? 's' : ''} —`}
                                 styles={{
                                     control: (provided) => ({ ...provided, borderColor: '#d1d5db', borderRadius: '8px', padding: '0px', fontSize: '14px', minHeight: '40px' }),
                                     option: (provided, state) => ({ ...provided, color: '#374151', backgroundColor: state.isFocused ? '#f3f4f6' : 'white' }),
