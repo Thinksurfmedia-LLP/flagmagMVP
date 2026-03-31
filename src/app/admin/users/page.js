@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import AdminLayout, { hasAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
+import Select from "react-select";
 
 function AddUserModal({ onClose, onSave, organizations, roles, isAdmin }) {
     const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "" });
@@ -34,8 +35,8 @@ function AddUserModal({ onClose, onSave, organizations, roles, isAdmin }) {
         if (isAdmin) {
              for (const r of effectiveRoles) {
                   if (!["admin", "viewer", "player"].includes(r)) {
-                       if (!roleOrganizations[r]) {
-                           setFormError(`Please select an organization for the ${r.replace(/_/g, " ")} role`);
+                       if (!roleOrganizations[r] || roleOrganizations[r].length === 0) {
+                           setFormError(`Please select at least one organization for the ${r.replace(/_/g, " ")} role`);
                            return;
                        }
                   }
@@ -111,19 +112,29 @@ function AddUserModal({ onClose, onSave, organizations, roles, isAdmin }) {
                 </div>
                 {isAdmin && selectedRoles.filter(r => !["admin", "viewer", "player"].includes(r)).map(roleSlug => {
                     const roleName = roles.find(r => r.slug === roleSlug)?.name || roleSlug.replace(/_/g, " ");
+                    const currentSelected = roleOrganizations[roleSlug] || [];
+                    const selectOptions = (organizations || []).map(o => ({ value: o._id, label: o.name }));
+                    const selectValue = selectOptions.filter(o => currentSelected.includes(o.value));
+                    
                     return (
                         <div className="admin-form-group" key={roleSlug}>
-                            <label className="admin-form-label" style={{ textTransform: "capitalize" }}>{roleName} Organization *</label>
-                            <select 
-                                className="admin-form-select" 
-                                value={roleOrganizations[roleSlug] || ""} 
-                                onChange={e => setRoleOrganizations({ ...roleOrganizations, [roleSlug]: e.target.value })}
-                            >
-                                <option value="">— Select Organization —</option>
-                                {(organizations || []).map(o => (
-                                    <option key={o._id} value={o._id}>{o.name}</option>
-                                ))}
-                            </select>
+                            <label className="admin-form-label" style={{ textTransform: "capitalize" }}>{roleName} Organizations *</label>
+                            <Select 
+                                isMulti
+                                className="admin-form-select-multi" 
+                                classNamePrefix="react-select"
+                                options={selectOptions}
+                                value={selectValue}
+                                onChange={selected => setRoleOrganizations({ ...roleOrganizations, [roleSlug]: selected ? selected.map(s => s.value) : [] })}
+                                placeholder="— Select Organizations —"
+                                styles={{
+                                    control: (provided) => ({ ...provided, borderColor: '#d1d5db', borderRadius: '8px', padding: '0px', fontSize: '14px', minHeight: '40px' }),
+                                    option: (provided, state) => ({ ...provided, color: '#374151', backgroundColor: state.isFocused ? '#f3f4f6' : 'white' }),
+                                    multiValueLabel: (provided) => ({ ...provided, color: '#374151' }),
+                                    menuPortal: base => ({ ...base, zIndex: 9999 })
+                                }}
+                                menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                            />
                         </div>
                     );
                 })}
@@ -143,8 +154,16 @@ function EditUserModal({ target, onClose, onSave, organizations, roles, isAdmin 
     const [selectedRoles, setSelectedRoles] = useState(
         target.roles?.length ? target.roles : [target.role]
     );
-    const [roleOrganizations, setRoleOrganizations] = useState(target.roleOrganizations || {});
+    const initialRoleOrgs = {};
+    for (const [key, val] of Object.entries(target.roleOrganizations || {})) {
+        initialRoleOrgs[key] = Array.isArray(val) ? val : (val ? [val] : []);
+    }
+    const [roleOrganizations, setRoleOrganizations] = useState(initialRoleOrgs);
     const [saving, setSaving] = useState(false);
+    const [form, setForm] = useState({ name: target.name || "", email: target.email || "", phone: target.phone || "", password: "", confirmPassword: "" });
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [formError, setFormError] = useState("");
 
     const availableRoles = isAdmin
         ? roles.filter(r => !["admin", "player", "viewer"].includes(r.slug))
@@ -157,13 +176,27 @@ function EditUserModal({ target, onClose, onSave, organizations, roles, isAdmin 
     };
 
     const handleSave = async () => {
+        setFormError("");
+        if (form.password && form.password !== form.confirmPassword) {
+            setFormError("Passwords do not match");
+            return;
+        }
+        if (!form.name || !form.email) {
+            setFormError("Name and Email are required");
+            return;
+        }
         if (selectedRoles.length === 0) return;
         setSaving(true);
-        await onSave(target._id, {
+        const updates = {
+            name: form.name,
+            email: form.email,
+            phone: form.phone,
             roles: selectedRoles,
             role: selectedRoles[0],
             roleOrganizations,
-        });
+        };
+        if (form.password) updates.password = form.password;
+        await onSave(target._id, updates);
         setSaving(false);
     };
 
@@ -171,6 +204,39 @@ function EditUserModal({ target, onClose, onSave, organizations, roles, isAdmin 
         <div className="admin-modal-backdrop" onClick={onClose}>
             <div className="admin-modal" onClick={e => e.stopPropagation()}>
                 <h3 className="admin-modal-title">Edit User — {target.name}</h3>
+
+                {formError && <div className="admin-alert admin-alert-error" style={{ marginBottom: 12 }}><i className="fa-solid fa-exclamation-circle"></i> {formError}</div>}
+
+                <div className="admin-form-group">
+                    <label className="admin-form-label">Name *</label>
+                    <input className="admin-form-input" autoComplete="off" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Full name" />
+                </div>
+                <div className="admin-form-group">
+                    <label className="admin-form-label">Email *</label>
+                    <input type="email" className="admin-form-input" autoComplete="off" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="user@example.com" />
+                </div>
+                <div className="admin-form-group">
+                    <label className="admin-form-label">Phone</label>
+                    <input className="admin-form-input" autoComplete="off" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="+1-555-0000" />
+                </div>
+                <div className="admin-form-group">
+                    <label className="admin-form-label">New Password <span style={{ fontWeight: 400, color: "#8b90a0" }}>(Leave blank to keep current)</span></label>
+                    <div style={{ position: "relative" }}>
+                        <input type={showPassword ? "text" : "password"} className="admin-form-input" autoComplete="new-password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="Min 6 characters" style={{ paddingRight: 36 }} />
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#8b90a0", fontSize: 14 }}>
+                            <i className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
+                        </button>
+                    </div>
+                </div>
+                <div className="admin-form-group">
+                    <label className="admin-form-label">Confirm New Password</label>
+                    <div style={{ position: "relative" }}>
+                        <input type={showConfirm ? "text" : "password"} className="admin-form-input" autoComplete="new-password" value={form.confirmPassword} onChange={e => setForm({ ...form, confirmPassword: e.target.value })} placeholder="Re-enter password" style={{ paddingRight: 36 }} />
+                        <button type="button" onClick={() => setShowConfirm(!showConfirm)} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#8b90a0", fontSize: 14 }}>
+                            <i className={`fa-solid ${showConfirm ? "fa-eye-slash" : "fa-eye"}`}></i>
+                        </button>
+                    </div>
+                </div>
 
                 <div className="admin-form-group">
                     <label className="admin-form-label">Roles</label>
@@ -199,19 +265,29 @@ function EditUserModal({ target, onClose, onSave, organizations, roles, isAdmin 
 
                 {isAdmin && selectedRoles.filter(r => !["admin", "viewer", "player"].includes(r)).map(roleSlug => {
                     const roleName = roles.find(r => r.slug === roleSlug)?.name || roleSlug.replace(/_/g, " ");
+                    const currentSelected = roleOrganizations[roleSlug] || [];
+                    const selectOptions = (organizations || []).map(o => ({ value: o._id, label: o.name }));
+                    const selectValue = selectOptions.filter(o => currentSelected.includes(o.value));
+
                     return (
                         <div className="admin-form-group" key={roleSlug}>
-                            <label className="admin-form-label" style={{ textTransform: "capitalize" }}>{roleName} Organization *</label>
-                            <select 
-                                className="admin-form-select" 
-                                value={roleOrganizations[roleSlug] || ""} 
-                                onChange={e => setRoleOrganizations({ ...roleOrganizations, [roleSlug]: e.target.value })}
-                            >
-                                <option value="">— Select Organization —</option>
-                                {(organizations || []).map(o => (
-                                    <option key={o._id} value={o._id}>{o.name}</option>
-                                ))}
-                            </select>
+                            <label className="admin-form-label" style={{ textTransform: "capitalize" }}>{roleName} Organizations *</label>
+                            <Select 
+                                isMulti
+                                className="admin-form-select-multi" 
+                                classNamePrefix="react-select"
+                                options={selectOptions}
+                                value={selectValue}
+                                onChange={selected => setRoleOrganizations({ ...roleOrganizations, [roleSlug]: selected ? selected.map(s => s.value) : [] })}
+                                placeholder="— Select Organizations —"
+                                styles={{
+                                    control: (provided) => ({ ...provided, borderColor: '#d1d5db', borderRadius: '8px', padding: '0px', fontSize: '14px', minHeight: '40px' }),
+                                    option: (provided, state) => ({ ...provided, color: '#374151', backgroundColor: state.isFocused ? '#f3f4f6' : 'white' }),
+                                    multiValueLabel: (provided) => ({ ...provided, color: '#374151' }),
+                                    menuPortal: base => ({ ...base, zIndex: 9999 })
+                                }}
+                                menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                            />
                         </div>
                     );
                 })}
@@ -222,7 +298,7 @@ function EditUserModal({ target, onClose, onSave, organizations, roles, isAdmin 
 
                 <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
                     <button className="admin-btn admin-btn-ghost" onClick={onClose}>Cancel</button>
-                    <button className="admin-btn admin-btn-primary" onClick={handleSave} disabled={saving || selectedRoles.length === 0}>
+                    <button className="admin-btn admin-btn-primary" onClick={handleSave} disabled={saving || selectedRoles.length === 0 || !form.name || !form.email}>
                         {saving ? "Saving..." : "Save Changes"}
                     </button>
                 </div>
@@ -301,18 +377,7 @@ export default function AdminUsersPage() {
         }
     };
 
-    const deleteUser = async (userId, name) => {
-        if (!confirm(`Delete user "${name}"? This cannot be undone.`)) return;
-        try {
-            const res = await fetch(`/api/admin/users/${userId}`, { method: "DELETE" });
-            const data = await res.json();
-            if (!data.success) { showError(data.error); return; }
-            fetchUsers();
-            showSuccess("User deleted!");
-        } catch {
-            showError("Failed to delete user");
-        }
-    };
+
 
     const canManage = user && hasAccess(user, "manage_users");
 
@@ -378,7 +443,38 @@ export default function AdminUsersPage() {
                                                 </td>
                                                 <td style={{ color: "#5a5f72" }}>{u.email}</td>
                                                 <td style={{ color: "#5a5f72", fontSize: 13 }}>
-                                                    {u.organization ? u.organization.name : <span style={{ color: "#a0a4b2" }}>—</span>}
+                                                    {(() => {
+                                                        const userOrgs = new Set();
+                                                        if (u.organization) {
+                                                            userOrgs.add(String(u.organization._id || u.organization));
+                                                        }
+                                                        if (u.roleOrganizations) {
+                                                            Object.values(u.roleOrganizations).flat().forEach(orgId => {
+                                                                if (orgId) userOrgs.add(String(orgId));
+                                                            });
+                                                        }
+                                                        if (userOrgs.size === 0) return <span style={{ color: "#a0a4b2" }}>—</span>;
+                                                        
+                                                        const firstOrgId = Array.from(userOrgs)[0];
+                                                        let firstOrgName = firstOrgId;
+                                                        if (u.organization && String(u.organization._id || u.organization) === firstOrgId) {
+                                                            firstOrgName = u.organization.name || firstOrgId;
+                                                        } else {
+                                                            const found = organizations.find(o => String(o._id) === firstOrgId);
+                                                            if (found) firstOrgName = found.name;
+                                                        }
+
+                                                        return (
+                                                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                                                <span>{firstOrgName}</span>
+                                                                {userOrgs.size > 1 && (
+                                                                    <span style={{ padding: "2px 6px", fontSize: 11, background: "#f3f4f6", color: "#6b7280", borderRadius: 10, fontWeight: 500 }}>
+                                                                        +{userOrgs.size - 1}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })()}
                                                 </td>
                                                 <td>
                                                     {(u.roles?.length ? u.roles : [u.role]).map(r => (
@@ -410,13 +506,7 @@ export default function AdminUsersPage() {
                                                             >
                                                                 <i className={`fa-solid ${u.isActive === false ? "fa-toggle-off" : "fa-toggle-on"}`}></i>
                                                             </button>
-                                                            <button
-                                                                className="admin-btn admin-btn-danger admin-btn-sm"
-                                                                onClick={() => deleteUser(u._id, u.name)}
-                                                                title="Delete user"
-                                                            >
-                                                                <i className="fa-solid fa-trash"></i>
-                                                            </button>
+
                                                         </div>
                                                     )}
                                                     {canManage && u._id === user.id && (

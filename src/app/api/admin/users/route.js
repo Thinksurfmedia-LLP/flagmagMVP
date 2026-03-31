@@ -57,7 +57,7 @@ export async function POST(request) {
             // Non-admins assign their own org to all managed roles
             assignedRoles.forEach(r => {
                 if (!["viewer", "player", "admin"].includes(r)) {
-                    passedRoleOrgs[r] = assignedOrg;
+                    passedRoleOrgs[r] = assignedOrg ? [assignedOrg] : [];
                 }
             });
         }
@@ -69,14 +69,14 @@ export async function POST(request) {
 
         // Validate required organizations per role
         for (const r of assignedRoles) {
-            // we assume free_agent, organizer, statistician, viewer are the roles
-            // maybe custom roles require org too, let's enforce org for anything not viewer/admin
             const requiresOrg = !["viewer", "player", "admin"].includes(r);
-            if (requiresOrg && !passedRoleOrgs[r] && !assignedOrg) {
+            const orgs = passedRoleOrgs[r];
+            const hasOrgs = Array.isArray(orgs) ? orgs.length > 0 : !!orgs;
+            if (requiresOrg && !hasOrgs && !assignedOrg) {
                 return NextResponse.json({ success: false, error: `Organization is required for the ${r.replace(/_/g, " ")} role` }, { status: 400 });
             }
-            if (requiresOrg && !passedRoleOrgs[r] && assignedOrg) {
-                passedRoleOrgs[r] = assignedOrg; // Fallback mapping
+            if (requiresOrg && !hasOrgs && assignedOrg) {
+                passedRoleOrgs[r] = [assignedOrg]; // Fallback mapping
             }
         }
 
@@ -104,10 +104,11 @@ export async function POST(request) {
             .populate("organization", "name slug")
             .lean();
 
-        // If free_agent role, also create a Player doc for the assigned org
+        // If free_agent role, also create a Player doc for the assigned orgs
         if (assignedRoles.includes("free_agent")) {
-            const faOrg = passedRoleOrgs["free_agent"] || assignedOrg;
-            if (faOrg) {
+            const faOrgsRaw = passedRoleOrgs["free_agent"] || assignedOrg;
+            const faOrgs = Array.isArray(faOrgsRaw) ? faOrgsRaw : (faOrgsRaw ? [faOrgsRaw] : []);
+            for (const faOrg of faOrgs) {
                 const existingPlayer = await Player.findOne({ user: user._id, organization: faOrg });
                 if (!existingPlayer) {
                     await Player.create({
