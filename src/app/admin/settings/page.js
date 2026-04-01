@@ -43,8 +43,11 @@ export default function SettingsPage() {
         Monday: "MON", Tuesday: "TUE", Wednesday: "WED", Thursday: "THU",
         Friday: "FRI", Saturday: "SAT", Sunday: "SUN",
     };
-    const normalizeScheduleDays = (days) =>
-        (days || []).map(d => DAY_ABBR_TO_FULL[d.toUpperCase()] || d);
+    // Returns true whether scheduleDays stores "Saturday" or "SAT"
+    const isDayActive = (fullName) => {
+        const abbr = DAY_FULL_TO_ABBR[fullName];
+        return form.scheduleDays.some(d => d === fullName || d === abbr || d?.toUpperCase() === abbr);
+    };
 
     useEffect(() => {
         if (!slug) return;
@@ -68,7 +71,7 @@ export default function SettingsPage() {
                         facebook: org.socialLinks?.facebook || "",
                         twitter: org.socialLinks?.twitter || "",
                         instagram: org.socialLinks?.instagram || "",
-                        scheduleDays: normalizeScheduleDays(org.scheduleDays),
+                        scheduleDays: org.scheduleDays || [],
                     });
                 }
             } catch { showError("Failed to load organization"); }
@@ -309,8 +312,8 @@ export default function SettingsPage() {
                                     <button
                                         key={day}
                                         type="button"
-                                        className={`admin-btn ${form.scheduleDays.includes(day) ? "admin-btn-primary" : "admin-btn-ghost"}`}
-                                        style={{ fontSize: 13, ...(isOrganizer ? { opacity: form.scheduleDays.includes(day) ? 1 : 0.45, cursor: "not-allowed", pointerEvents: "none" } : {}) }}
+                                        className={`admin-btn ${isDayActive(day) ? "admin-btn-primary" : "admin-btn-ghost"}`}
+                                        style={{ fontSize: 13, ...(isOrganizer ? { opacity: isDayActive(day) ? 1 : 0.45, cursor: "not-allowed", pointerEvents: "none" } : {}) }}
                                         onClick={() => !isOrganizer && toggleDay(day)}
                                         disabled={isOrganizer}
                                     >
