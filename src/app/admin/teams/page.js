@@ -58,12 +58,14 @@ function ImageUploadField({ value, onChange, placeholder, onError }) {
     );
 }
 
-function TeamModal({ team, freeAgents, organizations, user, effectiveRole, onClose, onSave }) {
+function TeamModal({ team, freeAgents, organizations, user, effectiveRole, onClose, onSave, existingDivisions = [] }) {
     const { showError } = useToast();
     const [name, setName] = useState(team?.name || "");
     const [logo, setLogo] = useState(team?.logo || "");
     const [description, setDescription] = useState(team?.description || "");
     const [division, setDivision] = useState(team?.division || "");
+    const [divisionOpen, setDivisionOpen] = useState(false);
+    const divisionRef = React.useRef(null);
     const [organization, setOrganization] = useState(
         team?.organization?._id || team?.organization || user?.organization?.id || ""
     );
@@ -234,12 +236,69 @@ function TeamModal({ team, freeAgents, organizations, user, effectiveRole, onClo
 
                 <div className="admin-form-group">
                     <label className="admin-form-label">Division (optional)</label>
-                    <input
-                        className="admin-form-input"
-                        value={division}
-                        onChange={(event) => setDivision(event.target.value)}
-                        placeholder="e.g. Division A, Open, Competitive"
-                    />
+                    <div ref={divisionRef} style={{ position: "relative" }}>
+                        <input
+                            className="admin-form-input"
+                            value={division}
+                            onChange={(event) => { setDivision(event.target.value); setDivisionOpen(true); }}
+                            onFocus={() => setDivisionOpen(true)}
+                            onBlur={() => setTimeout(() => setDivisionOpen(false), 150)}
+                            placeholder="e.g. Division A, Open, Competitive"
+                            autoComplete="off"
+                        />
+                        {divisionOpen && (division.trim() || existingDivisions.length > 0) && (() => {
+                            const matches = existingDivisions.filter(d => d.toLowerCase().includes(division.toLowerCase().trim()));
+                            const isNew = division.trim() && !existingDivisions.some(d => d.toLowerCase() === division.toLowerCase().trim());
+                            if (!matches.length && !isNew) return null;
+                            return (
+                                <div style={{
+                                    position: "absolute",
+                                    top: "calc(100% + 2px)",
+                                    left: 0,
+                                    right: 0,
+                                    background: "#fff",
+                                    border: "1px solid #d5d8e0",
+                                    borderRadius: 6,
+                                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                                    zIndex: 400,
+                                    maxHeight: 180,
+                                    overflowY: "auto",
+                                }}>
+                                    {matches.map(d => (
+                                        <div
+                                            key={d}
+                                            onMouseDown={() => { setDivision(d); setDivisionOpen(false); }}
+                                            style={{
+                                                padding: "8px 12px",
+                                                fontSize: 13,
+                                                color: "#1a1d26",
+                                                cursor: "pointer",
+                                                background: d === division ? "#fff8f7" : "#fff",
+                                            }}
+                                            onMouseEnter={e => e.currentTarget.style.background = "#f9fafb"}
+                                            onMouseLeave={e => e.currentTarget.style.background = d === division ? "#fff8f7" : "#fff"}
+                                        >
+                                            {d}
+                                        </div>
+                                    ))}
+                                    {isNew && (
+                                        <div style={{
+                                            padding: "8px 12px",
+                                            fontSize: 12,
+                                            color: "#6b7280",
+                                            borderTop: matches.length ? "1px solid #f0f1f5" : "none",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 6,
+                                        }}>
+                                            <i className="fa-solid fa-circle-info" style={{ color: "#FF1E00" }}></i>
+                                            &ldquo;{division.trim()}&rdquo; will be created as a new division
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })()}
+                    </div>
                 </div>
 
                 <div className="admin-form-group">
@@ -542,6 +601,7 @@ export default function AdminTeamsPage() {
                             organizations={organizations}
                             user={user}
                             effectiveRole={effectiveRole}
+                            existingDivisions={[...new Set(teams.map(t => t.division).filter(Boolean))]}
                             onClose={() => { setModalOpen(false); setEditTarget(null); }}
                             onSave={saveTeam}
                         />
