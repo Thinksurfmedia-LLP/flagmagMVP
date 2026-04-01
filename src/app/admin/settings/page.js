@@ -120,6 +120,7 @@ export default function SettingsPage() {
     };
 
     const canManage = effectiveRole === "organizer" || (user && hasAccess(user, "manage_organizations"));
+    const isOrganizer = effectiveRole === "organizer";
 
     return (
         <AdminLayout title="Organization Settings">
@@ -142,8 +143,24 @@ export default function SettingsPage() {
                                     <input className="admin-form-input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
                                 </div>
                                 <div className="admin-form-group" style={{ flex: 1 }}>
-                                    <label className="admin-form-label">Sport</label>
-                                    <input className="admin-form-input" value={form.sport} onChange={e => setForm({ ...form, sport: e.target.value })} placeholder="e.g. Flag Football" />
+                                    <label className="admin-form-label" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                        Sport
+                                        {isOrganizer && <i className="fa-solid fa-lock" style={{ fontSize: 11, color: "#8b90a0" }}></i>}
+                                    </label>
+                                    <input
+                                        className="admin-form-input"
+                                        value={form.sport}
+                                        onChange={e => !isOrganizer && setForm({ ...form, sport: e.target.value })}
+                                        placeholder="e.g. Flag Football"
+                                        readOnly={isOrganizer}
+                                        style={isOrganizer ? { background: "#f3f4f6", color: "#6b7280", cursor: "not-allowed" } : {}}
+                                    />
+                                    {isOrganizer && (
+                                        <p style={{ margin: "4px 0 0", fontSize: 12, color: "#8b90a0" }}>
+                                            <i className="fa-solid fa-circle-info" style={{ marginRight: 4 }}></i>
+                                            Contact admin to change this value.
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                             <div style={{ display: "flex", gap: 12 }}>
