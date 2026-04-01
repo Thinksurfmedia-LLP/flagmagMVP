@@ -42,9 +42,12 @@ export default function WeekdayDatePicker({
     className = "",
     placeholder = "Select date…",
     align = "left",
+    minDate = null,
 }) {
     const today = new Date();
     const parsedValue = value ? new Date(value + "T00:00:00") : null;
+    // Normalize minDate to midnight local time
+    const parsedMinDate = minDate ? (() => { const d = new Date(minDate); d.setHours(0, 0, 0, 0); return d; })() : null;
 
     const [open, setOpen] = useState(false);
     const [viewYear, setViewYear] = useState(parsedValue ? parsedValue.getFullYear() : today.getFullYear());
@@ -75,6 +78,10 @@ export default function WeekdayDatePicker({
     const allowedSet = parsedIndices.length > 0 ? new Set(parsedIndices) : null;
 
     const isAllowed = (dayNum) => {
+        if (parsedMinDate) {
+            const cellDate = new Date(viewYear, viewMonth, dayNum);
+            if (cellDate < parsedMinDate) return false;
+        }
         if (!allowedSet) return true;
         const dow = new Date(viewYear, viewMonth, dayNum).getDay();
         return allowedSet.has(dow);

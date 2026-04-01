@@ -57,6 +57,7 @@ function GameModal({ onClose, onSave, initial, seasons = [], leagues = [], venue
         teamBScore: initial?.teamB?.score ?? "",
     });
     const [saving, setSaving] = useState(false);
+    const { showError } = useToast();
 
     // Derived values
     const filteredLeagues = leagues.filter(l => {
@@ -99,6 +100,19 @@ function GameModal({ onClose, onSave, initial, seasons = [], leagues = [], venue
 
     const handleSave = async () => {
         if (!form.date || !form.teamAName || !form.teamBName || !selectedLeagueId) return;
+
+        // Client-side start date check
+        if (selectedLeague?.startDate) {
+            const gameDate = new Date(form.date + "T00:00:00");
+            const startDate = new Date(selectedLeague.startDate);
+            startDate.setHours(0, 0, 0, 0);
+            if (gameDate < startDate) {
+                const formatted = startDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+                showError(`Game date cannot be before the league start date (${formatted})`);
+                return;
+            }
+        }
+
         setSaving(true);
         const teamAObj = leagueTeams.find(t => t.name === form.teamAName);
         const teamBObj = leagueTeams.find(t => t.name === form.teamBName);
@@ -193,6 +207,7 @@ function GameModal({ onClose, onSave, initial, seasons = [], leagues = [], venue
                             onChange={(d) => setForm({ ...form, date: d })}
                             allowedDays={scheduleDays}
                             placeholder="Select game date…"
+                            minDate={selectedLeague?.startDate ? new Date(selectedLeague.startDate).toISOString().split("T")[0] : null}
                         />
                     </div>
                     <div className="admin-form-group" style={{ flex: 1 }}>
