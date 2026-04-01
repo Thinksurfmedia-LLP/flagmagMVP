@@ -47,6 +47,7 @@ export async function GET() {
         } else {
             // Organizer sees only counts scoped to their organization.
             // Users may belong via the direct `organization` field OR via `roleOrganizations`.
+            // roleOrganizations is Mixed so values may be stored as strings — include both forms.
             const orgObjectId = new mongoose.Types.ObjectId(orgId);
             const orgLeagues = await League.find({ organization: orgId }, "_id").lean();
             const leagueIds = orgLeagues.map(l => l._id);
@@ -55,12 +56,9 @@ export async function GET() {
                 User.countDocuments({
                     $or: [
                         { organization: orgObjectId },
-                        { "roleOrganizations.organizer": { $in: [orgObjectId] } },
-                        { "roleOrganizations.organizer": orgObjectId },
-                        { "roleOrganizations.statistician": { $in: [orgObjectId] } },
-                        { "roleOrganizations.statistician": orgObjectId },
-                        { "roleOrganizations.free_agent": { $in: [orgObjectId] } },
-                        { "roleOrganizations.free_agent": orgObjectId },
+                        { "roleOrganizations.organizer": { $in: [orgId, orgObjectId] } },
+                        { "roleOrganizations.statistician": { $in: [orgId, orgObjectId] } },
+                        { "roleOrganizations.free_agent": { $in: [orgId, orgObjectId] } },
                     ],
                 }),
                 Season.countDocuments({ organization: orgId }),
