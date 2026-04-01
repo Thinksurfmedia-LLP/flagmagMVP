@@ -28,10 +28,13 @@ export async function GET() {
 
         let roleOrganizations = {};
         if (userDoc?.roleOrganizations) {
-            const orgIds = Object.values(userDoc.roleOrganizations);
+            // roleOrganizations values may be a single id or an array of ids (free_agent supports multiple)
+            const orgIds = Object.values(userDoc.roleOrganizations).flatMap(v => Array.isArray(v) ? v : [v]);
             const orgs = await Organization.find({ _id: { $in: orgIds } }).select("name slug logo").lean();
             for (const [r, orgId] of Object.entries(userDoc.roleOrganizations)) {
-                const matchingOrg = orgs.find(o => String(o._id) === String(orgId));
+                // Take the first id when stored as an array
+                const resolvedId = Array.isArray(orgId) ? orgId[0] : orgId;
+                const matchingOrg = orgs.find(o => String(o._id) === String(resolvedId));
                 if (matchingOrg) {
                     roleOrganizations[r] = {
                         id: matchingOrg._id,
