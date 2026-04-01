@@ -1057,11 +1057,12 @@ export default function AdminGamesPage() {
     const { showSuccess, showError } = useToast();
 
     const effectiveRole = activeRole || user?.role;
-    const isOrganizer = effectiveRole === "organizer" && user?.organization?.slug;
+    const organizerOrg = user?.roleOrganizations?.[effectiveRole] || user?.organization;
+    const isOrganizer = effectiveRole === "organizer" && organizerOrg?.slug;
 
     const fetchOrgs = useCallback(async () => {
         if (isOrganizer) {
-            setSelectedOrg(user.organization.slug);
+            setSelectedOrg(organizerOrg.slug);
             return;
         }
         try {
@@ -1069,7 +1070,7 @@ export default function AdminGamesPage() {
             const data = await res.json();
             if (data.success) setOrgs(data.data);
         } catch { showError("Failed to load organizations"); }
-    }, [isOrganizer, user?.organization?.slug]);
+    }, [isOrganizer, organizerOrg?.slug]);
 
     useEffect(() => { fetchOrgs(); }, [fetchOrgs]);
 

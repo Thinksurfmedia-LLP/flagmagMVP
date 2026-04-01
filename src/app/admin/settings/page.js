@@ -10,7 +10,8 @@ export default function SettingsPage() {
     const { showSuccess, showError } = useToast();
 
     const effectiveRole = activeRole || user?.role;
-    const slug = user?.organization?.slug;
+    const organizerOrg = user?.roleOrganizations?.[effectiveRole] || user?.organization;
+    const slug = organizerOrg?.slug;
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);

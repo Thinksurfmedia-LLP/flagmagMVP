@@ -93,8 +93,9 @@ export default function SeasonsPage() {
 
     useEffect(() => { fetchSeasons(); }, [fetchSeasons]);
 
-    const userOrgId = user?.organization?.id || user?.organization?._id || "";
-    const userOrgName = user?.organization?.name || "";
+    const organizerOrg = user?.roleOrganizations?.[effectiveRole] || user?.organization;
+    const userOrgId = organizerOrg?.id || organizerOrg?._id || "";
+    const userOrgName = organizerOrg?.name || "";
 
     const openAdd = () => {
         setEditTarget(null);

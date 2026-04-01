@@ -426,9 +426,10 @@ export default function LeaguesPage() {
     const [editTarget, setEditTarget] = useState(null);
 
     const isAdmin = user?.role === "admin";
-    const userOrgId = user?.organization?.id || user?.organization?._id || "";
-    const userOrgName = user?.organization?.name || "";
-    const userOrgSlug = user?.organization?.slug || "";
+    const organizerOrg = user?.roleOrganizations?.[effectiveRole] || user?.organization;
+    const userOrgId = organizerOrg?.id || organizerOrg?._id || "";
+    const userOrgName = organizerOrg?.name || "";
+    const userOrgSlug = organizerOrg?.slug || "";
 
     const canView = hasAnyAccess(user, ["manage_leagues", "league_view", "league_create", "league_update", "league_delete"]);
     const canCreate = hasAnyAccess(user, ["manage_leagues", "league_create"]);

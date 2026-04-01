@@ -361,7 +361,8 @@ function OrgLocationsView() {
     const { user, activeRole } = useAuth();
     const { showSuccess, showError } = useToast();
 
-    const slug = user?.organization?.slug;
+    const effectiveRole = activeRole || user?.role;
+    const slug = (user?.roleOrganizations?.[effectiveRole] || user?.organization)?.slug;
     const [orgLocations, setOrgLocations] = useState([]);
     const [venues, setVenues] = useState([]);
     const [amenityList, setAmenityList] = useState([]);
