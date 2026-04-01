@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import AdminLayout, { hasAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
@@ -14,6 +14,9 @@ export default function SettingsPage() {
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [uploading, setUploading] = useState({ logo: false, banner: false });
+    const logoInputRef = useRef(null);
+    const bannerInputRef = useRef(null);
     const [form, setForm] = useState({
         name: "",
         description: "",
@@ -70,6 +73,22 @@ export default function SettingsPage() {
                 ? prev.scheduleDays.filter(d => d !== day)
                 : [...prev.scheduleDays, day],
         }));
+    };
+
+    const handleImageUpload = async (file, field) => {
+        if (!file) return;
+        const key = field === "logo" ? "logo" : "banner";
+        setUploading(prev => ({ ...prev, [key]: true }));
+        try {
+            const fd = new FormData();
+            fd.append("file", file);
+            const res = await fetch("/api/upload", { method: "POST", body: fd });
+            const data = await res.json();
+            if (!data.success) { showError(data.error || "Upload failed"); return; }
+            setForm(prev => ({ ...prev, [field]: data.url }));
+            showSuccess("Image uploaded!");
+        } catch { showError("Upload failed"); }
+        finally { setUploading(prev => ({ ...prev, [key]: false })); }
     };
 
     const handleSave = async () => {
@@ -151,19 +170,61 @@ export default function SettingsPage() {
                             <div style={{ display: "flex", gap: 12 }}>
                                 <div className="admin-form-group" style={{ flex: 1 }}>
                                     <label className="admin-form-label">Logo URL</label>
-                                    <input className="admin-form-input" value={form.logo} onChange={e => setForm({ ...form, logo: e.target.value })} placeholder="https://..." />
+                                    <div style={{ display: "flex", gap: 8 }}>
+                                        <input className="admin-form-input" value={form.logo} onChange={e => setForm({ ...form, logo: e.target.value })} placeholder="https://..." style={{ flex: 1 }} />
+                                        <button
+                                            type="button"
+                                            className="admin-btn admin-btn-ghost"
+                                            style={{ whiteSpace: "nowrap" }}
+                                            disabled={uploading.logo}
+                                            onClick={() => logoInputRef.current?.click()}
+                                        >
+                                            <i className={uploading.logo ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-upload"}></i>
+                                            {uploading.logo ? "Uploading..." : "Upload"}
+                                        </button>
+                                        <input
+                                            ref={logoInputRef}
+                                            type="file"
+                                            accept="image/*"
+                                            style={{ display: "none" }}
+                                            onChange={e => handleImageUpload(e.target.files?.[0], "logo")}
+                                        />
+                                    </div>
+                                    {form.logo && (
+                                        <div style={{ marginTop: 8 }}>
+                                            <img src={form.logo} alt="Logo preview" style={{ width: 60, height: 60, borderRadius: 8, objectFit: "cover", border: "1px solid #e8eaef" }} />
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="admin-form-group" style={{ flex: 1 }}>
                                     <label className="admin-form-label">Banner Image URL</label>
-                                    <input className="admin-form-input" value={form.bannerImage} onChange={e => setForm({ ...form, bannerImage: e.target.value })} placeholder="https://..." />
+                                    <div style={{ display: "flex", gap: 8 }}>
+                                        <input className="admin-form-input" value={form.bannerImage} onChange={e => setForm({ ...form, bannerImage: e.target.value })} placeholder="https://..." style={{ flex: 1 }} />
+                                        <button
+                                            type="button"
+                                            className="admin-btn admin-btn-ghost"
+                                            style={{ whiteSpace: "nowrap" }}
+                                            disabled={uploading.banner}
+                                            onClick={() => bannerInputRef.current?.click()}
+                                        >
+                                            <i className={uploading.banner ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-upload"}></i>
+                                            {uploading.banner ? "Uploading..." : "Upload"}
+                                        </button>
+                                        <input
+                                            ref={bannerInputRef}
+                                            type="file"
+                                            accept="image/*"
+                                            style={{ display: "none" }}
+                                            onChange={e => handleImageUpload(e.target.files?.[0], "bannerImage")}
+                                        />
+                                    </div>
+                                    {form.bannerImage && (
+                                        <div style={{ marginTop: 8 }}>
+                                            <img src={form.bannerImage} alt="Banner preview" style={{ height: 60, borderRadius: 8, objectFit: "cover", border: "1px solid #e8eaef" }} />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
-                            {(form.logo || form.bannerImage) && (
-                                <div style={{ display: "flex", gap: 16, marginTop: 8 }}>
-                                    {form.logo && <img src={form.logo} alt="Logo preview" style={{ width: 60, height: 60, borderRadius: 8, objectFit: "cover", border: "1px solid #e8eaef" }} />}
-                                    {form.bannerImage && <img src={form.bannerImage} alt="Banner preview" style={{ height: 60, borderRadius: 8, objectFit: "cover", border: "1px solid #e8eaef" }} />}
-                                </div>
-                            )}
                         </div>
                     </div>
 

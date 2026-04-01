@@ -68,7 +68,6 @@ export default function AdminDashboard() {
             {/* Stats */}
             <div className="admin-stats">
                 <StatCard icon="fa-solid fa-users" color="blue" value={stats?.users ?? "—"} label="Total Users" />
-                <StatCard icon="fa-solid fa-building" color="green" value={stats?.organizations ?? "—"} label="Organizations" />
                 <StatCard icon="fa-solid fa-calendar" color="orange" value={stats?.seasons ?? "—"} label="Seasons" />
                 <StatCard icon="fa-solid fa-trophy" color="yellow" value={stats?.leagues ?? "—"} label="Leagues" />
                 <StatCard icon="fa-solid fa-football" color="purple" value={stats?.games ?? "—"} label="Games" />
@@ -80,9 +79,6 @@ export default function AdminDashboard() {
                     <h3>Quick Actions</h3>
                 </div>
                 <div className="admin-card-body" style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                    {hasAccess(user, "manage_organizations") && (
-                        <QuickAction icon="fa-solid fa-plus" label="New Organization" href="/admin/organizations" />
-                    )}
                     {hasAccess(user, "manage_games") && (
                         <QuickAction icon="fa-solid fa-gamepad" label="Manage Games" href="/admin/games" />
                     )}
