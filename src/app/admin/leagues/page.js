@@ -414,7 +414,7 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
 }
 
 export default function LeaguesPage() {
-    const { user } = useAuth();
+    const { user, activeRole } = useAuth();
     const { showSuccess, showError } = useToast();
 
     const [leagues, setLeagues] = useState([]);
@@ -426,6 +426,7 @@ export default function LeaguesPage() {
     const [editTarget, setEditTarget] = useState(null);
 
     const isAdmin = user?.role === "admin";
+    const effectiveRole = activeRole || user?.role;
     const organizerOrg = user?.roleOrganizations?.[effectiveRole] || user?.organization;
     const userOrgId = organizerOrg?.id || organizerOrg?._id || "";
     const userOrgName = organizerOrg?.name || "";
