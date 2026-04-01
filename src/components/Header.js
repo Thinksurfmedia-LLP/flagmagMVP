@@ -10,9 +10,9 @@ export default function Header({ variant = "default" }) {
 
     return (
         <header className={headerClass}>
-            <div className="top-header">
+            {/* <div className="top-header">
                 <p>At the top - Flagmag has been industry leader in Flag Football for over 30 years!</p>
-            </div>
+            </div> */}
             <div className="container-fluid">
                 <div className="row justify-content-between align-items-center">
                     <div className="col-auto logo">
