@@ -394,7 +394,7 @@ header {
   top: 0;
   left: 0;
   z-index: 9999;
-  padding: 0 0 10px;
+  padding: 10px 0;
 }
 header .top-header {
   background-color: #d51b02;
