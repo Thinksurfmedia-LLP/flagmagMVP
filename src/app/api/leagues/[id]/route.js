@@ -26,8 +26,13 @@ export async function PUT(request, { params }) {
         }
 
         if (hasRole(auth.user, "organizer")) {
-            const currentUser = await User.findById(auth.user.id).select("organization").lean();
-            if (!currentUser?.organization || String(currentUser.organization) !== String(existing.organization)) {
+            const currentUser = await User.findById(auth.user.id).select("organization roleOrganizations").lean();
+            const directOrg = currentUser?.organization ? String(currentUser.organization) : null;
+            const roleOrgValues = Object.values(currentUser?.roleOrganizations || {})
+                .flatMap(v => Array.isArray(v) ? v : [v])
+                .map(String);
+            const userOrgIds = [...new Set([directOrg, ...roleOrgValues].filter(Boolean))];
+            if (!userOrgIds.includes(String(existing.organization))) {
                 return NextResponse.json(
                     { success: false, error: "You can only update leagues for your assigned organization" },
                     { status: 403 },
@@ -116,8 +121,13 @@ export async function DELETE(request, { params }) {
         }
 
         if (hasRole(auth.user, "organizer")) {
-            const currentUser = await User.findById(auth.user.id).select("organization").lean();
-            if (!currentUser?.organization || String(currentUser.organization) !== String(league.organization)) {
+            const currentUser = await User.findById(auth.user.id).select("organization roleOrganizations").lean();
+            const directOrg = currentUser?.organization ? String(currentUser.organization) : null;
+            const roleOrgValues = Object.values(currentUser?.roleOrganizations || {})
+                .flatMap(v => Array.isArray(v) ? v : [v])
+                .map(String);
+            const userOrgIds = [...new Set([directOrg, ...roleOrgValues].filter(Boolean))];
+            if (!userOrgIds.includes(String(league.organization))) {
                 return NextResponse.json(
                     { success: false, error: "You can only delete leagues for your assigned organization" },
                     { status: 403 },

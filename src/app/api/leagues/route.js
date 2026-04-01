@@ -25,12 +25,16 @@ export async function GET(request) {
         if (auth.user.role === "admin") {
             if (orgId) filter.organization = orgId;
         } else {
-            const currentUser = await User.findById(auth.user.id).select("organization").lean();
-            const userOrg = currentUser?.organization || auth.user.organization?.id || null;
-            if (!userOrg) {
+            const currentUser = await User.findById(auth.user.id).select("organization roleOrganizations").lean();
+            const directOrg = currentUser?.organization ? String(currentUser.organization) : null;
+            const roleOrgValues = Object.values(currentUser?.roleOrganizations || {})
+                .flatMap(v => Array.isArray(v) ? v : [v])
+                .map(String);
+            const userOrgIds = [...new Set([directOrg, ...roleOrgValues].filter(Boolean))];
+            if (!userOrgIds.length) {
                 return NextResponse.json({ success: true, data: [] });
             }
-            filter.organization = userOrg;
+            filter.organization = { $in: userOrgIds };
         }
 
         if (search) filter.name = { $regex: search, $options: "i" };
@@ -72,8 +76,13 @@ export async function POST(request) {
 
         // Organizers can only create leagues for their own org
         if (auth.user.role !== "admin") {
-            const currentUser = await User.findById(auth.user.id).select("organization").lean();
-            if (!currentUser?.organization || String(currentUser.organization) !== String(organization._id)) {
+            const currentUser = await User.findById(auth.user.id).select("organization roleOrganizations").lean();
+            const directOrg = currentUser?.organization ? String(currentUser.organization) : null;
+            const roleOrgValues = Object.values(currentUser?.roleOrganizations || {})
+                .flatMap(v => Array.isArray(v) ? v : [v])
+                .map(String);
+            const userOrgIds = [...new Set([directOrg, ...roleOrgValues].filter(Boolean))];
+            if (!userOrgIds.includes(String(organization._id))) {
                 return NextResponse.json(
                     { success: false, error: "You can only create leagues for your assigned organization" },
                     { status: 403 },
