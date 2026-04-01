@@ -35,6 +35,16 @@ export default function SettingsPage() {
     });
 
     const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const DAY_ABBR_TO_FULL = {
+        MON: "Monday", TUE: "Tuesday", WED: "Wednesday", THU: "Thursday",
+        FRI: "Friday", SAT: "Saturday", SUN: "Sunday",
+    };
+    const DAY_FULL_TO_ABBR = {
+        Monday: "MON", Tuesday: "TUE", Wednesday: "WED", Thursday: "THU",
+        Friday: "FRI", Saturday: "SAT", Sunday: "SUN",
+    };
+    const normalizeScheduleDays = (days) =>
+        (days || []).map(d => DAY_ABBR_TO_FULL[d.toUpperCase()] || d);
 
     useEffect(() => {
         if (!slug) return;
@@ -58,7 +68,7 @@ export default function SettingsPage() {
                         facebook: org.socialLinks?.facebook || "",
                         twitter: org.socialLinks?.twitter || "",
                         instagram: org.socialLinks?.instagram || "",
-                        scheduleDays: org.scheduleDays || [],
+                        scheduleDays: normalizeScheduleDays(org.scheduleDays),
                     });
                 }
             } catch { showError("Failed to load organization"); }
@@ -104,7 +114,7 @@ export default function SettingsPage() {
                 bannerImage: form.bannerImage,
                 contactInfo: { phone: form.phone, email: form.email, website: form.website },
                 socialLinks: { facebook: form.facebook, twitter: form.twitter, instagram: form.instagram },
-                scheduleDays: form.scheduleDays,
+                scheduleDays: form.scheduleDays.map(d => DAY_FULL_TO_ABBR[d] || d),
             };
 
             const res = await fetch(`/api/organizations/${slug}`, {
@@ -289,7 +299,10 @@ export default function SettingsPage() {
 
                     {/* Schedule */}
                     <div className="admin-card">
-                        <div className="admin-card-header"><h3>Schedule Days</h3></div>
+                        <div className="admin-card-header" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <h3 style={{ margin: 0 }}>Schedule Days</h3>
+                            {isOrganizer && <i className="fa-solid fa-lock" style={{ fontSize: 12, color: "#8b90a0" }}></i>}
+                        </div>
                         <div className="admin-card-body">
                             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                                 {DAYS.map(day => (
@@ -297,13 +310,20 @@ export default function SettingsPage() {
                                         key={day}
                                         type="button"
                                         className={`admin-btn ${form.scheduleDays.includes(day) ? "admin-btn-primary" : "admin-btn-ghost"}`}
-                                        style={{ fontSize: 13 }}
-                                        onClick={() => toggleDay(day)}
+                                        style={{ fontSize: 13, ...(isOrganizer ? { opacity: form.scheduleDays.includes(day) ? 1 : 0.45, cursor: "not-allowed", pointerEvents: "none" } : {}) }}
+                                        onClick={() => !isOrganizer && toggleDay(day)}
+                                        disabled={isOrganizer}
                                     >
                                         {day}
                                     </button>
                                 ))}
                             </div>
+                            {isOrganizer && (
+                                <p style={{ margin: "10px 0 0", fontSize: 12, color: "#8b90a0" }}>
+                                    <i className="fa-solid fa-circle-info" style={{ marginRight: 4 }}></i>
+                                    Contact admin to change schedule days.
+                                </p>
+                            )}
                         </div>
                     </div>
 
