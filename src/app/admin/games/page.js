@@ -4,11 +4,12 @@ import { useState, useEffect, useCallback } from "react";
 import AdminLayout, { hasAccess, hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
+import WeekdayDatePicker from "@/components/WeekdayDatePicker";
 
 const STAT_FIELDS = ["rate", "atts", "comp", "tds", "pct", "xp2", "yards", "ten", "twenty", "forty", "ints", "intOpen", "intXp"];
 const STAT_LABELS = { rate: "Rate", atts: "Atts", comp: "Comp", tds: "TDs", pct: "%", xp2: "XP2", yards: "Yards", ten: "10+", twenty: "20+", forty: "40+", ints: "INTs", intOpen: "Int Open", intXp: "Int XP" };
 
-function GameModal({ onClose, onSave, initial, seasons = [], leagues = [], venues = [], teams = [], pageSelectedSeason = "" }) {
+function GameModal({ onClose, onSave, initial, seasons = [], leagues = [], venues = [], teams = [], pageSelectedSeason = "", scheduleDays = [] }) {
     // Cascading selection state
     const [selectedSeasonId, setSelectedSeasonId] = useState(() => {
         if (initial) {
@@ -187,7 +188,12 @@ function GameModal({ onClose, onSave, initial, seasons = [], leagues = [], venue
                 <div style={{ display: "flex", gap: 12 }}>
                     <div className="admin-form-group" style={{ flex: 1 }}>
                         <label className="admin-form-label">Date *</label>
-                        <input type="date" className="admin-form-input" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
+                        <WeekdayDatePicker
+                            value={form.date}
+                            onChange={(d) => setForm({ ...form, date: d })}
+                            allowedDays={scheduleDays}
+                            placeholder="Select game date…"
+                        />
                     </div>
                     <div className="admin-form-group" style={{ flex: 1 }}>
                         <label className="admin-form-label">Time</label>
@@ -1022,6 +1028,7 @@ export default function AdminGamesPage() {
     const { user, activeRole } = useAuth();
     const [orgs, setOrgs] = useState([]);
     const [selectedOrg, setSelectedOrg] = useState("");
+    const [scheduleDays, setScheduleDays] = useState([]);
     const [seasons, setSeasons] = useState([]);
     const [leagues, setLeagues] = useState([]);
     const [games, setGames] = useState([]);
@@ -1071,19 +1078,21 @@ export default function AdminGamesPage() {
 
     // Fetch seasons + teams + venues + games when org changes
     useEffect(() => {
-        if (!selectedOrg) { setSeasons([]); setLeagues([]); setGames([]); setTeams([]); setVenues([]); return; }
+        if (!selectedOrg) { setSeasons([]); setLeagues([]); setGames([]); setTeams([]); setVenues([]); setScheduleDays([]); return; }
         (async () => {
             try {
-                const [seasonRes, leagueRes, teamRes, venueRes] = await Promise.all([
+                const [seasonRes, leagueRes, teamRes, venueRes, orgRes] = await Promise.all([
                     fetch(`/api/organizations/${selectedOrg}/seasons`),
                     fetch(`/api/organizations/${selectedOrg}/leagues`),
                     fetch("/api/teams"),
                     fetch("/api/locations"),
+                    fetch(`/api/organizations/${selectedOrg}`),
                 ]);
-                const [seasonData, leagueData, teamData, venueData] = await Promise.all([
-                    seasonRes.json(), leagueRes.json(), teamRes.json(), venueRes.json(),
+                const [seasonData, leagueData, teamData, venueData, orgData] = await Promise.all([
+                    seasonRes.json(), leagueRes.json(), teamRes.json(), venueRes.json(), orgRes.json(),
                 ]);
                 if (seasonData.success) setSeasons(seasonData.data);
+                if (orgData.success) setScheduleDays(orgData.data?.scheduleDays || []);
                 let fetchedLeagues = [];
                 if (leagueData.success) { setLeagues(leagueData.data); fetchedLeagues = leagueData.data; }
                 if (teamData.success) setTeams(teamData.data);
@@ -1268,6 +1277,7 @@ export default function AdminGamesPage() {
                     leagues={leagues}
                     venues={venues}
                     teams={teams}
+                    scheduleDays={scheduleDays}
                     pageSelectedSeason=""
                     onClose={() => { setShowModal(false); setEditTarget(null); }}
                     onSave={handleSave}

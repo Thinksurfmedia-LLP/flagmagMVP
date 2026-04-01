@@ -96,6 +96,7 @@ export async function POST(request) {
             locations,
             location: locations[0] || "",
             startDate: body.startDate || undefined,
+            endDate: body.endDate || undefined,
             season: body.season || undefined,
             seasonOverridden: body.seasonOverridden || false,
         });

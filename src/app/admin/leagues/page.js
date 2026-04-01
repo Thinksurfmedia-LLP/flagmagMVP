@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import AdminLayout, { hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
+import WeekdayDatePicker from "@/components/WeekdayDatePicker";
 
 function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrgId, userOrgName, userOrgSlug }) {
     const { showSuccess, showError } = useToast();
@@ -17,6 +18,7 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
                 ? [initial.location]
                 : [],
         startDate: initial?.startDate ? new Date(initial.startDate).toISOString().split("T")[0] : "",
+        endDate: initial?.endDate ? new Date(initial.endDate).toISOString().split("T")[0] : "",
         image: initial?.image || "",
     });
     const [selectedOrgId, setSelectedOrgId] = useState(
@@ -26,6 +28,7 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
     const [uploading, setUploading] = useState(false);
     const [categoryOptions, setCategoryOptions] = useState([]);
     const [venuesByCounty, setVenuesByCounty] = useState([]);
+    const [scheduleDays, setScheduleDays] = useState([]);
     const [loadingOrg, setLoadingOrg] = useState(false);
 
     // Season state
@@ -64,6 +67,7 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
                     setCategoryOptions(
                         (org.categories || []).map((e) => String(e).trim()).filter(Boolean)
                     );
+                    setScheduleDays(org.scheduleDays || []);
 
                     const groups = (org.locations || []).reduce((acc, loc) => {
                         const key = `${loc.countyName}|${loc.stateAbbr}`;
@@ -376,14 +380,26 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
                     )}
                 </div>
 
-                <div className="admin-form-group">
-                    <label className="admin-form-label">Start Date</label>
-                    <input
-                        type="date"
-                        className="admin-form-input"
-                        value={form.startDate}
-                        onChange={(e) => setForm({ ...form, startDate: e.target.value })}
-                    />
+                <div style={{ display: "flex", gap: 12 }}>
+                    <div className="admin-form-group" style={{ flex: 1 }}>
+                        <label className="admin-form-label">Start Date</label>
+                        <WeekdayDatePicker
+                            value={form.startDate}
+                            onChange={(d) => setForm({ ...form, startDate: d })}
+                            allowedDays={scheduleDays}
+                            placeholder="Select start date…"
+                        />
+                    </div>
+                    <div className="admin-form-group" style={{ flex: 1 }}>
+                        <label className="admin-form-label">End Date</label>
+                        <WeekdayDatePicker
+                            value={form.endDate}
+                            onChange={(d) => setForm({ ...form, endDate: d })}
+                            allowedDays={scheduleDays}
+                            placeholder="Select end date…"
+                            align="right"
+                        />
+                    </div>
                 </div>
 
                 <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
@@ -541,6 +557,7 @@ export default function LeaguesPage() {
                                         <th>Category</th>
                                         <th>Location</th>
                                         <th>Start Date</th>
+                                        <th>End Date</th>
                                         <th style={{ width: 120 }}>Actions</th>
                                     </tr>
                                 </thead>
@@ -575,6 +592,11 @@ export default function LeaguesPage() {
                                             <td style={{ color: "#8b90a0", fontSize: 13 }}>
                                                 {league.startDate
                                                     ? new Date(league.startDate).toLocaleDateString()
+                                                    : "-"}
+                                            </td>
+                                            <td style={{ color: "#8b90a0", fontSize: 13 }}>
+                                                {league.endDate
+                                                    ? new Date(league.endDate).toLocaleDateString()
                                                     : "-"}
                                             </td>
                                             <td>

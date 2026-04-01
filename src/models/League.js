@@ -46,6 +46,9 @@ const LeagueSchema = new mongoose.Schema(
         startDate: {
             type: Date,
         },
+        endDate: {
+            type: Date,
+        },
         time: {
             type: String,
             default: "",
@@ -91,7 +94,7 @@ LeagueSchema.index({ organization: 1, slug: 1 }, { unique: true });
 function getLeagueModel() {
     if (mongoose.models.League) {
         const existing = mongoose.models.League;
-        if (!existing.schema.paths.divisions || !existing.schema.paths.seasonOverridden || !existing.schema.paths.image) {
+        if (!existing.schema.paths.divisions || !existing.schema.paths.seasonOverridden || !existing.schema.paths.image || !existing.schema.paths.endDate) {
             delete mongoose.models.League;
             delete mongoose.connection.models?.League;
             return mongoose.model("League", LeagueSchema);
