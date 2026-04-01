@@ -35,7 +35,7 @@ export async function POST(request) {
         await writeFile(uploadPath, buffer);
 
         return NextResponse.json(
-            { success: true, url: `/assets/images/uploads/${safeName}` },
+            { success: true, url: `/api/uploads/${safeName}` },
             { status: 200 }
         );
     } catch (error) {
