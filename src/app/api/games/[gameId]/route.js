@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Game from "@/models/Game";
+import League from "@/models/League";
 import { requireAdmin } from "@/lib/apiAuth";
 
 // GET single game
@@ -27,6 +28,27 @@ export async function PUT(request, { params }) {
         await dbConnect();
         const { gameId } = await params;
         const body = await request.json();
+
+        // Validate against league start date
+        if (body.date) {
+            const existing = await Game.findById(gameId).select("league").lean();
+            const leagueId = body.league || existing?.league;
+            if (leagueId) {
+                const league = await League.findById(leagueId).select("startDate").lean();
+                if (league?.startDate) {
+                    const gameDate = new Date(body.date);
+                    const startDate = new Date(league.startDate);
+                    gameDate.setHours(0, 0, 0, 0);
+                    startDate.setHours(0, 0, 0, 0);
+                    if (gameDate < startDate) {
+                        return NextResponse.json(
+                            { success: false, error: `Game date cannot be before the league start date (${startDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })})` },
+                            { status: 400 }
+                        );
+                    }
+                }
+            }
+        }
 
         const game = await Game.findByIdAndUpdate(gameId, body, { new: true, runValidators: true });
         if (!game) {

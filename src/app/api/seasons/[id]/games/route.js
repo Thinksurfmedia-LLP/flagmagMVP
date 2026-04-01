@@ -73,6 +73,23 @@ export async function POST(request, { params }) {
         const body = await request.json();
         body.league = id;
 
+        // Validate against league start date
+        if (body.date) {
+            const league = await League.findById(id).select("startDate name").lean();
+            if (league?.startDate) {
+                const gameDate = new Date(body.date);
+                const startDate = new Date(league.startDate);
+                gameDate.setHours(0, 0, 0, 0);
+                startDate.setHours(0, 0, 0, 0);
+                if (gameDate < startDate) {
+                    return NextResponse.json(
+                        { success: false, error: `Game date cannot be before the league start date (${startDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })})` },
+                        { status: 400 }
+                    );
+                }
+            }
+        }
+
         const game = await Game.create(body);
 
         return NextResponse.json({ success: true, data: game }, { status: 201 });
