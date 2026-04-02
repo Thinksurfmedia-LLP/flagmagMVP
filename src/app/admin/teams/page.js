@@ -105,7 +105,7 @@ function TeamModal({ team, freeAgents, organizations, user, effectiveRole, onClo
         if (pickerState && pickerCounty) {
             fetchCities(pickerState, pickerCounty);
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Merge existing team players with free agents for the candidate list
@@ -422,6 +422,221 @@ function TeamModal({ team, freeAgents, organizations, user, effectiveRole, onClo
     );
 }
 
+const TEAM_CSV_HEADERS = ["name", "division", "description", "stateName", "stateAbbr", "countyName", "cityName"];
+const TEAM_CSV_SAMPLE = [
+    ["Red Dragons", "Men's A", "Est. 2022", "California", "CA", "Los Angeles", "Pasadena"],
+    ["Blue Hawks", "Men's A", "", "California", "CA", "Orange", "Irvine"],
+    ["Gold Tigers", "Women's B", "Defending champs", "Texas", "TX", "Harris", "Houston"],
+];
+
+function CsvImportModal({ onClose, onImportDone }) {
+    const { showSuccess, showError } = useToast();
+    const fileInputRef = React.useRef(null);
+    const [file, setFile] = useState(null);
+    const [preview, setPreview] = useState(null);
+    const [importing, setImporting] = useState(false);
+    const [results, setResults] = useState(null);
+    const [dragOver, setDragOver] = useState(false);
+
+    const downloadTemplate = () => {
+        const rows = [TEAM_CSV_HEADERS.join(","), ...TEAM_CSV_SAMPLE.map((r) => r.map((v) => (v.includes(",") ? `"${v}"` : v)).join(","))];
+        const blob = new Blob([rows.join("\n")], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "teams_import_template.csv";
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    const parseCsvText = (text) => {
+        const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n").filter((l) => l.trim());
+        if (lines.length < 2) return null;
+        const headers = lines[0].split(",").map((h) => h.trim().replace(/^"|"$/g, ""));
+        const rows = lines.slice(1).map((line) => {
+            const vals = [];
+            let current = "";
+            let inQuotes = false;
+            for (let i = 0; i < line.length; i++) {
+                if (line[i] === '"') { inQuotes = !inQuotes; }
+                else if (line[i] === "," && !inQuotes) { vals.push(current.trim()); current = ""; }
+                else { current += line[i]; }
+            }
+            vals.push(current.trim());
+            return vals;
+        });
+        return { headers, rows };
+    };
+
+    const handleFile = (f) => {
+        if (!f || !f.name.endsWith(".csv")) {
+            showError("Please select a .csv file");
+            return;
+        }
+        setFile(f);
+        setResults(null);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const parsed = parseCsvText(e.target.result);
+            setPreview(parsed);
+        };
+        reader.readAsText(f);
+    };
+
+    const handleImport = async () => {
+        if (!file) return;
+        setImporting(true);
+        try {
+            const fd = new FormData();
+            fd.append("file", file);
+            const res = await fetch("/api/admin/import/teams", { method: "POST", body: fd });
+            const data = await res.json();
+            if (!data.success) {
+                showError(data.error || "Import failed");
+                setImporting(false);
+                return;
+            }
+            setResults(data.data);
+            if (data.data.created > 0) {
+                showSuccess(`${data.data.created} team(s) imported successfully!`);
+                onImportDone();
+            }
+        } catch {
+            showError("Import failed");
+        } finally {
+            setImporting(false);
+        }
+    };
+
+    const statusColor = (s) => s === "created" ? "#16a34a" : s === "skipped" ? "#f59e0b" : "#dc2626";
+    const statusIcon = (s) => s === "created" ? "fa-check-circle" : s === "skipped" ? "fa-forward" : "fa-times-circle";
+
+    return (
+        <div className="admin-modal-backdrop" onClick={onClose}>
+            <div className="admin-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 680, maxHeight: "90vh", overflowY: "auto" }}>
+                <h3 className="admin-modal-title">
+                    <i className="fa-solid fa-file-csv" style={{ color: "#FF1E00", marginRight: 8 }}></i>
+                    Import Teams from CSV
+                </h3>
+
+                {/* Step 1: Download template */}
+                <div style={{ background: "#f9fafb", border: "1px solid #e8eaef", borderRadius: 8, padding: 14, marginBottom: 16 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+                        <div>
+                            <div style={{ fontWeight: 600, fontSize: 13, color: "#1a1d26", marginBottom: 2 }}>Step 1: Download Template</div>
+                            <div style={{ fontSize: 12, color: "#8b90a0" }}>Get a sample CSV with the correct column headers</div>
+                        </div>
+                        <button className="admin-btn admin-btn-ghost" onClick={downloadTemplate} style={{ whiteSpace: "nowrap" }}>
+                            <i className="fa-solid fa-download"></i> Download Template
+                        </button>
+                    </div>
+                    {/* <div style={{ marginTop: 10, fontSize: 11, color: "#8b90a0" }}>
+                        <strong>Required:</strong> name &nbsp;|&nbsp; <strong>Optional:</strong> division, description, stateName, stateAbbr, countyName, cityName
+                    </div> */}
+                </div>
+
+                {/* Step 2: Upload */}
+                <div style={{ marginBottom: 16 }}>
+                    <div style={{ fontWeight: 600, fontSize: 13, color: "#1a1d26", marginBottom: 8 }}>Step 2: Upload your CSV</div>
+                    <div
+                        onClick={() => fileInputRef.current?.click()}
+                        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                        onDragLeave={() => setDragOver(false)}
+                        onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFile(e.dataTransfer.files[0]); }}
+                        style={{
+                            border: `2px dashed ${dragOver ? "#FF1E00" : "#d5d8e0"}`,
+                            borderRadius: 8,
+                            padding: "28px 20px",
+                            textAlign: "center",
+                            cursor: "pointer",
+                            background: dragOver ? "rgba(255,30,0,0.03)" : "#fff",
+                            transition: "all 0.2s ease",
+                        }}
+                    >
+                        <i className="fa-solid fa-cloud-arrow-up" style={{ fontSize: 28, color: dragOver ? "#FF1E00" : "#a0a4b2", marginBottom: 8, display: "block" }}></i>
+                        <div style={{ fontSize: 13, color: "#5a5f72", fontWeight: 500 }}>
+                            {file ? (<><i className="fa-solid fa-file-csv" style={{ color: "#16a34a", marginRight: 6 }}></i>{file.name}</>) : "Drag & drop a CSV file here, or click to browse"}
+                        </div>
+                        {file && <div style={{ fontSize: 11, color: "#8b90a0", marginTop: 4 }}>Click to change file</div>}
+                    </div>
+                    <input ref={fileInputRef} type="file" accept=".csv" style={{ display: "none" }} onChange={(e) => handleFile(e.target.files[0])} />
+                </div>
+
+                {/* Preview */}
+                {preview && !results && (
+                    <div style={{ marginBottom: 16 }}>
+                        <div style={{ fontWeight: 600, fontSize: 13, color: "#1a1d26", marginBottom: 8 }}>Preview ({preview.rows.length} rows found)</div>
+                        <div style={{ overflowX: "auto", border: "1px solid #e8eaef", borderRadius: 6 }}>
+                            <table className="admin-table" style={{ fontSize: 12 }}>
+                                <thead>
+                                    <tr>{preview.headers.map((h) => <th key={h}>{h}</th>)}</tr>
+                                </thead>
+                                <tbody>
+                                    {preview.rows.slice(0, 5).map((row, i) => (
+                                        <tr key={i}>{row.map((v, j) => <td key={j}>{v || <span style={{ color: "#ccc" }}>—</span>}</td>)}</tr>
+                                    ))}
+                                    {preview.rows.length > 5 && (
+                                        <tr><td colSpan={preview.headers.length} style={{ textAlign: "center", color: "#8b90a0", fontStyle: "italic" }}>... and {preview.rows.length - 5} more rows</td></tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+
+                {/* Results */}
+                {results && (
+                    <div style={{ marginBottom: 16 }}>
+                        <div style={{ fontWeight: 600, fontSize: 13, color: "#1a1d26", marginBottom: 10 }}>Import Results</div>
+                        <div style={{ display: "flex", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
+                            <div style={{ flex: 1, minWidth: 100, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 6, padding: "10px 14px", textAlign: "center" }}>
+                                <div style={{ fontSize: 22, fontWeight: 700, color: "#16a34a" }}>{results.created}</div>
+                                <div style={{ fontSize: 11, color: "#16a34a" }}>Created</div>
+                            </div>
+                            <div style={{ flex: 1, minWidth: 100, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: 6, padding: "10px 14px", textAlign: "center" }}>
+                                <div style={{ fontSize: 22, fontWeight: 700, color: "#f59e0b" }}>{results.skipped}</div>
+                                <div style={{ fontSize: 11, color: "#f59e0b" }}>Skipped</div>
+                            </div>
+                            <div style={{ flex: 1, minWidth: 100, background: "rgba(220,38,38,0.08)", border: "1px solid rgba(220,38,38,0.2)", borderRadius: 6, padding: "10px 14px", textAlign: "center" }}>
+                                <div style={{ fontSize: 22, fontWeight: 700, color: "#dc2626" }}>{results.errors}</div>
+                                <div style={{ fontSize: 11, color: "#dc2626" }}>Errors</div>
+                            </div>
+                        </div>
+                        {results.details.filter((d) => d.status !== "created").length > 0 && (
+                            <div style={{ overflowX: "auto", border: "1px solid #e8eaef", borderRadius: 6 }}>
+                                <table className="admin-table" style={{ fontSize: 12 }}>
+                                    <thead>
+                                        <tr><th>Row</th><th>Name</th><th>Status</th><th>Reason</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        {results.details.filter((d) => d.status !== "created").map((d, i) => (
+                                            <tr key={i}>
+                                                <td>{d.row}</td>
+                                                <td style={{ fontWeight: 500 }}>{d.name}</td>
+                                                <td><span style={{ color: statusColor(d.status), fontWeight: 600, fontSize: 11 }}><i className={`fa-solid ${statusIcon(d.status)}`} style={{ marginRight: 4 }}></i>{d.status}</span></td>
+                                                <td style={{ color: "#5a5f72" }}>{d.reason}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                <div style={{ display: "flex", gap: 10, marginTop: 20, justifyContent: "flex-end" }}>
+                    <button className="admin-btn admin-btn-ghost" onClick={onClose}>{results ? "Close" : "Cancel"}</button>
+                    {!results && (
+                        <button className="admin-btn admin-btn-primary" onClick={handleImport} disabled={!file || importing}>
+                            {importing ? (<><i className="fa-solid fa-spinner fa-spin" style={{ marginRight: 6 }}></i>Importing...</>) : (<><i className="fa-solid fa-file-import" style={{ marginRight: 6 }}></i>Import Teams</>)}
+                        </button>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function AdminTeamsPage() {
     const { user, activeRole } = useAuth();
     const effectiveRole = activeRole || user?.role;
@@ -433,6 +648,7 @@ export default function AdminTeamsPage() {
     const [loading, setLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
     const [editTarget, setEditTarget] = useState(null);
+    const [importModalOpen, setImportModalOpen] = useState(false);
 
     const canView = hasAnyAccess(user, [
         "manage_teams", "team_view", "team_create", "team_update", "team_delete",
@@ -530,11 +746,18 @@ export default function AdminTeamsPage() {
                     <div className="admin-card">
                         <div className="admin-card-header">
                             <h3>Teams ({teams.length})</h3>
-                            {canCreate && (
-                                <button className="admin-btn admin-btn-primary" onClick={() => { setEditTarget(null); setModalOpen(true); }}>
-                                    <i className="fa-solid fa-plus"></i> Create Team
-                                </button>
-                            )}
+                            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                                {canCreate && (
+                                    <button className="admin-btn admin-btn-ghost" onClick={() => setImportModalOpen(true)}>
+                                        <i className="fa-solid fa-file-csv"></i> Import CSV
+                                    </button>
+                                )}
+                                {canCreate && (
+                                    <button className="admin-btn admin-btn-primary" onClick={() => { setEditTarget(null); setModalOpen(true); }}>
+                                        <i className="fa-solid fa-plus"></i> Create Team
+                                    </button>
+                                )}
+                            </div>
                         </div>
 
                         {loading ? (
@@ -604,6 +827,13 @@ export default function AdminTeamsPage() {
                             existingDivisions={[...new Set(teams.map(t => t.division).filter(Boolean))]}
                             onClose={() => { setModalOpen(false); setEditTarget(null); }}
                             onSave={saveTeam}
+                        />
+                    )}
+
+                    {importModalOpen && (
+                        <CsvImportModal
+                            onClose={() => setImportModalOpen(false)}
+                            onImportDone={() => fetchData()}
                         />
                     )}
                 </>
