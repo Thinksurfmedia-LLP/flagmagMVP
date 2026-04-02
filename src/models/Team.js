@@ -25,6 +25,16 @@ const TeamSchema = new mongoose.Schema(
             countyName: { type: String, default: "" },
             cityName: { type: String, default: "" },
         },
+        coachName: {
+            type: String,
+            default: "",
+            trim: true,
+        },
+        coachPhone: {
+            type: String,
+            default: "",
+            trim: true,
+        },
         organization: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Organization",
@@ -54,7 +64,8 @@ function getTeamModel() {
         const hasPlayers = Boolean(existing.schema.path("players"));
         const hasDescription = Boolean(existing.schema.path("description"));
         const hasJerseyNumber = Boolean(existing.schema.path("players.jerseyNumber"));
-        if (!hasPlayers || !hasDescription || !hasJerseyNumber) {
+        const hasCoachName = Boolean(existing.schema.path("coachName"));
+        if (!hasPlayers || !hasDescription || !hasJerseyNumber || !hasCoachName) {
             delete mongoose.models.Team;
         }
     }

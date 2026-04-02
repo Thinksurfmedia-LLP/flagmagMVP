@@ -180,6 +180,8 @@ export async function PUT(request, { params }) {
         team.logo = body.logo ?? team.logo;
         team.description = body.description !== undefined ? (body.description?.trim() || "") : team.description;
         team.division = body.division !== undefined ? (body.division?.trim() || "") : team.division;
+        if (body.coachName !== undefined) team.coachName = body.coachName?.trim() || "";
+        if (body.coachPhone !== undefined) team.coachPhone = body.coachPhone?.trim() || "";
         if (body.location) team.location = body.location;
         if (nextPlayersArray) {
             team.players = nextPlayersArray.map(p => ({

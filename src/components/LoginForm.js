@@ -36,8 +36,9 @@ export default function LoginForm() {
             } else {
                 setSuccess(`Welcome back, ${data.data.name}!`);
                 setTimeout(() => {
-                    router.push(redirectTo);
-                    router.refresh();
+                    // Hard navigation to fully reset all component state
+                    // (prevents stale sidebar/logo from previous user session)
+                    window.location.href = redirectTo;
                 }, 1000);
             }
         } catch (err) {

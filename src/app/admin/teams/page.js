@@ -63,6 +63,8 @@ function TeamModal({ team, freeAgents, organizations, user, effectiveRole, onClo
     const [name, setName] = useState(team?.name || "");
     const [logo, setLogo] = useState(team?.logo || "");
     const [description, setDescription] = useState(team?.description || "");
+    const [coachName, setCoachName] = useState(team?.coachName || "");
+    const [coachPhone, setCoachPhone] = useState(team?.coachPhone || "");
     const [division, setDivision] = useState(team?.division || "");
     const [divisionOpen, setDivisionOpen] = useState(false);
     const divisionRef = React.useRef(null);
@@ -176,6 +178,8 @@ function TeamModal({ team, freeAgents, organizations, user, effectiveRole, onClo
             name: name.trim(),
             logo: logo.trim(),
             description: description.trim(),
+            coachName: coachName.trim(),
+            coachPhone: coachPhone.trim(),
             division: division.trim(),
             location: locationPayload,
             organization: effectiveRole === "admin" ? organization : undefined,
@@ -232,6 +236,17 @@ function TeamModal({ team, freeAgents, organizations, user, effectiveRole, onClo
                         placeholder="Brief description of this team..."
                         style={{ resize: "vertical" }}
                     />
+                </div>
+
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                    <div className="admin-form-group" style={{ flex: 1, minWidth: 200 }}>
+                        <label className="admin-form-label">Coach Name (optional)</label>
+                        <input className="admin-form-input" value={coachName} onChange={(e) => setCoachName(e.target.value)} placeholder="e.g. John Smith" />
+                    </div>
+                    <div className="admin-form-group" style={{ flex: 1, minWidth: 200 }}>
+                        <label className="admin-form-label">Coach Phone (optional)</label>
+                        <input className="admin-form-input" value={coachPhone} onChange={(e) => setCoachPhone(e.target.value)} placeholder="e.g. 555-123-4567" />
+                    </div>
                 </div>
 
                 <div className="admin-form-group">
@@ -422,11 +437,11 @@ function TeamModal({ team, freeAgents, organizations, user, effectiveRole, onClo
     );
 }
 
-const TEAM_CSV_HEADERS = ["name", "division", "description", "stateName", "stateAbbr", "countyName", "cityName"];
+const TEAM_CSV_HEADERS = ["name", "division", "description", "coachName", "coachPhone", "stateName", "stateAbbr", "countyName", "cityName"];
 const TEAM_CSV_SAMPLE = [
-    ["Red Dragons", "Men's A", "Est. 2022", "California", "CA", "Los Angeles", "Pasadena"],
-    ["Blue Hawks", "Men's A", "", "California", "CA", "Orange", "Irvine"],
-    ["Gold Tigers", "Women's B", "Defending champs", "Texas", "TX", "Harris", "Houston"],
+    ["Red Dragons", "Men's A", "Est. 2022", "John Smith", "555-123-4567", "California", "CA", "Los Angeles", "Pasadena"],
+    ["Blue Hawks", "Men's A", "", "Jane Doe", "555-987-6543", "California", "CA", "Orange", "Irvine"],
+    ["Gold Tigers", "Women's B", "Defending champs", "", "", "Texas", "TX", "Harris", "Houston"],
 ];
 
 function CsvImportModal({ onClose, onImportDone }) {

@@ -210,6 +210,8 @@ export async function POST(request) {
             logo: body.logo || "",
             description: body.description?.trim() || "",
             division: body.division?.trim() || "",
+            coachName: body.coachName?.trim() || "",
+            coachPhone: body.coachPhone?.trim() || "",
             location: body.location || {},
             organization: organizationId,
             players: playersArray.map(p => ({
