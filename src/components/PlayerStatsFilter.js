@@ -22,6 +22,7 @@ const statColumns = {
         { key: "safety", label: "SAF" },
         { key: "pct", label: "CMP%" },
         { key: "ypc", label: "Y/C" },
+        { key: "rate", label: "RATE" },
     ],
     receiving: [
         { key: "receptions", label: "REC" },

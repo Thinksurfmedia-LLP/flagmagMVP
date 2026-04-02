@@ -33,7 +33,40 @@ export async function PUT(request, { params }) {
         const { id } = await params;
         const body = await request.json();
 
-        const player = await Player.findByIdAndUpdate(id, body, { new: true, runValidators: true });
+        // Handle Team changes explicitly
+        const { teamName, jerseyNumber, ...playerUpdates } = body;
+        let updateData = { ...playerUpdates };
+
+        if (teamName !== undefined || jerseyNumber !== undefined) {
+            const TeamModel = require("@/models/Team").default || require("mongoose").models.Team;
+            
+            // 1. Remove player from any team they are currently attached to
+            await TeamModel.updateMany(
+                { "players.player": id },
+                { $pull: { players: { player: id } } }
+            );
+
+            // 2. Add player to the new team with the provided jerseyNumber
+            if (teamName && teamName.trim() !== "") {
+                const newTeam = await TeamModel.findOne({ name: teamName });
+                if (newTeam) {
+                    const jNum = jerseyNumber != null && jerseyNumber !== "" ? Number(jerseyNumber) : 0;
+                    await TeamModel.findByIdAndUpdate(newTeam._id, {
+                        $push: { players: { player: id, jerseyNumber: jNum } }
+                    });
+                    updateData.presentTeam = { name: newTeam.name, logo: newTeam.logo || "" };
+                    
+                    // If player was a free_agent but now assigned to a team, make sure they are active as 'player'
+                    updateData.status = "player"; 
+                } else {
+                    updateData.presentTeam = { name: "", logo: "" };
+                }
+            } else {
+                updateData.presentTeam = { name: "", logo: "" };
+            }
+        }
+
+        const player = await Player.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
         if (!player) {
             return NextResponse.json({ success: false, error: "Player not found" }, { status: 404 });
         }

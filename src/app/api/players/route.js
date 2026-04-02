@@ -26,6 +26,27 @@ export async function GET(request) {
             .populate("organization", "name slug")
             .sort({ name: 1 })
             .lean();
+
+        // Extra: map jersey numbers from Team collection
+        const playerIds = players.map(p => p._id);
+        
+        // Use dynamic import or direct require to prevent cycle issues or model missing errors, or we can just import Team at the top
+        // But since we can't reliably know if Team is imported, let's just do mongoose.model("Team")
+        const mongoose = require("mongoose");
+        const TeamModel = mongoose.models.Team || require("@/models/Team").default;
+        
+        const teams = await TeamModel.find({ "players.player": { $in: playerIds } }).lean();
+        const jerseyMap = {};
+        for (const team of teams) {
+             for (const p of (team.players || [])) {
+                 if (p.player) jerseyMap[p.player.toString()] = p.jerseyNumber;
+             }
+        }
+        
+        players.forEach(p => {
+             p.jerseyNumber = jerseyMap[p._id.toString()] || null;
+        });
+
         return NextResponse.json({ success: true, count: players.length, data: players }, { status: 200 });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });

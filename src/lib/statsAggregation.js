@@ -215,8 +215,27 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
         const atts = p.atts || 0;
         const comp = p.comp || 0;
         const yards = p.yards || 0;
+        const tds = p.tds || 0;
+        const ints = p.ints || 0;
+
         const pct = atts > 0 ? ((comp / atts) * 100).toFixed(1) : "0.0";
         const ypc = comp > 0 ? (yards / comp).toFixed(1) : "0.0";
+
+        let rate = 0;
+        if (atts > 0) {
+            let a = ((comp / atts) - 0.3) * 5;
+            let b = ((yards / atts) - 3) * 0.25;
+            let c = (tds / atts) * 20;
+            let d = 2.375 - ((ints / atts) * 25);
+
+            a = Math.max(0, Math.min(a, 2.375));
+            b = Math.max(0, Math.min(b, 2.375));
+            c = Math.max(0, Math.min(c, 2.375));
+            d = Math.max(0, Math.min(d, 2.375));
+
+            rate = ((a + b + c + d) / 6) * 100;
+        }
+
         return {
             playerId: p.playerId,
             playerName: p.playerName,
@@ -225,13 +244,14 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
             atts,
             comp,
             yards,
-            tds: p.tds || 0,
+            tds,
             pat: (p.pat1 || 0) + (p.pat2 || 0),
-            ints: p.ints || 0,
+            ints,
             sacks: p.sacks || 0,
             safety: p.safety || 0,
             pct: parseFloat(pct),
             ypc: parseFloat(ypc),
+            rate: parseFloat(rate.toFixed(1)),
         };
     });
 
@@ -379,9 +399,36 @@ export async function computeSeasonStats(leagueId, orgId) {
 
     // Recalculate derived fields
     const passingRows = Object.values(mergedPassing).map((p) => {
-        const pct = p.atts > 0 ? ((p.comp / p.atts) * 100).toFixed(1) : "0.0";
-        const ypc = p.comp > 0 ? (p.yards / p.comp).toFixed(1) : "0.0";
-        return { ...p, pct: parseFloat(pct), ypc: parseFloat(ypc) };
+        const atts = p.atts || 0;
+        const comp = p.comp || 0;
+        const yards = p.yards || 0;
+        const tds = p.tds || 0;
+        const ints = p.ints || 0;
+
+        const pct = atts > 0 ? ((comp / atts) * 100).toFixed(1) : "0.0";
+        const ypc = comp > 0 ? (yards / comp).toFixed(1) : "0.0";
+
+        let rate = 0;
+        if (atts > 0) {
+            let a = ((comp / atts) - 0.3) * 5;
+            let b = ((yards / atts) - 3) * 0.25;
+            let c = (tds / atts) * 20;
+            let d = 2.375 - ((ints / atts) * 25);
+
+            a = Math.max(0, Math.min(a, 2.375));
+            b = Math.max(0, Math.min(b, 2.375));
+            c = Math.max(0, Math.min(c, 2.375));
+            d = Math.max(0, Math.min(d, 2.375));
+
+            rate = ((a + b + c + d) / 6) * 100;
+        }
+
+        return { 
+            ...p, 
+            pct: parseFloat(pct), 
+            ypc: parseFloat(ypc),
+            rate: parseFloat(rate.toFixed(1))
+        };
     });
 
     const receivingRows = Object.values(mergedReceiving).map((r) => {

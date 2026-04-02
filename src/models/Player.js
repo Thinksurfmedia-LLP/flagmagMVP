@@ -11,6 +11,10 @@ const PlayerSchema = new mongoose.Schema(
             enum: ["free_agent", "player"],
             default: "free_agent",
         },
+        isActive: {
+            type: Boolean,
+            default: true,
+        },
         organization: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Organization",
