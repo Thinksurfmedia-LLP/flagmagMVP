@@ -133,7 +133,9 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
 
     const handleSeasonUnlock = async () => {
         setSeasonLocked(false);
-        // Notify admin about the override
+        // Notification to admin deactivated for now
+        // TODO: Re-enable admin notification when needed
+        /*
         try {
             const orgName = isAdmin
                 ? organizations.find((o) => o._id === selectedOrgId)?.name
@@ -155,6 +157,7 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
                 }),
             });
         } catch {}
+        */
     };
 
     const handleImageUpload = async (e) => {
@@ -574,11 +577,6 @@ export default function LeaguesPage() {
                                             )}
                                             <td style={{ color: "#5a5f72" }}>
                                                 {league.season?.name || "-"}
-                                                {league.seasonOverridden && (
-                                                    <span title="Season was overridden" style={{ color: "#FF1E00", marginLeft: 4, fontSize: 11 }}>
-                                                        <i className="fa-solid fa-triangle-exclamation"></i>
-                                                    </span>
-                                                )}
                                             </td>
                                             <td>
                                                 <span className={`admin-badge ${league.type === "active" ? "player" : ""}`}>

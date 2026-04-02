@@ -179,8 +179,24 @@ export default function SettingsPage() {
                             </div>
                             <div style={{ display: "flex", gap: 12 }}>
                                 <div className="admin-form-group" style={{ flex: 1 }}>
-                                    <label className="admin-form-label">Location</label>
-                                    <input className="admin-form-input" value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} placeholder="City, State" />
+                                    <label className="admin-form-label" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                        Location
+                                        {isOrganizer && <i className="fa-solid fa-lock" style={{ fontSize: 11, color: "#8b90a0" }}></i>}
+                                    </label>
+                                    <input
+                                        className="admin-form-input"
+                                        value={form.location}
+                                        onChange={e => !isOrganizer && setForm({ ...form, location: e.target.value })}
+                                        placeholder="City, State"
+                                        readOnly={isOrganizer}
+                                        style={isOrganizer ? { background: "#f3f4f6", color: "#6b7280", cursor: "not-allowed" } : {}}
+                                    />
+                                    {isOrganizer && (
+                                        <p style={{ margin: "4px 0 0", fontSize: 12, color: "#8b90a0" }}>
+                                            <i className="fa-solid fa-circle-info" style={{ marginRight: 4 }}></i>
+                                            Contact admin to change this value.
+                                        </p>
+                                    )}
                                 </div>
                                 <div className="admin-form-group" style={{ flex: 1 }}>
                                     <label className="admin-form-label">Founded Year</label>

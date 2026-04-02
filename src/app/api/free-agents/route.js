@@ -214,9 +214,28 @@ export async function POST(request) {
                 if (existingUser.role === "viewer") {
                     await User.updateOne(
                         { _id: userId },
-                        { $set: { role: "free_agent" }, $addToSet: { roles: "free_agent" } }
+                        {
+                            $set: {
+                                role: "free_agent",
+                                organization: organizationId,
+                                [`roleOrganizations.free_agent`]: [organizationId],
+                            },
+                            $addToSet: { roles: "free_agent" },
+                        }
                     );
                     await User.updateOne({ _id: userId }, { $pull: { roles: "viewer" } });
+                } else {
+                    // If already has a role, just add free_agent and set org
+                    await User.updateOne(
+                        { _id: userId },
+                        {
+                            $set: {
+                                organization: organizationId,
+                                [`roleOrganizations.free_agent`]: [organizationId],
+                            },
+                            $addToSet: { roles: "free_agent" },
+                        }
+                    );
                 }
             } else {
                 const salt = await bcrypt.genSalt(10);
@@ -229,6 +248,10 @@ export async function POST(request) {
                     password: hashedPassword,
                     role: "free_agent",
                     roles: ["free_agent"],
+                    organization: organizationId,
+                    roleOrganizations: {
+                        free_agent: [organizationId],
+                    },
                 });
 
                 userId = newUser._id;

@@ -1,43 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import AdminLayout, { hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 
 function AddFreeAgentModal({ onClose, onSave, organizations, isAdmin }) {
-    const [mode, setMode] = useState("existing"); // "existing" | "new"
     const [organization, setOrganization] = useState("");
-    const [userSearch, setUserSearch] = useState("");
-    const [users, setUsers] = useState([]);
-    const [loadingUsers, setLoadingUsers] = useState(false);
-    const [selectedUserId, setSelectedUserId] = useState("");
     const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "" });
     const [saving, setSaving] = useState(false);
     const [formError, setFormError] = useState("");
     const [showPassword, setShowPassword] = useState(false);
-
-    // Fetch users for "existing" mode
-    useEffect(() => {
-        let cancelled = false;
-        setLoadingUsers(true);
-        fetch("/api/admin/users")
-            .then((r) => r.json())
-            .then((data) => {
-                if (!cancelled && data.success) setUsers(data.data || []);
-            })
-            .catch(() => {})
-            .finally(() => { if (!cancelled) setLoadingUsers(false); });
-        return () => { cancelled = true; };
-    }, []);
-
-    const filteredUsers = useMemo(() => {
-        if (!userSearch.trim()) return users;
-        const q = userSearch.toLowerCase();
-        return users.filter((u) =>
-            u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
-        );
-    }, [users, userSearch]);
 
     const handleSave = async () => {
         setFormError("");
@@ -45,35 +18,27 @@ function AddFreeAgentModal({ onClose, onSave, organizations, isAdmin }) {
             setFormError("Please select an organization");
             return;
         }
-
-        if (mode === "existing") {
-            if (!selectedUserId) { setFormError("Please select a user"); return; }
-            setSaving(true);
-            await onSave({ userId: selectedUserId, organization: isAdmin ? organization : undefined });
-            setSaving(false);
-        } else {
-            if (!form.name || !form.email || !form.password) {
-                setFormError("Name, email, and password are required");
-                return;
-            }
-            if (form.password.length < 6) {
-                setFormError("Password must be at least 6 characters");
-                return;
-            }
-            if (form.password !== form.confirmPassword) {
-                setFormError("Passwords do not match");
-                return;
-            }
-            setSaving(true);
-            await onSave({
-                name: form.name,
-                email: form.email,
-                phone: form.phone,
-                password: form.password,
-                organization: isAdmin ? organization : undefined,
-            });
-            setSaving(false);
+        if (!form.name || !form.email || !form.password) {
+            setFormError("Name, email, and password are required");
+            return;
         }
+        if (form.password.length < 6) {
+            setFormError("Password must be at least 6 characters");
+            return;
+        }
+        if (form.password !== form.confirmPassword) {
+            setFormError("Passwords do not match");
+            return;
+        }
+        setSaving(true);
+        await onSave({
+            name: form.name,
+            email: form.email,
+            phone: form.phone,
+            password: form.password,
+            organization: isAdmin ? organization : undefined,
+        });
+        setSaving(false);
     };
 
     return (
@@ -104,131 +69,72 @@ function AddFreeAgentModal({ onClose, onSave, organizations, isAdmin }) {
                     </div>
                 )}
 
-                {/* Mode toggle */}
-                <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-                    <button
-                        className={`admin-btn ${mode === "existing" ? "admin-btn-primary" : "admin-btn-ghost"} admin-btn-sm`}
-                        onClick={() => setMode("existing")}
-                    >
-                        Select Existing User
-                    </button>
-                    <button
-                        className={`admin-btn ${mode === "new" ? "admin-btn-primary" : "admin-btn-ghost"} admin-btn-sm`}
-                        onClick={() => setMode("new")}
-                    >
-                        Create New User
-                    </button>
+                <div className="admin-form-group">
+                    <label className="admin-form-label">Name *</label>
+                    <input
+                        className="admin-form-input"
+                        autoComplete="off"
+                        value={form.name}
+                        onChange={(e) => setForm({ ...form, name: e.target.value })}
+                        placeholder="Full name"
+                    />
                 </div>
-
-                {mode === "existing" ? (
-                    <div className="admin-form-group">
-                        <label className="admin-form-label">Select User</label>
+                <div className="admin-form-group">
+                    <label className="admin-form-label">Email *</label>
+                    <input
+                        type="email"
+                        className="admin-form-input"
+                        autoComplete="off"
+                        value={form.email}
+                        onChange={(e) => setForm({ ...form, email: e.target.value })}
+                        placeholder="user@example.com"
+                    />
+                </div>
+                <div className="admin-form-group">
+                    <label className="admin-form-label">Phone</label>
+                    <input
+                        className="admin-form-input"
+                        autoComplete="off"
+                        value={form.phone}
+                        onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                        placeholder="+1-555-0000"
+                    />
+                </div>
+                <div className="admin-form-group">
+                    <label className="admin-form-label">Password *</label>
+                    <div style={{ position: "relative" }}>
                         <input
+                            type={showPassword ? "text" : "password"}
                             className="admin-form-input"
-                            placeholder="Search by name or email..."
-                            value={userSearch}
-                            onChange={(e) => setUserSearch(e.target.value)}
-                            style={{ marginBottom: 8 }}
+                            autoComplete="new-password"
+                            value={form.password}
+                            onChange={(e) => setForm({ ...form, password: e.target.value })}
+                            placeholder="Min 6 characters"
+                            style={{ paddingRight: 36 }}
                         />
-                        <div className="admin-location-list" style={{ maxHeight: 240 }}>
-                            {loadingUsers ? (
-                                <div style={{ color: "#8b90a0", fontSize: 13, padding: 12 }}>Loading users...</div>
-                            ) : filteredUsers.length === 0 ? (
-                                <div style={{ color: "#8b90a0", fontSize: 13, padding: 12 }}>No matching users found.</div>
-                            ) : (
-                                filteredUsers.map((u) => {
-                                    const checked = selectedUserId === String(u._id);
-                                    return (
-                                        <label
-                                            key={u._id}
-                                            className={`admin-location-option ${checked ? "selected" : ""}`}
-                                        >
-                                            <input
-                                                type="radio"
-                                                name="selectUser"
-                                                checked={checked}
-                                                onChange={() => setSelectedUserId(String(u._id))}
-                                            />
-                                            <span>
-                                                <strong>{u.name}</strong>
-                                                <small>{u.email} &middot; {u.role}</small>
-                                            </span>
-                                        </label>
-                                    );
-                                })
-                            )}
-                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            style={{
+                                position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
+                                background: "none", border: "none", cursor: "pointer", color: "#8b90a0", fontSize: 14,
+                            }}
+                        >
+                            <i className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
+                        </button>
                     </div>
-                ) : (
-                    <>
-                        <div className="admin-form-group">
-                            <label className="admin-form-label">Name *</label>
-                            <input
-                                className="admin-form-input"
-                                autoComplete="off"
-                                value={form.name}
-                                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                placeholder="Full name"
-                            />
-                        </div>
-                        <div className="admin-form-group">
-                            <label className="admin-form-label">Email *</label>
-                            <input
-                                type="email"
-                                className="admin-form-input"
-                                autoComplete="off"
-                                value={form.email}
-                                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                                placeholder="user@example.com"
-                            />
-                        </div>
-                        <div className="admin-form-group">
-                            <label className="admin-form-label">Phone</label>
-                            <input
-                                className="admin-form-input"
-                                autoComplete="off"
-                                value={form.phone}
-                                onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                                placeholder="+1-555-0000"
-                            />
-                        </div>
-                        <div className="admin-form-group">
-                            <label className="admin-form-label">Password *</label>
-                            <div style={{ position: "relative" }}>
-                                <input
-                                    type={showPassword ? "text" : "password"}
-                                    className="admin-form-input"
-                                    autoComplete="new-password"
-                                    value={form.password}
-                                    onChange={(e) => setForm({ ...form, password: e.target.value })}
-                                    placeholder="Min 6 characters"
-                                    style={{ paddingRight: 36 }}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    style={{
-                                        position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
-                                        background: "none", border: "none", cursor: "pointer", color: "#8b90a0", fontSize: 14,
-                                    }}
-                                >
-                                    <i className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div className="admin-form-group">
-                            <label className="admin-form-label">Confirm Password *</label>
-                            <input
-                                type={showPassword ? "text" : "password"}
-                                className="admin-form-input"
-                                autoComplete="new-password"
-                                value={form.confirmPassword}
-                                onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-                                placeholder="Re-enter password"
-                            />
-                        </div>
-                    </>
-                )}
+                </div>
+                <div className="admin-form-group">
+                    <label className="admin-form-label">Confirm Password *</label>
+                    <input
+                        type={showPassword ? "text" : "password"}
+                        className="admin-form-input"
+                        autoComplete="new-password"
+                        value={form.confirmPassword}
+                        onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+                        placeholder="Re-enter password"
+                    />
+                </div>
 
                 <div style={{ display: "flex", gap: 10, marginTop: 20, justifyContent: "flex-end" }}>
                     <button className="admin-btn admin-btn-ghost" onClick={onClose}>Cancel</button>
@@ -269,7 +175,7 @@ export default function AdminFreeAgentsPage() {
         "player_update",
         "player_delete",
     ]);
-    const canCreate = isAdmin && user && hasAnyAccess(user, ["manage_players", "player_create"]);
+    const canCreate = user && hasAnyAccess(user, ["manage_players", "player_create"]);
     const canDelete = isAdmin && user && hasAnyAccess(user, ["manage_players", "player_delete"]);
 
     const fetchData = useCallback(async () => {
