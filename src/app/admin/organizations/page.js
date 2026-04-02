@@ -204,12 +204,16 @@ function OrgForm({ org, onSave, onCancel }) {
                     </div>
 
                     <div className="admin-form-group">
-                        <label className="admin-form-label">Website</label>
-                        <input className="admin-form-input" value={form.contactInfo?.website || ""} onChange={e => setForm({ ...form, contactInfo: { ...form.contactInfo, website: e.target.value } })} placeholder="https://..." />
+                        <label className="admin-form-label">Phone</label>
+                        <input className="admin-form-input" value={form.contactInfo?.phone || ""} onChange={e => setForm({ ...form, contactInfo: { ...form.contactInfo, phone: e.target.value } })} placeholder="(555) 123-4567" />
                     </div>
                     <div className="admin-form-group">
                         <label className="admin-form-label">Email</label>
                         <input type="email" className="admin-form-input" value={form.contactInfo?.email || ""} onChange={e => setForm({ ...form, contactInfo: { ...form.contactInfo, email: e.target.value } })} placeholder="contact@example.com" />
+                    </div>
+                    <div className="admin-form-group">
+                        <label className="admin-form-label">Website</label>
+                        <input className="admin-form-input" value={form.contactInfo?.website || ""} onChange={e => setForm({ ...form, contactInfo: { ...form.contactInfo, website: e.target.value } })} placeholder="https://..." />
                     </div>
                     <div className="admin-form-group">
                         <label className="admin-form-label">Facebook</label>
