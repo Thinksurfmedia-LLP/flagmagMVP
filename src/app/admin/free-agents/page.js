@@ -245,6 +245,7 @@ function AddFreeAgentModal({ onClose, onSave, organizations, isAdmin }) {
     );
 }
 
+
 export default function AdminFreeAgentsPage() {
     const { user, activeRole } = useAuth();
     const effectiveRole = activeRole || user?.role;
@@ -257,8 +258,8 @@ export default function AdminFreeAgentsPage() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [modalOpen, setModalOpen] = useState(false);
-    const [assigning, setAssigning] = useState(null); // player ID currently being assigned
-    const [jerseyPrompt, setJerseyPrompt] = useState(null); // { fa, teamId } for jersey number prompt
+    const [assigning, setAssigning] = useState(null);
+    const [jerseyPrompt, setJerseyPrompt] = useState(null);
     const [jerseyInput, setJerseyInput] = useState("");
 
     const canManage = user && hasAnyAccess(user, [

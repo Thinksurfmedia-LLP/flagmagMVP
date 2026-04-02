@@ -170,6 +170,12 @@ function getOrganizerNav(orgSlug) {
                     perms: ["manage_players", "player_view", "player_create", "player_update", "player_delete"],
                 },
                 {
+                    label: "Players",
+                    href: "/admin/players",
+                    icon: "fa-solid fa-users",
+                    perms: ["manage_players", "player_view", "player_create", "player_update", "player_delete"],
+                },
+                {
                     label: "Games",
                     href: "/admin/games",
                     icon: "fa-solid fa-football",
