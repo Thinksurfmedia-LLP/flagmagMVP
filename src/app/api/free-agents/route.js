@@ -39,39 +39,49 @@ export async function GET(request) {
         const freeAgentUsers = await User.find({ roles: "free_agent", organization: { $ne: null } })
             .select("_id name email phone organization")
             .lean();
-        for (const u of freeAgentUsers) {
-            const exists = await Player.findOne({ user: u._id, organization: u.organization });
-            if (exists) {
-                // Remove orphan duplicates (same name/org but no user ref)
-                await Player.deleteMany({
-                    user: null,
-                    name: u.name,
-                    organization: u.organization,
-                    status: "free_agent",
-                    _id: { $ne: exists._id },
-                });
-            } else {
-                try {
-                    // Check for an orphan Player (no user ref) with the same name/org
-                    const orphan = await Player.findOne({
-                        user: null,
-                        name: u.name,
-                        organization: u.organization,
-                        status: "free_agent",
-                    });
-                    if (orphan) {
-                        await Player.updateOne({ _id: orphan._id }, { $set: { user: u._id } });
+
+        if (freeAgentUsers.length > 0) {
+            const userIds = freeAgentUsers.map(u => u._id);
+            const userOrgIds = [...new Set(freeAgentUsers.map(u => String(u.organization)))];
+
+            const existingPlayers = await Player.find({ user: { $in: userIds } }).select("user").lean();
+            const existingUserIds = new Set(existingPlayers.map(p => String(p.user)));
+
+            const orphans = await Player.find({ user: null, status: "free_agent", organization: { $in: userOrgIds } }).select("_id name organization").lean();
+            const orphanMap = new Map();
+            for (const o of orphans) {
+                const key = `${o.name}|${o.organization}`;
+                if (!orphanMap.has(key)) orphanMap.set(key, []);
+                orphanMap.get(key).push(o._id);
+            }
+
+            const bulkOps = [];
+
+            for (const u of freeAgentUsers) {
+                const key = `${u.name}|${u.organization}`;
+                const userOrphans = orphanMap.get(key) || [];
+
+                if (existingUserIds.has(String(u._id))) {
+                    for (const orphanId of userOrphans) {
+                        bulkOps.push({ deleteOne: { filter: { _id: orphanId } } });
+                    }
+                } else {
+                    if (userOrphans.length > 0) {
+                        const orphanToClaim = userOrphans[0];
+                        bulkOps.push({ updateOne: { filter: { _id: orphanToClaim }, update: { $set: { user: u._id } } } });
+                        for (let i = 1; i < userOrphans.length; i++) {
+                            bulkOps.push({ deleteOne: { filter: { _id: userOrphans[i] } } });
+                        }
                     } else {
-                        await Player.create({
-                            user: u._id,
-                            name: u.name,
-                            organization: u.organization,
-                            status: "free_agent",
+                        bulkOps.push({
+                            insertOne: { document: { user: u._id, name: u.name, organization: u.organization, status: "free_agent" } }
                         });
                     }
-                } catch (syncErr) {
-                    if (syncErr.code !== 11000) throw syncErr;
                 }
+            }
+
+            if (bulkOps.length > 0) {
+                await Player.bulkWrite(bulkOps, { ordered: false }).catch(() => {});
             }
         }
 
@@ -96,34 +106,48 @@ export async function GET(request) {
             .lean();
 
         // Ensure email/phone are available even if populate didn't resolve
-        for (const fa of freeAgents) {
-            if (!fa.user) {
-                // No user ref — try to find User by name and organization
-                const userDoc = await User.findOne({
-                    name: fa.name,
-                    organization: fa.organization?._id || fa.organization,
-                    roles: "free_agent",
-                }).select("name email phone").lean();
+        const missingUserRefs = freeAgents.filter(fa => !fa.user);
+        const unpopulatedUserRefs = freeAgents.filter(fa => fa.user && !fa.user.email);
+        
+        const bulkUserOps = [];
+        
+        if (missingUserRefs.length > 0) {
+            const names = missingUserRefs.map(fa => fa.name);
+            const orgs = missingUserRefs.map(fa => fa.organization?._id || fa.organization);
+            const matchedUsers = await User.find({ name: { $in: names }, organization: { $in: orgs }, roles: "free_agent" }).select("name email phone organization").lean();
+            
+            for (const fa of missingUserRefs) {
+                const faOrg = String(fa.organization?._id || fa.organization);
+                const userDoc = matchedUsers.find(u => u.name === fa.name && String(u.organization) === faOrg);
                 if (userDoc) {
                     fa.user = userDoc;
-                    try {
-                        await Player.updateOne({ _id: fa._id }, { $set: { user: userDoc._id } });
-                    } catch (e) {
-                        // Duplicate key — a linked Player already exists, remove this orphan
-                        if (e.code === 11000) {
-                            await Player.deleteOne({ _id: fa._id });
-                        }
-                    }
-                }
-            } else if (!fa.user.email) {
-                // user field is an ObjectId (populate failed) — fetch manually
-                const userDoc = await User.findById(fa.user._id || fa.user)
-                    .select("name email phone")
-                    .lean();
-                if (userDoc) {
-                    fa.user = userDoc;
+                    bulkUserOps.push({ updateOne: { filter: { _id: fa._id }, update: { $set: { user: userDoc._id } } } });
                 }
             }
+        }
+        
+        if (unpopulatedUserRefs.length > 0) {
+            const userIds = unpopulatedUserRefs.map(fa => fa.user._id || fa.user);
+            const matchedUsers = await User.find({ _id: { $in: userIds } }).select("name email phone").lean();
+            const userMap = new Map(matchedUsers.map(u => [String(u._id), u]));
+            
+            for (const fa of unpopulatedUserRefs) {
+                const uid = String(fa.user._id || fa.user);
+                if (userMap.has(uid)) {
+                    fa.user = userMap.get(uid);
+                }
+            }
+        }
+
+        if (bulkUserOps.length > 0) {
+            await Player.bulkWrite(bulkUserOps, { ordered: false }).catch((e) => {
+                const writeErrors = e.writeErrors || [];
+                for (const err of writeErrors) {
+                    if (err.code === 11000) {
+                        Player.deleteOne({ _id: bulkUserOps[err.index].updateOne.filter._id }).catch(() => {});
+                    }
+                }
+            });
         }
 
         return NextResponse.json({ success: true, data: freeAgents });
