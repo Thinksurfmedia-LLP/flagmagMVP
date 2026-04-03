@@ -1393,10 +1393,25 @@ export default function AdminGamesPage() {
         } catch { showError("Failed to delete game"); }
     };
 
+    const resetGame = async (game) => {
+        if (!confirm(`Reset all scores, plays and stats for "${game.teamA.name} vs ${game.teamB.name}"? This cannot be undone.`)) return;
+        try {
+            const res = await fetch(`/api/games/${game._id}/reset`, { method: "POST" });
+            const data = await res.json();
+            if (!data.success) { showError(data.error || "Failed to reset game"); return; }
+            setGames(prev => prev.map(g => g._id === game._id
+                ? { ...g, status: "upcoming", teamA: { ...g.teamA, score: null }, teamB: { ...g.teamB, score: null } }
+                : g
+            ));
+            showSuccess("Game stats and scores have been reset!");
+        } catch { showError("Failed to reset game"); }
+    };
+
     const canView   = user && hasAnyAccess(user, ["manage_games", "game_view", "game_create", "game_update", "game_delete"]);
     const canCreate = user && hasAnyAccess(user, ["manage_games", "game_create"]);
     const canUpdate = user && hasAnyAccess(user, ["manage_games", "game_update"]);
     const canDelete = user && hasAnyAccess(user, ["manage_games", "game_delete"]);
+    const canReset  = user && (activeRole === "organizer" || user?.role === "organizer" || user?.role === "admin" || activeRole === "admin");
 
     return (
         <AdminLayout title="Games">
@@ -1494,6 +1509,16 @@ export default function AdminGamesPage() {
                                                         {canUpdate && (
                                                             <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setEditTarget(game); setShowModal(true); }} title="Edit">
                                                                 <i className="fa-solid fa-pen"></i>
+                                                            </button>
+                                                        )}
+                                                        {canReset && (
+                                                            <button
+                                                                className="admin-btn admin-btn-ghost admin-btn-sm"
+                                                                onClick={() => resetGame(game)}
+                                                                title="Reset Stats & Scores"
+                                                                style={{ color: "#f59e0b" }}
+                                                            >
+                                                                <i className="fa-solid fa-rotate-left"></i>
                                                             </button>
                                                         )}
                                                         {canDelete && (
