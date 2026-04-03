@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Team from "@/models/Team";
+import Season from "@/models/Season";
+import League from "@/models/League";
 import User from "@/models/User";
 import { requireAnyPermission } from "@/lib/apiAuth";
 
@@ -102,13 +104,25 @@ export async function POST(request) {
             );
         }
 
-        // Validate required header
+        // Validate required headers
         if (!headers.includes("name")) {
             return NextResponse.json(
                 {
                     success: false,
                     error: 'CSV must contain a "name" column. Found columns: ' + headers.join(", "),
                 },
+                { status: 400 }
+            );
+        }
+        if (!headers.includes("season")) {
+            return NextResponse.json(
+                { success: false, error: 'CSV must contain a "season" column.' },
+                { status: 400 }
+            );
+        }
+        if (!headers.includes("league")) {
+            return NextResponse.json(
+                { success: false, error: 'CSV must contain a "league" column.' },
                 { status: 400 }
             );
         }
@@ -134,6 +148,18 @@ export async function POST(request) {
         const existingNames = new Set(
             existingTeams.map((t) => t.name.toLowerCase().trim())
         );
+
+        // Build look-up maps for seasons and leagues (by lowercase name)
+        const orgSeasons = await Season.find({ organization: organizationId }).select("name").lean();
+        const seasonByName = new Map(orgSeasons.map((s) => [s.name.toLowerCase().trim(), String(s._id)]));
+
+        const orgLeagues = await League.find({ organization: organizationId }).select("name season").lean();
+        // Map key: "seasonId::leagueName" → leagueId (prevents cross-season name collisions)
+        // Also keep a plain leagueName map as fallback
+        const leagueBySeasonAndName = new Map(
+            orgLeagues.map((l) => [`${String(l.season || "")}::${l.name.toLowerCase().trim()}`, String(l._id)])
+        );
+        const leagueByName = new Map(orgLeagues.map((l) => [l.name.toLowerCase().trim(), String(l._id)]));
 
         const results = {
             total: rows.length,
@@ -187,6 +213,37 @@ export async function POST(request) {
             if (rawCity) location.cityName = toTitleCase(rawCity);
 
             try {
+                // Resolve season/league by name — both required
+                const rawSeason = (row.season || "").trim();
+                const rawLeague = (row.league || "").trim();
+
+                if (!rawSeason) {
+                    results.errors++;
+                    results.details.push({ row: row._rowNum, name, status: "error", reason: "Season is required" });
+                    continue;
+                }
+                const seasonId = seasonByName.get(rawSeason.toLowerCase());
+                if (!seasonId) {
+                    results.errors++;
+                    results.details.push({ row: row._rowNum, name, status: "error", reason: `Season "${rawSeason}" not found in this organization` });
+                    continue;
+                }
+
+                if (!rawLeague) {
+                    results.errors++;
+                    results.details.push({ row: row._rowNum, name, status: "error", reason: "League is required" });
+                    continue;
+                }
+                // Prefer season-scoped match; fall back to plain name match
+                const leagueId =
+                    leagueBySeasonAndName.get(`${seasonId}::${rawLeague.toLowerCase()}`) ||
+                    leagueByName.get(rawLeague.toLowerCase());
+                if (!leagueId) {
+                    results.errors++;
+                    results.details.push({ row: row._rowNum, name, status: "error", reason: `League "${rawLeague}" not found in this organization` });
+                    continue;
+                }
+
                 await Team.create({
                     name,
                     logo: row.logo || "",
@@ -196,6 +253,8 @@ export async function POST(request) {
                     coachPhone: (row.coachphone || row.coach_phone || "").trim(),
                     location,
                     organization: organizationId,
+                    season: seasonId,
+                    league: leagueId,
                     players: [],
                 });
 

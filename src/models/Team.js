@@ -40,6 +40,16 @@ const TeamSchema = new mongoose.Schema(
             ref: "Organization",
             required: true,
         },
+        season: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Season",
+            default: null,
+        },
+        league: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "League",
+            default: null,
+        },
         players: [
             {
                 player: {
@@ -65,7 +75,9 @@ function getTeamModel() {
         const hasDescription = Boolean(existing.schema.path("description"));
         const hasJerseyNumber = Boolean(existing.schema.path("players.jerseyNumber"));
         const hasCoachName = Boolean(existing.schema.path("coachName"));
-        if (!hasPlayers || !hasDescription || !hasJerseyNumber || !hasCoachName) {
+        const hasSeason = Boolean(existing.schema.path("season"));
+        const hasLeague = Boolean(existing.schema.path("league"));
+        if (!hasPlayers || !hasDescription || !hasJerseyNumber || !hasCoachName || !hasSeason || !hasLeague) {
             delete mongoose.models.Team;
         }
     }

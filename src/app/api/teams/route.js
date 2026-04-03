@@ -128,6 +128,8 @@ export async function GET(request) {
 
         const teams = await Team.find(filter)
             .populate("organization", "name slug")
+            .populate("season", "name")
+            .populate("league", "name")
             .populate("players.player", "name photo presentTeam organization")
             .sort({ name: 1 })
             .lean();
@@ -214,6 +216,8 @@ export async function POST(request) {
             coachPhone: body.coachPhone?.trim() || "",
             location: body.location || {},
             organization: organizationId,
+            season: body.season || null,
+            league: body.league || null,
             players: playersArray.map(p => ({
                 player: typeof p === "object" ? p.player : p,
                 jerseyNumber: typeof p === "object" ? Number(p.jerseyNumber) : 0,
@@ -231,6 +235,8 @@ export async function POST(request) {
 
         const created = await Team.findById(team._id)
             .populate("organization", "name slug")
+            .populate("season", "name")
+            .populate("league", "name")
             .populate("players.player", "name photo presentTeam organization")
             .lean();
 

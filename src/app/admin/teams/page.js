@@ -59,7 +59,7 @@ function ImageUploadField({ value, onChange, placeholder, onError }) {
     );
 }
 
-function TeamModal({ team, freeAgents, organizations, user, effectiveRole, onClose, onSave, existingDivisions = [] }) {
+function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, effectiveRole, onClose, onSave, existingDivisions = [] }) {
     const { showError } = useToast();
     const [name, setName] = useState(team?.name || "");
     const [logo, setLogo] = useState(team?.logo || "");
@@ -72,6 +72,8 @@ function TeamModal({ team, freeAgents, organizations, user, effectiveRole, onClo
     const [organization, setOrganization] = useState(
         team?.organization?._id || team?.organization || user?.organization?.id || ""
     );
+    const [season, setSeason] = useState(team?.season?._id || team?.season || "");
+    const [league, setLeague] = useState(team?.league?._id || team?.league || "");
     const [query, setQuery] = useState("");
     // Track selected players as { player: id, jerseyNumber: num }
     const [selectedPlayers, setSelectedPlayers] = useState(() => {
@@ -151,6 +153,15 @@ function TeamModal({ team, freeAgents, organizations, user, effectiveRole, onClo
     const handleSave = async () => {
         if (!name.trim()) return;
 
+        if (!season) {
+            showError("Season is required");
+            return;
+        }
+        if (!league) {
+            showError("League is required");
+            return;
+        }
+
         // Validate jersey numbers for all selected players
         const missingJersey = selectedPlayers.some(p => p.jerseyNumber === "" || p.jerseyNumber === undefined || p.jerseyNumber === null);
         if (selectedPlayers.length > 0 && missingJersey) {
@@ -184,6 +195,8 @@ function TeamModal({ team, freeAgents, organizations, user, effectiveRole, onClo
             division: division.trim(),
             location: locationPayload,
             organization: effectiveRole === "admin" ? organization : undefined,
+            season: season || null,
+            league: league || null,
             players: selectedPlayers,
         });
         setSaving(false);
@@ -193,6 +206,52 @@ function TeamModal({ team, freeAgents, organizations, user, effectiveRole, onClo
         <div className="admin-modal-backdrop" onClick={onClose}>
             <div className="admin-modal" onClick={(event) => event.stopPropagation()} style={{ maxWidth: 640, maxHeight: "90vh", overflowY: "auto" }}>
                 <h3 className="admin-modal-title">{team ? "Edit Team" : "Create Team"}</h3>
+
+                {effectiveRole === "admin" && (
+                    <div className="admin-form-group">
+                        <label className="admin-form-label">Organization *</label>
+                        <select className="admin-form-select" value={organization} onChange={(event) => { setOrganization(event.target.value); setSeason(""); setLeague(""); }}>
+                            <option value="">Select organization</option>
+                            {(organizations || []).map((org) => (
+                                <option key={org._id} value={org._id}>{org.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
+
+                {(() => {
+                    // For admin: filter by selected org. For organizer: API already scoped — show all.
+                    const orgSeasons = effectiveRole === "admin"
+                        ? (seasons || []).filter(s => organization && String(s.organization?._id || s.organization) === organization)
+                        : (seasons || []);
+                    const seasonLeagues = effectiveRole === "admin"
+                        ? (leagues || []).filter(l => organization && String(l.organization?._id || l.organization) === organization && (!season || String(l.season?._id || l.season || "") === season))
+                        : (leagues || []).filter(l => !season || String(l.season?._id || l.season || "") === season);
+                    const seasonDisabled = effectiveRole === "admin" && !organization;
+                    const leagueDisabled = seasonDisabled || !season;
+                    return (
+                        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                            <div className="admin-form-group" style={{ flex: 1, minWidth: 200 }}>
+                                <label className="admin-form-label">Season *</label>
+                                <select className="admin-form-select" value={season} onChange={(e) => { setSeason(e.target.value); setLeague(""); }} disabled={seasonDisabled}>
+                                    <option value="">Select season...</option>
+                                    {orgSeasons.map(s => (
+                                        <option key={s._id} value={s._id}>{s.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="admin-form-group" style={{ flex: 1, minWidth: 200 }}>
+                                <label className="admin-form-label">League *</label>
+                                <select className="admin-form-select" value={league} onChange={(e) => setLeague(e.target.value)} disabled={leagueDisabled}>
+                                    <option value="">{!season ? "Select a season first..." : "Select league..."}</option>
+                                    {seasonLeagues.map(l => (
+                                        <option key={l._id} value={l._id}>{l.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                    );
+                })()}
 
                 <div className="admin-form-group">
                     <label className="admin-form-label">Team Name *</label>
@@ -214,18 +273,6 @@ function TeamModal({ team, freeAgents, organizations, user, effectiveRole, onClo
                         </div>
                     )}
                 </div>
-
-                {effectiveRole === "admin" && (
-                    <div className="admin-form-group">
-                        <label className="admin-form-label">Organization *</label>
-                        <select className="admin-form-select" value={organization} onChange={(event) => setOrganization(event.target.value)}>
-                            <option value="">Select organization</option>
-                            {(organizations || []).map((org) => (
-                                <option key={org._id} value={org._id}>{org.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                )}
 
                 <div className="admin-form-group">
                     <label className="admin-form-label">Description (optional)</label>
@@ -428,7 +475,7 @@ function TeamModal({ team, freeAgents, organizations, user, effectiveRole, onClo
                     <button
                         className="admin-btn admin-btn-primary"
                         onClick={handleSave}
-                        disabled={saving || !name.trim() || (effectiveRole === "admin" && !organization)}
+                        disabled={saving || !name.trim() || (effectiveRole === "admin" && !organization) || !season || !league}
                     >
                         {saving ? "Saving..." : team ? "Save Changes" : "Create Team"}
                     </button>
@@ -438,11 +485,11 @@ function TeamModal({ team, freeAgents, organizations, user, effectiveRole, onClo
     );
 }
 
-const TEAM_CSV_HEADERS = ["name", "division", "description", "coachName", "coachPhone", "stateName", "stateAbbr", "countyName", "cityName"];
+const TEAM_CSV_HEADERS = ["name", "season", "league", "division", "description", "coachName", "coachPhone", "stateName", "stateAbbr", "countyName", "cityName"];
 const TEAM_CSV_SAMPLE = [
-    ["Red Dragons", "Men's A", "Est. 2022", "John Smith", "555-123-4567", "California", "CA", "Los Angeles", "Pasadena"],
-    ["Blue Hawks", "Men's A", "", "Jane Doe", "555-987-6543", "California", "CA", "Orange", "Irvine"],
-    ["Gold Tigers", "Women's B", "Defending champs", "", "", "Texas", "TX", "Harris", "Houston"],
+    ["Red Dragons", "Spring 2025", "Men's League", "Men's A", "Est. 2022", "John Smith", "555-123-4567", "California", "CA", "Los Angeles", "Pasadena"],
+    ["Blue Hawks", "Spring 2025", "Men's League", "Men's A", "", "Jane Doe", "555-987-6543", "California", "CA", "Orange", "Irvine"],
+    ["Gold Tigers", "Fall 2025", "Women's League", "Women's B", "Defending champs", "", "", "Texas", "TX", "Harris", "Houston"],
 ];
 
 function CsvImportModal({ onClose, onImportDone }) {
@@ -661,6 +708,8 @@ export default function AdminTeamsPage() {
     const [teams, setTeams] = useState([]);
     const [freeAgents, setFreeAgents] = useState([]);
     const [organizations, setOrganizations] = useState([]);
+    const [seasons, setSeasons] = useState([]);
+    const [leagues, setLeagues] = useState([]);
     const [loading, setLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
     const [editTarget, setEditTarget] = useState(null);
@@ -695,13 +744,23 @@ export default function AdminTeamsPage() {
             .catch(() => showError("Failed to load teams"))
             .finally(() => setLoading(false));
 
-        // 2) Fetch secondary data (free agents, organizations) in the background
+        // 2) Fetch secondary data (free agents, organizations, seasons, leagues) in the background
         fetch("/api/free-agents")
             .then(res => res.json())
             .then(data => {
                 if (data.success) setFreeAgents(data.data || []);
                 // Silently ignore errors for background fetch
             })
+            .catch(() => {});
+
+        fetch("/api/seasons")
+            .then(res => res.json())
+            .then(data => { if (data.success) setSeasons(data.data || []); })
+            .catch(() => {});
+
+        fetch("/api/leagues")
+            .then(res => res.json())
+            .then(data => { if (data.success) setLeagues(data.data || []); })
             .catch(() => {});
 
         if (effectiveRole === "admin") {
@@ -803,6 +862,8 @@ export default function AdminTeamsPage() {
                                         <tr>
                                             <th>Team</th>
                                             <th>Organization</th>
+                                            <th>Season</th>
+                                            <th>League</th>
                                             <th>Players</th>
                                             <th style={{ width: 130 }}>Actions</th>
                                         </tr>
@@ -812,6 +873,8 @@ export default function AdminTeamsPage() {
                                             <tr key={team._id}>
                                                 <td style={{ fontWeight: 600 }}>{team.name}</td>
                                                 <td>{team.organization?.name || "—"}</td>
+                                                <td>{team.season?.name || "—"}</td>
+                                                <td>{team.league?.name || "—"}</td>
                                                 <td>{team.players?.length || 0}</td>
                                                 <td>
                                                     <div style={{ display: "flex", gap: 6 }}>
@@ -858,6 +921,8 @@ export default function AdminTeamsPage() {
                             team={editTarget}
                             freeAgents={freeAgents}
                             organizations={organizations}
+                            seasons={seasons}
+                            leagues={leagues}
                             user={user}
                             effectiveRole={effectiveRole}
                             existingDivisions={[...new Set(teams.map(t => t.division).filter(Boolean))]}
