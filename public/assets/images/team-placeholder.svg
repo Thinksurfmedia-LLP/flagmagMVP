@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2a2d3a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a1d26;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Shield shape -->
+  <path d="M50 8 L88 22 L88 52 Q88 75 50 92 Q12 75 12 52 L12 22 Z" fill="url(#bg)" stroke="#3a3d4a" stroke-width="2"/>
+  <!-- Jersey icon -->
+  <g fill="#3d4155">
+    <path d="M35 35 L28 42 L35 45 L35 68 L65 68 L65 45 L72 42 L65 35 Q60 30 50 30 Q40 30 35 35 Z"/>
+  </g>
+  <g fill="#4a4f6a" opacity="0.6">
+    <path d="M37 36 L30 43 L36 46 L36 66 L64 66 L64 46 L70 43 L63 36 Q58 31 50 31 Q42 31 37 36 Z"/>
+  </g>
+</svg>
