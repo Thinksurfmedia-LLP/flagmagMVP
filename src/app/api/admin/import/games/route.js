@@ -196,6 +196,7 @@ export async function POST(request) {
             const teamAName = getVal(row, "teama", "team_a", "teamaname", "team_a_name").trim();
             const teamBName = getVal(row, "teamb", "team_b", "teambname", "team_b_name").trim();
             const locationStr = getVal(row, "location", "venue", "venue_name", "venuename").trim();
+            const fieldStr = getVal(row, "field", "field_name", "fieldname").trim();
 
             const label = `${teamAName || "?"} vs ${teamBName || "?"}`;
 
@@ -311,7 +312,27 @@ export async function POST(request) {
                 results.details.push({ row: row._rowNum, name: label, status: "error", reason: `Venue "${locationStr}" not found. Check your venue name matches an existing location.` });
                 continue;
             }
-            const resolvedLocation = venueDoc.name;
+
+            // Resolve field — required when venue has fields defined
+            let resolvedLocation = venueDoc.name;
+            if (venueDoc.fields && venueDoc.fields.length > 0) {
+                if (!fieldStr) {
+                    const fieldNames = venueDoc.fields.map(f => f.name).join(", ");
+                    results.errors++;
+                    results.details.push({ row: row._rowNum, name: label, status: "error", reason: `Venue "${venueDoc.name}" has multiple fields (${fieldNames}). Please specify a field in the "field" column.` });
+                    continue;
+                }
+                const matchedField = venueDoc.fields.find(
+                    f => f.name.toLowerCase().trim() === fieldStr.toLowerCase()
+                );
+                if (!matchedField) {
+                    const fieldNames = venueDoc.fields.map(f => f.name).join(", ");
+                    results.errors++;
+                    results.details.push({ row: row._rowNum, name: label, status: "error", reason: `Field "${fieldStr}" not found at venue "${venueDoc.name}". Available fields: ${fieldNames}` });
+                    continue;
+                }
+                resolvedLocation = `${venueDoc.name} - ${matchedField.name}`;
+            }
 
             // Resolve teams (case-insensitive)
             const teamADoc = teamMap[teamAName.toLowerCase()];

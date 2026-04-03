@@ -1039,11 +1039,11 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
     );
 }
 
-const GAME_CSV_HEADERS = ["season", "league", "date", "time", "teamA", "teamB", "venue"];
+const GAME_CSV_HEADERS = ["season", "league", "date", "time", "teamA", "teamB", "venue", "field"];
 const GAME_CSV_SAMPLE = [
-    ["Spring 2025", "Men's Flag Football", "15/04/2025", "18:00", "Red Dragons", "Blue Hawks", "Central Park"],
-    ["Spring 2025", "Men's Flag Football", "16/04/2025", "19:30", "Gold Tigers", "Silver Wolves", "Riverside Field - Field 1"],
-    ["Spring 2025", "Women's League", "17/04/2025", "17:00", "Phoenix", "Storm", ""],
+    ["Spring 2025", "Men's Flag Football", "15/04/2025", "18:00", "Red Dragons", "Blue Hawks", "Central Park", ""],
+    ["Spring 2025", "Men's Flag Football", "16/04/2025", "19:30", "Gold Tigers", "Silver Wolves", "Riverside Field", "1"],
+    ["Spring 2025", "Women's League", "17/04/2025", "17:00", "Phoenix", "Storm", "West Side Park", "2"],
 ];
 
 function GameCsvImportModal({ onClose, onImportDone }) {
