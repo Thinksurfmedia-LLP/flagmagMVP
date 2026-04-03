@@ -6,6 +6,7 @@ import AdminPagination from "@/components/AdminPagination";
 import AdminLayout, { hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
+import { US_STATES, US_COUNTIES } from "@/lib/usGeoData";
 
 function ImageUploadField({ value, onChange, placeholder, onError }) {
     const [uploading, setUploading] = useState(false);
