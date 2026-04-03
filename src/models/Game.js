@@ -40,4 +40,6 @@ const GameSchema = new mongoose.Schema(
     }
 );
 
+GameSchema.index({ league: 1, date: 1 });
+
 export default mongoose.models.Game || mongoose.model("Game", GameSchema);

@@ -14,9 +14,16 @@ export async function GET(request, { params }) {
         const status = searchParams.get("status");
         const date = searchParams.get("date");
 
+        const weekStart = searchParams.get("weekStart");
+
         const filter = { league: id };
         if (status) filter.status = status;
-        if (date) {
+        if (weekStart) {
+            const start = new Date(weekStart);
+            const end = new Date(weekStart);
+            end.setUTCDate(end.getUTCDate() + 7);
+            filter.date = { $gte: start, $lt: end };
+        } else if (date) {
             const d = new Date(date);
             filter.date = {
                 $gte: new Date(d.setHours(0, 0, 0, 0)),

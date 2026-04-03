@@ -9,20 +9,62 @@ import Game from "@/models/Game";
 import Player from "@/models/Player";
 import { formatOrganizationLocations } from "@/lib/organizationLocations";
 
+function getWeekStart(date) {
+    const d = new Date(date);
+    const day = d.getUTCDay();
+    const diff = day === 0 ? 6 : day - 1;
+    d.setUTCDate(d.getUTCDate() - diff);
+    return d.toISOString().split("T")[0];
+}
+
 async function getData(slug, seasonSlug) {
     await dbConnect();
     const org = await Organization.findOne({ slug }).lean();
     if (!org) return null;
     const league = await League.findOne({ organization: org._id, slug: seasonSlug }).lean();
     if (!league) return null;
-    const [games, playerCount] = await Promise.all([
-        Game.find({ league: league._id }).sort({ date: 1, time: 1 }).lean(),
+
+    // Lightweight query — only dates to build week navigation metadata
+    const [gameDates, playerCount] = await Promise.all([
+        Game.find({ league: league._id }).select("date").sort({ date: 1 }).lean(),
         Player.countDocuments({ organization: org._id }),
     ]);
+
+    // Build week metadata (weekNum, weekStart, gameCount)
+    const weekMap = new Map();
+    for (const { date } of gameDates) {
+        const ws = getWeekStart(date);
+        weekMap.set(ws, (weekMap.get(ws) || 0) + 1);
+    }
+    const weekMeta = Array.from(weekMap.entries())
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([weekStart, gameCount], idx) => ({ weekNum: idx + 1, weekStart, gameCount }));
+
+    // Determine the best initial week (current or next upcoming; fall back to last)
+    const todayWeekStart = getWeekStart(new Date());
+    let initialWeekIdx = weekMeta.findIndex((w) => w.weekStart >= todayWeekStart);
+    if (initialWeekIdx === -1) initialWeekIdx = Math.max(0, weekMeta.length - 1);
+
+    // Fetch full game data for only the initial week
+    let initialGames = [];
+    if (weekMeta.length > 0) {
+        const ws = weekMeta[initialWeekIdx].weekStart;
+        const weekEnd = new Date(ws);
+        weekEnd.setUTCDate(weekEnd.getUTCDate() + 7);
+        initialGames = await Game.find({
+            league: league._id,
+            date: { $gte: new Date(ws), $lt: weekEnd },
+        })
+            .sort({ date: 1, time: 1 })
+            .lean();
+    }
+
     return {
         org: JSON.parse(JSON.stringify({ ...org, playerCount })),
         league: JSON.parse(JSON.stringify(league)),
-        games: JSON.parse(JSON.stringify(games)),
+        weekMeta,
+        initialWeekIdx,
+        initialGames: JSON.parse(JSON.stringify(initialGames)),
     };
 }
 
@@ -36,7 +78,7 @@ export default async function SeasonSchedulePage({ params }) {
         );
     }
 
-    const { org, league, games } = data;
+    const { org, league, weekMeta, initialWeekIdx, initialGames } = data;
     const locationText = formatOrganizationLocations(org);
 
     return (
@@ -44,7 +86,7 @@ export default async function SeasonSchedulePage({ params }) {
             <Header />
 
             <section className="innerpage-section type2">
-                <div className="banner-area"><img src={org.bannerImage || "/assets/images/inner-banner2.jpg"} alt="" /></div>
+                <div className="banner-area"><img src={org.bannerImage || "/assets/images/inner-banner2.jpg"} alt="" loading="lazy" /></div>
                 <div className="container"></div>
             </section>
 
@@ -52,13 +94,13 @@ export default async function SeasonSchedulePage({ params }) {
                 <div className="container">
                     <div className="row">
                         <div className="col info-area">
-                            <div className="logo-area"><img src={org.logo || "/assets/images/teamlogo1.png"} alt="" /></div>
+                            <div className="logo-area"><img src={org.logo || "/assets/images/teamlogo1.png"} alt="" loading="lazy" /></div>
                             <div className="right-part">
                                 <h1>{org.name}</h1>
                                 <ul>
-                                    <li><img src="/assets/images/icon-star.png" alt="" /> <span>{org.rating}</span> ({org.playerCount || 0} members)</li>
-                                    <li><img src="/assets/images/icon-calander.png" alt="" /> <span>Founded {org.foundedYear}</span></li>
-                                    <li><img src="/assets/images/icon-map.png" alt="" /> <span>{locationText}</span></li>
+                                    <li><img src="/assets/images/icon-star.png" alt="" loading="lazy" /> <span>{org.rating}</span> ({org.playerCount || 0} members)</li>
+                                    <li><img src="/assets/images/icon-calander.png" alt="" loading="lazy" /> <span>Founded {org.foundedYear}</span></li>
+                                    <li><img src="/assets/images/icon-map.png" alt="" loading="lazy" /> <span>{locationText}</span></li>
                                 </ul>
                             </div>
                         </div>
@@ -84,7 +126,14 @@ export default async function SeasonSchedulePage({ params }) {
                         </ul>
                     </div>
 
-                    <ScheduleWithDateStrip games={games} orgSlug={slug} seasonSlug={seasonSlug} />
+                    <ScheduleWithDateStrip
+                        weekMeta={weekMeta}
+                        initialWeekIdx={initialWeekIdx}
+                        initialGames={initialGames}
+                        leagueId={String(league._id)}
+                        orgSlug={slug}
+                        seasonSlug={seasonSlug}
+                    />
                 </div>
             </section>
 
