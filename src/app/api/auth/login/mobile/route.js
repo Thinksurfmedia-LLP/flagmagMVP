@@ -9,7 +9,15 @@ import { signToken, setAuthCookie } from "@/lib/auth";
 export async function POST(request) {
     try {
         await dbConnect();
-        const { email, password } = await request.json();
+        
+        let body;
+        try {
+            body = await request.json();
+        } catch (err) {
+            return NextResponse.json({ success: false, error: "Invalid JSON body" }, { status: 400 });
+        }
+        
+        const { email, password } = body;
 
         if (!email || !password) {
             return NextResponse.json(
