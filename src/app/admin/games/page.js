@@ -65,8 +65,10 @@ function GameModal({ onClose, onSave, initial, seasons = [], leagues = [], venue
         return leagueSeasonId === selectedSeasonId;
     });
     const selectedLeague = leagues.find(l => l._id === selectedLeagueId);
-    // Use all org teams when a league is selected
-    const leagueTeams = selectedLeague ? teams : [];
+    // Only show teams assigned to the selected league
+    const leagueTeams = selectedLeagueId
+        ? teams.filter(t => String(t.league?._id || t.league || "") === selectedLeagueId)
+        : [];
     const leagueVenueNames = selectedLeague?.locations || [];
     const leagueVenues = leagueVenueNames
         .map(name => venues.find(v => v.name.toLowerCase() === name.toLowerCase()))
