@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import AdminPagination from "@/components/AdminPagination";
 import AdminLayout, { hasAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
@@ -13,6 +14,8 @@ export default function AdminPlayersPage() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [teamFilter, setTeamFilter] = useState("all");
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 50;
     const { showSuccess, showError } = useToast();
 
     // Edit modal states
@@ -92,6 +95,11 @@ export default function AdminPlayersPage() {
         return matchesSearch && matchesTeam;
     });
 
+    useEffect(() => { setCurrentPage(1); }, [search, teamFilter]);
+
+    const totalPages = Math.ceil(filtered.length / itemsPerPage);
+    const paginatedPlayers = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
     const canManage = user && hasAccess(user, "manage_players");
 
     return (
@@ -149,7 +157,7 @@ export default function AdminPlayersPage() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {filtered.map(p => {
+                                        {paginatedPlayers.map(p => {
                                             const isInactive = p.isActive === false;
                                             return (
                                             <tr key={p._id} style={{ opacity: isInactive ? 0.4 : 1, transition: "opacity 0.2s" }}>
@@ -200,6 +208,16 @@ export default function AdminPlayersPage() {
                                     </tbody>
                                 </table>
                             </div>
+                        )}
+                        
+                        {filtered.length > 0 && Math.ceil(filtered.length / itemsPerPage) > 1 && (
+                            <AdminPagination 
+                                currentPage={currentPage} 
+                                totalPages={totalPages} 
+                                totalItems={filtered.length} 
+                                itemsPerPage={itemsPerPage} 
+                                onPageChange={setCurrentPage} 
+                            />
                         )}
                     </div>
 

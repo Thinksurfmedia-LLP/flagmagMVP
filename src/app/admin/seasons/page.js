@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import AdminPagination from "@/components/AdminPagination";
 import AdminLayout, { hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
@@ -16,6 +17,8 @@ export default function SeasonsPage() {
     const [searchInput, setSearchInput] = useState("");
     const [sortCol, setSortCol] = useState(null);
     const [sortDir, setSortDir] = useState("asc");
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 50;
 
     const toggleSort = (col) => {
         if (sortCol === col) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -45,6 +48,11 @@ export default function SeasonsPage() {
         });
         return sortDir === "desc" ? sorted.reverse() : sorted;
     }, [seasons, sortCol, sortDir]);
+
+    useEffect(() => { setCurrentPage(1); }, [search, sortCol, sortDir]);
+
+    const totalPages = Math.ceil(sortedSeasons.length / itemsPerPage);
+    const paginatedSeasons = sortedSeasons.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     // Form state
     const [showForm, setShowForm] = useState(false);
@@ -307,7 +315,7 @@ export default function SeasonsPage() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {sortedSeasons.map((season) => (
+                                        {paginatedSeasons.map((season) => (
                                             <tr key={season._id}>
                                                 <td style={{ fontWeight: 600 }}>{season.name}</td>
                                                 {isAdmin && (
@@ -347,6 +355,16 @@ export default function SeasonsPage() {
                                     </tbody>
                                 </table>
                             </div>
+                        )}
+                        
+                        {sortedSeasons.length > 0 && Math.ceil(sortedSeasons.length / itemsPerPage) > 1 && (
+                            <AdminPagination 
+                                currentPage={currentPage} 
+                                totalPages={totalPages} 
+                                totalItems={sortedSeasons.length} 
+                                itemsPerPage={itemsPerPage} 
+                                onPageChange={setCurrentPage} 
+                            />
                         )}
                     </div>
                 </>

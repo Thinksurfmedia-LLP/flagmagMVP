@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import React from "react";
-import { US_STATES, US_COUNTIES } from "@/lib/usGeoData";
+import AdminPagination from "@/components/AdminPagination";
 import AdminLayout, { hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
@@ -664,6 +664,8 @@ export default function AdminTeamsPage() {
     const [modalOpen, setModalOpen] = useState(false);
     const [editTarget, setEditTarget] = useState(null);
     const [importModalOpen, setImportModalOpen] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 50;
 
     const canView = hasAnyAccess(user, [
         "manage_teams", "team_view", "team_create", "team_update", "team_delete",
@@ -674,34 +676,40 @@ export default function AdminTeamsPage() {
     const canUpdate = hasAnyAccess(user, ["manage_teams", "team_update"]);
     const canDelete = hasAnyAccess(user, ["manage_teams", "team_delete"]);
 
-    const fetchData = useCallback(async () => {
+    const fetchData = useCallback(() => {
         if (!canView) {
             setLoading(false);
             return;
         }
 
-        try {
-            const [teamsRes, freeAgentsRes] = await Promise.all([
-                fetch("/api/teams"),
-                fetch("/api/free-agents"),
-            ]);
-            const [teamsData, freeAgentsData] = await Promise.all([teamsRes.json(), freeAgentsRes.json()]);
+        setLoading(true);
 
-            if (teamsData.success) setTeams(teamsData.data || []);
-            else showError(teamsData.error || "Failed to load teams");
+        // 1) Fetch main list (teams) immediately to render UI
+        fetch("/api/teams")
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) setTeams(data.data || []);
+                else showError(data.error || "Failed to load teams");
+            })
+            .catch(() => showError("Failed to load teams"))
+            .finally(() => setLoading(false));
 
-            if (freeAgentsData.success) setFreeAgents(freeAgentsData.data || []);
-            else showError(freeAgentsData.error || "Failed to load free agents");
+        // 2) Fetch secondary data (free agents, organizations) in the background
+        fetch("/api/free-agents")
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) setFreeAgents(data.data || []);
+                // Silently ignore errors for background fetch
+            })
+            .catch(() => {});
 
-            if (effectiveRole === "admin") {
-                const orgRes = await fetch("/api/organizations");
-                const orgData = await orgRes.json();
-                if (orgData.success) setOrganizations(orgData.data || []);
-            }
-        } catch {
-            showError("Failed to load teams and free agents");
-        } finally {
-            setLoading(false);
+        if (effectiveRole === "admin") {
+            fetch("/api/organizations")
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) setOrganizations(data.data || []);
+                })
+                .catch(() => {});
         }
     }, [canView, showError, effectiveRole]);
 
@@ -748,6 +756,8 @@ export default function AdminTeamsPage() {
             showError("Failed to delete team");
         }
     };
+    const totalPages = Math.ceil(teams.length / itemsPerPage);
+    const paginatedTeams = teams.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     return (
         <AdminLayout title="Teams">
@@ -797,7 +807,7 @@ export default function AdminTeamsPage() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {teams.map((team) => (
+                                        {paginatedTeams.map((team) => (
                                             <tr key={team._id}>
                                                 <td style={{ fontWeight: 600 }}>{team.name}</td>
                                                 <td>{team.organization?.name || "—"}</td>
@@ -829,6 +839,16 @@ export default function AdminTeamsPage() {
                                     </tbody>
                                 </table>
                             </div>
+                        )}
+                        
+                        {teams.length > 0 && Math.ceil(teams.length / itemsPerPage) > 1 && (
+                            <AdminPagination 
+                                currentPage={currentPage} 
+                                totalPages={totalPages} 
+                                totalItems={teams.length} 
+                                itemsPerPage={itemsPerPage} 
+                                onPageChange={setCurrentPage} 
+                            />
                         )}
                     </div>
 
