@@ -17,7 +17,6 @@ function MatchListContent() {
     const [loadingGames, setLoadingGames] = useState(true);
     const [search, setSearch] = useState("");
     const [showFilter, setShowFilter] = useState(false);
-    const [leagues, setLeagues] = useState([]);
     const [filterLeague, setFilterLeague] = useState("");
     const [filterTeam, setFilterTeam] = useState("");
     const [filterLocation, setFilterLocation] = useState("");
@@ -29,45 +28,23 @@ function MatchListContent() {
         }
     }, [authLoading, user, router]);
 
-    // Fetch leagues
-    useEffect(() => {
-        if (!user?.organization?.slug) return;
-        apiGet(`/api/organizations/${user.organization.slug}/leagues`)
-            .then((res) => setLeagues(res.data || []))
-            .catch(() => {});
-    }, [user]);
-
-    // Fetch games from all leagues
+    // Fetch all games for this org in a single request (replaces leagues fetch + N games fetches)
     const fetchGames = useCallback(async () => {
-        if (!leagues.length) return;
+        if (!user?.organization?.slug) return;
         setLoadingGames(true);
         try {
-            const allGames = [];
-            for (const league of leagues) {
-                const res = await apiGet(`/api/seasons/${league._id}/games`);
-                if (res.data) {
-                    allGames.push(
-                        ...res.data.map((g) => ({
-                            ...g,
-                            leagueName: league.name,
-                            leagueCategory: league.category,
-                        }))
-                    );
-                }
-            }
-            // Sort by date
-            allGames.sort((a, b) => new Date(a.date) - new Date(b.date));
-            setGames(allGames);
+            const res = await apiGet(`/api/organizations/${user.organization.slug}/games`);
+            setGames(res.data || []);
         } catch (err) {
             console.error("Error fetching games:", err);
         } finally {
             setLoadingGames(false);
         }
-    }, [leagues]);
+    }, [user?.organization?.slug]);
 
     useEffect(() => {
-        fetchGames();
-    }, [fetchGames]);
+        if (user) fetchGames();
+    }, [user, fetchGames]);
 
     // Filter games by tab + search + filters
     useEffect(() => {

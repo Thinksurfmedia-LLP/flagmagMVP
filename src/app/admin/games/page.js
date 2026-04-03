@@ -5,6 +5,9 @@ import AdminLayout, { hasAccess, hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 import WeekdayDatePicker from "@/components/WeekdayDatePicker";
+import AdminPagination from "@/components/AdminPagination";
+
+const GAMES_PER_PAGE = 20;
 
 const STAT_FIELDS = ["rate", "atts", "comp", "tds", "pct", "xp2", "yards", "ten", "twenty", "forty", "ints", "intOpen", "intXp"];
 const STAT_LABELS = { rate: "Rate", atts: "Atts", comp: "Comp", tds: "TDs", pct: "%", xp2: "XP2", yards: "Yards", ten: "10+", twenty: "20+", forty: "40+", ints: "INTs", intOpen: "Int Open", intXp: "Int XP" };
@@ -1272,6 +1275,7 @@ export default function AdminGamesPage() {
     const [teams, setTeams] = useState([]);
     const [venues, setVenues] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [gamePage, setGamePage] = useState(1);
     const [showModal, setShowModal] = useState(false);
     const [editTarget, setEditTarget] = useState(null);
     const [showLiveStats, setShowLiveStats] = useState(false);
@@ -1297,57 +1301,44 @@ export default function AdminGamesPage() {
 
     useEffect(() => { fetchOrgs(); }, [fetchOrgs]);
 
-    // Fetch all games across all leagues for the org
-    const fetchAllGames = useCallback(async (leagueList) => {
-        const leaguesToUse = leagueList || leagues;
-        if (!leaguesToUse.length) { setGames([]); return; }
+    // Refresh all games for the current org
+    const fetchAllGames = useCallback(async () => {
+        if (!selectedOrg) return;
         setLoading(true);
         try {
-            const results = await Promise.all(
-                leaguesToUse.map(l => fetch(`/api/seasons/${l._id}/games`).then(r => r.json()))
-            );
-            const allGames = results
-                .filter(r => r.success)
-                .flatMap(r => r.data);
-            allGames.sort((a, b) => new Date(a.date) - new Date(b.date));
-            setGames(allGames);
+            const res = await fetch(`/api/organizations/${selectedOrg}/games`);
+            const data = await res.json();
+            if (data.success) { setGames(data.data); setGamePage(1); }
         } catch { showError("Failed to load games"); }
-        setLoading(false);
-    }, [leagues]);
+        finally { setLoading(false); }
+    }, [selectedOrg]);
 
     // Fetch seasons + teams + venues + games when org changes
     useEffect(() => {
         if (!selectedOrg) { setSeasons([]); setLeagues([]); setGames([]); setTeams([]); setVenues([]); setScheduleDays([]); return; }
+        setLoading(true);
         (async () => {
             try {
-                const [seasonRes, leagueRes, teamRes, venueRes, orgRes] = await Promise.all([
+                const [seasonRes, leagueRes, teamRes, venueRes, orgRes, gamesRes] = await Promise.all([
                     fetch(`/api/organizations/${selectedOrg}/seasons`),
                     fetch(`/api/organizations/${selectedOrg}/leagues`),
                     fetch("/api/teams"),
                     fetch("/api/locations"),
                     fetch(`/api/organizations/${selectedOrg}`),
+                    fetch(`/api/organizations/${selectedOrg}/games`),
                 ]);
-                const [seasonData, leagueData, teamData, venueData, orgData] = await Promise.all([
-                    seasonRes.json(), leagueRes.json(), teamRes.json(), venueRes.json(), orgRes.json(),
+                const [seasonData, leagueData, teamData, venueData, orgData, gamesData] = await Promise.all([
+                    seasonRes.json(), leagueRes.json(), teamRes.json(), venueRes.json(), orgRes.json(), gamesRes.json(),
                 ]);
                 if (seasonData.success) setSeasons(seasonData.data);
                 if (orgData.success) setScheduleDays(orgData.data?.scheduleDays || []);
-                let fetchedLeagues = [];
-                if (leagueData.success) { setLeagues(leagueData.data); fetchedLeagues = leagueData.data; }
+                if (leagueData.success) setLeagues(leagueData.data);
                 if (teamData.success) setTeams(teamData.data);
                 if (venueData.success) setVenues(venueData.data);
-                // Fetch all games across all leagues
-                if (fetchedLeagues.length) {
-                    const results = await Promise.all(
-                        fetchedLeagues.map(l => fetch(`/api/seasons/${l._id}/games`).then(r => r.json()))
-                    );
-                    const allGames = results.filter(r => r.success).flatMap(r => r.data);
-                    allGames.sort((a, b) => new Date(a.date) - new Date(b.date));
-                    setGames(allGames);
-                } else {
-                    setGames([]);
-                }
+                if (gamesData.success) { setGames(gamesData.data); setGamePage(1); }
+                else setGames([]);
             } catch { showError("Failed to load data"); }
+            finally { setLoading(false); }
         })();
     }, [selectedOrg]);
 
@@ -1466,7 +1457,7 @@ export default function AdminGamesPage() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {games.map(game => (
+                                        {games.slice((gamePage - 1) * GAMES_PER_PAGE, gamePage * GAMES_PER_PAGE).map(game => (
                                             <tr key={game._id}>
                                                 <td>{new Date(game.date).toLocaleDateString()}</td>
                                                 <td>{game.time || "—"}</td>
@@ -1509,6 +1500,13 @@ export default function AdminGamesPage() {
                                         ))}
                                     </tbody>
                                 </table>
+                                <AdminPagination
+                                    currentPage={gamePage}
+                                    totalPages={Math.ceil(games.length / GAMES_PER_PAGE)}
+                                    onPageChange={setGamePage}
+                                    totalItems={games.length}
+                                    itemsPerPage={GAMES_PER_PAGE}
+                                />
                             </div>
                         )}
                     </div>
