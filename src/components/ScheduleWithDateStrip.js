@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
+import { formatTimePDT, formatDatePST } from "@/lib/timeUtils";
 
 const teamLogoFallback = "/assets/images/team-placeholder.svg";
 
@@ -13,8 +14,8 @@ function MatchCard({ game, orgSlug, seasonSlug }) {
                 <div className="organization-team-area">
                     <div className="top">
                         <ul>
-                            <li><img src="/assets/images/icon-clock.png" alt="" loading="lazy" /> Time - <span>{game.time}</span></li>
-                            <li><img src="/assets/images/icon-calander.png" alt="" loading="lazy" /> Date - <span>{new Date(game.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "2-digit" })}</span></li>
+                            <li><img src="/assets/images/icon-clock.png" alt="" loading="lazy" /> Time - <span>{formatTimePDT(game.time)}</span></li>
+                            <li><img src="/assets/images/icon-calander.png" alt="" loading="lazy" /> Date - <span>{formatDatePST(game.date)}</span></li>
                         </ul>
                     </div>
                     <div className="middle">

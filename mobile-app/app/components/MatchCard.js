@@ -4,23 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiPut } from "../lib/api";
+import { formatTimePDT, formatDatePST } from "../lib/timeUtils";
 
 export default function MatchCard({ game, onStart }) {
     const [showConfirm, setShowConfirm] = useState(false);
     const router = useRouter();
-    const formatDate = (dateStr) => {
-        if (!dateStr) return "";
-        const d = new Date(dateStr);
-        return d.toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-        });
-    };
-
-    const formatTime = (timeStr) => {
-        if (!timeStr) return "";
-        return timeStr;
-    };
+    const formatDate = (dateStr) => formatDatePST(dateStr);
+    const formatTime = (timeStr) => formatTimePDT(timeStr);
 
     const statusLabel = {
         upcoming: "Upcoming",

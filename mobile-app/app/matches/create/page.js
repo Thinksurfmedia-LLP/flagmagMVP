@@ -22,6 +22,8 @@ function CreateMatchContent() {
         time: "",
         notes: "",
     });
+    const [venueDetails, setVenueDetails] = useState({}); // venueName -> fields[]
+    const [selectedField, setSelectedField] = useState("");
     const [loading, setLoading] = useState(false);
     const [dataLoading, setDataLoading] = useState(false);
     const [error, setError] = useState("");
@@ -94,9 +96,28 @@ function CreateMatchContent() {
     // Reset team + location selections when league changes
     useEffect(() => {
         setForm((f) => ({ ...f, teamA: "", teamB: "", location: "" }));
+        setSelectedField("");
+        setVenueDetails({});
     }, [selectedLeague]);
 
-    const update = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
+    // Fetch venue field details whenever league's locations change
+    useEffect(() => {
+        if (locations.length === 0) return;
+        const names = locations.join(",");
+        apiGet(`/api/locations/search?names=${encodeURIComponent(names)}`)
+            .then((res) => {
+                const map = {};
+                (res.data || []).forEach((v) => { map[v.name] = v.fields || []; });
+                setVenueDetails(map);
+            })
+            .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedLeague]);
+
+    const update = (field) => (e) => {
+        if (field === "location") setSelectedField("");
+        setForm((f) => ({ ...f, [field]: e.target.value }));
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -112,12 +133,16 @@ function CreateMatchContent() {
 
         setLoading(true);
         try {
+            const venueName = form.location;
+            const fieldName = selectedField;
+            const fullLocation = venueName && fieldName ? `${venueName} - ${fieldName}` : venueName;
+
             await apiPost(`/api/seasons/${selectedLeague}/games`, {
                 teamA: { name: teamAObj?.name || form.teamA, logo: teamAObj?.logo || "" },
                 teamB: { name: teamBObj?.name || form.teamB, logo: teamBObj?.logo || "" },
                 date: form.date,
                 time: form.time,
-                location: form.location,
+                location: fullLocation,
                 status: "upcoming",
             });
             router.push("/matches");
@@ -259,6 +284,23 @@ function CreateMatchContent() {
                                 />
                             )}
                         </div>
+
+                        {/* Field — only shown when the selected venue has fields */}
+                        {form.location && venueDetails[form.location]?.length > 0 && (
+                            <div className="form-group">
+                                <label>Field</label>
+                                <select
+                                    className="form-control select-form-control"
+                                    value={selectedField}
+                                    onChange={(e) => setSelectedField(e.target.value)}
+                                >
+                                    <option value="">Select Field</option>
+                                    {venueDetails[form.location].map((f) => (
+                                        <option key={f._id} value={f.name}>{f.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
 
                         {/* Date & Time */}
                         <div className="row">
