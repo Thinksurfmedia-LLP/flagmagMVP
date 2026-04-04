@@ -23,7 +23,7 @@ export function formatDatePST(dateInput, options = {}) {
     if (!dateInput) return "";
     const d = new Date(dateInput);
     return d.toLocaleDateString("en-US", {
-        timeZone: "America/Los_Angeles",
+        timeZone: "UTC",
         month: "short",
         day: "numeric",
         ...options,
