@@ -30,17 +30,24 @@ function MatchListContent() {
 
     // Fetch all games for this org in a single request (replaces leagues fetch + N games fetches)
     const fetchGames = useCallback(async () => {
-        if (!user?.organization?.slug) return;
+        // Resolve org slug — direct org field OR from roleOrganizations (for organizers/statisticians)
+        const orgSlug =
+            user?.organization?.slug ||
+            Object.values(user?.roleOrganizations || {}).find((o) => o?.slug)?.slug;
+        console.log("[matches] user:", JSON.stringify(user));
+        console.log("[matches] orgSlug:", orgSlug);
+        if (!orgSlug) { setLoadingGames(false); return; }
         setLoadingGames(true);
         try {
-            const res = await apiGet(`/api/organizations/${user.organization.slug}/games`);
+            const res = await apiGet(`/api/organizations/${orgSlug}/games`);
+            console.log("[matches] games response:", JSON.stringify(res));
             setGames(res.data || []);
         } catch (err) {
-            console.error("Error fetching games:", err);
+            console.error("[matches] Error fetching games:", err);
         } finally {
             setLoadingGames(false);
         }
-    }, [user?.organization?.slug]);
+    }, [user]);
 
     useEffect(() => {
         if (user) fetchGames();

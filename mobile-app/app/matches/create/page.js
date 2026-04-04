@@ -31,11 +31,14 @@ function CreateMatchContent() {
 
     // Fetch leagues and teams
     useEffect(() => {
-        if (!user?.organization?.slug) return;
-        apiGet(`/api/organizations/${user.organization.slug}/leagues`)
+        const orgSlug =
+            user?.organization?.slug ||
+            Object.values(user?.roleOrganizations || {}).find((o) => o?.slug)?.slug;
+        if (!orgSlug) return;
+        apiGet(`/api/organizations/${orgSlug}/leagues`)
             .then((res) => setLeagues(res.data || []))
             .catch(() => {});
-        apiGet(`/api/organizations/${user.organization.slug}/teams`)
+        apiGet(`/api/organizations/${orgSlug}/teams`)
             .then((res) => setTeams(res.data || []))
             .catch(() => {});
     }, [user]);
