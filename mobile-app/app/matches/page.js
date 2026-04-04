@@ -56,10 +56,12 @@ function MatchListContent() {
     // Filter games by tab + search + filters
     useEffect(() => {
         let filtered = [...games];
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        // Build today/tomorrow as UTC midnight so comparisons match game dates (stored as midnight UTC)
+        const now = new Date();
+        const todayStr = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-${String(now.getUTCDate()).padStart(2, "0")}`;
+        const today = new Date(todayStr + "T00:00:00Z");
         const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
 
         // Tab filter
         if (activeTab === "today") {
