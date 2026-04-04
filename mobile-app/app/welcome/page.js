@@ -1,8 +1,21 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function WelcomePage() {
+    const router = useRouter();
+
+    useEffect(() => {
+        fetch("/api/auth/me", { credentials: "include" })
+            .then((res) => res.ok ? res.json() : null)
+            .then((json) => {
+                if (json?.data) router.replace("/matches");
+            })
+            .catch(() => {});
+    }, [router]);
+
     return (
         <div className="wrapper">
             <div className="main-section-wrapper login-page">

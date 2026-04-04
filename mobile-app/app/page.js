@@ -7,8 +7,22 @@ export default function SplashPage() {
     const router = useRouter();
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            router.push("/welcome");
+        const timer = setTimeout(async () => {
+            try {
+                const res = await fetch("/api/auth/me", {
+                    credentials: "include",
+                });
+                if (res.ok) {
+                    const json = await res.json();
+                    if (json?.data) {
+                        router.replace("/matches");
+                        return;
+                    }
+                }
+            } catch {
+                // network error — fall through to welcome
+            }
+            router.replace("/welcome");
         }, 2500);
         return () => clearTimeout(timer);
     }, [router]);
