@@ -3,7 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import Game from "@/models/Game";
 import Team from "@/models/Team";
 import League from "@/models/League";
-import { requireAdmin } from "@/lib/apiAuth";
+import { requireAnyPermission } from "@/lib/apiAuth";
 
 // GET games for a season
 export async function GET(request, { params }) {
@@ -69,10 +69,10 @@ export async function GET(request, { params }) {
     }
 }
 
-// CREATE game in a season (admin/organizer only)
+// CREATE game in a season (admin/organizer/statistician with game_create)
 export async function POST(request, { params }) {
     try {
-        const auth = await requireAdmin();
+        const auth = await requireAnyPermission(["manage_games", "game_create"]);
         if (!auth.authorized) return auth.response;
 
         await dbConnect();

@@ -6,6 +6,7 @@ import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import League from "@/models/League";
 import Game from "@/models/Game";
+import Team from "@/models/Team";
 import Player from "@/models/Player";
 import { formatOrganizationLocations } from "@/lib/organizationLocations";
 
@@ -57,6 +58,17 @@ async function getData(slug, seasonSlug) {
         })
             .sort({ date: 1, time: 1 })
             .lean();
+
+        // Enrich with latest logos from Team collection (same as API route)
+        const teams = await Team.find({ organization: org._id }).select("name logo").lean();
+        const teamLogoMap = {};
+        teams.forEach((t) => { teamLogoMap[t.name] = t.logo || ""; });
+        initialGames.forEach((game) => {
+            if (teamLogoMap[game.teamA?.name] !== undefined)
+                game.teamA.logo = teamLogoMap[game.teamA.name] || game.teamA.logo;
+            if (teamLogoMap[game.teamB?.name] !== undefined)
+                game.teamB.logo = teamLogoMap[game.teamB.name] || game.teamB.logo;
+        });
     }
 
     return {

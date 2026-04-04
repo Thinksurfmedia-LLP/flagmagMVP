@@ -27,7 +27,7 @@ export default function WelcomePage() {
                     <div className="content-area">
                         <h1>Welcome</h1>
                         <p>
-                            Record live game stats, manage matches and track player
+                            Record live game stats, manage games and track player
                             performance — all from your phone.
                         </p>
                     </div>

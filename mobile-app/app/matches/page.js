@@ -141,7 +141,7 @@ function MatchListContent() {
                 <div className="search-area">
                     <input
                         type="text"
-                        placeholder="Search Matches..."
+                        placeholder="Search Games..."
                         className="form-control icon-search"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
@@ -154,7 +154,7 @@ function MatchListContent() {
                     </button>
 
                     <div className={`filter-dropdown ${showFilter ? "active" : ""}`}>
-                        <h4>Filter Matches</h4>
+                        <h4>Filter Games</h4>
                         <div className="form-group">
                             <label>Team</label>
                             <select
@@ -226,7 +226,7 @@ function MatchListContent() {
                         <div className="loading-spinner" />
                     ) : filteredGames.length === 0 ? (
                         <div className="empty-state">
-                            <h5>No matches found</h5>
+                            <h5>No games found</h5>
                             <p>
                                 {activeTab === "today"
                                     ? "No games scheduled for today."
@@ -245,7 +245,7 @@ function MatchListContent() {
 
                     <div className="text-center my-3">
                         <Link href="/matches/create" className="btn btn-primary">
-                            Create Match
+                            Create Game
                         </Link>
                     </div>
                 </div>

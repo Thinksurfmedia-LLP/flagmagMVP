@@ -15,7 +15,7 @@ export default function BottomFooter({ onCancel, onComplete, onReset, isPaused }
                     </button>
                 </li>
                 <li>
-                    <button onClick={onReset} title="Reset Match" className="footer-btn-reset">
+                    <button onClick={onReset} title="Reset Game" className="footer-btn-reset">
                         <i className="fa-solid fa-rotate-right"></i>
                     </button>
                 </li>

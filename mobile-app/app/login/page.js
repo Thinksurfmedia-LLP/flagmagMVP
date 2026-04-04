@@ -44,7 +44,7 @@ function LoginForm() {
 
                     <div className="content-area">
                         <h2>We say Hello!</h2>
-                        <p>Sign in to start recording game stats and managing your matches.</p>
+                        <p>Sign in to start recording game stats and managing your games.</p>
                     </div>
 
                     {error && <div className="toast-message error">{error}</div>}

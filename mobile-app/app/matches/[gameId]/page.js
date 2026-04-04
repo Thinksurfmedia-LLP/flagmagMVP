@@ -202,7 +202,7 @@ function LiveGameContent({ gameId }) {
     };
 
     const handleReset = async () => {
-        if (window.confirm("Are you sure you want to reset this match to its initial state? All scores will be cleared.")) {
+        if (window.confirm("Are you sure you want to reset this game to its initial state? All scores will be cleared.")) {
             try {
                 await apiPut(`/api/games/${gameId}`, {
                     status: "upcoming",
@@ -213,7 +213,7 @@ function LiveGameContent({ gameId }) {
                 setHalf("1st");
                 setTimeoutsA(0);
                 setTimeoutsB(0);
-                showToast("Match reset to initial state", "success");
+                showToast("Game reset to initial state", "success");
                 router.push("/matches");
             } catch (err) {
                 showToast(err.message, "error");
@@ -238,7 +238,7 @@ function LiveGameContent({ gameId }) {
                     <div className="empty-state">
                         <h5>Game not found</h5>
                         <button className="btn btn-primary mt-3" onClick={() => router.push("/matches")}>
-                            Back to Matches
+                            Back to Games
                         </button>
                     </div>
                 </div>

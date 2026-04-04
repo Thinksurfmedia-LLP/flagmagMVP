@@ -89,7 +89,7 @@ export default function MatchCard({ game, onStart }) {
                             className="btn btn-primary"
                             onClick={() => setShowConfirm(true)}
                         >
-                            Start Match
+                            Start Game
                         </button>
                     )}
                     {game.status === "in_progress" && (
@@ -108,7 +108,7 @@ export default function MatchCard({ game, onStart }) {
             {showConfirm && (
                 <div className="confirm-overlay" onClick={() => setShowConfirm(false)}>
                     <div className="confirm-box" onClick={(e) => e.stopPropagation()}>
-                        <h4>Start This Match?</h4>
+                        <h4>Start This Game?</h4>
                         <p>
                             <strong>{game.teamA?.name || "Team A"}</strong> vs <strong>{game.teamB?.name || "Team B"}</strong>
                         </p>
@@ -137,7 +137,7 @@ export default function MatchCard({ game, onStart }) {
                                     router.push(`/matches/${game._id}`);
                                 }}
                             >
-                                Yes, Start Match
+                                Yes, Start Game
                             </button>
                         </div>
                     </div>

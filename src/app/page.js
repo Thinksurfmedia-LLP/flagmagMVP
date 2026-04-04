@@ -43,7 +43,7 @@ export default function HomePage() {
                     <div className="card-body">
                       <img src="/assets/images/b2.png" alt="" />
                       <h4>Tournament Directors</h4>
-                      <p>Create brackets, record match results, and publish standings instantly — without operational breakdowns during game days.</p>
+                      <p>Create brackets, record game results, and publish standings instantly — without operational breakdowns during game days.</p>
                     </div>
                   </div>
                 </div>
@@ -52,7 +52,7 @@ export default function HomePage() {
                     <div className="card-body">
                       <img src="/assets/images/b3.png" alt="" />
                       <h4>Clubs &amp; Academies</h4>
-                      <p>Track player development, performance history, and match data across seasons to make better training and selection decisions.</p>
+                      <p>Track player development, performance history, and game data across seasons to make better training and selection decisions.</p>
                     </div>
                   </div>
                 </div>
@@ -88,15 +88,15 @@ export default function HomePage() {
                 <div className="accordion" id="accordionExample">
                   <div className="accordion-item">
                     <h2 className="accordion-header">
-                      <button className="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">Live Scoring &amp; Match Control</button>
+                      <button className="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">Live Scoring &amp; Game Control</button>
                     </h2>
                     <div id="collapseOne" className="accordion-collapse collapse show" data-bs-parent="#accordionExample">
                       <div className="accordion-body">
-                        <p>Capture match results quickly and accurately with a structured scoring system built for real game conditions.</p>
+                        <p>Capture game results quickly and accurately with a structured scoring system built for real game conditions.</p>
                         <ul className="list2">
                           <li>Eliminate scoring disputes</li>
                           <li>Reduce manual errors</li>
-                          <li>Maintain match integrity</li>
+                          <li>Maintain game integrity</li>
                         </ul>
                       </div>
                     </div>
@@ -107,11 +107,11 @@ export default function HomePage() {
                     </h2>
                     <div id="collapseTwo" className="accordion-collapse collapse" data-bs-parent="#accordionExample">
                       <div className="accordion-body">
-                        <p>Capture match results quickly and accurately with a structured scoring system built for real game conditions.</p>
+                        <p>Capture game results quickly and accurately with a structured scoring system built for real game conditions.</p>
                         <ul className="list2">
                           <li>Eliminate scoring disputes</li>
                           <li>Reduce manual errors</li>
-                          <li>Maintain match integrity</li>
+                          <li>Maintain game integrity</li>
                         </ul>
                       </div>
                     </div>
@@ -122,11 +122,11 @@ export default function HomePage() {
                     </h2>
                     <div id="collapseThree" className="accordion-collapse collapse" data-bs-parent="#accordionExample">
                       <div className="accordion-body">
-                        <p>Capture match results quickly and accurately with a structured scoring system built for real game conditions.</p>
+                        <p>Capture game results quickly and accurately with a structured scoring system built for real game conditions.</p>
                         <ul className="list2">
                           <li>Eliminate scoring disputes</li>
                           <li>Reduce manual errors</li>
-                          <li>Maintain match integrity</li>
+                          <li>Maintain game integrity</li>
                         </ul>
                       </div>
                     </div>
@@ -137,11 +137,11 @@ export default function HomePage() {
                     </h2>
                     <div id="collapseFour" className="accordion-collapse collapse" data-bs-parent="#accordionExample">
                       <div className="accordion-body">
-                        <p>Capture match results quickly and accurately with a structured scoring system built for real game conditions.</p>
+                        <p>Capture game results quickly and accurately with a structured scoring system built for real game conditions.</p>
                         <ul className="list2">
                           <li>Eliminate scoring disputes</li>
                           <li>Reduce manual errors</li>
-                          <li>Maintain match integrity</li>
+                          <li>Maintain game integrity</li>
                         </ul>
                       </div>
                     </div>
@@ -229,7 +229,7 @@ export default function HomePage() {
               <div className="col-md-6 col-xl-8">
                 <div className="content-area">
                   <h2>Capture <br />Scores &amp; Stats</h2>
-                  <p>Record match data through a structured, easy-to-use interface designed for real-world game flow.</p>
+                  <p>Record game data through a structured, easy-to-use interface designed for real-world game flow.</p>
                 </div>
               </div>
             </div>
@@ -273,7 +273,7 @@ export default function HomePage() {
                   </div>
                   <div className="item">
                     <img src="/assets/images/build2.png" alt="" />
-                    <span>Designed for high-volume matches and seasons</span>
+                    <span>Designed for high-volume games and seasons</span>
                   </div>
                   <div className="item">
                     <img src="/assets/images/build3.png" alt="" />

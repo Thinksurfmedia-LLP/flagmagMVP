@@ -104,6 +104,10 @@ export async function GET(request) {
         "manage_organizations",
         "organization_view",
         "organization_update",
+        "manage_games",
+        "game_create",
+        "game_view",
+        "stats_record",
     ]);
     if (!auth.authorized) return auth.response;
 

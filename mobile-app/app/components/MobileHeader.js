@@ -39,12 +39,12 @@ export default function MobileHeader({ showSearch, showFilter, onSearch, onFilte
                     </li>
                     <li>
                         <Link href="/matches" onClick={() => setNavOpen(false)}>
-                            Matches
+                            Games
                         </Link>
                     </li>
                     <li>
                         <Link href="/matches/create" onClick={() => setNavOpen(false)}>
-                            Create Match
+                            Create Game
                         </Link>
                     </li>
                     {user && (
