@@ -35,6 +35,15 @@ async function getOrgAndSeasons(slug) {
         firstGameTime: firstGameMap[s._id.toString()] || "",
         seasonName: s.season?.name || "",
     }));
+
+    // Sort leagues by numeric age prefix (8u < 10u < 12u < 14u), then alphabetically
+    enriched.sort((a, b) => {
+        const numA = parseInt(a.name) || Infinity;
+        const numB = parseInt(b.name) || Infinity;
+        if (numA !== numB) return numA - numB;
+        return a.name.localeCompare(b.name);
+    });
+
     const activeSeasons = enriched.filter((s) => s.type === "active");
     const pastSeasons = enriched.filter((s) => s.type === "past");
 
