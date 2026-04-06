@@ -1,0 +1,57 @@
+[
+  {
+    "_id": "69ce785e268fc7ba310d26ff",
+    "name": "Showtime Sportz",
+    "slug": "showtime-sportz",
+    "logo": "/api/uploads/1775185938477-tqab32.jpg",
+    "bannerImage": "/api/uploads/1775185784117-k5m60c.jpg",
+    "rating": 0,
+    "memberCount": 0,
+    "foundedYear": 2018,
+    "description": "Youth flag football, basketball, volleyball leagues, tournaments, camps, and more!",
+    "locationsDescription": "",
+    "categories": [
+      "Youth"
+    ],
+    "locations": [
+      {
+        "state": null,
+        "county": null,
+        "location": null,
+        "stateName": "Arizona",
+        "stateAbbr": "AZ",
+        "countyName": "Yavapai",
+        "cityName": "Cottonwood",
+        "locationName": "Cottonwood, Yavapai (AZ)",
+        "_id": "69ce785e268fc7ba310d2700"
+      }
+    ],
+    "location": "Cottonwood, Yavapai (AZ)",
+    "scheduleDays": [
+      "SAT",
+      "SUN",
+      "MON",
+      "TUE",
+      "WED",
+      "THU",
+      "FRI"
+    ],
+    "sport": "Flag Football",
+    "contactInfo": {
+      "phone": "928-254-8869",
+      "email": "bruce@showtimesportz.com",
+      "website": "https://www.showtimesportz.com/"
+    },
+    "socialLinks": {
+      "facebook": "https://www.facebook.com/showtimesportz/",
+      "twitter": "",
+      "instagram": "https://www.instagram.com/showtime_sportz/"
+    },
+    "galleryImages": [],
+    "venues": [],
+    "testimonials": [],
+    "createdAt": "2026-04-02T14:08:30.204Z",
+    "updatedAt": "2026-04-03T07:20:52.334Z",
+    "__v": 0
+  }
+]

@@ -1,0 +1,94 @@
+[
+  {
+    "_id": "69cf3539268fc7ba310d2936",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "name": "8u Spring Flag Football '26",
+    "slug": "8u-spring-flag-football-26",
+    "type": "active",
+    "category": "Youth",
+    "location": "Cottonwood Kids Park",
+    "locations": [
+      "Cottonwood Kids Park"
+    ],
+    "season": "69cf34cf268fc7ba310d2921",
+    "seasonOverridden": false,
+    "startDate": "2026-04-04T00:00:00.000Z",
+    "endDate": "2026-05-17T00:00:00.000Z",
+    "time": "",
+    "image": "/api/uploads/1775187637962-lp347h.jpg",
+    "divisions": [],
+    "gameRecords": [],
+    "createdAt": "2026-04-03T03:34:17.121Z",
+    "updatedAt": "2026-04-03T03:40:41.330Z",
+    "__v": 0
+  },
+  {
+    "_id": "69cf355a268fc7ba310d2946",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "name": "10u Spring Flag Football '26",
+    "slug": "10u-spring-flag-football-26",
+    "type": "active",
+    "category": "Youth",
+    "location": "Cottonwood Kids Park",
+    "locations": [
+      "Cottonwood Kids Park"
+    ],
+    "season": "69cf34cf268fc7ba310d2921",
+    "seasonOverridden": false,
+    "startDate": "2026-04-04T00:00:00.000Z",
+    "endDate": "2026-05-17T00:00:00.000Z",
+    "time": "",
+    "image": "/api/uploads/1775187624287-cm23dy.jpg",
+    "divisions": [],
+    "gameRecords": [],
+    "createdAt": "2026-04-03T03:34:50.433Z",
+    "updatedAt": "2026-04-03T03:40:27.166Z",
+    "__v": 0
+  },
+  {
+    "_id": "69cf3578268fc7ba310d2956",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "name": "12u Spring Flag Football '26",
+    "slug": "12u-spring-flag-football-26",
+    "type": "active",
+    "category": "Youth",
+    "location": "Cottonwood Kids Park",
+    "locations": [
+      "Cottonwood Kids Park"
+    ],
+    "season": "69cf34cf268fc7ba310d2921",
+    "seasonOverridden": false,
+    "startDate": "2026-04-04T00:00:00.000Z",
+    "endDate": "2026-05-17T00:00:00.000Z",
+    "time": "",
+    "image": "/api/uploads/1775187610165-leqk7z.jpg",
+    "divisions": [],
+    "gameRecords": [],
+    "createdAt": "2026-04-03T03:35:20.990Z",
+    "updatedAt": "2026-04-03T03:40:13.195Z",
+    "__v": 0
+  },
+  {
+    "_id": "69cf359b268fc7ba310d2966",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "name": "14u Spring Flag Football '26",
+    "slug": "14u-spring-flag-football-26",
+    "type": "active",
+    "category": "Youth",
+    "location": "Cottonwood Kids Park",
+    "locations": [
+      "Cottonwood Kids Park"
+    ],
+    "season": "69cf34cf268fc7ba310d2921",
+    "seasonOverridden": false,
+    "startDate": "2026-04-04T00:00:00.000Z",
+    "endDate": "2026-05-17T00:00:00.000Z",
+    "time": "",
+    "image": "/api/uploads/1775187481597-mtn8lb.jpg",
+    "divisions": [],
+    "gameRecords": [],
+    "createdAt": "2026-04-03T03:35:55.066Z",
+    "updatedAt": "2026-04-03T03:38:04.840Z",
+    "__v": 0
+  }
+]

@@ -1,0 +1,1525 @@
+[
+  {
+    "_id": "69cfb47856bab89431e144bb",
+    "name": "Golden Eagles 8u",
+    "logo": "/api/uploads/1775236587510-sb8s6f.jpg",
+    "description": "",
+    "division": "",
+    "location": {
+      "stateName": "Arizona",
+      "stateAbbr": "AZ",
+      "countyName": "Yavapai",
+      "cityName": "Cottonwood"
+    },
+    "coachName": "Drew Bowers",
+    "coachPhone": "",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "season": "69cf34cf268fc7ba310d2921",
+    "league": "69cf3539268fc7ba310d2936",
+    "players": [
+      {
+        "player": "69cf6ca4268fc7ba310d5ca5",
+        "jerseyNumber": 5,
+        "_id": "69cff5eeccfed4a48309489d"
+      },
+      {
+        "player": "69cf35db268fc7ba310d2a4d",
+        "jerseyNumber": 1,
+        "_id": "69cff5eeccfed4a48309489e"
+      },
+      {
+        "player": "69cf6ca4268fc7ba310d5c9e",
+        "jerseyNumber": 3,
+        "_id": "69cff5eeccfed4a48309489f"
+      },
+      {
+        "player": "69cf35da268fc7ba310d2a3c",
+        "jerseyNumber": 42,
+        "_id": "69cff5eeccfed4a4830948a0"
+      },
+      {
+        "player": "69cf6c9f268fc7ba310d5c50",
+        "jerseyNumber": 7,
+        "_id": "69cff5eeccfed4a4830948a1"
+      },
+      {
+        "player": "69cf35da268fc7ba310d2a38",
+        "jerseyNumber": 16,
+        "_id": "69cff5eeccfed4a4830948a2"
+      },
+      {
+        "player": "69cf35db268fc7ba310d2a42",
+        "jerseyNumber": 27,
+        "_id": "69cff5eeccfed4a4830948a3"
+      },
+      {
+        "player": "69cf35db268fc7ba310d2a49",
+        "jerseyNumber": 33,
+        "_id": "69cff5eeccfed4a4830948a4"
+      },
+      {
+        "player": "69cf35dc268fc7ba310d2a51",
+        "jerseyNumber": 36,
+        "_id": "69cff5eeccfed4a4830948a5"
+      }
+    ],
+    "createdAt": "2026-04-03T12:37:12.827Z",
+    "updatedAt": "2026-04-03T17:16:30.187Z",
+    "__v": 10
+  },
+  {
+    "_id": "69cfb47956bab89431e144bd",
+    "name": "Hot Shotz 8u",
+    "logo": "/api/uploads/1775236178367-3x83om.jpeg",
+    "description": "",
+    "division": "",
+    "location": {
+      "stateName": "Arizona",
+      "stateAbbr": "AZ",
+      "countyName": "Yavapai",
+      "cityName": "Cottonwood"
+    },
+    "coachName": "Javier Anguiano",
+    "coachPhone": "",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "season": "69cf34cf268fc7ba310d2921",
+    "league": "69cf3539268fc7ba310d2936",
+    "players": [
+      {
+        "player": "69cf35e6268fc7ba310d2aac",
+        "jerseyNumber": 1,
+        "_id": "69cff455ccfed4a4830945fc"
+      },
+      {
+        "player": "69cf35e4268fc7ba310d2a9c",
+        "jerseyNumber": 3,
+        "_id": "69cff455ccfed4a4830945fd"
+      },
+      {
+        "player": "69cf35e5268fc7ba310d2aa4",
+        "jerseyNumber": 5,
+        "_id": "69cff455ccfed4a4830945fe"
+      },
+      {
+        "player": "69cf35e6268fc7ba310d2ab0",
+        "jerseyNumber": 7,
+        "_id": "69cff455ccfed4a4830945ff"
+      },
+      {
+        "player": "69cf35e4268fc7ba310d2aa0",
+        "jerseyNumber": 27,
+        "_id": "69cff455ccfed4a483094600"
+      },
+      {
+        "player": "69cf35e7268fc7ba310d2ab4",
+        "jerseyNumber": 33,
+        "_id": "69cff455ccfed4a483094601"
+      },
+      {
+        "player": "69cf35e7268fc7ba310d2ab8",
+        "jerseyNumber": 36,
+        "_id": "69cff455ccfed4a483094602"
+      },
+      {
+        "player": "69cf6cae268fc7ba310d5d39",
+        "jerseyNumber": 42,
+        "_id": "69cff455ccfed4a483094603"
+      },
+      {
+        "player": "69cf35e5268fc7ba310d2aa8",
+        "jerseyNumber": 16,
+        "_id": "69cff455ccfed4a483094604"
+      },
+      {
+        "player": "69cfd91748b355f7c13850cd",
+        "jerseyNumber": 81,
+        "_id": "69cff455ccfed4a483094605"
+      }
+    ],
+    "createdAt": "2026-04-03T12:37:13.001Z",
+    "updatedAt": "2026-04-03T17:09:41.935Z",
+    "__v": 11
+  },
+  {
+    "_id": "69cfb47956bab89431e144bf",
+    "name": "Lil Rascals 8u",
+    "logo": "/api/uploads/1775236610144-wcc285.jpeg",
+    "description": "",
+    "division": "",
+    "location": {
+      "stateName": "Arizona",
+      "stateAbbr": "AZ",
+      "countyName": "Yavapai",
+      "cityName": "Cottonwood"
+    },
+    "coachName": "Jesus Quiroz",
+    "coachPhone": "",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "season": "69cf34cf268fc7ba310d2921",
+    "league": "69cf3539268fc7ba310d2936",
+    "players": [
+      {
+        "player": "69cf35e9268fc7ba310d2ac4",
+        "jerseyNumber": 1,
+        "_id": "69cff604ccfed4a4830948ce"
+      },
+      {
+        "player": "69cf35ea268fc7ba310d2ad4",
+        "jerseyNumber": 3,
+        "_id": "69cff604ccfed4a4830948cf"
+      },
+      {
+        "player": "69cf6ca5268fc7ba310d5cba",
+        "jerseyNumber": 5,
+        "_id": "69cff604ccfed4a4830948d0"
+      },
+      {
+        "player": "69cf35e9268fc7ba310d2ac8",
+        "jerseyNumber": 7,
+        "_id": "69cff604ccfed4a4830948d1"
+      },
+      {
+        "player": "69cf35ea268fc7ba310d2ad0",
+        "jerseyNumber": 16,
+        "_id": "69cff604ccfed4a4830948d2"
+      },
+      {
+        "player": "69cf35eb268fc7ba310d2ad8",
+        "jerseyNumber": 27,
+        "_id": "69cff604ccfed4a4830948d3"
+      },
+      {
+        "player": "69cf6ca9268fc7ba310d5ceb",
+        "jerseyNumber": 33,
+        "_id": "69cff604ccfed4a4830948d4"
+      },
+      {
+        "player": "69cf35e8268fc7ba310d2abc",
+        "jerseyNumber": 36,
+        "_id": "69cff604ccfed4a4830948d5"
+      },
+      {
+        "player": "69cf35e8268fc7ba310d2ac0",
+        "jerseyNumber": 42,
+        "_id": "69cff604ccfed4a4830948d6"
+      },
+      {
+        "player": "69cf35e9268fc7ba310d2acc",
+        "jerseyNumber": 81,
+        "_id": "69cff604ccfed4a4830948d7"
+      }
+    ],
+    "createdAt": "2026-04-03T12:37:13.152Z",
+    "updatedAt": "2026-04-03T17:16:52.848Z",
+    "__v": 5
+  },
+  {
+    "_id": "69cfb47956bab89431e144c1",
+    "name": "Blue Heat 8u",
+    "logo": "/api/uploads/1775235837837-9p2k93.jpeg",
+    "description": "",
+    "division": "",
+    "location": {
+      "stateName": "Arizona",
+      "stateAbbr": "AZ",
+      "countyName": "Yavapai",
+      "cityName": "Cottonwood"
+    },
+    "coachName": "Victor Tautimer",
+    "coachPhone": "",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "season": "69cf34cf268fc7ba310d2921",
+    "league": "69cf3539268fc7ba310d2936",
+    "players": [
+      {
+        "player": "69cf35c9268fc7ba310d29a4",
+        "jerseyNumber": 1,
+        "_id": "69cff303ccfed4a483094488"
+      },
+      {
+        "player": "69cf35c7268fc7ba310d2990",
+        "jerseyNumber": 3,
+        "_id": "69cff303ccfed4a483094489"
+      },
+      {
+        "player": "69cf35c8268fc7ba310d2998",
+        "jerseyNumber": 5,
+        "_id": "69cff303ccfed4a48309448a"
+      },
+      {
+        "player": "69cf35c6268fc7ba310d298c",
+        "jerseyNumber": 7,
+        "_id": "69cff303ccfed4a48309448b"
+      },
+      {
+        "player": "69cf35c8268fc7ba310d299c",
+        "jerseyNumber": 16,
+        "_id": "69cff303ccfed4a48309448c"
+      },
+      {
+        "player": "69cf35c8268fc7ba310d29a0",
+        "jerseyNumber": 27,
+        "_id": "69cff303ccfed4a48309448d"
+      },
+      {
+        "player": "69cf35c5268fc7ba310d2984",
+        "jerseyNumber": 33,
+        "_id": "69cff303ccfed4a48309448e"
+      },
+      {
+        "player": "69cf35c7268fc7ba310d2994",
+        "jerseyNumber": 36,
+        "_id": "69cff303ccfed4a48309448f"
+      },
+      {
+        "player": "69cf35c6268fc7ba310d2988",
+        "jerseyNumber": 42,
+        "_id": "69cff303ccfed4a483094490"
+      },
+      {
+        "player": "69cfd94e48b355f7c13850e3",
+        "jerseyNumber": 81,
+        "_id": "69cff303ccfed4a483094491"
+      }
+    ],
+    "createdAt": "2026-04-03T12:37:13.316Z",
+    "updatedAt": "2026-04-03T17:04:03.800Z",
+    "__v": 3
+  },
+  {
+    "_id": "69cfb47956bab89431e144c3",
+    "name": "Nightcrawlers 8u",
+    "logo": "/api/uploads/1775236241305-z4fhf2.jpeg",
+    "description": "",
+    "division": "",
+    "location": {
+      "stateName": "Arizona",
+      "stateAbbr": "AZ",
+      "countyName": "Yavapai",
+      "cityName": "Cottonwood"
+    },
+    "coachName": "Corey Anderson",
+    "coachPhone": "",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "season": "69cf34cf268fc7ba310d2921",
+    "league": "69cf3539268fc7ba310d2936",
+    "players": [
+      {
+        "player": "69cf35f0268fc7ba310d2b04",
+        "jerseyNumber": 1,
+        "_id": "69cff494ccfed4a483094669"
+      },
+      {
+        "player": "69cf35f1268fc7ba310d2b10",
+        "jerseyNumber": 5,
+        "_id": "69cff494ccfed4a48309466a"
+      },
+      {
+        "player": "69cf35f2268fc7ba310d2b14",
+        "jerseyNumber": 7,
+        "_id": "69cff494ccfed4a48309466b"
+      },
+      {
+        "player": "69cf35f1268fc7ba310d2b0c",
+        "jerseyNumber": 16,
+        "_id": "69cff494ccfed4a48309466c"
+      },
+      {
+        "player": "69cf6ca4268fc7ba310d5cac",
+        "jerseyNumber": 27,
+        "_id": "69cff494ccfed4a48309466d"
+      },
+      {
+        "player": "69cf35f0268fc7ba310d2b08",
+        "jerseyNumber": 33,
+        "_id": "69cff494ccfed4a48309466e"
+      },
+      {
+        "player": "69cf6c9c268fc7ba310d5c2c",
+        "jerseyNumber": 3,
+        "_id": "69cff494ccfed4a48309466f"
+      },
+      {
+        "player": "69cf35ef268fc7ba310d2b00",
+        "jerseyNumber": 36,
+        "_id": "69cff494ccfed4a483094670"
+      },
+      {
+        "player": "69cf6cad268fc7ba310d5d2b",
+        "jerseyNumber": 42,
+        "_id": "69cff494ccfed4a483094671"
+      }
+    ],
+    "createdAt": "2026-04-03T12:37:13.465Z",
+    "updatedAt": "2026-04-03T17:10:44.228Z",
+    "__v": 2
+  },
+  {
+    "_id": "69cfb47956bab89431e144c5",
+    "name": "Gridiron Goons 10u",
+    "logo": "/api/uploads/1775236134297-xribll.jpeg",
+    "description": "",
+    "division": "",
+    "location": {
+      "stateName": "Arizona",
+      "stateAbbr": "AZ",
+      "countyName": "Yavapai",
+      "cityName": "Cottonwood"
+    },
+    "coachName": "Brandon Cordova",
+    "coachPhone": "",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "season": "69cf34cf268fc7ba310d2921",
+    "league": "69cf355a268fc7ba310d2946",
+    "players": [
+      {
+        "player": "69cf35dd268fc7ba310d2a60",
+        "jerseyNumber": 36,
+        "_id": "69cff429ccfed4a4830945a0"
+      },
+      {
+        "player": "69cf6cab268fc7ba310d5d16",
+        "jerseyNumber": 81,
+        "_id": "69cff429ccfed4a4830945a1"
+      },
+      {
+        "player": "69cf35df268fc7ba310d2a6c",
+        "jerseyNumber": 42,
+        "_id": "69cff429ccfed4a4830945a2"
+      },
+      {
+        "player": "69cf35e0268fc7ba310d2a74",
+        "jerseyNumber": 33,
+        "_id": "69cff429ccfed4a4830945a3"
+      },
+      {
+        "player": "69cf35de268fc7ba310d2a68",
+        "jerseyNumber": 27,
+        "_id": "69cff429ccfed4a4830945a4"
+      },
+      {
+        "player": "69cf35dc268fc7ba310d2a58",
+        "jerseyNumber": 16,
+        "_id": "69cff429ccfed4a4830945a5"
+      },
+      {
+        "player": "69cf6cae268fc7ba310d5d47",
+        "jerseyNumber": 7,
+        "_id": "69cff429ccfed4a4830945a6"
+      },
+      {
+        "player": "69cf35dd268fc7ba310d2a5c",
+        "jerseyNumber": 5,
+        "_id": "69cff429ccfed4a4830945a7"
+      },
+      {
+        "player": "69cf35de268fc7ba310d2a64",
+        "jerseyNumber": 1,
+        "_id": "69cff429ccfed4a4830945a8"
+      },
+      {
+        "player": "69cf35df268fc7ba310d2a70",
+        "jerseyNumber": 3,
+        "_id": "69cff429ccfed4a4830945a9"
+      }
+    ],
+    "createdAt": "2026-04-03T12:37:13.615Z",
+    "updatedAt": "2026-04-03T17:08:57.162Z",
+    "__v": 4
+  },
+  {
+    "_id": "69cfb47956bab89431e144c7",
+    "name": "Scallywags 10u",
+    "logo": "/api/uploads/1775236364327-uib47e.jpeg",
+    "description": "",
+    "division": "",
+    "location": {
+      "stateName": "Arizona",
+      "stateAbbr": "AZ",
+      "countyName": "Yavapai",
+      "cityName": "Cottonwood"
+    },
+    "coachName": "Diego Apodaca",
+    "coachPhone": "",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "season": "69cf34cf268fc7ba310d2921",
+    "league": "69cf355a268fc7ba310d2946",
+    "players": [
+      {
+        "player": "69cf3603268fc7ba310d2bac",
+        "jerseyNumber": 1,
+        "_id": "69cff50fccfed4a48309476d"
+      },
+      {
+        "player": "69cf3602268fc7ba310d2ba8",
+        "jerseyNumber": 3,
+        "_id": "69cff50fccfed4a48309476e"
+      },
+      {
+        "player": "69cf3602268fc7ba310d2ba4",
+        "jerseyNumber": 5,
+        "_id": "69cff50fccfed4a48309476f"
+      },
+      {
+        "player": "69cf3604268fc7ba310d2bb4",
+        "jerseyNumber": 7,
+        "_id": "69cff50fccfed4a483094770"
+      },
+      {
+        "player": "69cf6c9f268fc7ba310d5c57",
+        "jerseyNumber": 1.6,
+        "_id": "69cff50fccfed4a483094771"
+      },
+      {
+        "player": "69cf6ca9268fc7ba310d5cf9",
+        "jerseyNumber": 27,
+        "_id": "69cff50fccfed4a483094772"
+      },
+      {
+        "player": "69cf3601268fc7ba310d2ba0",
+        "jerseyNumber": 36,
+        "_id": "69cff50fccfed4a483094774"
+      },
+      {
+        "player": "69cf6ca3268fc7ba310d5c96",
+        "jerseyNumber": 42,
+        "_id": "69cff50fccfed4a483094775"
+      },
+      {
+        "player": "69cf3603268fc7ba310d2bb0",
+        "jerseyNumber": 81,
+        "_id": "69cff50fccfed4a483094776"
+      },
+      {
+        "player": "69cf6ca1268fc7ba310d5c7a",
+        "jerseyNumber": 33,
+        "_id": "69d098f95ddf1aa03396101b"
+      }
+    ],
+    "createdAt": "2026-04-03T12:37:13.764Z",
+    "updatedAt": "2026-04-04T04:52:09.046Z",
+    "__v": 2
+  },
+  {
+    "_id": "69cfb47956bab89431e144c9",
+    "name": "Renegades 10u",
+    "logo": "/api/uploads/1775236329728-8ti06l.jpeg",
+    "description": "",
+    "division": "",
+    "location": {
+      "stateName": "Arizona",
+      "stateAbbr": "AZ",
+      "countyName": "Yavapai",
+      "cityName": "Cottonwood"
+    },
+    "coachName": "Joe Markham",
+    "coachPhone": "",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "season": "69cf34cf268fc7ba310d2921",
+    "league": "69cf355a268fc7ba310d2946",
+    "players": [
+      {
+        "player": "69cf6ca7268fc7ba310d5cd6",
+        "jerseyNumber": 1,
+        "_id": "69cff4ecccfed4a483094714"
+      },
+      {
+        "player": "69cf35fc268fc7ba310d2b70",
+        "jerseyNumber": 3,
+        "_id": "69cff4ecccfed4a483094715"
+      },
+      {
+        "player": "69cf35fc268fc7ba310d2b74",
+        "jerseyNumber": 7,
+        "_id": "69cff4ecccfed4a483094716"
+      },
+      {
+        "player": "69cf35fb268fc7ba310d2b68",
+        "jerseyNumber": 5,
+        "_id": "69cff4ecccfed4a483094717"
+      },
+      {
+        "player": "69cf35fb268fc7ba310d2b64",
+        "jerseyNumber": 16,
+        "_id": "69cff4ecccfed4a483094718"
+      },
+      {
+        "player": "69cf35fd268fc7ba310d2b78",
+        "jerseyNumber": 27,
+        "_id": "69cff4ecccfed4a483094719"
+      },
+      {
+        "player": "69cf6ca0268fc7ba310d5c5e",
+        "jerseyNumber": 33,
+        "_id": "69cff4ecccfed4a48309471a"
+      },
+      {
+        "player": "69cf35fd268fc7ba310d2b7c",
+        "jerseyNumber": 36,
+        "_id": "69cff4ecccfed4a48309471b"
+      },
+      {
+        "player": "69cf35fc268fc7ba310d2b6c",
+        "jerseyNumber": 42,
+        "_id": "69cff4ecccfed4a48309471c"
+      },
+      {
+        "player": "69cf6cac268fc7ba310d5d24",
+        "jerseyNumber": 81,
+        "_id": "69cff4ecccfed4a48309471d"
+      }
+    ],
+    "createdAt": "2026-04-03T12:37:13.914Z",
+    "updatedAt": "2026-04-03T17:12:12.738Z",
+    "__v": 2
+  },
+  {
+    "_id": "69cfb47a56bab89431e144cb",
+    "name": "Pick 6 Mafia 10u",
+    "logo": "/api/uploads/1775236626081-apcu5u.jpg",
+    "description": "",
+    "division": "",
+    "location": {
+      "stateName": "Arizona",
+      "stateAbbr": "AZ",
+      "countyName": "Yavapai",
+      "cityName": "Cottonwood"
+    },
+    "coachName": "Jessie Mendez",
+    "coachPhone": "",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "season": "69cf34cf268fc7ba310d2921",
+    "league": "69cf355a268fc7ba310d2946",
+    "players": [
+      {
+        "player": "69cf35f5268fc7ba310d2b30",
+        "jerseyNumber": 1,
+        "_id": "69d101bf083d018f6ea73754"
+      },
+      {
+        "player": "69cf6ca9268fc7ba310d5cf2",
+        "jerseyNumber": 7,
+        "_id": "69d101bf083d018f6ea73755"
+      },
+      {
+        "player": "69cf35f3268fc7ba310d2b20",
+        "jerseyNumber": 3,
+        "_id": "69d101bf083d018f6ea73756"
+      },
+      {
+        "player": "69cf35f3268fc7ba310d2b24",
+        "jerseyNumber": 81,
+        "_id": "69d101bf083d018f6ea73757"
+      },
+      {
+        "player": "69cf35f4268fc7ba310d2b2c",
+        "jerseyNumber": 5,
+        "_id": "69d101bf083d018f6ea73758"
+      },
+      {
+        "player": "69cf6ca3268fc7ba310d5c8f",
+        "jerseyNumber": 16,
+        "_id": "69d101bf083d018f6ea73759"
+      },
+      {
+        "player": "69cf35f4268fc7ba310d2b28",
+        "jerseyNumber": 27,
+        "_id": "69d101bf083d018f6ea7375a"
+      },
+      {
+        "player": "69cf35f2268fc7ba310d2b1c",
+        "jerseyNumber": 42,
+        "_id": "69d101bf083d018f6ea7375b"
+      },
+      {
+        "player": "69cf35f2268fc7ba310d2b18",
+        "jerseyNumber": 36,
+        "_id": "69d101bf083d018f6ea7375c"
+      },
+      {
+        "player": "69cff57dccfed4a483094844",
+        "jerseyNumber": 33,
+        "_id": "69d101e2083d018f6ea73791"
+      }
+    ],
+    "createdAt": "2026-04-03T12:37:14.063Z",
+    "updatedAt": "2026-04-04T12:19:46.339Z",
+    "__v": 3
+  },
+  {
+    "_id": "69cfb47a56bab89431e144cd",
+    "name": "Mayhem 10u",
+    "logo": "/api/uploads/1775236226360-70450y.jpeg",
+    "description": "",
+    "division": "",
+    "location": {
+      "stateName": "Arizona",
+      "stateAbbr": "AZ",
+      "countyName": "Yavapai",
+      "cityName": "Cottonwood"
+    },
+    "coachName": "Jason Riley",
+    "coachPhone": "",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "season": "69cf34cf268fc7ba310d2921",
+    "league": "69cf355a268fc7ba310d2946",
+    "players": [
+      {
+        "player": "69cf35ee268fc7ba310d2af8",
+        "jerseyNumber": 1,
+        "_id": "69cff485ccfed4a483094638"
+      },
+      {
+        "player": "69cf35ee268fc7ba310d2af4",
+        "jerseyNumber": 3,
+        "_id": "69cff485ccfed4a483094639"
+      },
+      {
+        "player": "69cf35ed268fc7ba310d2af0",
+        "jerseyNumber": 5,
+        "_id": "69cff485ccfed4a48309463a"
+      },
+      {
+        "player": "69cf35ed268fc7ba310d2ae8",
+        "jerseyNumber": 7,
+        "_id": "69cff485ccfed4a48309463b"
+      },
+      {
+        "player": "69cf35ec268fc7ba310d2ae0",
+        "jerseyNumber": 16,
+        "_id": "69cff485ccfed4a48309463c"
+      },
+      {
+        "player": "69cf6ca6268fc7ba310d5cc8",
+        "jerseyNumber": 27,
+        "_id": "69cff485ccfed4a48309463d"
+      },
+      {
+        "player": "69cf35eb268fc7ba310d2adc",
+        "jerseyNumber": 81,
+        "_id": "69cff485ccfed4a48309463e"
+      },
+      {
+        "player": "69cf35ef268fc7ba310d2afc",
+        "jerseyNumber": 36,
+        "_id": "69cff485ccfed4a48309463f"
+      },
+      {
+        "player": "69cf35ec268fc7ba310d2ae4",
+        "jerseyNumber": 42,
+        "_id": "69cff485ccfed4a483094640"
+      },
+      {
+        "player": "69cf35ed268fc7ba310d2aec",
+        "jerseyNumber": 33,
+        "_id": "69cff485ccfed4a483094641"
+      }
+    ],
+    "createdAt": "2026-04-03T12:37:14.214Z",
+    "updatedAt": "2026-04-03T17:10:29.513Z",
+    "__v": 2
+  },
+  {
+    "_id": "69cfb47a56bab89431e144cf",
+    "name": "Cardinals 12u",
+    "logo": "/api/uploads/1775278088375-ld5uj9.jpg",
+    "description": "",
+    "division": "",
+    "location": {
+      "stateName": "Arizona",
+      "stateAbbr": "AZ",
+      "countyName": "Yavapai",
+      "cityName": "Cottonwood"
+    },
+    "coachName": "Jesus Quiroz",
+    "coachPhone": "",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "season": "69cf34cf268fc7ba310d2921",
+    "league": "69cf3578268fc7ba310d2956",
+    "players": [
+      {
+        "player": "69cf35d3268fc7ba310d29fc",
+        "jerseyNumber": 3,
+        "_id": "69d0980f5ddf1aa033960fab"
+      },
+      {
+        "player": "69cf35d5268fc7ba310d2a0c",
+        "jerseyNumber": 5,
+        "_id": "69d0980f5ddf1aa033960fac"
+      },
+      {
+        "player": "69cf6ca5268fc7ba310d5cb3",
+        "jerseyNumber": 81,
+        "_id": "69d0980f5ddf1aa033960fad"
+      },
+      {
+        "player": "69cf35d4268fc7ba310d2a08",
+        "jerseyNumber": 7,
+        "_id": "69d0980f5ddf1aa033960fae"
+      },
+      {
+        "player": "69cf35d4268fc7ba310d2a04",
+        "jerseyNumber": 16,
+        "_id": "69d0980f5ddf1aa033960faf"
+      },
+      {
+        "player": "69cf35d2268fc7ba310d29f4",
+        "jerseyNumber": 27,
+        "_id": "69d0980f5ddf1aa033960fb0"
+      },
+      {
+        "player": "69cf35d3268fc7ba310d2a00",
+        "jerseyNumber": 33,
+        "_id": "69d0980f5ddf1aa033960fb1"
+      },
+      {
+        "player": "69cf35d5268fc7ba310d2a10",
+        "jerseyNumber": 1,
+        "_id": "69d0980f5ddf1aa033960fb2"
+      },
+      {
+        "player": "69cf6caa268fc7ba310d5d01",
+        "jerseyNumber": 36,
+        "_id": "69d0980f5ddf1aa033960fb3"
+      },
+      {
+        "player": "69cf35d2268fc7ba310d29f8",
+        "jerseyNumber": 42,
+        "_id": "69d0980f5ddf1aa033960fb4"
+      }
+    ],
+    "createdAt": "2026-04-03T12:37:14.363Z",
+    "updatedAt": "2026-04-04T04:48:15.798Z",
+    "__v": 2
+  },
+  {
+    "_id": "69cfb47a56bab89431e144d1",
+    "name": "Powerhouse 12u",
+    "logo": "/api/uploads/1775236287325-bkexlt.jpeg",
+    "description": "",
+    "division": "",
+    "location": {
+      "stateName": "Arizona",
+      "stateAbbr": "AZ",
+      "countyName": "Yavapai",
+      "cityName": "Cottonwood"
+    },
+    "coachName": "Rod James",
+    "coachPhone": "",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "season": "69cf34cf268fc7ba310d2921",
+    "league": "69cf3578268fc7ba310d2956",
+    "players": [
+      {
+        "player": "69cf35f7268fc7ba310d2b40",
+        "jerseyNumber": 3,
+        "_id": "69cff4c2ccfed4a4830946a7"
+      },
+      {
+        "player": "69cf6caf268fc7ba310d5d4f",
+        "jerseyNumber": 5,
+        "_id": "69cff4c2ccfed4a4830946a8"
+      },
+      {
+        "player": "69cf6caa268fc7ba310d5d08",
+        "jerseyNumber": 1,
+        "_id": "69cff4c2ccfed4a4830946a9"
+      },
+      {
+        "player": "69cf35f7268fc7ba310d2b48",
+        "jerseyNumber": 7,
+        "_id": "69cff4c2ccfed4a4830946aa"
+      },
+      {
+        "player": "69cf35f6268fc7ba310d2b3c",
+        "jerseyNumber": 16,
+        "_id": "69cff4c2ccfed4a4830946ab"
+      },
+      {
+        "player": "69cf6ca6268fc7ba310d5cc1",
+        "jerseyNumber": 27,
+        "_id": "69cff4c2ccfed4a4830946ac"
+      },
+      {
+        "player": "69cf35f5268fc7ba310d2b34",
+        "jerseyNumber": 33,
+        "_id": "69cff4c2ccfed4a4830946ad"
+      },
+      {
+        "player": "69cf35f6268fc7ba310d2b38",
+        "jerseyNumber": 36,
+        "_id": "69cff4c2ccfed4a4830946ae"
+      },
+      {
+        "player": "69cf35f7268fc7ba310d2b44",
+        "jerseyNumber": 42,
+        "_id": "69cff4c2ccfed4a4830946af"
+      },
+      {
+        "player": "69cf6ca2268fc7ba310d5c88",
+        "jerseyNumber": 81,
+        "_id": "69cff4c2ccfed4a4830946b0"
+      }
+    ],
+    "createdAt": "2026-04-03T12:37:14.514Z",
+    "updatedAt": "2026-04-03T17:11:30.776Z",
+    "__v": 2
+  },
+  {
+    "_id": "69cfb47a56bab89431e144d3",
+    "name": "Hawkeyes 12u",
+    "logo": "/api/uploads/1775236148588-nw9325.jpeg",
+    "description": "",
+    "division": "",
+    "location": {
+      "stateName": "Arizona",
+      "stateAbbr": "AZ",
+      "countyName": "Yavapai",
+      "cityName": "Cottonwood"
+    },
+    "coachName": "Robert Trujillo",
+    "coachPhone": "",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "season": "69cf34cf268fc7ba310d2921",
+    "league": "69cf3578268fc7ba310d2956",
+    "players": [
+      {
+        "player": "69cf35e0268fc7ba310d2a78",
+        "jerseyNumber": 1,
+        "_id": "69cff437ccfed4a4830945ce"
+      },
+      {
+        "player": "69cf35e2268fc7ba310d2a8c",
+        "jerseyNumber": 3,
+        "_id": "69cff437ccfed4a4830945cf"
+      },
+      {
+        "player": "69cf35e4268fc7ba310d2a98",
+        "jerseyNumber": 7,
+        "_id": "69cff437ccfed4a4830945d0"
+      },
+      {
+        "player": "69cf35e2268fc7ba310d2a88",
+        "jerseyNumber": 16,
+        "_id": "69cff437ccfed4a4830945d1"
+      },
+      {
+        "player": "69cf35e3268fc7ba310d2a94",
+        "jerseyNumber": 5,
+        "_id": "69cff437ccfed4a4830945d2"
+      },
+      {
+        "player": "69cf35e0268fc7ba310d2a7c",
+        "jerseyNumber": 27,
+        "_id": "69cff437ccfed4a4830945d3"
+      },
+      {
+        "player": "69cf35e1268fc7ba310d2a80",
+        "jerseyNumber": 33,
+        "_id": "69cff437ccfed4a4830945d4"
+      },
+      {
+        "player": "69cf35e3268fc7ba310d2a90",
+        "jerseyNumber": 36,
+        "_id": "69cff437ccfed4a4830945d5"
+      },
+      {
+        "player": "69cf6ca8268fc7ba310d5cdd",
+        "jerseyNumber": 42,
+        "_id": "69cff437ccfed4a4830945d6"
+      },
+      {
+        "player": "69cf35e1268fc7ba310d2a84",
+        "jerseyNumber": 81,
+        "_id": "69cff437ccfed4a4830945d7"
+      }
+    ],
+    "createdAt": "2026-04-03T12:37:14.664Z",
+    "updatedAt": "2026-04-03T17:09:11.547Z",
+    "__v": 2
+  },
+  {
+    "_id": "69cfb47a56bab89431e144d5",
+    "name": "Scallywags 12u",
+    "logo": "/api/uploads/1775236386238-6t22dh.jpeg",
+    "description": "",
+    "division": "",
+    "location": {
+      "stateName": "Arizona",
+      "stateAbbr": "AZ",
+      "countyName": "Yavapai",
+      "cityName": "Cottonwood"
+    },
+    "coachName": "Diego Apodaca",
+    "coachPhone": "",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "season": "69cf34cf268fc7ba310d2921",
+    "league": "69cf3578268fc7ba310d2956",
+    "players": [
+      {
+        "player": "69cf3604268fc7ba310d2bb8",
+        "jerseyNumber": 1,
+        "_id": "69cff526ccfed4a4830947af"
+      },
+      {
+        "player": "69cf6c9c268fc7ba310d5c25",
+        "jerseyNumber": 5,
+        "_id": "69cff526ccfed4a4830947b0"
+      },
+      {
+        "player": "69cf3605268fc7ba310d2bbc",
+        "jerseyNumber": 16,
+        "_id": "69cff526ccfed4a4830947b2"
+      },
+      {
+        "player": "69cf3606268fc7ba310d2bcc",
+        "jerseyNumber": 27,
+        "_id": "69cff526ccfed4a4830947b3"
+      },
+      {
+        "player": "69cf3606268fc7ba310d2bc8",
+        "jerseyNumber": 33,
+        "_id": "69cff526ccfed4a4830947b4"
+      },
+      {
+        "player": "69cf6c9d268fc7ba310d5c33",
+        "jerseyNumber": 36,
+        "_id": "69cff526ccfed4a4830947b5"
+      },
+      {
+        "player": "69cf3605268fc7ba310d2bc4",
+        "jerseyNumber": 42,
+        "_id": "69cff526ccfed4a4830947b6"
+      },
+      {
+        "player": "69cf3607268fc7ba310d2bd0",
+        "jerseyNumber": 81,
+        "_id": "69cff526ccfed4a4830947b7"
+      },
+      {
+        "player": "69cf3605268fc7ba310d2bc0",
+        "jerseyNumber": 3,
+        "_id": "69cff526ccfed4a4830947b8"
+      },
+      {
+        "player": "69cf6ca2268fc7ba310d5c81",
+        "jerseyNumber": 7,
+        "_id": "69d0948c5ddf1aa033960eb1"
+      }
+    ],
+    "createdAt": "2026-04-03T12:37:14.813Z",
+    "updatedAt": "2026-04-04T04:33:16.306Z",
+    "__v": 2
+  },
+  {
+    "_id": "69cfb47a56bab89431e144d7",
+    "name": "Zombies 12u",
+    "logo": "/api/uploads/1775236406225-2q4qmz.jpeg",
+    "description": "",
+    "division": "",
+    "location": {
+      "stateName": "Arizona",
+      "stateAbbr": "AZ",
+      "countyName": "Yavapai",
+      "cityName": "Cottonwood"
+    },
+    "coachName": "Daniel Davila",
+    "coachPhone": "",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "season": "69cf34cf268fc7ba310d2921",
+    "league": "69cf359b268fc7ba310d2966",
+    "players": [
+      {
+        "player": "69cf3607268fc7ba310d2bd4",
+        "jerseyNumber": 1,
+        "_id": "69cff53bccfed4a4830947ea"
+      },
+      {
+        "player": "69cf6cb0268fc7ba310d5d5d",
+        "jerseyNumber": 3,
+        "_id": "69cff53bccfed4a4830947ed"
+      },
+      {
+        "player": "69cf3609268fc7ba310d2be0",
+        "jerseyNumber": 5,
+        "_id": "69cff53bccfed4a4830947ee"
+      },
+      {
+        "player": "69cf3608268fc7ba310d2bd8",
+        "jerseyNumber": 7,
+        "_id": "69cff53bccfed4a4830947ef"
+      },
+      {
+        "player": "69cf3609268fc7ba310d2be4",
+        "jerseyNumber": 16,
+        "_id": "69cff53bccfed4a4830947f0"
+      },
+      {
+        "player": "69cf6cac268fc7ba310d5d1d",
+        "jerseyNumber": 27,
+        "_id": "69cff53bccfed4a4830947f1"
+      },
+      {
+        "player": "69cf3608268fc7ba310d2bdc",
+        "jerseyNumber": 33,
+        "_id": "69cff53bccfed4a4830947f2"
+      },
+      {
+        "player": "69cf6c9e268fc7ba310d5c41",
+        "jerseyNumber": 82,
+        "_id": "69d094f75ddf1aa033960efb"
+      },
+      {
+        "player": "69cf6ca0268fc7ba310d5c65",
+        "jerseyNumber": 36,
+        "_id": "69d098725ddf1aa033960fe7"
+      },
+      {
+        "player": "69cf6ca0268fc7ba310d5c6c",
+        "jerseyNumber": 42,
+        "_id": "69d098ba5ddf1aa033961001"
+      }
+    ],
+    "createdAt": "2026-04-03T12:37:14.963Z",
+    "updatedAt": "2026-04-04T04:51:06.630Z",
+    "__v": 2
+  },
+  {
+    "_id": "69cfb47b56bab89431e144d9",
+    "name": "Crimson Eclipse 12u",
+    "logo": "/api/uploads/1775236114302-dh3de9.jpeg",
+    "description": "",
+    "division": "",
+    "location": {
+      "stateName": "Arizona",
+      "stateAbbr": "AZ",
+      "countyName": "Yavapai",
+      "cityName": "Cottonwood"
+    },
+    "coachName": "Kevin Wheeler",
+    "coachPhone": "",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "season": "69cf34cf268fc7ba310d2921",
+    "league": "69cf359b268fc7ba310d2966",
+    "players": [
+      {
+        "player": "69cf35d6268fc7ba310d2a14",
+        "jerseyNumber": 1,
+        "_id": "69cff416ccfed4a48309456d"
+      },
+      {
+        "player": "69cf6c9b268fc7ba310d5c17",
+        "jerseyNumber": 3,
+        "_id": "69cff416ccfed4a48309456e"
+      },
+      {
+        "player": "69cf35d9268fc7ba310d2a34",
+        "jerseyNumber": 5,
+        "_id": "69cff416ccfed4a48309456f"
+      },
+      {
+        "player": "69cf35d8268fc7ba310d2a28",
+        "jerseyNumber": 7,
+        "_id": "69cff416ccfed4a483094570"
+      },
+      {
+        "player": "69cf35d6268fc7ba310d2a1c",
+        "jerseyNumber": 36,
+        "_id": "69cff416ccfed4a483094571"
+      },
+      {
+        "player": "69cf35d8268fc7ba310d2a2c",
+        "jerseyNumber": 16,
+        "_id": "69cff416ccfed4a483094572"
+      },
+      {
+        "player": "69cf35d7268fc7ba310d2a20",
+        "jerseyNumber": 27,
+        "_id": "69cff416ccfed4a483094573"
+      },
+      {
+        "player": "69cf35d7268fc7ba310d2a24",
+        "jerseyNumber": 33,
+        "_id": "69cff416ccfed4a483094574"
+      },
+      {
+        "player": "69cf35d6268fc7ba310d2a18",
+        "jerseyNumber": 42,
+        "_id": "69cff416ccfed4a483094575"
+      },
+      {
+        "player": "69cf35d9268fc7ba310d2a30",
+        "jerseyNumber": 81,
+        "_id": "69cff416ccfed4a483094576"
+      }
+    ],
+    "createdAt": "2026-04-03T12:37:15.113Z",
+    "updatedAt": "2026-04-03T17:08:38.249Z",
+    "__v": 2
+  },
+  {
+    "_id": "69cfb47b56bab89431e144db",
+    "name": "Powerhouse 14u",
+    "logo": "/api/uploads/1775236306615-12bnr4.jpeg",
+    "description": "",
+    "division": "",
+    "location": {
+      "stateName": "Arizona",
+      "stateAbbr": "AZ",
+      "countyName": "Yavapai",
+      "cityName": "Cottonwood"
+    },
+    "coachName": "Rod James",
+    "coachPhone": "",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "season": "69cf34cf268fc7ba310d2921",
+    "league": "69cf359b268fc7ba310d2966",
+    "players": [
+      {
+        "player": "69cf6cab268fc7ba310d5d0f",
+        "jerseyNumber": 3,
+        "_id": "69cfffefccfed4a483094bb6"
+      },
+      {
+        "player": "69cf6c9b268fc7ba310d5c1e",
+        "jerseyNumber": 81,
+        "_id": "69cfffefccfed4a483094bb7"
+      },
+      {
+        "player": "69cf35fa268fc7ba310d2b60",
+        "jerseyNumber": 36,
+        "_id": "69cfffefccfed4a483094bb8"
+      },
+      {
+        "player": "69cf6ca7268fc7ba310d5ccf",
+        "jerseyNumber": 16,
+        "_id": "69cfffefccfed4a483094bb9"
+      },
+      {
+        "player": "69cf35f9268fc7ba310d2b58",
+        "jerseyNumber": 27,
+        "_id": "69cfffefccfed4a483094bba"
+      },
+      {
+        "player": "69cf35fa268fc7ba310d2b5c",
+        "jerseyNumber": 33,
+        "_id": "69cfffefccfed4a483094bbb"
+      },
+      {
+        "player": "69cf35f8268fc7ba310d2b50",
+        "jerseyNumber": 42,
+        "_id": "69cfffefccfed4a483094bbc"
+      },
+      {
+        "player": "69cf35f9268fc7ba310d2b54",
+        "jerseyNumber": 5,
+        "_id": "69d092f05ddf1aa033960deb"
+      },
+      {
+        "player": "69cf35f8268fc7ba310d2b4c",
+        "jerseyNumber": 7,
+        "_id": "69d093145ddf1aa033960e05"
+      },
+      {
+        "player": "69cf6caf268fc7ba310d5d56",
+        "jerseyNumber": 1,
+        "_id": "69d094305ddf1aa033960e89"
+      }
+    ],
+    "createdAt": "2026-04-03T12:37:15.263Z",
+    "updatedAt": "2026-04-04T04:31:44.909Z",
+    "__v": 3
+  },
+  {
+    "_id": "69cfb47b56bab89431e144dd",
+    "name": "Zombies 14u",
+    "logo": "/api/uploads/1775236421813-90u7pc.jpeg",
+    "description": "",
+    "division": "",
+    "location": {
+      "stateName": "Arizona",
+      "stateAbbr": "AZ",
+      "countyName": "Yavapai",
+      "cityName": "Cottonwood"
+    },
+    "coachName": "Daniel Davila",
+    "coachPhone": "",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "season": "69cf34cf268fc7ba310d2921",
+    "league": "69cf359b268fc7ba310d2966",
+    "players": [
+      {
+        "player": "69cf360a268fc7ba310d2bec",
+        "jerseyNumber": 1,
+        "_id": "69cff548ccfed4a483094818"
+      },
+      {
+        "player": "69cf6cad268fc7ba310d5d32",
+        "jerseyNumber": 3,
+        "_id": "69cff548ccfed4a483094819"
+      },
+      {
+        "player": "69cf6ca1268fc7ba310d5c73",
+        "jerseyNumber": 5,
+        "_id": "69cff548ccfed4a48309481a"
+      },
+      {
+        "player": "69cf360b268fc7ba310d2bf4",
+        "jerseyNumber": 7,
+        "_id": "69cff548ccfed4a48309481b"
+      },
+      {
+        "player": "69cf6ca8268fc7ba310d5ce4",
+        "jerseyNumber": 16,
+        "_id": "69cff548ccfed4a48309481c"
+      },
+      {
+        "player": "69cf360a268fc7ba310d2be8",
+        "jerseyNumber": 27,
+        "_id": "69cff548ccfed4a48309481d"
+      },
+      {
+        "player": "69cf6cae268fc7ba310d5d40",
+        "jerseyNumber": 33,
+        "_id": "69cff548ccfed4a48309481e"
+      },
+      {
+        "player": "69cf6c9b268fc7ba310d5c10",
+        "jerseyNumber": 36,
+        "_id": "69cff548ccfed4a48309481f"
+      },
+      {
+        "player": "69cf360a268fc7ba310d2bf0",
+        "jerseyNumber": 42,
+        "_id": "69cff548ccfed4a483094820"
+      },
+      {
+        "player": "69cfd9a048b355f7c13850f9",
+        "jerseyNumber": 81,
+        "_id": "69cff548ccfed4a483094821"
+      }
+    ],
+    "createdAt": "2026-04-03T12:37:15.412Z",
+    "updatedAt": "2026-04-03T17:13:44.521Z",
+    "__v": 3
+  },
+  {
+    "_id": "69cfb47b56bab89431e144df",
+    "name": "Bolts 14u",
+    "logo": "/api/uploads/1775236047480-6fw9n7.jpeg",
+    "description": "",
+    "division": "",
+    "location": {
+      "stateName": "Arizona",
+      "stateAbbr": "AZ",
+      "countyName": "Yavapai",
+      "cityName": "Cottonwood"
+    },
+    "coachName": "Dave Bell",
+    "coachPhone": "",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "season": "69cf34cf268fc7ba310d2921",
+    "league": "69cf359b268fc7ba310d2966",
+    "players": [
+      {
+        "player": "69cf35cb268fc7ba310d29b4",
+        "jerseyNumber": 1,
+        "_id": "69cff3d2ccfed4a483094502"
+      },
+      {
+        "player": "69cf35c9268fc7ba310d29a8",
+        "jerseyNumber": 3,
+        "_id": "69cff3d2ccfed4a483094503"
+      },
+      {
+        "player": "69cf35ca268fc7ba310d29b0",
+        "jerseyNumber": 36,
+        "_id": "69cff3d2ccfed4a483094504"
+      },
+      {
+        "player": "69cf35cc268fc7ba310d29c0",
+        "jerseyNumber": 5,
+        "_id": "69cff3d2ccfed4a483094505"
+      },
+      {
+        "player": "69cf35cd268fc7ba310d29c4",
+        "jerseyNumber": 7,
+        "_id": "69cff3d2ccfed4a483094506"
+      },
+      {
+        "player": "69cf35cb268fc7ba310d29b8",
+        "jerseyNumber": 16,
+        "_id": "69cff3d2ccfed4a483094507"
+      },
+      {
+        "player": "69cf35cd268fc7ba310d29cc",
+        "jerseyNumber": 27,
+        "_id": "69cff3d2ccfed4a483094508"
+      },
+      {
+        "player": "69cf35cc268fc7ba310d29bc",
+        "jerseyNumber": 33,
+        "_id": "69cff3d2ccfed4a483094509"
+      },
+      {
+        "player": "69cf35ca268fc7ba310d29ac",
+        "jerseyNumber": 42,
+        "_id": "69cff3d2ccfed4a48309450a"
+      },
+      {
+        "player": "69cf35cd268fc7ba310d29c8",
+        "jerseyNumber": 81,
+        "_id": "69cff3d2ccfed4a48309450b"
+      }
+    ],
+    "createdAt": "2026-04-03T12:37:15.562Z",
+    "updatedAt": "2026-04-03T17:07:30.858Z",
+    "__v": 2
+  },
+  {
+    "_id": "69cfb47b56bab89431e144e1",
+    "name": "Bone Collectors 14u",
+    "logo": "/api/uploads/1775236062666-wpkrsr.jpeg",
+    "description": "",
+    "division": "",
+    "location": {
+      "stateName": "Arizona",
+      "stateAbbr": "AZ",
+      "countyName": "Yavapai",
+      "cityName": "Cottonwood"
+    },
+    "coachName": "Josh Joy",
+    "coachPhone": "",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "season": "69cf34cf268fc7ba310d2921",
+    "league": "69cf359b268fc7ba310d2966",
+    "players": [
+      {
+        "player": "69cf35ce268fc7ba310d29d4",
+        "jerseyNumber": 1,
+        "_id": "69cff3e1ccfed4a483094534"
+      },
+      {
+        "player": "69cf35d0268fc7ba310d29e0",
+        "jerseyNumber": 7,
+        "_id": "69cff3e1ccfed4a483094537"
+      },
+      {
+        "player": "69cf35ce268fc7ba310d29d0",
+        "jerseyNumber": 16,
+        "_id": "69cff3e1ccfed4a483094538"
+      },
+      {
+        "player": "69cf35d1268fc7ba310d29ec",
+        "jerseyNumber": 27,
+        "_id": "69cff3e1ccfed4a483094539"
+      },
+      {
+        "player": "69cf35d1268fc7ba310d29e8",
+        "jerseyNumber": 33,
+        "_id": "69cff3e1ccfed4a48309453a"
+      },
+      {
+        "player": "69cf35d1268fc7ba310d29f0",
+        "jerseyNumber": 36,
+        "_id": "69cff3e1ccfed4a48309453b"
+      },
+      {
+        "player": "69cf35cf268fc7ba310d29dc",
+        "jerseyNumber": 42,
+        "_id": "69cff3e1ccfed4a48309453c"
+      },
+      {
+        "player": "69cfd9d048b355f7c1385112",
+        "jerseyNumber": 81,
+        "_id": "69cff3e1ccfed4a48309453d"
+      },
+      {
+        "player": "69cf35cf268fc7ba310d29d8",
+        "jerseyNumber": 5,
+        "_id": "69d094c45ddf1aa033960ee1"
+      },
+      {
+        "player": "69cf35d0268fc7ba310d29e4",
+        "jerseyNumber": 3,
+        "_id": "69d096f35ddf1aa033960f2c"
+      }
+    ],
+    "createdAt": "2026-04-03T12:37:15.712Z",
+    "updatedAt": "2026-04-04T04:43:31.468Z",
+    "__v": 3
+  },
+  {
+    "_id": "69cfb4c756bab89431e144fa",
+    "name": "Roughriders 8u",
+    "logo": "/api/uploads/1775236657098-7o6p8e.jpeg",
+    "description": "",
+    "division": "",
+    "location": {
+      "stateName": "Arizona",
+      "stateAbbr": "AZ",
+      "countyName": "Yavapai",
+      "cityName": "Cottonwood"
+    },
+    "coachName": "JR Raoult",
+    "coachPhone": "",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "season": "69cf34cf268fc7ba310d2921",
+    "league": "69cf3539268fc7ba310d2936",
+    "players": [
+      {
+        "player": "69cf35fe268fc7ba310d2b84",
+        "jerseyNumber": 16,
+        "_id": "69cfff38ccfed4a483094b82"
+      },
+      {
+        "player": "69cf6c9d268fc7ba310d5c3a",
+        "jerseyNumber": 1,
+        "_id": "69cfff38ccfed4a483094b83"
+      },
+      {
+        "player": "69cf3600268fc7ba310d2b90",
+        "jerseyNumber": 5,
+        "_id": "69cfff38ccfed4a483094b84"
+      },
+      {
+        "player": "69cf6c9e268fc7ba310d5c48",
+        "jerseyNumber": 7,
+        "_id": "69cfff38ccfed4a483094b85"
+      },
+      {
+        "player": "69cf3601268fc7ba310d2b9c",
+        "jerseyNumber": 3,
+        "_id": "69cfff38ccfed4a483094b86"
+      },
+      {
+        "player": "69cf35ff268fc7ba310d2b8c",
+        "jerseyNumber": 27,
+        "_id": "69cfff38ccfed4a483094b87"
+      },
+      {
+        "player": "69cf3600268fc7ba310d2b94",
+        "jerseyNumber": 33,
+        "_id": "69cfff38ccfed4a483094b88"
+      },
+      {
+        "player": "69cf35fe268fc7ba310d2b80",
+        "jerseyNumber": 36,
+        "_id": "69cfff38ccfed4a483094b89"
+      },
+      {
+        "player": "69cf3600268fc7ba310d2b98",
+        "jerseyNumber": 42,
+        "_id": "69cfff38ccfed4a483094b8a"
+      },
+      {
+        "player": "69cf35ff268fc7ba310d2b88",
+        "jerseyNumber": 81,
+        "_id": "69cfff38ccfed4a483094b8b"
+      }
+    ],
+    "createdAt": "2026-04-03T12:38:31.466Z",
+    "updatedAt": "2026-04-03T17:56:08.174Z",
+    "__v": 11
+  }
+]

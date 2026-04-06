@@ -1,0 +1,1178 @@
+[
+  {
+    "_id": "69d0bd9b80313eff138f781e",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "09:00",
+    "teamA": {
+      "name": "Roughriders 8u",
+      "logo": "/api/uploads/1775236657098-7o6p8e.jpeg",
+      "score": 31
+    },
+    "teamB": {
+      "name": "Golden Eagles 8u",
+      "logo": "/api/uploads/1775236587510-sb8s6f.jpg",
+      "score": 0
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:27.853Z",
+    "updatedAt": "2026-04-04T16:51:22.064Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bd9c80313eff138f7821",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "09:00",
+    "teamA": {
+      "name": "Powerhouse 12u",
+      "logo": "/api/uploads/1775236287325-bkexlt.jpeg",
+      "score": 19
+    },
+    "teamB": {
+      "name": "Hawkeyes 12u",
+      "logo": "/api/uploads/1775236148588-nw9325.jpeg",
+      "score": 27
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:28.150Z",
+    "updatedAt": "2026-04-04T16:51:00.878Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bd9c80313eff138f7824",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "10:00",
+    "teamA": {
+      "name": "Lil Rascals 8u",
+      "logo": "/api/uploads/1775236610144-wcc285.jpeg",
+      "score": 8
+    },
+    "teamB": {
+      "name": "Nightcrawlers 8u",
+      "logo": "/api/uploads/1775236241305-z4fhf2.jpeg",
+      "score": 19
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:28.446Z",
+    "updatedAt": "2026-04-04T17:51:43.798Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bd9c80313eff138f7827",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "10:00",
+    "teamA": {
+      "name": "Crimson Eclipse 12u",
+      "logo": "/api/uploads/1775236114302-dh3de9.jpeg",
+      "score": 6
+    },
+    "teamB": {
+      "name": "Scallywags 12u",
+      "logo": "/api/uploads/1775236386238-6t22dh.jpeg",
+      "score": 33
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:28.742Z",
+    "updatedAt": "2026-04-04T17:54:44.529Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bd9d80313eff138f782a",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "11:00",
+    "teamA": {
+      "name": "Hot Shotz 8u",
+      "logo": "/api/uploads/1775236178367-3x83om.jpeg",
+      "score": 6
+    },
+    "teamB": {
+      "name": "Nightcrawlers 8u",
+      "logo": "/api/uploads/1775236241305-z4fhf2.jpeg",
+      "score": 28
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:29.038Z",
+    "updatedAt": "2026-04-04T18:55:02.087Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bd9d80313eff138f782d",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "11:00",
+    "teamA": {
+      "name": "Crimson Eclipse 12u",
+      "logo": "/api/uploads/1775236114302-dh3de9.jpeg",
+      "score": 20
+    },
+    "teamB": {
+      "name": "Cardinals 12u",
+      "logo": "/api/uploads/1775278088375-ld5uj9.jpg",
+      "score": 27
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:29.334Z",
+    "updatedAt": "2026-04-04T18:53:34.450Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bd9d80313eff138f7830",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "12:00",
+    "teamA": {
+      "name": "Hot Shotz 8u",
+      "logo": "/api/uploads/1775236178367-3x83om.jpeg",
+      "score": 12
+    },
+    "teamB": {
+      "name": "Blue Heat 8u",
+      "logo": "/api/uploads/1775235837837-9p2k93.jpeg",
+      "score": 13
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:29.628Z",
+    "updatedAt": "2026-04-04T19:54:52.552Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bd9d80313eff138f7833",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "12:00",
+    "teamA": {
+      "name": "Zombies 12u",
+      "logo": "/api/uploads/1775236406225-2q4qmz.jpeg",
+      "score": 20
+    },
+    "teamB": {
+      "name": "Cardinals 12u",
+      "logo": "/api/uploads/1775278088375-ld5uj9.jpg",
+      "score": 28
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:29.923Z",
+    "updatedAt": "2026-04-04T19:54:21.251Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bd9e80313eff138f7836",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "13:00",
+    "teamA": {
+      "name": "Gridiron Goons 10u",
+      "logo": "/api/uploads/1775236134297-xribll.jpeg",
+      "score": 28
+    },
+    "teamB": {
+      "name": "Pick 6 Mafia 10u",
+      "logo": "/api/uploads/1775236626081-apcu5u.jpg",
+      "score": 26
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:30.218Z",
+    "updatedAt": "2026-04-04T20:57:56.400Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bd9e80313eff138f7839",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "13:00",
+    "teamA": {
+      "name": "Powerhouse 14u",
+      "logo": "/api/uploads/1775236306615-12bnr4.jpeg",
+      "score": 13
+    },
+    "teamB": {
+      "name": "Bone Collectors 14u",
+      "logo": "/api/uploads/1775236062666-wpkrsr.jpeg",
+      "score": 19
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:30.513Z",
+    "updatedAt": "2026-04-04T20:50:40.450Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bd9e80313eff138f783c",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "14:00",
+    "teamA": {
+      "name": "Mayhem 10u",
+      "logo": "/api/uploads/1775236226360-70450y.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Scallywags 10u",
+      "logo": "/api/uploads/1775236364327-uib47e.jpeg",
+      "score": 32
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:30.809Z",
+    "updatedAt": "2026-04-04T21:54:05.600Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bd9f80313eff138f783f",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "14:00",
+    "teamA": {
+      "name": "Powerhouse 14u",
+      "logo": "/api/uploads/1775236306615-12bnr4.jpeg",
+      "score": 25
+    },
+    "teamB": {
+      "name": "Zombies 14u",
+      "logo": "/api/uploads/1775236421813-90u7pc.jpeg",
+      "score": 16
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:31.104Z",
+    "updatedAt": "2026-04-04T21:48:27.703Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bd9f80313eff138f7842",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "15:00",
+    "teamA": {
+      "name": "Renegades 10u",
+      "logo": "/api/uploads/1775236329728-8ti06l.jpeg",
+      "score": 25
+    },
+    "teamB": {
+      "name": "Pick 6 Mafia 10u",
+      "logo": "/api/uploads/1775236626081-apcu5u.jpg",
+      "score": 0
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:31.400Z",
+    "updatedAt": "2026-04-04T22:49:40.572Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bd9f80313eff138f7845",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "15:00",
+    "teamA": {
+      "name": "Bolts 14u",
+      "logo": "/api/uploads/1775236047480-6fw9n7.jpeg",
+      "score": 6
+    },
+    "teamB": {
+      "name": "Zombies 14u",
+      "logo": "/api/uploads/1775236421813-90u7pc.jpeg",
+      "score": 36
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:31.695Z",
+    "updatedAt": "2026-04-04T22:46:23.981Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bd9f80313eff138f7848",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "16:00",
+    "teamA": {
+      "name": "Renegades 10u",
+      "logo": "/api/uploads/1775236329728-8ti06l.jpeg",
+      "score": 14
+    },
+    "teamB": {
+      "name": "Mayhem 10u",
+      "logo": "/api/uploads/1775236226360-70450y.jpeg",
+      "score": 6
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:31.991Z",
+    "updatedAt": "2026-04-04T23:54:27.629Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda080313eff138f784b",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-11T00:00:00.000Z",
+    "time": "09:00",
+    "teamA": {
+      "name": "Nightcrawlers 8u",
+      "logo": "/api/uploads/1775236241305-z4fhf2.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Blue Heat 8u",
+      "logo": "/api/uploads/1775235837837-9p2k93.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:32.286Z",
+    "updatedAt": "2026-04-05T19:24:36.053Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda080313eff138f784e",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-11T00:00:00.000Z",
+    "time": "09:00",
+    "teamA": {
+      "name": "Cardinals 12u",
+      "logo": "/api/uploads/1775278088375-ld5uj9.jpg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Crimson Eclipse 12u",
+      "logo": "/api/uploads/1775236114302-dh3de9.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:32.582Z",
+    "updatedAt": "2026-04-04T07:28:32.582Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda080313eff138f7851",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-11T00:00:00.000Z",
+    "time": "10:00",
+    "teamA": {
+      "name": "Roughriders 8u",
+      "logo": "/api/uploads/1775236657098-7o6p8e.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Lil Rascals 8u",
+      "logo": "/api/uploads/1775236610144-wcc285.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:32.877Z",
+    "updatedAt": "2026-04-04T07:28:32.877Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda180313eff138f7854",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-11T00:00:00.000Z",
+    "time": "10:00",
+    "teamA": {
+      "name": "Hawkeyes 12u",
+      "logo": "/api/uploads/1775236148588-nw9325.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Crimson Eclipse 12u",
+      "logo": "/api/uploads/1775236114302-dh3de9.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:33.173Z",
+    "updatedAt": "2026-04-04T07:28:33.173Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda180313eff138f7857",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-11T00:00:00.000Z",
+    "time": "11:00",
+    "teamA": {
+      "name": "Golden Eagles 8u",
+      "logo": "/api/uploads/1775236587510-sb8s6f.jpg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Lil Rascals 8u",
+      "logo": "/api/uploads/1775236610144-wcc285.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:33.468Z",
+    "updatedAt": "2026-04-04T07:28:33.468Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda180313eff138f785a",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-11T00:00:00.000Z",
+    "time": "11:00",
+    "teamA": {
+      "name": "Hawkeyes 12u",
+      "logo": "/api/uploads/1775236148588-nw9325.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Scallywags 12u",
+      "logo": "/api/uploads/1775236386238-6t22dh.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:33.763Z",
+    "updatedAt": "2026-04-04T07:28:33.763Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda280313eff138f785d",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-11T00:00:00.000Z",
+    "time": "12:00",
+    "teamA": {
+      "name": "Golden Eagles 8u",
+      "logo": "/api/uploads/1775236587510-sb8s6f.jpg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Hot Shotz 8u",
+      "logo": "/api/uploads/1775236178367-3x83om.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:34.057Z",
+    "updatedAt": "2026-04-04T07:28:34.057Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda280313eff138f7860",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-11T00:00:00.000Z",
+    "time": "13:00",
+    "teamA": {
+      "name": "Scallywags 10u",
+      "logo": "/api/uploads/1775236364327-uib47e.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Gridiron Goons 10u",
+      "logo": "/api/uploads/1775236134297-xribll.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:34.353Z",
+    "updatedAt": "2026-04-04T07:28:34.353Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda280313eff138f7863",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-11T00:00:00.000Z",
+    "time": "14:00",
+    "teamA": {
+      "name": "Scallywags 10u",
+      "logo": "/api/uploads/1775236364327-uib47e.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Pick 6 Mafia 10u",
+      "logo": "/api/uploads/1775236626081-apcu5u.jpg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:34.649Z",
+    "updatedAt": "2026-04-04T07:28:34.649Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda280313eff138f7866",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-11T00:00:00.000Z",
+    "time": "15:00",
+    "teamA": {
+      "name": "Renegades 10u",
+      "logo": "/api/uploads/1775236329728-8ti06l.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Pick 6 Mafia 10u",
+      "logo": "/api/uploads/1775236626081-apcu5u.jpg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:34.943Z",
+    "updatedAt": "2026-04-04T07:28:34.943Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda380313eff138f7869",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-04-11T00:00:00.000Z",
+    "time": "16:00",
+    "teamA": {
+      "name": "Zombies 14u",
+      "logo": "/api/uploads/1775236421813-90u7pc.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Bolts 14u",
+      "logo": "/api/uploads/1775236047480-6fw9n7.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:35.249Z",
+    "updatedAt": "2026-04-04T07:28:35.249Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda380313eff138f786c",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "09:00",
+    "teamA": {
+      "name": "Nightcrawlers 8u",
+      "logo": "/api/uploads/1775236241305-z4fhf2.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Hot Shotz 8u",
+      "logo": "/api/uploads/1775236178367-3x83om.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:35.543Z",
+    "updatedAt": "2026-04-04T07:28:35.543Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda380313eff138f786f",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "09:00",
+    "teamA": {
+      "name": "Crimson Eclipse 12u",
+      "logo": "/api/uploads/1775236114302-dh3de9.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Hawkeyes 12u",
+      "logo": "/api/uploads/1775236148588-nw9325.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:35.838Z",
+    "updatedAt": "2026-04-04T07:28:35.838Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda480313eff138f7872",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "10:00",
+    "teamA": {
+      "name": "Golden Eagles 8u",
+      "logo": "/api/uploads/1775236587510-sb8s6f.jpg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Hot Shotz 8u",
+      "logo": "/api/uploads/1775236178367-3x83om.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:36.134Z",
+    "updatedAt": "2026-04-04T07:28:36.134Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda480313eff138f7875",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "10:00",
+    "teamA": {
+      "name": "Scallywags 12u",
+      "logo": "/api/uploads/1775236386238-6t22dh.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Hawkeyes 12u",
+      "logo": "/api/uploads/1775236148588-nw9325.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:36.429Z",
+    "updatedAt": "2026-04-04T07:28:36.429Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda480313eff138f7878",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "11:00",
+    "teamA": {
+      "name": "Golden Eagles 8u",
+      "logo": "/api/uploads/1775236587510-sb8s6f.jpg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Lil Rascals 8u",
+      "logo": "/api/uploads/1775236610144-wcc285.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:36.724Z",
+    "updatedAt": "2026-04-04T07:28:36.724Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda580313eff138f787b",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "11:00",
+    "teamA": {
+      "name": "Scallywags 12u",
+      "logo": "/api/uploads/1775236386238-6t22dh.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Zombies 12u",
+      "logo": "/api/uploads/1775236406225-2q4qmz.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:37.019Z",
+    "updatedAt": "2026-04-04T07:28:37.019Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda580313eff138f787e",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "12:00",
+    "teamA": {
+      "name": "Blue Heat 8u",
+      "logo": "/api/uploads/1775235837837-9p2k93.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Roughriders 8u",
+      "logo": "/api/uploads/1775236657098-7o6p8e.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:37.313Z",
+    "updatedAt": "2026-04-04T07:28:37.313Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda580313eff138f7881",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "12:00",
+    "teamA": {
+      "name": "Powerhouse 12u",
+      "logo": "/api/uploads/1775236287325-bkexlt.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Zombies 12u",
+      "logo": "/api/uploads/1775236406225-2q4qmz.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:37.608Z",
+    "updatedAt": "2026-04-04T07:28:37.608Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda580313eff138f7884",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "13:00",
+    "teamA": {
+      "name": "Pick 6 Mafia 10u",
+      "logo": "/api/uploads/1775236626081-apcu5u.jpg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Scallywags 10u",
+      "logo": "/api/uploads/1775236364327-uib47e.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:37.903Z",
+    "updatedAt": "2026-04-04T07:28:37.903Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda680313eff138f7887",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "13:00",
+    "teamA": {
+      "name": "Cardinals 12u",
+      "logo": "/api/uploads/1775278088375-ld5uj9.jpg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Powerhouse 12u",
+      "logo": "/api/uploads/1775236287325-bkexlt.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:38.199Z",
+    "updatedAt": "2026-04-04T07:28:38.199Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda680313eff138f788a",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "14:00",
+    "teamA": {
+      "name": "Gridiron Goons 10u",
+      "logo": "/api/uploads/1775236134297-xribll.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Scallywags 10u",
+      "logo": "/api/uploads/1775236364327-uib47e.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:38.494Z",
+    "updatedAt": "2026-04-04T07:28:38.494Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda680313eff138f788d",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "14:00",
+    "teamA": {
+      "name": "Powerhouse 14u",
+      "logo": "/api/uploads/1775236306615-12bnr4.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Bolts 14u",
+      "logo": "/api/uploads/1775236047480-6fw9n7.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:38.789Z",
+    "updatedAt": "2026-04-04T07:28:38.789Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda780313eff138f7890",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "15:00",
+    "teamA": {
+      "name": "Gridiron Goons 10u",
+      "logo": "/api/uploads/1775236134297-xribll.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Mayhem 10u",
+      "logo": "/api/uploads/1775236226360-70450y.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:39.085Z",
+    "updatedAt": "2026-04-04T07:28:39.085Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda780313eff138f7893",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "15:00",
+    "teamA": {
+      "name": "Zombies 14u",
+      "logo": "/api/uploads/1775236421813-90u7pc.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Bone Collectors 14u",
+      "logo": "/api/uploads/1775236062666-wpkrsr.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:39.380Z",
+    "updatedAt": "2026-04-04T07:28:39.380Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda780313eff138f7896",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "16:00",
+    "teamA": {
+      "name": "Bolts 14u",
+      "logo": "/api/uploads/1775236047480-6fw9n7.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Bone Collectors 14u",
+      "logo": "/api/uploads/1775236062666-wpkrsr.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:39.676Z",
+    "updatedAt": "2026-04-04T07:28:39.676Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda780313eff138f7899",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "09:00",
+    "teamA": {
+      "name": "Lil Rascals 8u",
+      "logo": "/api/uploads/1775236610144-wcc285.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Hot Shotz 8u",
+      "logo": "/api/uploads/1775236178367-3x83om.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:39.972Z",
+    "updatedAt": "2026-04-04T07:28:39.972Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda880313eff138f789c",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "09:00",
+    "teamA": {
+      "name": "Zombies 12u",
+      "logo": "/api/uploads/1775236406225-2q4qmz.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Hawkeyes 12u",
+      "logo": "/api/uploads/1775236148588-nw9325.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:40.266Z",
+    "updatedAt": "2026-04-04T07:28:40.266Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda880313eff138f789f",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "10:00",
+    "teamA": {
+      "name": "Blue Heat 8u",
+      "logo": "/api/uploads/1775235837837-9p2k93.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Golden Eagles 8u",
+      "logo": "/api/uploads/1775236587510-sb8s6f.jpg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:40.561Z",
+    "updatedAt": "2026-04-04T07:28:40.561Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda880313eff138f78a2",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "10:00",
+    "teamA": {
+      "name": "Scallywags 12u",
+      "logo": "/api/uploads/1775236386238-6t22dh.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Cardinals 12u",
+      "logo": "/api/uploads/1775278088375-ld5uj9.jpg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:40.856Z",
+    "updatedAt": "2026-04-04T07:28:40.856Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda980313eff138f78a5",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "11:00",
+    "teamA": {
+      "name": "Blue Heat 8u",
+      "logo": "/api/uploads/1775235837837-9p2k93.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Roughriders 8u",
+      "logo": "/api/uploads/1775236657098-7o6p8e.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:41.151Z",
+    "updatedAt": "2026-04-04T07:28:41.151Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda980313eff138f78a8",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "11:00",
+    "teamA": {
+      "name": "Powerhouse 12u",
+      "logo": "/api/uploads/1775236287325-bkexlt.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Cardinals 12u",
+      "logo": "/api/uploads/1775278088375-ld5uj9.jpg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:41.446Z",
+    "updatedAt": "2026-04-04T07:28:41.446Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bda980313eff138f78ab",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "12:00",
+    "teamA": {
+      "name": "Nightcrawlers 8u",
+      "logo": "/api/uploads/1775236241305-z4fhf2.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Roughriders 8u",
+      "logo": "/api/uploads/1775236657098-7o6p8e.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:41.742Z",
+    "updatedAt": "2026-04-04T07:28:41.742Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bdaa80313eff138f78ae",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "12:00",
+    "teamA": {
+      "name": "Powerhouse 12u",
+      "logo": "/api/uploads/1775236287325-bkexlt.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Crimson Eclipse 12u",
+      "logo": "/api/uploads/1775236114302-dh3de9.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:42.037Z",
+    "updatedAt": "2026-04-04T07:28:42.037Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bdaa80313eff138f78b1",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "13:00",
+    "teamA": {
+      "name": "Renegades 10u",
+      "logo": "/api/uploads/1775236329728-8ti06l.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Scallywags 10u",
+      "logo": "/api/uploads/1775236364327-uib47e.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:42.332Z",
+    "updatedAt": "2026-04-04T07:28:42.332Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bdaa80313eff138f78b4",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "13:00",
+    "teamA": {
+      "name": "Bone Collectors 14u",
+      "logo": "/api/uploads/1775236062666-wpkrsr.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Powerhouse 14u",
+      "logo": "/api/uploads/1775236306615-12bnr4.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:42.627Z",
+    "updatedAt": "2026-04-04T07:28:42.627Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bdaa80313eff138f78b7",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "14:00",
+    "teamA": {
+      "name": "Renegades 10u",
+      "logo": "/api/uploads/1775236329728-8ti06l.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Gridiron Goons 10u",
+      "logo": "/api/uploads/1775236134297-xribll.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:42.922Z",
+    "updatedAt": "2026-04-04T07:28:42.922Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bdab80313eff138f78ba",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "14:00",
+    "teamA": {
+      "name": "Bone Collectors 14u",
+      "logo": "/api/uploads/1775236062666-wpkrsr.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Bolts 14u",
+      "logo": "/api/uploads/1775236047480-6fw9n7.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:43.219Z",
+    "updatedAt": "2026-04-04T07:28:43.219Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bdab80313eff138f78bd",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "15:00",
+    "teamA": {
+      "name": "Mayhem 10u",
+      "logo": "/api/uploads/1775236226360-70450y.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Gridiron Goons 10u",
+      "logo": "/api/uploads/1775236134297-xribll.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:43.514Z",
+    "updatedAt": "2026-04-04T07:28:43.514Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bdab80313eff138f78c0",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "15:00",
+    "teamA": {
+      "name": "Zombies 14u",
+      "logo": "/api/uploads/1775236421813-90u7pc.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Bolts 14u",
+      "logo": "/api/uploads/1775236047480-6fw9n7.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:43.809Z",
+    "updatedAt": "2026-04-04T07:28:43.809Z",
+    "__v": 0
+  },
+  {
+    "_id": "69d0bdac80313eff138f78c3",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "16:00",
+    "teamA": {
+      "name": "Mayhem 10u",
+      "logo": "/api/uploads/1775236226360-70450y.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Pick 6 Mafia 10u",
+      "logo": "/api/uploads/1775236626081-apcu5u.jpg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:44.104Z",
+    "updatedAt": "2026-04-04T07:28:44.104Z",
+    "__v": 0
+  }
+]
