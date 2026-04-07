@@ -156,7 +156,7 @@ export default async function SeasonLocationPage({ params }) {
                                                 <ul>
                                                     {allAmenities.map((amenity, aIdx) => (
                                                         <li key={aIdx}>
-                                                            {amenityIconMap[amenity] && <img src={amenityIconMap[amenity]} alt="" />} {amenity}
+                                                            {amenityIconMap[amenity] && <img src={amenityIconMap[amenity]} alt="" style={{ width: 50, height: 50, objectFit: "contain", flexShrink: 0 }} />} {amenity}
                                                         </li>
                                                     ))}
                                                     <li><img src="/assets/images/v8.png" alt="" /> Field: {field.name}</li>
