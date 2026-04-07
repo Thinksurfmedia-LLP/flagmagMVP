@@ -16,11 +16,6 @@ export default function MobileHeader({ showSearch, showFilter, onSearch, onFilte
                         <img src="/assets/images/menu-bar.png" alt="Menu" />
                     </button>
                 </div>
-                <div className="profile-area">
-                    <div className="profile-image">
-                        <img src="/assets/images/profile1.png" alt={user?.name || "Profile"} />
-                    </div>
-                </div>
             </div>
 
             {/* Nav overlay */}
@@ -31,6 +26,17 @@ export default function MobileHeader({ showSearch, showFilter, onSearch, onFilte
                         <img src="/assets/images/close.png" alt="Close" style={{ width: 18 }} />
                     </button>
                 </div>
+                {user && (
+                    <div className="nav-user">
+                        <div className="nav-user-avatar">
+                            <img src="/assets/images/profile1.png" alt={user.name || "Profile"} />
+                        </div>
+                        <div className="nav-user-info">
+                            <span className="nav-user-name">{user.name || "User"}</span>
+                            <span className="nav-user-email">{user.email || ""}</span>
+                        </div>
+                    </div>
+                )}
                 <ul>
                     <li>
                         <Link href="/matches" onClick={() => setNavOpen(false)}>
