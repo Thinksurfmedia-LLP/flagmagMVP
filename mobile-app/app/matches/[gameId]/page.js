@@ -741,9 +741,6 @@ function LiveGameContent({ gameId }) {
                         </div>
 
                         <div className="team-score">
-                            <div className="logo">
-                                <img src="/assets/images/logo.png" alt="FlagMag" />
-                            </div>
                             <h3>
                                 <span>{displayScoreA}</span>:<span>{displayScoreB}</span>
                             </h3>
