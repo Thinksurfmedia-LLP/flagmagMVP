@@ -1,8 +1,30 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 export default function BootstrapClient() {
+  const pathname = usePathname();
+
+  // On every client-side navigation, close any open Bootstrap offcanvas/modal
+  // and remove the body scroll lock it leaves behind.
+  useEffect(() => {
+    // Hide all open offcanvases
+    document.querySelectorAll(".offcanvas.show").forEach((el) => {
+      if (window.bootstrap?.Offcanvas) {
+        const instance = window.bootstrap.Offcanvas.getInstance(el);
+        if (instance) instance.hide();
+      } else {
+        el.classList.remove("show");
+      }
+    });
+    // Remove backdrop
+    document.querySelectorAll(".offcanvas-backdrop").forEach((el) => el.remove());
+    // Restore body scroll
+    document.body.classList.remove("offcanvas-open", "modal-open");
+    document.body.style.overflow = "";
+    document.body.style.paddingRight = "";
+  }, [pathname]);
   useEffect(() => {
     // Import jQuery and attach to window
     import("jquery").then((jQueryModule) => {
