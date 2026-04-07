@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <rect width="120" height="120" rx="12" fill="#1e2130"/>
+  <!-- Shield shape -->
+  <path d="M60 18 L88 30 L88 62 Q88 84 60 98 Q32 84 32 62 L32 30 Z" fill="#2e3248"/>
+  <path d="M60 26 L82 36 L82 62 Q82 79 60 91 Q38 79 38 62 L38 36 Z" fill="#3a3f5c"/>
+  <!-- Football -->
+  <ellipse cx="60" cy="60" rx="12" ry="8" fill="#555e80"/>
+  <line x1="48" y1="60" x2="72" y2="60" stroke="#1e2130" stroke-width="1.5"/>
+  <line x1="60" y1="52" x2="60" y2="68" stroke="#1e2130" stroke-width="1.5"/>
+</svg>

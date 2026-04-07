@@ -15,7 +15,7 @@ export default function PlayerProfileHeader({ player, activeTab = "overview" }) 
                     <div className="row">
                         <div className="col info-area">
                             <div className="logo-area">
-                                <img src={player.photo || "/assets/images/player1.jpg"} alt="" />
+                                <img src={player.photo || "/assets/images/player-placeholder.svg"} alt="" />
                             </div>
                             <div className="right-part">
                                 <h1>{player.name}</h1>

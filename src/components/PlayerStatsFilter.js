@@ -158,7 +158,7 @@ export default function PlayerStatsFilter({ orgSlug, seasonSlug, allTeams }) {
                                 players.map((player, i) => (
                                     <tr key={player.playerId || i}>
                                         <td>
-                                            <img src={player.playerPhoto || "/assets/images/t-logo.jpg"} alt="" />
+                                            <img src={player.playerPhoto || "/assets/images/player-placeholder.svg"} alt="" />
                                             {" "}
                                             <Link href={`/players/${player.playerId}`}>{player.playerName}</Link>
                                         </td>

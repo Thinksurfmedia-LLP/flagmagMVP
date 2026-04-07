@@ -22,7 +22,7 @@ export async function GET(request, { params }) {
         const rows = stats.map((s) => ({
             _id: s.player?._id?.toString() || s._id.toString(),
             name: s.player?.name || "Unknown",
-            photo: s.player?.photo || "/assets/images/t-logo.jpg",
+            photo: s.player?.photo || "/assets/images/player-placeholder.svg",
             teamLogo: s.player?.presentTeam?.logo || "/assets/images/t-logo.jpg",
             teamName: s.teamName || s.player?.presentTeam?.name || "",
             rate: s.rate,

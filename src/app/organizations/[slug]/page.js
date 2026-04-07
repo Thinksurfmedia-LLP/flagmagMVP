@@ -93,7 +93,7 @@ export default async function OrganizationDetailPage({ params }) {
                             <div className="logo-area">
                                 {org.logo
                                     ? <img src={org.logo} alt="" />
-                                    : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#2d3040", borderRadius: "inherit", color: "rgba(255,255,255,0.3)", fontSize: 36 }}><i className="fa-solid fa-building"></i></div>
+                                    : <img src="/assets/images/org-placeholder.svg" alt="" />
                                 }
                             </div>
                             <div className="right-part">

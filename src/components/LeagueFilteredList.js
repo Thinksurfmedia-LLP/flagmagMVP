@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 
 function LeagueCard({ season, orgSlug }) {
-    const leagueImg = season.image || "/assets/images/teamlogo2.png";
+    const leagueImg = season.image || "/assets/images/league-placeholder.svg";
     return (
         <div className="col-lg-6">
             <div className="leagues-card">

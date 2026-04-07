@@ -106,7 +106,7 @@ export default async function SeasonSchedulePage({ params }) {
                 <div className="container">
                     <div className="row">
                         <div className="col info-area">
-                            <div className="logo-area"><img src={org.logo || "/assets/images/teamlogo1.png"} alt="" loading="lazy" /></div>
+                            <div className="logo-area"><img src={org.logo || "/assets/images/org-placeholder.svg"} alt="" loading="lazy" /></div>
                             <div className="right-part">
                                 <h1>{org.name}</h1>
                                 <ul>

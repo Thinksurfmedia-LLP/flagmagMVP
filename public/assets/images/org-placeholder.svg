@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <rect width="120" height="120" rx="60" fill="#1e2130"/>
+  <circle cx="60" cy="46" r="18" fill="#2e3248"/>
+  <ellipse cx="60" cy="92" rx="30" ry="18" fill="#2e3248"/>
+  <circle cx="60" cy="46" r="14" fill="#3a3f5c"/>
+  <ellipse cx="60" cy="92" rx="26" ry="15" fill="#3a3f5c"/>
+  <text x="60" y="52" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="bold" fill="#555e80">ORG</text>
+</svg>

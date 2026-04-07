@@ -18,8 +18,8 @@ function OrgCard({ org }) {
         <div className="col-xxl-3 col-xl-4 col-md-6 mb-4">
             <div className="team-area card">
                 <div className="image-area">
-                    <div className="bg"><img src={org.logo || "/assets/images/teamlogo1.png"} alt="" /></div>
-                    <img src={org.logo || "/assets/images/teamlogo1.png"} alt="" />
+                    <div className="bg"><img src={org.logo || "/assets/images/org-placeholder.svg"} alt="" /></div>
+                    <img src={org.logo || "/assets/images/org-placeholder.svg"} alt="" />
                 </div>
                 <div className="card-body">
                     <div className="rating">

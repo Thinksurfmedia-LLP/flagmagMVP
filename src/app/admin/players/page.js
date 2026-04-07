@@ -162,7 +162,7 @@ export default function AdminPlayersPage() {
                                             return (
                                             <tr key={p._id} style={{ opacity: isInactive ? 0.4 : 1, transition: "opacity 0.2s" }}>
                                                 <td style={{ fontWeight: 600 }}>
-                                                    {p.photo && <img src={p.photo} alt="" style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", marginRight: 12, verticalAlign: "middle" }} />}
+                                                    <img src={p.photo || "/assets/images/player-placeholder.svg"} alt="" style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", marginRight: 12, verticalAlign: "middle" }} />
                                                     <span style={{ verticalAlign: "middle" }}>{p.name}</span>
                                                     {p.jerseyNumber != null && (
                                                         <span className={`admin-badge ${isInactive ? "secondary" : "player"}`} style={{ marginLeft: 8, verticalAlign: "middle", fontSize: 11 }}>
