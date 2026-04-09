@@ -6,7 +6,7 @@ export default function PlayerProfileHeader({ player, activeTab = "overview" }) 
     return (
         <>
             <section className="innerpage-section type2">
-                <div className="banner-area"><img src={player.bannerImage || "/assets/images/player-banner.jpg"} alt="" /></div>
+                <div className="banner-area"><img src={player.bannerImage || "/assets/images/banner-placeholder.svg"} alt="" /></div>
                 <div className="container"></div>
             </section>
 
@@ -45,7 +45,7 @@ export default function PlayerProfileHeader({ player, activeTab = "overview" }) 
                                 <div className="item">
                                     <h4>Present Team</h4>
                                     <div className="team">
-                                        <img src={player.presentTeam.logo || "/assets/images/team1.jpg"} alt="" />
+                                        <img src={player.presentTeam.logo || "/assets/images/team-placeholder.svg"} alt="" />
                                         <h6><a href="#">{player.presentTeam.name}</a></h6>
                                     </div>
                                 </div>
