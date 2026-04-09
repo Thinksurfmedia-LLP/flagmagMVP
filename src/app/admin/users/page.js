@@ -55,17 +55,18 @@ function AddUserModal({ onClose, onSave, organizations, roles, isAdmin }) {
 
                 {formError && <div className="admin-alert admin-alert-error" style={{ marginBottom: 12 }}><i className="fa-solid fa-exclamation-circle"></i> {formError}</div>}
 
+                <form autoComplete="off" onSubmit={e => e.preventDefault()} style={{ margin: 0, padding: 0 }}>
                 <div className="admin-form-group">
                     <label className="admin-form-label">Name *</label>
-                    <input className="admin-form-input" autoComplete="off" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Full name" />
+                    <input className="admin-form-input" autoComplete="new-password" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Full name" />
                 </div>
                 <div className="admin-form-group">
                     <label className="admin-form-label">Email *</label>
-                    <input type="email" className="admin-form-input" autoComplete="off" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="user@example.com" />
+                    <input type="text" className="admin-form-input" autoComplete="new-password" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="user@example.com" />
                 </div>
                 <div className="admin-form-group">
                     <label className="admin-form-label">Phone</label>
-                    <input className="admin-form-input" autoComplete="off" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="+1-555-0000" />
+                    <input className="admin-form-input" autoComplete="new-password" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="+1-555-0000" />
                 </div>
                 <div className="admin-form-group">
                     <label className="admin-form-label">Password *</label>
@@ -150,6 +151,7 @@ function AddUserModal({ onClose, onSave, organizations, roles, isAdmin }) {
                         {saving ? "Creating..." : "Create User"}
                     </button>
                 </div>
+                </form>
             </div>
         </div>
     );
@@ -212,17 +214,18 @@ function EditUserModal({ target, onClose, onSave, organizations, roles, isAdmin 
 
                 {formError && <div className="admin-alert admin-alert-error" style={{ marginBottom: 12 }}><i className="fa-solid fa-exclamation-circle"></i> {formError}</div>}
 
+                <form autoComplete="off" onSubmit={e => e.preventDefault()} style={{ margin: 0, padding: 0 }}>
                 <div className="admin-form-group">
                     <label className="admin-form-label">Name *</label>
-                    <input className="admin-form-input" autoComplete="off" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Full name" />
+                    <input className="admin-form-input" autoComplete="new-password" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Full name" />
                 </div>
                 <div className="admin-form-group">
                     <label className="admin-form-label">Email *</label>
-                    <input type="email" className="admin-form-input" autoComplete="off" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="user@example.com" />
+                    <input type="text" className="admin-form-input" autoComplete="new-password" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="user@example.com" />
                 </div>
                 <div className="admin-form-group">
                     <label className="admin-form-label">Phone</label>
-                    <input className="admin-form-input" autoComplete="off" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="+1-555-0000" />
+                    <input className="admin-form-input" autoComplete="new-password" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="+1-555-0000" />
                 </div>
                 <div className="admin-form-group">
                     <label className="admin-form-label">New Password <span style={{ fontWeight: 400, color: "#8b90a0" }}>(Leave blank to keep current)</span></label>
@@ -312,6 +315,7 @@ function EditUserModal({ target, onClose, onSave, organizations, roles, isAdmin 
                         {saving ? "Saving..." : "Save Changes"}
                     </button>
                 </div>
+                </form>
             </div>
         </div>
     );
@@ -628,7 +632,7 @@ export default function AdminUsersPage() {
                             <h3>All Users ({filtered.length})</h3>
                             <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                                 <input
-                                    type="text"
+                                    type="search"
                                     className="admin-form-input"
                                     placeholder="Search users..."
                                     value={search}

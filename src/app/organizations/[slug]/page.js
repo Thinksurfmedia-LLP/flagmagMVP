@@ -78,10 +78,7 @@ export default async function OrganizationDetailPage({ params }) {
 
             <section className="innerpage-section type2">
                 <div className="banner-area">
-                    {org.bannerImage
-                        ? <img src={org.bannerImage} alt="" />
-                        : <div style={{ width: "100%", height: "100%", minHeight: 200, background: "linear-gradient(135deg, #1a1d26 0%, #2d3040 100%)" }}></div>
-                    }
+                    <img src={org.bannerImage || "/assets/images/banner-placeholder.svg"} alt="" />
                 </div>
                 <div className="container"></div>
             </section>

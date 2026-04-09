@@ -87,7 +87,7 @@ export default async function SeasonLocationPage({ params }) {
             <Header />
 
             <section className="innerpage-section type2">
-                <div className="banner-area"><img src={org.bannerImage || "/assets/images/inner-banner2.jpg"} alt="" /></div>
+                <div className="banner-area"><img src={org.bannerImage || "/assets/images/banner-placeholder.svg"} alt="" /></div>
                 <div className="container"></div>
             </section>
 

@@ -700,7 +700,7 @@ function LiveGameContent({ gameId }) {
                             <h5>{game.teamA?.name || "Team A"}</h5>
                             <div className="image-area">
                                 <img
-                                    src={game.teamA?.logo || "/assets/images/team1.png"}
+                                    src={game.teamA?.logo || "/assets/images/team-placeholder.svg"}
                                     alt={game.teamA?.name}
                                 />
                             </div>
@@ -760,7 +760,7 @@ function LiveGameContent({ gameId }) {
                             <h5>{game.teamB?.name || "Team B"}</h5>
                             <div className="image-area">
                                 <img
-                                    src={game.teamB?.logo || "/assets/images/team2.png"}
+                                    src={game.teamB?.logo || "/assets/images/team-placeholder.svg"}
                                     alt={game.teamB?.name}
                                 />
                             </div>

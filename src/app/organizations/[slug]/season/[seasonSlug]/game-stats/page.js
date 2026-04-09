@@ -125,7 +125,7 @@ function DivisionTable({ name, rows, isSingle }) {
                             const noGames = team.wins === 0 && team.losses === 0;
                             return (
                                 <tr key={i}>
-                                    <td><img src={team.logo || "/assets/images/t-logo.jpg"} alt="" /> {team.name}</td>
+                                    <td><img src={team.logo || "/assets/images/team-placeholder.svg"} alt="" /> {team.name}</td>
                                     <td>{team.wins}-{team.losses}</td>
                                     <td>{noGames ? "-" : team.pct.toFixed(2)}</td>
                                     <td>{noGames ? "-" : team.pf}</td>
@@ -180,7 +180,7 @@ export default async function GameStatsPage({ params }) {
             <Header />
 
             <section className="innerpage-section type2">
-                <div className="banner-area"><img src={org.bannerImage || "/assets/images/inner-banner2.jpg"} alt="" /></div>
+                <div className="banner-area"><img src={org.bannerImage || "/assets/images/banner-placeholder.svg"} alt="" /></div>
                 <div className="container"></div>
             </section>
 

@@ -29,7 +29,7 @@ export default function MatchCard({ game, onStart }) {
                 <div className="a">
                     <div className="team-img">
                         <img
-                            src={game.teamA?.logo || "/assets/images/team11.jpg"}
+                            src={game.teamA?.logo || "/assets/images/team-placeholder.svg"}
                             alt={game.teamA?.name || "Team A"}
                         />
                     </div>
@@ -51,7 +51,7 @@ export default function MatchCard({ game, onStart }) {
                 <div className="a">
                     <div className="team-img">
                         <img
-                            src={game.teamB?.logo || "/assets/images/team22.jpg"}
+                            src={game.teamB?.logo || "/assets/images/team-placeholder.svg"}
                             alt={game.teamB?.name || "Team B"}
                         />
                     </div>

@@ -2457,6 +2457,68 @@ footer .copyright-area p {
   text-transform: capitalize;
 }
 
+/* Stat type toggle buttons */
+.stat-type-toggles {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.stat-type-btn {
+  padding: 6px 18px;
+  border-radius: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: transparent;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  font-family: inherit;
+}
+.stat-type-btn.active {
+  background: #8D1100;
+  border-color: #ab0000;
+  color: #fff;
+}
+.stat-type-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Stat section wrapper and title */
+.stat-section {
+  margin-bottom: 32px;
+}
+.stat-section-title {
+  font-family: "Cros", sans-serif;
+  font-size: 1.4rem;
+  color: #fff;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin: 0 0 12px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.sortable-col {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+.sortable-col:hover {
+  opacity: 0.75;
+}
+.sort-icon {
+  display: inline-block;
+  font-size: 0.75em;
+  opacity: 0.35;
+  vertical-align: middle;
+  margin-left: 2px;
+  font-style: normal;
+}
+.sort-icon.active {
+  opacity: 1;
+  color: #ff4c4c;
+}
+
 .players-stats {
   overflow: hidden;
   border-radius: 10px;

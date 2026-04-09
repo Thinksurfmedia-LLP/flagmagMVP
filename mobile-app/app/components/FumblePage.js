@@ -49,7 +49,7 @@ export default function FumblePage({ game, activeTeam, roster, onSave, onCancel,
                     <div className="top" style={{ backgroundColor: "rgba(255, 30, 0, 0.1)", padding: "15px 10px", borderRadius: 15 }}>
                         <div className={`team-box ${activeTeam === "A" ? "active" : ""}`} style={{ opacity: activeTeam === "A" ? 1 : 0.4 }}>
                             <div className="image-area" style={{ width: 50, height: 50 }}>
-                                <img src={game?.teamA?.logo || "/assets/images/team1.png"} alt={game?.teamA?.name} />
+                                <img src={game?.teamA?.logo || "/assets/images/team-placeholder.svg"} alt={game?.teamA?.name} />
                             </div>
                             <h5 style={{ fontSize: 12 }}>{game?.teamA?.name}</h5>
                             <h3 style={{ color: "#ff1e00", margin: 0 }}>{game?.teamA?.score ?? 0}</h3>
@@ -64,7 +64,7 @@ export default function FumblePage({ game, activeTeam, roster, onSave, onCancel,
 
                         <div className={`team-box ${activeTeam === "B" ? "active" : ""}`} style={{ opacity: activeTeam === "B" ? 1 : 0.4 }}>
                             <div className="image-area" style={{ width: 50, height: 50 }}>
-                                <img src={game?.teamB?.logo || "/assets/images/team2.png"} alt={game?.teamB?.name} />
+                                <img src={game?.teamB?.logo || "/assets/images/team-placeholder.svg"} alt={game?.teamB?.name} />
                             </div>
                             <h5 style={{ fontSize: 12 }}>{game?.teamB?.name}</h5>
                             <h3 style={{ color: "#ff1e00", margin: 0 }}>{game?.teamB?.score ?? 0}</h3>

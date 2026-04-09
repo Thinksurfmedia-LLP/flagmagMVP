@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="1200" height="300">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f1117;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e2235;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ff6a00;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#ff1e00;stop-opacity:0" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="300" fill="url(#bg)"/>
+  <!-- Subtle diagonal stripe accent -->
+  <rect x="-100" y="200" width="600" height="4" fill="url(#accent)" transform="rotate(-8 0 300)"/>
+  <rect x="600" y="200" width="700" height="2" fill="url(#accent)" transform="rotate(-8 600 300)" opacity="0.4"/>
+  <!-- Center icon: shield -->
+  <path d="M600 90 L640 108 L640 148 Q640 172 600 184 Q560 172 560 148 L560 108 Z" fill="#2a2f44" opacity="0.8"/>
+  <path d="M600 100 L632 115 L632 148 Q632 168 600 178 Q568 168 568 148 L568 115 Z" fill="#3a3f5c" opacity="0.6"/>
+  <!-- Football laces in shield -->
+  <ellipse cx="600" cy="144" rx="14" ry="9" fill="#555e7a"/>
+  <line x1="586" y1="144" x2="614" y2="144" stroke="#2a2f44" stroke-width="1.5"/>
+  <line x1="600" y1="135" x2="600" y2="153" stroke="#2a2f44" stroke-width="1.5"/>
+  <!-- Subtle dots pattern -->
+  <circle cx="200" cy="80" r="2" fill="#ffffff" opacity="0.04"/>
+  <circle cx="250" cy="120" r="2" fill="#ffffff" opacity="0.04"/>
+  <circle cx="180" cy="150" r="2" fill="#ffffff" opacity="0.04"/>
+  <circle cx="950" cy="80" r="2" fill="#ffffff" opacity="0.04"/>
+  <circle cx="1000" cy="130" r="2" fill="#ffffff" opacity="0.04"/>
+  <circle cx="980" cy="200" r="2" fill="#ffffff" opacity="0.04"/>
+</svg>
