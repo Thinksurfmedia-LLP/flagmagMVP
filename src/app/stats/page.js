@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import ScheduleWithDateStrip from "@/components/ScheduleWithDateStrip";
 
 // ── Standings table (mirrors game-stats page) ────────────────────────────────
 function StandingsView({ orgSlug, leagueSlug }) {
@@ -61,6 +62,36 @@ function StandingsView({ orgSlug, leagueSlug }) {
                 </div>
             ))}
         </div>
+    );
+}
+
+// ── League schedule (week selector + game cards) ──────────────────────────────
+function LeagueSchedule({ orgSlug, leagueSlug }) {
+    const [scheduleData, setScheduleData] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        setLoading(true);
+        fetch(`/api/organizations/${orgSlug}/season/${leagueSlug}/schedule`)
+            .then((r) => r.json())
+            .then((d) => setScheduleData(d.success ? d : null))
+            .catch(() => setScheduleData(null))
+            .finally(() => setLoading(false));
+    }, [orgSlug, leagueSlug]);
+
+    if (loading) return <div style={{ textAlign: "center", padding: "40px 0", color: "rgba(255,255,255,0.45)" }}>Loading schedule…</div>;
+    if (!scheduleData || scheduleData.weekMeta.length === 0) return <div style={{ textAlign: "center", padding: "24px 0", color: "rgba(255,255,255,0.45)" }}>No games scheduled.</div>;
+
+    return (
+        <ScheduleWithDateStrip
+            key={`${orgSlug}-${leagueSlug}`}
+            weekMeta={scheduleData.weekMeta}
+            initialWeekIdx={scheduleData.initialWeekIdx}
+            initialGames={scheduleData.initialGames}
+            leagueId={scheduleData.leagueId}
+            orgSlug={orgSlug}
+            seasonSlug={leagueSlug}
+        />
     );
 }
 
@@ -367,6 +398,15 @@ function StatsPageContent() {
                                     orgSlug={orgSlug}
                                     leagueSlug={leagueSlug}
                                 />
+
+                            <div className="heading-area" style={{ marginTop: 48, marginBottom: 24 }}>
+                                <h3>Schedule</h3>
+                            </div>
+                            <LeagueSchedule
+                                key={`sched-${orgSlug}-${leagueSlug}`}
+                                orgSlug={orgSlug}
+                                leagueSlug={leagueSlug}
+                            />
                         </>
                     )}
 
