@@ -1,9 +1,68 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import PlayerStatsFilter from "@/components/PlayerStatsFilter";
+
+// ── Standings table (mirrors game-stats page) ────────────────────────────────
+function StandingsView({ orgSlug, leagueSlug }) {
+    const [divisionGroups, setDivisionGroups] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetch(`/api/organizations/${orgSlug}/season/${leagueSlug}/standings`)
+            .then((r) => r.json())
+            .then((d) => setDivisionGroups(d.divisionGroups || []))
+            .catch(() => setDivisionGroups([]))
+            .finally(() => setLoading(false));
+    }, [orgSlug, leagueSlug]);
+
+    if (loading) return <div style={{ textAlign: "center", padding: "40px 0", color: "rgba(255,255,255,0.45)" }}>Loading standings…</div>;
+
+    const isSingle = divisionGroups.length === 1;
+    return (
+        <div className={`row${isSingle ? " justify-content-center" : ""}`}>
+            {divisionGroups.map((group, i) => (
+                <div key={i} className={isSingle ? "col-xl-8 mb-4" : "col-xl-6 mb-4"}>
+                    <div className="table-wrap">
+                        <table className="table">
+                            <thead>
+                                {group.name && <tr className="hd"><th colSpan="6">{group.name}</th></tr>}
+                                <tr>
+                                    <th>TEAM</th>
+                                    <th>W-L</th>
+                                    <th>%</th>
+                                    <th>PF</th>
+                                    <th>PA</th>
+                                    <th>+/-</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {group.rows.map((team, j) => {
+                                    const noGames = team.wins === 0 && team.losses === 0;
+                                    return (
+                                        <tr key={j}>
+                                            <td><img src={team.logo || "/assets/images/team-placeholder.svg"} alt="" /> {team.name}</td>
+                                            <td>{team.wins}-{team.losses}</td>
+                                            <td>{noGames ? "-" : team.pct.toFixed(2)}</td>
+                                            <td>{noGames ? "-" : team.pf}</td>
+                                            <td>{noGames ? "-" : team.pa}</td>
+                                            <td>{noGames ? "-" : (team.diff > 0 ? `+${team.diff}` : team.diff)}</td>
+                                        </tr>
+                                    );
+                                })}
+                                {group.rows.length === 0 && (
+                                    <tr><td colSpan="6" style={{ textAlign: "center", color: "#999", padding: "16px" }}>No teams found.</td></tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}
 
 // ── Org card — same visual as leagues-card on the org detail page ────────────
 function OrgCard({ org, onClick }) {
@@ -56,16 +115,30 @@ function OrgCard({ org, onClick }) {
 }
 
 export default function StatsPage() {
-    const [orgs, setOrgs] = useState([]);
-    const [leagues, setLeagues] = useState([]);
-    const [teams, setTeams] = useState([]);
+    return (
+        <Suspense fallback={null}>
+            <StatsPageContent />
+        </Suspense>
+    );
+}
 
-    const [selectedOrg, setSelectedOrg] = useState(null);
-    const [selectedLeague, setSelectedLeague] = useState(null);
+function StatsPageContent() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const orgSlug = searchParams.get("org");
+    const leagueSlug = searchParams.get("league");
+    const [orgs, setOrgs] = useState([]);
+    const [seasons, setSeasons] = useState([]);
+    const [leagues, setLeagues] = useState([]);
+    const [selectedSeasons, setSelectedSeasons] = useState([]); // array of season _id strings
 
     const [loadingOrgs, setLoadingOrgs] = useState(true);
+    const [loadingSeasons, setLoadingSeasons] = useState(false);
     const [loadingLeagues, setLoadingLeagues] = useState(false);
-    const [loadingTeams, setLoadingTeams] = useState(false);
+
+    // Derive selected org/league objects from URL + fetched data
+    const selectedOrg = orgs.find((o) => o.slug === orgSlug) || null;
+    const selectedLeague = leagues.find((l) => l.slug === leagueSlug) || null;
 
     // Fetch organizations on mount
     useEffect(() => {
@@ -79,57 +152,52 @@ export default function StatsPage() {
             .finally(() => setLoadingOrgs(false));
     }, []);
 
-    // When org changes — fetch leagues
+    // When orgSlug changes — fetch seasons + all leagues
     useEffect(() => {
-        if (!selectedOrg) {
+        if (!orgSlug) {
+            setSeasons([]);
             setLeagues([]);
-            setSelectedLeague(null);
-            setTeams([]);
+            setSelectedSeasons([]);
             return;
         }
+        setLoadingSeasons(true);
         setLoadingLeagues(true);
+        setSeasons([]);
         setLeagues([]);
-        setSelectedLeague(null);
-        setTeams([]);
-        fetch(`/api/organizations/${selectedOrg.slug}/leagues`)
-            .then((r) => r.json())
-            .then((d) => {
-                const list = d.data || [];
-                list.sort(
-                    (a, b) =>
-                        parseInt(a.name) - parseInt(b.name) ||
-                        a.name.localeCompare(b.name)
-                );
-                setLeagues(list);
-            })
-            .catch(() => setLeagues([]))
-            .finally(() => setLoadingLeagues(false));
-    }, [selectedOrg]);
+        setSelectedSeasons([]);
 
-    // When league changes — fetch teams
-    useEffect(() => {
-        if (!selectedOrg || !selectedLeague) {
-            setTeams([]);
-            return;
-        }
-        setLoadingTeams(true);
-        fetch(`/api/organizations/${selectedOrg.slug}/season/${selectedLeague.slug}/teams`)
-            .then((r) => r.json())
-            .then((d) => setTeams(d.teams || []))
-            .catch(() => setTeams([]))
-            .finally(() => setLoadingTeams(false));
-    }, [selectedOrg, selectedLeague]);
+        Promise.all([
+            fetch(`/api/organizations/${orgSlug}/seasons`).then((r) => r.json()),
+            fetch(`/api/organizations/${orgSlug}/leagues`).then((r) => r.json()),
+        ]).then(([sData, lData]) => {
+            const sList = sData.data || [];
+            sList.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            setSeasons(sList);
+
+            const lList = lData.data || [];
+            lList.sort((a, b) => a.name.localeCompare(b.name));
+            setLeagues(lList);
+        }).catch(() => {})
+          .finally(() => { setLoadingSeasons(false); setLoadingLeagues(false); });
+    }, [orgSlug]);
 
     const handleOrgClick = (org) => {
-        setSelectedOrg({ slug: org.slug, name: org.name });
+        router.push(`/stats?org=${org.slug}`);
     };
 
-    const handleLeagueChange = (e) => {
-        const slug = e.target.value;
-        if (!slug) { setSelectedLeague(null); return; }
-        const league = leagues.find((l) => l.slug === slug);
-        setSelectedLeague(league ? { slug: league.slug, name: league.name } : null);
+    const toggleSeason = (seasonId) => {
+        setSelectedSeasons((prev) =>
+            prev.includes(seasonId) ? prev.filter((id) => id !== seasonId) : [...prev, seasonId]
+        );
     };
+
+    // Leagues filtered by selected seasons
+    const filteredLeagues = selectedSeasons.length === 0
+        ? []
+        : leagues.filter((l) => {
+            const lSeasonId = l.season?._id || l.season;
+            return lSeasonId && selectedSeasons.includes(String(lSeasonId));
+        });
 
     return (
         <>
@@ -146,7 +214,7 @@ export default function StatsPage() {
                 <div className="container">
 
                     {/* ── Step 1: pick an org ─────────────────────────────── */}
-                    {!selectedOrg && (
+                    {!orgSlug && (
                         <>
                             <div className="heading-area" style={{ marginBottom: 32 }}>
                                 <h2>Stats</h2>
@@ -178,77 +246,127 @@ export default function StatsPage() {
                         </>
                     )}
 
-                    {/* ── Step 2: pick league / view stats ────────────────── */}
-                    {selectedOrg && (
+                    {/* ── Step 2: pick seasons (multi-select bubbles) ──────── */}
+                    {orgSlug && !leagueSlug && (
                         <>
-                            {/* Breadcrumb / back */}
                             <div className="stats-breadcrumb">
                                 <button
                                     className="btn btn-outline-secondary btn-sm"
-                                    onClick={() => { setSelectedOrg(null); setSelectedLeague(null); }}
+                                    onClick={() => router.push("/stats")}
                                 >
                                     ← All Organizations
                                 </button>
                                 <span className="stats-breadcrumb-sep">/</span>
-                                <span>{selectedOrg.name}</span>
+                                <span>{selectedOrg?.name || orgSlug}</span>
                             </div>
 
                             <div className="heading-area" style={{ marginBottom: 32 }}>
-                                <h2>Stats — {selectedOrg.name}</h2>
+                                <h2>Stats — {selectedOrg?.name || orgSlug}</h2>
                                 <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 15, marginTop: 6 }}>
-                                    Select a league and season below to explore player statistics.
+                                    Select one or more seasons to see their leagues.
                                 </p>
                             </div>
 
-                            {/* League filter */}
-                            <div className="stats-page-filters">
-                                <div className="stats-filter-item">
-                                    <label className="stats-filter-label">League / Season</label>
-                                    <select
-                                        className="stats-filter-select"
-                                        onChange={handleLeagueChange}
-                                        defaultValue=""
-                                        disabled={loadingLeagues}
-                                    >
-                                        <option value="">
-                                            {loadingLeagues ? "Loading…" : "Select league"}
-                                        </option>
-                                        {leagues.map((l) => (
-                                            <option key={l.slug} value={l.slug}>{l.name}</option>
-                                        ))}
-                                    </select>
+                            {/* Season bubbles */}
+                            {loadingSeasons ? (
+                                <div className="stats-page-empty"><p>Loading seasons…</p></div>
+                            ) : seasons.length === 0 ? (
+                                <div className="stats-page-empty"><h3>No seasons found for this organization.</h3></div>
+                            ) : (
+                                <div className="stats-season-bubbles">
+                                    {seasons.map((s) => {
+                                        const active = selectedSeasons.includes(String(s._id));
+                                        return (
+                                            <button
+                                                key={s._id}
+                                                className={`stats-season-bubble${active ? " active" : ""}`}
+                                                onClick={() => toggleSeason(String(s._id))}
+                                            >
+                                                {s.name}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
-                            </div>
+                            )}
 
-                            {/* Stats table */}
-                            {selectedLeague && (
-                                <div style={{ marginTop: 40 }}>
-                                    {loadingTeams ? (
-                                        <div style={{ textAlign: "center", padding: "40px 0", color: "rgba(255,255,255,0.45)" }}>
-                                            Loading teams…
-                                        </div>
+                            {/* Leagues for selected seasons */}
+                            {selectedSeasons.length > 0 && (
+                                <div style={{ marginTop: 48 }}>
+                                    <h4 style={{ marginBottom: 24, fontFamily: "DM Sans, sans-serif", fontWeight: 600 }}>
+                                        Leagues
+                                    </h4>
+                                    {loadingLeagues ? (
+                                        <div className="stats-page-empty"><p>Loading leagues…</p></div>
+                                    ) : filteredLeagues.length === 0 ? (
+                                        <div className="stats-page-empty"><h3>No leagues found for the selected season(s).</h3></div>
                                     ) : (
-                                        <PlayerStatsFilter
-                                            key={`${selectedOrg.slug}-${selectedLeague.slug}`}
-                                            orgSlug={selectedOrg.slug}
-                                            seasonSlug={selectedLeague.slug}
-                                            allTeams={teams}
-                                        />
+                                        <div className="row">
+                                            {filteredLeagues.map((l) => (
+                                                <div key={l._id} className="col-lg-6 mb-4">
+                                                    <div
+                                                        className="leagues-card stats-org-card"
+                                                        onClick={() => router.push(`/stats?org=${orgSlug}&league=${l.slug}`)}
+                                                        role="button"
+                                                        tabIndex={0}
+                                                        onKeyDown={(e) => e.key === "Enter" && router.push(`/stats?org=${orgSlug}&league=${l.slug}`)}
+                                                    >
+                                                        {l.category && <div className="badge">{l.category}</div>}
+                                                        <div className="left">
+                                                            <div className="bg"><img src={l.image || "/assets/images/league-placeholder.svg"} alt="" /></div>
+                                                            <img src={l.image || "/assets/images/league-placeholder.svg"} alt={l.name} />
+                                                        </div>
+                                                        <div className="right">
+                                                            <h5>{l.name}</h5>
+                                                            <ul>
+                                                                <li><img src="/assets/images/icon-map.png" alt="" /> Location – <span>{l.location || "TBD"}</span></li>
+                                                                {l.season?.name && (
+                                                                    <li><img src="/assets/images/icon-calander.png" alt="" /> Season – <span>{l.season.name}</span></li>
+                                                                )}
+                                                            </ul>
+                                                            <div className="button-area">
+                                                                <span className="btn btn-primary">View Stats</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
                                     )}
                                 </div>
                             )}
+                        </>
+                    )}
 
-                            {!selectedLeague && !loadingLeagues && (
-                                <div className="stats-page-empty">
-                                    <img
-                                        src="/assets/images/icon-star.png"
-                                        alt=""
-                                        style={{ width: 52, opacity: 0.3, marginBottom: 20 }}
-                                    />
-                                    <h3>Choose a league to view stats</h3>
-                                    <p>Select from the dropdown above to get started.</p>
-                                </div>
-                            )}
+                    {/* ── Step 3: view stats ──────────────────────────────── */}
+                    {orgSlug && leagueSlug && (
+                        <>
+                            <div className="stats-breadcrumb">
+                                <button
+                                    className="btn btn-outline-secondary btn-sm"
+                                    onClick={() => router.push("/stats")}
+                                >
+                                    ← All Organizations
+                                </button>
+                                <span className="stats-breadcrumb-sep">/</span>
+                                <button
+                                    className="stats-breadcrumb-back-link"
+                                    onClick={() => router.push(`/stats?org=${orgSlug}`)}
+                                >
+                                    {selectedOrg?.name || orgSlug}
+                                </button>
+                                <span className="stats-breadcrumb-sep">/</span>
+                                <span>{selectedLeague?.name || leagueSlug}</span>
+                            </div>
+
+                            <div className="heading-area" style={{ marginBottom: 32 }}>
+                                <h2>Stats — {selectedLeague?.name || leagueSlug}</h2>
+                            </div>
+
+                            <StandingsView
+                                    key={`${orgSlug}-${leagueSlug}`}
+                                    orgSlug={orgSlug}
+                                    leagueSlug={leagueSlug}
+                                />
                         </>
                     )}
 
