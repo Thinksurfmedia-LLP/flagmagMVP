@@ -3,9 +3,9 @@ export default function Footer() {
         <footer>
             <div className="container">
                 <div className="top-area">
-                    <img src="/assets/images/footer-logo.png" alt="" />
+                    <img src="/assets/images/logo.png" alt="Flagmag Logo" />
                     <ul className="contact">
-                        <li><a href="#"><i className="fa-solid fa-phone"></i> +1-(855)352-4411</a></li>
+                        <li><a href="#"><i className="fa-solid fa-phone"></i> +1-(855) 352-4411</a></li>
                         {/* <li><a href="#"><i className="fa-solid fa-location-dot"></i> www.example.com</a></li> */}
                         {/* <li><a href="#"><i className="fa-regular fa-envelope"></i> example@gmail.com</a></li> */}
                     </ul>

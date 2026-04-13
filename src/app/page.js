@@ -339,7 +339,7 @@ export default function HomePage() {
                   </div>
                   <div className="card-body">
                     <div className="video-area">
-                      <img src="/assets/images/testi-video.png" alt="" />
+                      <img src="/assets/images/testi-video.png" alt="" style={{width: "50%"}}/>
                     </div>
                   </div>
                 </div>
