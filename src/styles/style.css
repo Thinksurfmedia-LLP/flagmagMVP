@@ -2600,14 +2600,16 @@ footer .copyright-area p {
   font-size: 14px;
   color: rgba(255, 255, 255, 0.55);
 }
-.stats-breadcrumb .btn-outline-secondary {
+.stats-breadcrumb .btn-outline-secondary,
+.leagues-section .btn-outline-secondary {
   color: #fff;
   border-color: rgba(255, 255, 255, 0.4);
   background: transparent;
   font-size: 13px;
   padding: 5px 14px;
 }
-.stats-breadcrumb .btn-outline-secondary:hover {
+.stats-breadcrumb .btn-outline-secondary:hover,
+.leagues-section .btn-outline-secondary:hover {
   background: rgba(255, 255, 255, 0.08);
   border-color: #fff;
   color: #fff;

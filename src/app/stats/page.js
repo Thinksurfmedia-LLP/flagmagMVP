@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ScheduleWithDateStrip from "@/components/ScheduleWithDateStrip";
+import LeagueLeaderboard from "@/components/LeagueLeaderboard";
+import SeasonLeaderboard from "@/components/SeasonLeaderboard";
 
 // ── Standings table (mirrors game-stats page) ────────────────────────────────
 function StandingsView({ orgSlug, leagueSlug }) {
@@ -158,6 +160,8 @@ function StatsPageContent() {
     const searchParams = useSearchParams();
     const orgSlug = searchParams.get("org");
     const leagueSlug = searchParams.get("league");
+    const view = searchParams.get("view"); // "players" → league leaderboard, "leaderboard" → season leaderboard
+    const seasonsParam = searchParams.get("seasons") || ""; // comma-separated season IDs for season leaderboard
     const [orgs, setOrgs] = useState([]);
     const [seasons, setSeasons] = useState([]);
     const [leagues, setLeagues] = useState([]);
@@ -288,82 +292,128 @@ function StatsPageContent() {
                                     ← All Organizations
                                 </button>
                                 <span className="stats-breadcrumb-sep">/</span>
-                                <span>{selectedOrg?.name || orgSlug}</span>
+                                {view === "leaderboard" ? (
+                                    <>
+                                        <button
+                                            className="stats-breadcrumb-back-link"
+                                            onClick={() => router.push(`/stats?org=${orgSlug}`)}
+                                        >
+                                            {selectedOrg?.name || orgSlug}
+                                        </button>
+                                        <span className="stats-breadcrumb-sep">/</span>
+                                        <span>
+                                            {seasonsParam
+                                                .split(",")
+                                                .map((id) => seasons.find((s) => String(s._id) === id)?.name)
+                                                .filter(Boolean)
+                                                .join(", ") || "Leaderboard"}
+                                        </span>
+                                    </>
+                                ) : (
+                                    <span>{selectedOrg?.name || orgSlug}</span>
+                                )}
                             </div>
 
-                            <div className="heading-area" style={{ marginBottom: 32 }}>
+                            <div className="heading-area" style={{ marginBottom: 16 }}>
                                 <h2>Stats — {selectedOrg?.name || orgSlug}</h2>
-                                <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 15, marginTop: 6 }}>
-                                    Select one or more seasons to see their leagues.
-                                </p>
+                                {view !== "leaderboard" && (
+                                    <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 15, marginTop: 6 }}>
+                                        Select one or more seasons to see their leagues.
+                                    </p>
+                                )}
                             </div>
 
-                            {/* Season bubbles */}
-                            {loadingSeasons ? (
-                                <div className="stats-page-empty"><p>Loading seasons…</p></div>
-                            ) : seasons.length === 0 ? (
-                                <div className="stats-page-empty"><h3>No seasons found for this organization.</h3></div>
+                            {view === "leaderboard" ? (
+                                <SeasonLeaderboard
+                                    key={`season-lb-${orgSlug}-${seasonsParam}`}
+                                    orgSlug={orgSlug}
+                                    seasonsParam={seasonsParam}
+                                />
                             ) : (
-                                <div className="stats-season-bubbles">
-                                    {seasons.map((s) => {
-                                        const active = selectedSeasons.includes(String(s._id));
-                                        return (
-                                            <button
-                                                key={s._id}
-                                                className={`stats-season-bubble${active ? " active" : ""}`}
-                                                onClick={() => toggleSeason(String(s._id))}
-                                            >
-                                                {s.name}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )}
-
-                            {/* Leagues for selected seasons */}
-                            {selectedSeasons.length > 0 && (
-                                <div style={{ marginTop: 48 }}>
-                                    <h4 style={{ marginBottom: 24, fontFamily: "DM Sans, sans-serif", fontWeight: 600 }}>
-                                        Leagues
-                                    </h4>
-                                    {loadingLeagues ? (
-                                        <div className="stats-page-empty"><p>Loading leagues…</p></div>
-                                    ) : filteredLeagues.length === 0 ? (
-                                        <div className="stats-page-empty"><h3>No leagues found for the selected season(s).</h3></div>
+                                <>
+                                    {/* Season bubbles */}
+                                    {loadingSeasons ? (
+                                        <div className="stats-page-empty"><p>Loading seasons…</p></div>
+                                    ) : seasons.length === 0 ? (
+                                        <div className="stats-page-empty"><h3>No seasons found for this organization.</h3></div>
                                     ) : (
-                                        <div className="row">
-                                            {filteredLeagues.map((l) => (
-                                                <div key={l._id} className="col-lg-6 mb-4">
-                                                    <div
-                                                        className="leagues-card stats-org-card"
-                                                        onClick={() => router.push(`/stats?org=${orgSlug}&league=${l.slug}`)}
-                                                        role="button"
-                                                        tabIndex={0}
-                                                        onKeyDown={(e) => e.key === "Enter" && router.push(`/stats?org=${orgSlug}&league=${l.slug}`)}
+                                        <div className="stats-season-bubbles">
+                                            {seasons.map((s) => {
+                                                const active = selectedSeasons.includes(String(s._id));
+                                                return (
+                                                    <button
+                                                        key={s._id}
+                                                        className={`stats-season-bubble${active ? " active" : ""}`}
+                                                        onClick={() => toggleSeason(String(s._id))}
                                                     >
-                                                        {l.category && <div className="badge">{l.category}</div>}
-                                                        <div className="left">
-                                                            <div className="bg"><img src={l.image || "/assets/images/league-placeholder.svg"} alt="" /></div>
-                                                            <img src={l.image || "/assets/images/league-placeholder.svg"} alt={l.name} />
-                                                        </div>
-                                                        <div className="right">
-                                                            <h5>{l.name}</h5>
-                                                            <ul>
-                                                                <li><img src="/assets/images/icon-map.png" alt="" /> Location – <span>{l.location || "TBD"}</span></li>
-                                                                {l.season?.name && (
-                                                                    <li><img src="/assets/images/icon-calander.png" alt="" /> Season – <span>{l.season.name}</span></li>
-                                                                )}
-                                                            </ul>
-                                                            <div className="button-area">
-                                                                <span className="btn btn-primary">View Stats</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
+                                                        {s.name}
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
                                     )}
-                                </div>
+
+                                    {/* Leaderboard button + leagues for selected seasons */}
+                                    {selectedSeasons.length > 0 && (
+                                        <>
+                                            <div style={{ marginTop: 32, marginBottom: 16, textAlign: "center" }}>
+                                                <button
+                                                    className="btn btn-outline-secondary"
+                                                    onClick={() =>
+                                                        router.push(
+                                                            `/stats?org=${orgSlug}&seasons=${encodeURIComponent(selectedSeasons.join(","))}&view=leaderboard`
+                                                        )
+                                                    }
+                                                >
+                                                    📊 Leaderboard
+                                                </button>
+                                            </div>
+
+                                            <div style={{ marginTop: 32 }}>
+                                                <h4 style={{ marginBottom: 24, fontFamily: "DM Sans, sans-serif", fontWeight: 600 }}>
+                                                    Leagues
+                                                </h4>
+                                                {loadingLeagues ? (
+                                                    <div className="stats-page-empty"><p>Loading leagues…</p></div>
+                                                ) : filteredLeagues.length === 0 ? (
+                                                    <div className="stats-page-empty"><h3>No leagues found for the selected season(s).</h3></div>
+                                                ) : (
+                                                    <div className="row">
+                                                        {filteredLeagues.map((l) => (
+                                                            <div key={l._id} className="col-lg-6 mb-4">
+                                                                <div
+                                                                    className="leagues-card stats-org-card"
+                                                                    onClick={() => router.push(`/stats?org=${orgSlug}&league=${l.slug}`)}
+                                                                    role="button"
+                                                                    tabIndex={0}
+                                                                    onKeyDown={(e) => e.key === "Enter" && router.push(`/stats?org=${orgSlug}&league=${l.slug}`)}
+                                                                >
+                                                                    {l.category && <div className="badge">{l.category}</div>}
+                                                                    <div className="left">
+                                                                        <div className="bg"><img src={l.image || "/assets/images/league-placeholder.svg"} alt="" /></div>
+                                                                        <img src={l.image || "/assets/images/league-placeholder.svg"} alt={l.name} />
+                                                                    </div>
+                                                                    <div className="right">
+                                                                        <h5>{l.name}</h5>
+                                                                        <ul>
+                                                                            <li><img src="/assets/images/icon-map.png" alt="" /> Location – <span>{l.location || "TBD"}</span></li>
+                                                                            {l.season?.name && (
+                                                                                <li><img src="/assets/images/icon-calander.png" alt="" /> Season – <span>{l.season.name}</span></li>
+                                                                            )}
+                                                                        </ul>
+                                                                        <div className="button-area">
+                                                                            <span className="btn btn-primary">View Stats</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
+                                </>
                             )}
                         </>
                     )}
@@ -386,27 +436,59 @@ function StatsPageContent() {
                                     {selectedOrg?.name || orgSlug}
                                 </button>
                                 <span className="stats-breadcrumb-sep">/</span>
-                                <span>{selectedLeague?.name || leagueSlug}</span>
+                                {view === "players" ? (
+                                    <>
+                                        <button
+                                            className="stats-breadcrumb-back-link"
+                                            onClick={() => router.push(`/stats?org=${orgSlug}&league=${leagueSlug}`)}
+                                        >
+                                            {selectedLeague?.name || leagueSlug}
+                                        </button>
+                                        <span className="stats-breadcrumb-sep">/</span>
+                                        <span>Leaderboard</span>
+                                    </>
+                                ) : (
+                                    <span>{selectedLeague?.name || leagueSlug}</span>
+                                )}
                             </div>
 
-                            <div className="heading-area" style={{ marginBottom: 32 }}>
+                            <div className="heading-area" style={{ marginBottom: 16 }}>
                                 <h2>Stats — {selectedLeague?.name || leagueSlug}</h2>
                             </div>
 
-                            <StandingsView
-                                    key={`${orgSlug}-${leagueSlug}`}
+                            {/* Player Stats / Leaderboard toggle button */}
+                            {view !== "players" && (
+                                <div style={{ marginBottom: 32, textAlign: "center" }}>
+                                    <button
+                                        className="btn btn-outline-secondary"
+                                        onClick={() => router.push(`/stats?org=${orgSlug}&league=${leagueSlug}&view=players`)}
+                                    >
+                                        📊 Leaderboard
+                                    </button>
+                                </div>
+                            )}
+
+                            {view === "players" ? (
+                                <LeagueLeaderboard
+                                    key={`lb-${orgSlug}-${leagueSlug}`}
                                     orgSlug={orgSlug}
                                     leagueSlug={leagueSlug}
                                 />
+                            ) : (
+                                <>
+                                    <StandingsView
+                                        key={`${orgSlug}-${leagueSlug}`}
+                                        orgSlug={orgSlug}
+                                        leagueSlug={leagueSlug}
+                                    />
 
-                            <div className="heading-area" style={{ marginTop: 48, marginBottom: 24 }}>
-                                <h3>Schedule</h3>
-                            </div>
-                            <LeagueSchedule
-                                key={`sched-${orgSlug}-${leagueSlug}`}
-                                orgSlug={orgSlug}
-                                leagueSlug={leagueSlug}
-                            />
+                                    <LeagueSchedule
+                                        key={`sched-${orgSlug}-${leagueSlug}`}
+                                        orgSlug={orgSlug}
+                                        leagueSlug={leagueSlug}
+                                    />
+                                </>
+                            )}
                         </>
                     )}
 
