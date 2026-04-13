@@ -5,13 +5,63 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PlayerStatsFilter from "@/components/PlayerStatsFilter";
 
+// ── Org card — same visual as leagues-card on the org detail page ────────────
+function OrgCard({ org, onClick }) {
+    const categories = org.categories || [];
+    const cities = (org.locations || [])
+        .map((loc) => loc.cityName || loc.countyName)
+        .filter(Boolean);
+    const locationText = cities.slice(0, 2).join(", ") + (cities.length > 2 ? ` +${cities.length - 2}` : "");
+    const orgImg = org.logo || "/assets/images/org-placeholder.svg";
+
+    return (
+        <div className="col-lg-6 mb-4">
+            <div
+                className="leagues-card stats-org-card"
+                onClick={() => onClick(org)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e.key === "Enter" && onClick(org)}
+            >
+                <div className="left">
+                    <div className="bg"><img src={orgImg} alt="" /></div>
+                    <img src={orgImg} alt={org.name} />
+                </div>
+                <div className="right">
+                    <h5>{org.name}</h5>
+                    <ul>
+                        <li>
+                            <img src="/assets/images/icon-map.png" alt="" />
+                            {" "}Location – <span>{locationText || "TBD"}</span>
+                        </li>
+                        <li>
+                            <img src="/assets/images/icon-calander.png" alt="" />
+                            {" "}Days – <span>{(org.scheduleDays || []).join(", ") || "TBD"}</span>
+                        </li>
+                    </ul>
+                    {categories.length > 0 && (
+                        <ul className="tag" style={{ marginTop: 8 }}>
+                            {categories.map((tag, i) => (
+                                <li key={i}>{tag}</li>
+                            ))}
+                        </ul>
+                    )}
+                    <div className="button-area">
+                        <span className="btn btn-primary">View Stats</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function StatsPage() {
     const [orgs, setOrgs] = useState([]);
     const [leagues, setLeagues] = useState([]);
     const [teams, setTeams] = useState([]);
 
-    const [selectedOrg, setSelectedOrg] = useState(null);   // { slug, name }
-    const [selectedLeague, setSelectedLeague] = useState(null); // { slug, name }
+    const [selectedOrg, setSelectedOrg] = useState(null);
+    const [selectedLeague, setSelectedLeague] = useState(null);
 
     const [loadingOrgs, setLoadingOrgs] = useState(true);
     const [loadingLeagues, setLoadingLeagues] = useState(false);
@@ -45,8 +95,11 @@ export default function StatsPage() {
             .then((r) => r.json())
             .then((d) => {
                 const list = d.data || [];
-                // Sort by numeric age prefix (8u, 10u, etc.) then alphabetically
-                list.sort((a, b) => parseInt(a.name) - parseInt(b.name) || a.name.localeCompare(b.name));
+                list.sort(
+                    (a, b) =>
+                        parseInt(a.name) - parseInt(b.name) ||
+                        a.name.localeCompare(b.name)
+                );
                 setLeagues(list);
             })
             .catch(() => setLeagues([]))
@@ -67,11 +120,8 @@ export default function StatsPage() {
             .finally(() => setLoadingTeams(false));
     }, [selectedOrg, selectedLeague]);
 
-    const handleOrgChange = (e) => {
-        const slug = e.target.value;
-        if (!slug) { setSelectedOrg(null); return; }
-        const org = orgs.find((o) => o.slug === slug);
-        setSelectedOrg(org ? { slug: org.slug, name: org.name } : null);
+    const handleOrgClick = (org) => {
+        setSelectedOrg({ slug: org.slug, name: org.name });
     };
 
     const handleLeagueChange = (e) => {
@@ -95,74 +145,111 @@ export default function StatsPage() {
             <section className="leagues-section section-padding">
                 <div className="container">
 
-                    {/* Page title */}
-                    <div className="heading-area" style={{ marginBottom: 32 }}>
-                        <h2>Player Stats</h2>
-                        <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 15, marginTop: 6 }}>
-                            Select a league and season below to explore player statistics.
-                        </p>
-                    </div>
+                    {/* ── Step 1: pick an org ─────────────────────────────── */}
+                    {!selectedOrg && (
+                        <>
+                            <div className="heading-area" style={{ marginBottom: 32 }}>
+                                <h2>Stats</h2>
+                                <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 15, marginTop: 6 }}>
+                                    Select an organization below to explore statistics.
+                                </p>
+                            </div>
 
-                    {/* Filters */}
-                    <div className="stats-page-filters">
-                        <div className="stats-filter-item">
-                            <label className="stats-filter-label">Organization</label>
-                            <select
-                                className="stats-filter-select"
-                                onChange={handleOrgChange}
-                                defaultValue=""
-                                disabled={loadingOrgs}
-                            >
-                                <option value="">{loadingOrgs ? "Loading…" : "Select organization"}</option>
-                                {orgs.map((org) => (
-                                    <option key={org.slug} value={org.slug}>{org.name}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="stats-filter-item">
-                            <label className="stats-filter-label">League / Season</label>
-                            <select
-                                className="stats-filter-select"
-                                onChange={handleLeagueChange}
-                                defaultValue=""
-                                disabled={!selectedOrg || loadingLeagues}
-                            >
-                                <option value="">
-                                    {!selectedOrg ? "Select organization first" : loadingLeagues ? "Loading…" : "Select league"}
-                                </option>
-                                {leagues.map((l) => (
-                                    <option key={l.slug} value={l.slug}>{l.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* Stats table — only shown when both are selected */}
-                    {selectedOrg && selectedLeague && (
-                        <div style={{ marginTop: 40 }}>
-                            {loadingTeams ? (
-                                <div style={{ textAlign: "center", padding: "40px 0", color: "rgba(255,255,255,0.45)" }}>
-                                    Loading teams…
+                            {loadingOrgs ? (
+                                <div className="stats-page-empty">
+                                    <p>Loading organizations…</p>
+                                </div>
+                            ) : orgs.length === 0 ? (
+                                <div className="stats-page-empty">
+                                    <h3>No organizations found</h3>
                                 </div>
                             ) : (
-                                <PlayerStatsFilter
-                                    key={`${selectedOrg.slug}-${selectedLeague.slug}`}
-                                    orgSlug={selectedOrg.slug}
-                                    seasonSlug={selectedLeague.slug}
-                                    allTeams={teams}
-                                />
+                                <>
+                                    <h6 className="item-count" style={{ marginBottom: 24, fontSize: "1.1rem", color: "#fff", fontWeight: 400 }}>
+                                        Showing {orgs.length} organization{orgs.length !== 1 ? "s" : ""}
+                                    </h6>
+                                    <div className="row">
+                                        {orgs.map((org) => (
+                                            <OrgCard key={org._id} org={org} onClick={handleOrgClick} />
+                                        ))}
+                                    </div>
+                                </>
                             )}
-                        </div>
+                        </>
                     )}
 
-                    {/* Empty state */}
-                    {(!selectedOrg || !selectedLeague) && (
-                        <div className="stats-page-empty">
-                            <img src="/assets/images/icon-star.png" alt="" style={{ width: 52, opacity: 0.3, marginBottom: 20 }} />
-                            <h3>Choose an organization and league to view stats</h3>
-                            <p>Select from the dropdowns above to get started.</p>
-                        </div>
+                    {/* ── Step 2: pick league / view stats ────────────────── */}
+                    {selectedOrg && (
+                        <>
+                            {/* Breadcrumb / back */}
+                            <div className="stats-breadcrumb">
+                                <button
+                                    className="btn btn-outline-secondary btn-sm"
+                                    onClick={() => { setSelectedOrg(null); setSelectedLeague(null); }}
+                                >
+                                    ← All Organizations
+                                </button>
+                                <span className="stats-breadcrumb-sep">/</span>
+                                <span>{selectedOrg.name}</span>
+                            </div>
+
+                            <div className="heading-area" style={{ marginBottom: 32 }}>
+                                <h2>Stats — {selectedOrg.name}</h2>
+                                <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 15, marginTop: 6 }}>
+                                    Select a league and season below to explore player statistics.
+                                </p>
+                            </div>
+
+                            {/* League filter */}
+                            <div className="stats-page-filters">
+                                <div className="stats-filter-item">
+                                    <label className="stats-filter-label">League / Season</label>
+                                    <select
+                                        className="stats-filter-select"
+                                        onChange={handleLeagueChange}
+                                        defaultValue=""
+                                        disabled={loadingLeagues}
+                                    >
+                                        <option value="">
+                                            {loadingLeagues ? "Loading…" : "Select league"}
+                                        </option>
+                                        {leagues.map((l) => (
+                                            <option key={l.slug} value={l.slug}>{l.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Stats table */}
+                            {selectedLeague && (
+                                <div style={{ marginTop: 40 }}>
+                                    {loadingTeams ? (
+                                        <div style={{ textAlign: "center", padding: "40px 0", color: "rgba(255,255,255,0.45)" }}>
+                                            Loading teams…
+                                        </div>
+                                    ) : (
+                                        <PlayerStatsFilter
+                                            key={`${selectedOrg.slug}-${selectedLeague.slug}`}
+                                            orgSlug={selectedOrg.slug}
+                                            seasonSlug={selectedLeague.slug}
+                                            allTeams={teams}
+                                        />
+                                    )}
+                                </div>
+                            )}
+
+                            {!selectedLeague && !loadingLeagues && (
+                                <div className="stats-page-empty">
+                                    <img
+                                        src="/assets/images/icon-star.png"
+                                        alt=""
+                                        style={{ width: 52, opacity: 0.3, marginBottom: 20 }}
+                                    />
+                                    <h3>Choose a league to view stats</h3>
+                                    <p>Select from the dropdown above to get started.</p>
+                                </div>
+                            )}
+                        </>
                     )}
 
                 </div>
