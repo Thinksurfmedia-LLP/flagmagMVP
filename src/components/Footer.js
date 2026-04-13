@@ -10,9 +10,9 @@ export default function Footer() {
                         {/* <li><a href="#"><i className="fa-regular fa-envelope"></i> example@gmail.com</a></li> */}
                     </ul>
                     <ul className="contact social-icon">
-                        <li><a href="#"><i className="fa-brands fa-facebook-f"></i></a></li>
-                        <li><a href="#"><i className="fa-brands fa-twitter"></i></a></li>
-                        <li><a href="#"><i className="fa-brands fa-instagram"></i></a></li>
+                        <li><a href="https://www.facebook.com/flagmag"><i className="fa-brands fa-facebook-f"></i></a></li>
+                        <li><a href="https://x.com/flagmag"><i className="fa-brands fa-x-twitter"></i></a></li>
+                        <li><a href="https://www.instagram.com/xflagfootball_league"><i className="fa-brands fa-instagram"></i></a></li>
                     </ul>
                 </div>
             </div>
