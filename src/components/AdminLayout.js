@@ -103,6 +103,12 @@ const NAV_ITEMS = [
             { label: "Amenities", href: "/admin/amenities", icon: "fa-solid fa-list-check", perm: "manage_users" },
         ],
     },
+    {
+        section: "Settings",
+        items: [
+            { label: "Site Settings", href: "/admin/site-settings", icon: "fa-solid fa-sliders", perm: "admin_only" },
+        ],
+    },
 ];
 
 function getImpersonationNav(orgSlug) {

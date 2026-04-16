@@ -1,12 +1,30 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import HeaderAuth from "@/components/HeaderAuth";
 
 export default function Header({ variant = "default" }) {
+    const [settings, setSettings] = useState(null);
+
+    useEffect(() => {
+        fetch("/api/site-settings")
+            .then((r) => r.json())
+            .then((data) => { if (data.success) setSettings(data.data); })
+            .catch(() => { });
+    }, []);
+
     const headerClass = variant === "homepage"
         ? "for-homepage"
         : variant === "signup"
             ? "for-signup"
             : "";
+
+    const facebook = settings?.facebook;
+    const twitter = settings?.twitter;
+    const instagram = settings?.instagram;
+    const youtube = settings?.youtube;
+    const hasSocial = facebook || twitter || instagram || youtube;
 
     return (
         <header className={headerClass}>
@@ -74,14 +92,17 @@ export default function Header({ variant = "default" }) {
                                                 {/* <li className="nav-item"><Link className="nav-link" href="#">Resources</Link></li> */}
                                             </ul>
                                             <HeaderAuth className="for-mobile" />
-                                            <div className="social">
-                                                <h5>Follow Us on</h5>
-                                                <ul>
-                                                    <li><a href="#"><i className="fa-brands fa-facebook-f"></i></a></li>
-                                                    <li><a href="#"><i className="fa-brands fa-twitter"></i></a></li>
-                                                    <li><a href="#"><i className="fa-brands fa-instagram"></i></a></li>
-                                                </ul>
-                                            </div>
+                                            {hasSocial && (
+                                                <div className="social">
+                                                    <h5>Follow Us on</h5>
+                                                    <ul>
+                                                        {facebook && <li><a href={facebook} target="_blank" rel="noopener noreferrer"><i className="fa-brands fa-facebook-f"></i></a></li>}
+                                                        {twitter && <li><a href={twitter} target="_blank" rel="noopener noreferrer"><i className="fa-brands fa-x-twitter"></i></a></li>}
+                                                        {instagram && <li><a href={instagram} target="_blank" rel="noopener noreferrer"><i className="fa-brands fa-instagram"></i></a></li>}
+                                                        {youtube && <li><a href={youtube} target="_blank" rel="noopener noreferrer"><i className="fa-brands fa-youtube"></i></a></li>}
+                                                    </ul>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 )}
