@@ -44,13 +44,13 @@ export default function Header({ variant = "default" }) {
                                 {/* Desktop Menu */}
                                 <div className={variant === "homepage" ? "collapse navbar-collapse d-none d-lg-flex" : "collapse navbar-collapse"} id="navbarText">
                                     <ul className={variant === "homepage" ? "navbar-nav me-auto mb-2 mb-md-0" : "navbar-nav me-auto mb-lg-0"}>
-                                        <li className="nav-item"><Link className="nav-link" href="#">Features</Link></li>
+                                        {/* <li className="nav-item"><Link className="nav-link" href="#">Features</Link></li> */}
                                         <li className="nav-item"><Link className="nav-link" href="/organizations">Leagues</Link></li>
                                         <li className="nav-item"><Link className="nav-link" href="/stats">Stats</Link></li>
-                                        <li className="nav-item"><Link className="nav-link" href="#">Tournaments</Link></li>
-                                        <li className="nav-item"><Link className="nav-link" href="#">Store</Link></li>
-                                        <li className="nav-item"><Link className="nav-link" href="#">Sponsors</Link></li>
-                                        <li className="nav-item"><Link className="nav-link" href="#">Resources</Link></li>
+                                        {/* <li className="nav-item"><Link className="nav-link" href="#">Tournaments</Link></li> */}
+                                        {/* <li className="nav-item"><Link className="nav-link" href="#">Store</Link></li> */}
+                                        {/* <li className="nav-item"><Link className="nav-link" href="#">Sponsors</Link></li> */}
+                                        {/* <li className="nav-item"><Link className="nav-link" href="#">Resources</Link></li> */}
                                     </ul>
                                 </div>
 
@@ -65,13 +65,13 @@ export default function Header({ variant = "default" }) {
                                         </div>
                                         <div className="offcanvas-body">
                                             <ul className="navbar-nav">
-                                                <li className="nav-item"><Link className="nav-link" href="#">Features</Link></li>
+                                                {/* <li className="nav-item"><Link className="nav-link" href="#">Features</Link></li> */}
                                                 <li className="nav-item"><Link className="nav-link" href="/organizations">Leagues</Link></li>
                                                 <li className="nav-item"><Link className="nav-link" href="/stats">Stats</Link></li>
-                                                <li className="nav-item"><Link className="nav-link" href="#">Tournaments</Link></li>
-                                                <li className="nav-item"><Link className="nav-link" href="#">Store</Link></li>
-                                                <li className="nav-item"><Link className="nav-link" href="#">Sponsors</Link></li>
-                                                <li className="nav-item"><Link className="nav-link" href="#">Resources</Link></li>
+                                                {/* <li className="nav-item"><Link className="nav-link" href="#">Tournaments</Link></li> */}
+                                                {/* <li className="nav-item"><Link className="nav-link" href="#">Store</Link></li> */}
+                                                {/* <li className="nav-item"><Link className="nav-link" href="#">Sponsors</Link></li> */}
+                                                {/* <li className="nav-item"><Link className="nav-link" href="#">Resources</Link></li> */}
                                             </ul>
                                             <HeaderAuth className="for-mobile" />
                                             <div className="social">
