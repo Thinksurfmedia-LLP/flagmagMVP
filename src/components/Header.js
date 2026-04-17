@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import HeaderAuth from "@/components/HeaderAuth";
 
-export default function Header({ variant = "default" }) {
+export default function Header({ variant = "default", onBookDemo }) {
     const [settings, setSettings] = useState(null);
 
     useEffect(() => {
@@ -91,7 +91,7 @@ export default function Header({ variant = "default" }) {
                                                 {/* <li className="nav-item"><Link className="nav-link" href="#">Sponsors</Link></li> */}
                                                 {/* <li className="nav-item"><Link className="nav-link" href="#">Resources</Link></li> */}
                                             </ul>
-                                            <HeaderAuth className="for-mobile" />
+                                            <HeaderAuth className="for-mobile" onBookDemo={onBookDemo} />
                                             {hasSocial && (
                                                 <div className="social">
                                                     <h5>Follow Us on</h5>
@@ -108,7 +108,7 @@ export default function Header({ variant = "default" }) {
                                 )}
                             </div>
                         </nav>
-                        <HeaderAuth />
+                        <HeaderAuth onBookDemo={onBookDemo} />
                     </div>
                 </div>
             </div>

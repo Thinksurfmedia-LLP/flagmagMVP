@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useRouter } from "next/navigation";
 
-export default function HeaderAuth({ className = "" }) {
+export default function HeaderAuth({ className = "", onBookDemo }) {
     const { user, loading, logout } = useAuth();
     const router = useRouter();
     const [open, setOpen] = useState(false);
@@ -100,9 +100,9 @@ export default function HeaderAuth({ className = "" }) {
     return (
         <div className={`header-btn-col ${className}`.trim()}>
             <Link href="/login" className="btn btn-info-primary">LOGIN</Link>
-            <Link href="#" className="btn btn-primary btn-with-arrow">
+            <button onClick={onBookDemo} className="btn btn-primary btn-with-arrow">
                 BOOK a Demo <span><img src="/assets/images/btn-arrow.png" alt="" /></span>
-            </Link>
+            </button>
         </div>
     );
 }

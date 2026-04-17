@@ -1,12 +1,18 @@
+"use client";
+
+import { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import TestimonialCarousel from "@/components/TestimonialCarousel";
 import Link from "next/link";
+import BookDemoModal from "@/components/BookDemoModal";
 
 export default function HomePage() {
+  const [demoOpen, setDemoOpen] = useState(false);
   return (
     <>
-      <Header variant="homepage" />
+      <BookDemoModal isOpen={demoOpen} onClose={() => setDemoOpen(false)} />
+      <Header variant="homepage" onBookDemo={() => setDemoOpen(true)} />
 
       <section className="banner-section">
         <div className="container">
@@ -188,7 +194,7 @@ export default function HomePage() {
           </div>
 
           <div className="text-center button-area">
-            <Link href="#" className="btn btn-primary btn-with-arrow">BOOK a Demo <span><img src="/assets/images/btn-arrow.png" alt="" /></span></Link>
+            <button onClick={() => setDemoOpen(true)} className="btn btn-primary btn-with-arrow">BOOK a Demo <span><img src="/assets/images/btn-arrow.png" alt="" /></span></button>
           </div>
         </div>
 
@@ -357,8 +363,8 @@ export default function HomePage() {
           </div>
 
           <div className="button-area">
-            <Link href="#" className="btn btn-info-primary">See How It Works</Link>
-            <Link href="#" className="btn btn-primary btn-with-arrow">Talk to Our Team <span><img src="/assets/images/btn-arrow.png" alt="" /></span></Link>
+            {/* <Link href="#" className="btn btn-info-primary">See How It Works</Link> */}
+            <button onClick={() => setDemoOpen(true)} className="btn btn-primary btn-with-arrow">Talk to Our Team <span><img src="/assets/images/btn-arrow.png" alt="" /></span></button>
           </div>
 
           <div className="image-area">

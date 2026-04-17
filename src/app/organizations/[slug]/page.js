@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
+import TalkToTeamButton from "@/components/TalkToTeamButton";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import League from "@/models/League";
@@ -217,8 +218,8 @@ export default async function OrganizationDetailPage({ params }) {
                         <p>If your league relies on manual work, scattered tools, or unreliable stats, it&apos;s time to upgrade to a system built for control and scale.</p>
                     </div>
                     <div className="button-area">
-                        <Link href="#" className="btn btn-info-primary">See How It Works</Link>
-                        <Link href="#" className="btn btn-primary btn-with-arrow">Talk to Our Team <span><img src="/assets/images/btn-arrow.png" alt="" /></span></Link>
+                        {/* <Link href="#" className="btn btn-info-primary">See How It Works</Link> */}
+                        <TalkToTeamButton />
                     </div>
                     <div className="image-area"><img src="/assets/images/ftr-img.png" alt="" /></div>
                 </div>

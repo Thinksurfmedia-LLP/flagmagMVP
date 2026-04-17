@@ -107,6 +107,7 @@ const NAV_ITEMS = [
         section: "Settings",
         items: [
             { label: "Site Settings", href: "/admin/site-settings", icon: "fa-solid fa-sliders", perm: "admin_only" },
+            { label: "Enquiries", href: "/admin/enquiries", icon: "fa-solid fa-envelope-open-text", perm: "admin_only" },
         ],
     },
 ];
