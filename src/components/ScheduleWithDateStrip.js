@@ -25,7 +25,7 @@ function MatchCard({ game, orgSlug, seasonSlug }) {
                         </div>
                         <div className="b">
                             {game.status === "completed" ? (
-                                <span>{game.teamA.score} - {game.teamB.score}</span>
+                                <span>{game.teamA.score ?? 0} - {game.teamB.score ?? 0}</span>
                             ) : (
                                 <span>YET TO BE PLAYED</span>
                             )}
