@@ -303,6 +303,7 @@ function LiveGameContent({ gameId }) {
                 game={game}
                 activeTeam={activeTeam}
                 roster={roster}
+                onTeamChange={(team) => setActiveTeam(team)}
                 initialData={getInitialData("Completion")}
                 onSave={(data) => {
                     let ptsToAdd = 0;
@@ -372,6 +373,7 @@ function LiveGameContent({ gameId }) {
                 game={game}
                 activeTeam={activeTeam}
                 roster={roster}
+                onTeamChange={(team) => setActiveTeam(team)}
                 initialData={getInitialData("Incompletion")}
                 onSave={(data) => {
                     const teamName = activeTeam === "A" ? game.teamA.name : game.teamB.name;
@@ -415,6 +417,7 @@ function LiveGameContent({ gameId }) {
                 game={game}
                 activeTeam={activeTeam}
                 roster={roster}
+                onTeamChange={(team) => setActiveTeam(team)}
                 initialData={getInitialData("Fumble")}
                 onSave={(data) => {
                     let ptsToAdd = 0;
@@ -483,6 +486,7 @@ function LiveGameContent({ gameId }) {
                 game={game}
                 activeTeam={activeTeam}
                 roster={roster}
+                onTeamChange={(team) => setActiveTeam(team)}
                 initialData={getInitialData("Interception")}
                 onSave={(data) => {
                     let ptsToAdd = 0;
@@ -551,6 +555,7 @@ function LiveGameContent({ gameId }) {
                 game={game}
                 activeTeam={activeTeam}
                 roster={roster}
+                onTeamChange={(team) => setActiveTeam(team)}
                 initialData={getInitialData("Sack")}
                 onSave={(data) => {
                     let ptsToAdd = 0;
@@ -614,6 +619,7 @@ function LiveGameContent({ gameId }) {
                 game={game}
                 activeTeam={activeTeam}
                 roster={roster}
+                onTeamChange={(team) => setActiveTeam(team)}
                 initialData={getInitialData("Run")}
                 onSave={(data) => {
                     let ptsToAdd = 0;

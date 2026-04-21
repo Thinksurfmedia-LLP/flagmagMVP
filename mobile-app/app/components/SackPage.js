@@ -4,7 +4,7 @@ import { useState } from "react";
 import PlayerNumberWarning from "./PlayerNumberWarning";
 import { validatePlayerNumber, getTeamRoster, hasInvalidPlayerNumbers } from "../lib/rosterValidation";
 
-export default function SackPage({ game, activeTeam, roster, onSave, onCancel, initialData }) {
+export default function SackPage({ game, activeTeam, roster, onSave, onCancel, onTeamChange, initialData }) {
     // For sack, the passer is on the activeTeam, and defender is on the otherTeam.
     const activeRoster = getTeamRoster(roster, activeTeam);
     const otherRoster = getTeamRoster(roster, activeTeam === "A" ? "B" : "A");
@@ -42,7 +42,7 @@ export default function SackPage({ game, activeTeam, roster, onSave, onCancel, i
 
                 <div className="live-match-wrapper" style={{ paddingTop: 0 }}>
                     <div className="top" style={{ backgroundColor: "rgba(255, 30, 0, 0.1)", padding: "15px 10px", borderRadius: 15 }}>
-                        <div className={`team-box ${activeTeam === "A" ? "active" : ""}`} style={{ opacity: activeTeam === "A" ? 1 : 0.4 }}>
+                        <div className={`team-box ${activeTeam === "A" ? "active" : ""}`} style={{ opacity: activeTeam === "A" ? 1 : 0.4, cursor: onTeamChange ? "pointer" : "default" }} onClick={() => onTeamChange && onTeamChange("A")}>
                             <div className="image-area" style={{ width: 50, height: 50 }}>
                                 <img src={game?.teamA?.logo || "/assets/images/team-placeholder.svg"} alt={game?.teamA?.name} />
                             </div>
@@ -57,7 +57,7 @@ export default function SackPage({ game, activeTeam, roster, onSave, onCancel, i
                             <h6 style={{ fontSize: 10 }}>VS</h6>
                         </div>
 
-                        <div className={`team-box ${activeTeam === "B" ? "active" : ""}`} style={{ opacity: activeTeam === "B" ? 1 : 0.4 }}>
+                        <div className={`team-box ${activeTeam === "B" ? "active" : ""}`} style={{ opacity: activeTeam === "B" ? 1 : 0.4, cursor: onTeamChange ? "pointer" : "default" }} onClick={() => onTeamChange && onTeamChange("B")}>
                             <div className="image-area" style={{ width: 50, height: 50 }}>
                                 <img src={game?.teamB?.logo || "/assets/images/team-placeholder.svg"} alt={game?.teamB?.name} />
                             </div>
