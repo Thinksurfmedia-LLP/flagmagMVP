@@ -66,8 +66,8 @@ export default function Header({ variant = "default", onBookDemo }) {
                                         <li className="nav-item"><Link className="nav-link" href="/organizations">Leagues</Link></li>
                                         <li className="nav-item"><Link className="nav-link" href="/stats">Stats</Link></li>
                                         {/* <li className="nav-item"><Link className="nav-link" href="#">Tournaments</Link></li> */}
-                                        {/* <li className="nav-item"><Link className="nav-link" href="#">Store</Link></li> */}
-                                        {/* <li className="nav-item"><Link className="nav-link" href="#">Sponsors</Link></li> */}
+                                        <li className="nav-item"><Link className="nav-link" href="/store">Store</Link></li>
+                                        <li className="nav-item"><Link className="nav-link" href="/sponsors">Sponsors</Link></li>
                                         {/* <li className="nav-item"><Link className="nav-link" href="#">Resources</Link></li> */}
                                     </ul>
                                 </div>
@@ -87,8 +87,8 @@ export default function Header({ variant = "default", onBookDemo }) {
                                                 <li className="nav-item"><Link className="nav-link" href="/organizations">Leagues</Link></li>
                                                 <li className="nav-item"><Link className="nav-link" href="/stats">Stats</Link></li>
                                                 {/* <li className="nav-item"><Link className="nav-link" href="#">Tournaments</Link></li> */}
-                                                {/* <li className="nav-item"><Link className="nav-link" href="#">Store</Link></li> */}
-                                                {/* <li className="nav-item"><Link className="nav-link" href="#">Sponsors</Link></li> */}
+                                                <li className="nav-item"><Link className="nav-link" href="/store">Store</Link></li>
+                                                <li className="nav-item"><Link className="nav-link" href="/sponsors">Sponsors</Link></li>
                                                 {/* <li className="nav-item"><Link className="nav-link" href="#">Resources</Link></li> */}
                                             </ul>
                                             <HeaderAuth className="for-mobile" onBookDemo={onBookDemo} />

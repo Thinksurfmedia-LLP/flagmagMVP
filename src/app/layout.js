@@ -22,10 +22,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        {/* Vendor CSS loaded via link tags (they contain url() refs that webpack can't resolve) */}
         <link rel="stylesheet" href="/assets/css/owl.carousel.min.css" />
         <link rel="stylesheet" href="/assets/css/owl.theme.default.min.css" />
         <link rel="stylesheet" href="/assets/css/jquery.fancybox.min.css" />
+        <link rel="stylesheet" href="/assets/css/slick.css" />
       </head>
       <body className={dmSans.variable}>
         <AuthProvider>
@@ -38,3 +38,4 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+

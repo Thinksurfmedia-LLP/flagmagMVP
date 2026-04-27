@@ -286,7 +286,7 @@ function StatsPageContent() {
                         <>
                             <div className="stats-breadcrumb">
                                 <button
-                                    className="btn btn-outline-secondary btn-sm"
+                                    className="btn btn-outline-light btn-sm"
                                     onClick={() => router.push("/stats")}
                                 >
                                     ← All Organizations
@@ -358,7 +358,7 @@ function StatsPageContent() {
                                         <>
                                             <div style={{ marginTop: 32, marginBottom: 16, textAlign: "center" }}>
                                                 <button
-                                                    className="btn btn-outline-secondary"
+                                                    className="btn btn-outline-light"
                                                     onClick={() =>
                                                         router.push(
                                                             `/stats?org=${orgSlug}&seasons=${encodeURIComponent(selectedSeasons.join(","))}&view=leaderboard`
@@ -423,7 +423,7 @@ function StatsPageContent() {
                         <>
                             <div className="stats-breadcrumb">
                                 <button
-                                    className="btn btn-outline-secondary btn-sm"
+                                    className="btn btn-outline-light btn-sm"
                                     onClick={() => router.push("/stats")}
                                 >
                                     ← All Organizations
@@ -460,7 +460,7 @@ function StatsPageContent() {
                             {view !== "players" && (
                                 <div style={{ marginBottom: 32, textAlign: "center" }}>
                                     <button
-                                        className="btn btn-outline-secondary"
+                                        className="btn btn-outline-light"
                                         onClick={() => router.push(`/stats?org=${orgSlug}&league=${leagueSlug}&view=players`)}
                                     >
                                         📊 Leaderboard
