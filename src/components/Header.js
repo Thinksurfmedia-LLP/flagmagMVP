@@ -46,22 +46,18 @@ export default function Header({ variant = "default", onBookDemo }) {
                                 <button
                                     className="navbar-toggler"
                                     type="button"
-                                    data-bs-toggle={variant === "homepage" ? "offcanvas" : "collapse"}
-                                    data-bs-target={variant === "homepage" ? "#mobileMenu" : "#navbarText"}
-                                    aria-controls={variant === "homepage" ? "mobileMenu" : "navbarText"}
+                                    data-bs-toggle="offcanvas"
+                                    data-bs-target="#mobileMenu"
+                                    aria-controls="mobileMenu"
                                     aria-expanded="false"
                                     aria-label="Toggle navigation"
                                 >
-                                    {variant === "homepage" ? (
-                                        <i className="fa-solid fa-bars-staggered"></i>
-                                    ) : (
-                                        <span className="navbar-toggler-icon"></span>
-                                    )}
+                                    <i className="fa-solid fa-bars-staggered"></i>
                                 </button>
 
                                 {/* Desktop Menu */}
-                                <div className={variant === "homepage" ? "collapse navbar-collapse d-none d-lg-flex" : "collapse navbar-collapse"} id="navbarText">
-                                    <ul className={variant === "homepage" ? "navbar-nav me-auto mb-2 mb-md-0" : "navbar-nav me-auto mb-lg-0"}>
+                                <div className="collapse navbar-collapse d-none d-lg-flex" id="navbarText">
+                                    <ul className="navbar-nav me-auto mb-lg-0">
                                         {/* <li className="nav-item"><Link className="nav-link" href="#">Features</Link></li> */}
                                         <li className="nav-item"><Link className="nav-link" href="/organizations">Leagues</Link></li>
                                         <li className="nav-item"><Link className="nav-link" href="/stats">Stats</Link></li>
@@ -72,9 +68,8 @@ export default function Header({ variant = "default", onBookDemo }) {
                                     </ul>
                                 </div>
 
-                                {/* Offcanvas Mobile Menu (homepage variant only) */}
-                                {variant === "homepage" && (
-                                    <div className="offcanvas offcanvas-end d-lg-none" tabIndex="-1" id="mobileMenu">
+                                {/* Offcanvas Mobile Menu */}
+                                <div className="offcanvas offcanvas-end d-lg-none" tabIndex="-1" id="mobileMenu">
                                         <div className="offcanvas-header">
                                             <div className="offcanvas-logo">
                                                 <img src="/assets/images/logo.png" alt="" />
@@ -105,7 +100,6 @@ export default function Header({ variant = "default", onBookDemo }) {
                                             )}
                                         </div>
                                     </div>
-                                )}
                             </div>
                         </nav>
                         <HeaderAuth onBookDemo={onBookDemo} />
