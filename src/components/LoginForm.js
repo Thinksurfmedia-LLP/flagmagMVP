@@ -128,8 +128,9 @@ export default function LoginForm() {
                     type="submit"
                     className="btn btn-primary w-100"
                     disabled={loading}
+                    style={{ borderRadius: "30px", padding: "12px", fontWeight: "600", letterSpacing: "0.5px" }}
                 >
-                    {loading ? "Signing in..." : "Sign in"}
+                    {loading ? "SIGNING IN..." : "SIGN IN"}
                 </button>
                 <p className="text-center mt-3" style={{ fontSize: '14px' }}>
                     Don&apos;t have an account?{' '}

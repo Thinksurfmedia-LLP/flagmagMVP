@@ -166,7 +166,7 @@ export default function SignupForm() {
                         onChange={(e) => setAgreed(e.target.checked)}
                     />
                     <label htmlFor="agree">
-                        By signing up, I have read and agree to Untitled UI&apos;s{" "}
+                        By signing up, I have read and agree to FlagMag&apos;s{" "}
                         <Link href="#">Terms &amp; Conditions</Link> and{" "}
                         <Link href="#">Privacy Policy</Link>
                     </label>
@@ -175,8 +175,9 @@ export default function SignupForm() {
                     type="submit"
                     className="btn btn-primary w-100"
                     disabled={loading}
+                    style={{ borderRadius: "30px", padding: "12px", fontWeight: "600", letterSpacing: "0.5px" }}
                 >
-                    {loading ? "Signing up..." : "Sign up"}
+                    {loading ? "SIGNING UP..." : "SIGN UP"}
                 </button>
             </div>
         </form>
