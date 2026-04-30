@@ -97,6 +97,15 @@ export async function PUT(request, { params }) {
             return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
         }
 
+        // Keep associated Player records in sync if name was updated
+        if (update.name) {
+            const PlayerModel = require("@/models/Player").default || require("mongoose").models.Player;
+            await PlayerModel.updateMany(
+                { user: id },
+                { $set: { name: update.name } }
+            );
+        }
+
         return NextResponse.json({ success: true, data: user });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });

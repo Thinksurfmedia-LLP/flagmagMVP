@@ -70,6 +70,16 @@ export async function PUT(request, { params }) {
         if (!player) {
             return NextResponse.json({ success: false, error: "Player not found" }, { status: 404 });
         }
+
+        // Keep associated User record in sync if name was updated
+        if (updateData.name && player.user) {
+            const UserModel = require("@/models/User").default || require("mongoose").models.User;
+            await UserModel.findByIdAndUpdate(
+                player.user,
+                { $set: { name: updateData.name } }
+            );
+        }
+
         return NextResponse.json({ success: true, data: player }, { status: 200 });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
