@@ -104,7 +104,7 @@ async function getData(slug, seasonSlug) {
     };
 }
 
-function DivisionTable({ name, rows, isSingle }) {
+function DivisionTable({ name, rows, isSingle, slug, seasonSlug }) {
     return (
         <div className={isSingle ? "col-xl-8 mb-4" : "col-xl-6 mb-4"}>
             <div className="table-wrap">
@@ -125,7 +125,16 @@ function DivisionTable({ name, rows, isSingle }) {
                             const noGames = team.wins === 0 && team.losses === 0;
                             return (
                                 <tr key={i}>
-                                    <td><img src={team.logo || "/assets/images/team-placeholder.svg"} alt="" /> {team.name}</td>
+                                    <td>
+                                        <img src={team.logo || "/assets/images/team-placeholder.svg"} alt="" />
+                                        {" "}
+                                        <Link 
+                                            href={`/organizations/${slug}/season/${seasonSlug}/player-stats?team=${encodeURIComponent(team.name)}`}
+                                            style={{ color: "#fff", textDecoration: "underline" }}
+                                        >
+                                            {team.name}
+                                        </Link>
+                                    </td>
                                     <td>{team.wins}-{team.losses}</td>
                                     <td>{noGames ? "-" : team.pct.toFixed(2)}</td>
                                     <td>{noGames ? "-" : team.pf}</td>
@@ -222,7 +231,7 @@ export default async function GameStatsPage({ params }) {
 
                     <div className={`organization-stats-table-wrap row${divisionGroups.length === 1 ? " justify-content-center" : ""}`}>
                             {divisionGroups.map((group, i) => (
-                                <DivisionTable key={i} name={group.name} rows={group.rows} isSingle={divisionGroups.length === 1} />
+                                <DivisionTable key={i} name={group.name} rows={group.rows} isSingle={divisionGroups.length === 1} slug={slug} seasonSlug={seasonSlug} />
                             ))}
                         </div>
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ScheduleWithDateStrip from "@/components/ScheduleWithDateStrip";
@@ -46,7 +47,16 @@ function StandingsView({ orgSlug, leagueSlug }) {
                                     const noGames = team.wins === 0 && team.losses === 0;
                                     return (
                                         <tr key={j}>
-                                            <td><img src={team.logo || "/assets/images/team-placeholder.svg"} alt="" /> {team.name}</td>
+                                            <td>
+                                                <img src={team.logo || "/assets/images/team-placeholder.svg"} alt="" />
+                                                {" "}
+                                                <Link 
+                                                    href={`/organizations/${orgSlug}/season/${leagueSlug}/player-stats?team=${encodeURIComponent(team.name)}`}
+                                                    style={{ color: "#fff", textDecoration: "underline" }}
+                                                >
+                                                    {team.name}
+                                                </Link>
+                                            </td>
                                             <td>{team.wins}-{team.losses}</td>
                                             <td>{noGames ? "-" : team.pct.toFixed(2)}</td>
                                             <td>{noGames ? "-" : team.pf}</td>

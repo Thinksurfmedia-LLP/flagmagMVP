@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 const statTypeLabels = {
@@ -65,13 +66,22 @@ function getSorted(players, sortKey, sortDir) {
 }
 
 export default function PlayerStatsFilter({ orgSlug, seasonSlug, allTeams }) {
-    const [activeTeam, setActiveTeam] = useState("all");
+    const searchParams = useSearchParams();
+    const teamFromUrl = searchParams.get("team");
+    const [activeTeam, setActiveTeam] = useState(teamFromUrl || "all");
     const [selectedTypes, setSelectedTypes] = useState(["passing"]);
     const [allPlayersMap, setAllPlayersMap] = useState({});
     const [loading, setLoading] = useState(true);
     const [sortState, setSortState] = useState({});
 
     const ALL_TYPES = Object.keys(statTypeLabels);
+
+    // Update activeTeam when URL parameter changes
+    useEffect(() => {
+        if (teamFromUrl && teamFromUrl !== activeTeam) {
+            setActiveTeam(teamFromUrl);
+        }
+    }, [teamFromUrl]);
 
     useEffect(() => {
         async function fetchAllStats() {
