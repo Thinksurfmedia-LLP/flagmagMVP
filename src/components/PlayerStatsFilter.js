@@ -110,7 +110,7 @@ export default function PlayerStatsFilter({ orgSlug, seasonSlug, allTeams }) {
         setSelectedTypes(prev =>
             prev.includes(type)
                 ? prev.length > 1 ? prev.filter(t => t !== type) : prev
-                : [...prev, type]
+                : [type, ...prev]
         );
     };
 

@@ -97,7 +97,7 @@ export default function LeagueLeaderboard({ orgSlug, leagueSlug }) {
                 ? prev.length > 1
                     ? prev.filter((t) => t !== type)
                     : prev
-                : [...prev, type]
+                : [type, ...prev]
         );
     };
 

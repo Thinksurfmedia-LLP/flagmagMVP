@@ -98,7 +98,7 @@ export default function SeasonLeaderboard({ orgSlug, seasonsParam }) {
                 ? prev.length > 1
                     ? prev.filter((t) => t !== type)
                     : prev
-                : [...prev, type]
+                : [type, ...prev]
         );
     };
 
