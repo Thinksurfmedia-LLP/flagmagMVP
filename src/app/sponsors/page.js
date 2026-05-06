@@ -4,6 +4,7 @@ import { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BookDemoModal from "@/components/BookDemoModal";
+import ScrollToContent from "@/components/ScrollToContent";
 
 export default function SponsorsPage() {
   const [demoOpen, setDemoOpen] = useState(false);
@@ -12,6 +13,7 @@ export default function SponsorsPage() {
     <>
       <BookDemoModal isOpen={demoOpen} onClose={() => setDemoOpen(false)} />
       <Header onBookDemo={() => setDemoOpen(true)} />
+      <ScrollToContent />
 
       <section className="innerpage-section">
           <div className="banner-area"><img src="/assets/images/store-banner1.jpg" alt="" /></div>
@@ -23,7 +25,7 @@ export default function SponsorsPage() {
           </div>
       </section>
 
-      <section className="sponsors-logo-section section-padding">
+      <section className="sponsors-logo-section section-padding" id="main-content">
           <div className="container">
               <div className="row g-4">
                   <div className="col-sm-6 col-lg-4 col-xl-3">

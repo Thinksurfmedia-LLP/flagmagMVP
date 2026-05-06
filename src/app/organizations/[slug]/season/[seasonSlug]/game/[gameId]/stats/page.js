@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import GameTeamStats from "@/components/GameTeamStats";
+import ScrollToContent from "@/components/ScrollToContent";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import League from "@/models/League";
@@ -44,6 +45,7 @@ export default async function GameTeamStatsPage({ params }) {
     return (
         <>
             <Header />
+            <ScrollToContent />
 
             <section className="innerpage-section type2">
                 <div className="banner-area"><img src={org.bannerImage || "/assets/images/banner-placeholder.svg"} alt="" /></div>
@@ -68,7 +70,7 @@ export default async function GameTeamStatsPage({ params }) {
                 </div>
             </section>
 
-            <section className="leagues-section section-padding">
+            <section className="leagues-section section-padding" id="main-content">
                 <div className="container">
                     <div className="heading-area"><h2>{league.name}</h2></div>
 

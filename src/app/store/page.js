@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BookDemoModal from "@/components/BookDemoModal";
+import ScrollToContent from "@/components/ScrollToContent";
 import Link from "next/link";
 
 export default function StorePage() {
@@ -89,6 +90,7 @@ export default function StorePage() {
     <>
       <BookDemoModal isOpen={demoOpen} onClose={() => setDemoOpen(false)} />
       <Header onBookDemo={() => setDemoOpen(true)} />
+      <ScrollToContent />
 
       <section className="innerpage-section">
           <div className="banner-area"><img src="/assets/images/store-banner1.jpg" alt="" /></div>
@@ -100,7 +102,7 @@ export default function StorePage() {
           </div>
       </section>
 
-      <section className="store-banner-section section-padding-top">
+      <section className="store-banner-section section-padding-top" id="main-content">
           <div className="container">
               <div className="row align-items-center text-center gy-3 justify-content-between mb-4">
                   <div className="col-sm-auto">

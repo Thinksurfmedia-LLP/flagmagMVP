@@ -2,6 +2,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import GalleryCarousel from "@/components/GalleryCarousel";
 import Link from "next/link";
+import ScrollToContent from "@/components/ScrollToContent";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import Venue from "@/models/Location";
@@ -85,6 +86,7 @@ export default async function SeasonLocationPage({ params }) {
     return (
         <>
             <Header />
+            <ScrollToContent />
 
             <section className="innerpage-section type2">
                 <div className="banner-area"><img src={org.bannerImage || "/assets/images/banner-placeholder.svg"} alt="" /></div>
@@ -113,7 +115,7 @@ export default async function SeasonLocationPage({ params }) {
                 </div>
             </section>
 
-            <section className="leagues-section section-padding">
+            <section className="leagues-section section-padding" id="main-content">
                 <div className="container">
                     <div className="heading-area"><h2>{league.name}</h2></div>
 

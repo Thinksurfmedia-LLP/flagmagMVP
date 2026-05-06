@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import ScrollToContent from "@/components/ScrollToContent";
 import ScheduleWithDateStrip from "@/components/ScheduleWithDateStrip";
 import LeagueLeaderboard from "@/components/LeagueLeaderboard";
 import SeasonLeaderboard from "@/components/SeasonLeaderboard";
@@ -247,6 +248,7 @@ function StatsPageContent() {
     return (
         <>
             <Header />
+            <ScrollToContent />
 
             <section className="innerpage-section type2">
                 <div className="banner-area">
@@ -255,7 +257,7 @@ function StatsPageContent() {
                 <div className="container"></div>
             </section>
 
-            <section className="leagues-section section-padding">
+            <section className="leagues-section section-padding" id="main-content">
                 <div className="container">
 
                     {/* ── Step 1: pick an org ─────────────────────────────── */}
