@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
@@ -47,7 +48,9 @@ export default async function PlayerStatsPage({ params }) {
     return (
         <>
             <Header />
-            <ScrollToContent />
+            <Suspense fallback={null}>
+                <ScrollToContent />
+            </Suspense>
 
             <section className="innerpage-section type2">
                 <div className="banner-area"><img src={org.bannerImage || "/assets/images/banner-placeholder.svg"} alt="" /></div>
@@ -90,7 +93,9 @@ export default async function PlayerStatsPage({ params }) {
                         </ul>
                     </div>
 
-                    <PlayerStatsFilter orgSlug={slug} seasonSlug={seasonSlug} allTeams={allTeams} />
+                    <Suspense fallback={<div>Loading stats...</div>}>
+                        <PlayerStatsFilter orgSlug={slug} seasonSlug={seasonSlug} allTeams={allTeams} />
+                    </Suspense>
 
                 </div>
             </section>

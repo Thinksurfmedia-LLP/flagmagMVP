@@ -248,7 +248,9 @@ function StatsPageContent() {
     return (
         <>
             <Header />
-            <ScrollToContent />
+            <Suspense fallback={null}>
+                <ScrollToContent />
+            </Suspense>
 
             <section className="innerpage-section type2">
                 <div className="banner-area">

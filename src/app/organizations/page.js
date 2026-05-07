@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ScrollToContent from "@/components/ScrollToContent";
@@ -94,7 +94,9 @@ export default function OrganizationsPage() {
     return (
         <>
             <Header />
-            <ScrollToContent />
+            <Suspense fallback={null}>
+                <ScrollToContent />
+            </Suspense>
 
             <section className="innerpage-section">
                 <div className="banner-area"><img src="/assets/images/inner-banner1.jpg" alt="" /></div>

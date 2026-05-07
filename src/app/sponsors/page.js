@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BookDemoModal from "@/components/BookDemoModal";
@@ -13,7 +13,9 @@ export default function SponsorsPage() {
     <>
       <BookDemoModal isOpen={demoOpen} onClose={() => setDemoOpen(false)} />
       <Header onBookDemo={() => setDemoOpen(true)} />
-      <ScrollToContent />
+      <Suspense fallback={null}>
+        <ScrollToContent />
+      </Suspense>
 
       <section className="innerpage-section">
           <div className="banner-area"><img src="/assets/images/store-banner1.jpg" alt="" /></div>

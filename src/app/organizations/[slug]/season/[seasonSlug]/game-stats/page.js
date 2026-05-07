@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
@@ -188,7 +189,9 @@ export default async function GameStatsPage({ params }) {
     return (
         <>
             <Header />
-            <ScrollToContent />
+            <Suspense fallback={null}>
+                <ScrollToContent />
+            </Suspense>
 
             <section className="innerpage-section type2">
                 <div className="banner-area"><img src={org.bannerImage || "/assets/images/banner-placeholder.svg"} alt="" /></div>
