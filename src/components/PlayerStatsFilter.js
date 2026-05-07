@@ -50,7 +50,6 @@ const statColumns = {
         { key: "dsafety", label: "SAF" },
         { key: "flagPulls", label: "FP" },
         { key: "flagPullsPerGame", label: "FP/G" },
-        { key: "defImpact", label: "IMPACT" },
     ],
 };
 
