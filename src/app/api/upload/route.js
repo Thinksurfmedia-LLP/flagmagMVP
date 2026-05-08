@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { writeFile } from "fs/promises";
 import path from "path";
-import { requireAdmin } from "@/lib/apiAuth";
+import { requireAuth } from "@/lib/apiAuth";
 
 export async function POST(request) {
     try {
-        const auth = await requireAdmin();
+        const auth = await requireAuth();
         if (!auth.authorized) return auth.response;
 
         const formData = await request.formData();

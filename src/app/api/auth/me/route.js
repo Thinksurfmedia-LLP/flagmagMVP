@@ -19,7 +19,7 @@ export async function GET() {
         // Look up fresh permissions from all assigned roles
         await dbConnect();
         const userDoc = await User.findById(user.id)
-            .select("organization roles roleOrganizations")
+            .select("organization roles roleOrganizations profilePicture")
             .populate("organization", "name slug logo")
             .lean();
         const roles = userDoc?.roles?.length ? [...userDoc.roles] : [user.role];
@@ -56,6 +56,7 @@ export async function GET() {
                     role: user.role,
                     roles,
                     permissions,
+                    profilePicture: userDoc?.profilePicture || "",
                     organization: userDoc?.organization
                         ? {
                             id: userDoc.organization._id,

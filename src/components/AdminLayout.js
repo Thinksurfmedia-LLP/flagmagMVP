@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
@@ -210,12 +210,53 @@ function getOrganizerNav(orgSlug) {
 }
 
 export default function AdminLayout({ children, title }) {
-    const { user, loading, logout, activeRole, clearActiveRole, setActiveRole } = useAuth();
+    const { user, loading, logout, activeRole, clearActiveRole, setActiveRole, refreshUser } = useAuth();
     const { org: impersonatedOrg, exitImpersonation } = useImpersonation();
     const pathname = usePathname();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const router = useRouter();
     const [fetchedOrgSlug, setFetchedOrgSlug] = useState(null);
+    const [uploadingProfile, setUploadingProfile] = useState(false);
+    const fileInputRef = useRef(null);
+
+    const handleProfileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setUploadingProfile(true);
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const uploadRes = await fetch("/api/upload", {
+                method: "POST",
+                body: formData,
+            });
+            const uploadData = await uploadRes.json();
+
+            if (uploadData.success) {
+                const updateRes = await fetch("/api/user/profile", {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ profilePicture: uploadData.url }),
+                });
+                const updateData = await updateRes.json();
+                if (updateData.success) {
+                    if (refreshUser) await refreshUser();
+                } else {
+                    alert("Failed to update profile picture: " + updateData.error);
+                }
+            } else {
+                alert("Upload failed: " + uploadData.error);
+            }
+        } catch (error) {
+            console.error("Profile picture upload error:", error);
+            alert("An error occurred during upload.");
+        } finally {
+            setUploadingProfile(false);
+            if (fileInputRef.current) fileInputRef.current.value = "";
+        }
+    };
 
     // If organizer has no user.organization, fetch their first org from the API
     const effectiveRole = activeRole || user?.role;
@@ -349,7 +390,49 @@ export default function AdminLayout({ children, title }) {
 
                 <div className="admin-sidebar-footer">
                     <div className="admin-user-card">
-                        <div className="admin-user-avatar">{initials}</div>
+                        <div className="admin-user-avatar" style={{ position: "relative" }}>
+                            {user.profilePicture ? (
+                                <img 
+                                    src={user.profilePicture} 
+                                    alt="Profile" 
+                                    style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} 
+                                />
+                            ) : (
+                                initials
+                            )}
+                            <button
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={uploadingProfile}
+                                style={{
+                                    position: "absolute",
+                                    top: -4,
+                                    right: -4,
+                                    background: "#f43f5e",
+                                    color: "white",
+                                    border: "none",
+                                    borderRadius: "50%",
+                                    width: 20,
+                                    height: 20,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    cursor: uploadingProfile ? "not-allowed" : "pointer",
+                                    fontSize: 10,
+                                    boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                                    opacity: uploadingProfile ? 0.5 : 1
+                                }}
+                                title="Change Profile Picture"
+                            >
+                                <i className={uploadingProfile ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-pencil"}></i>
+                            </button>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                style={{ display: "none" }}
+                                ref={fileInputRef}
+                                onChange={handleProfileUpload}
+                            />
+                        </div>
                         <div className="admin-user-info">
                             <div className="admin-user-name">{user.name}</div>
                             <div className="admin-user-role">{effectiveRole}</div>
