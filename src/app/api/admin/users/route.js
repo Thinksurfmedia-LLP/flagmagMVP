@@ -6,6 +6,7 @@ import Player from "@/models/Player";
 import Organization from "@/models/Organization";
 import Role from "@/models/Role";
 import { requirePermission } from "@/lib/apiAuth";
+import { logActivity } from "@/lib/activityLogger";
 
 export async function GET() {
     const auth = await requirePermission("manage_users");
@@ -120,6 +121,15 @@ export async function POST(request) {
                 }
             }
         }
+
+        // Log the activity
+        await logActivity({
+            userId: auth.user.id,
+            role: auth.user.role || auth.user.roles?.[0] || "unknown",
+            action: "CREATED_USER",
+            details: `Created new user ${userData.name} (${userData.email}) with role(s) ${assignedRoles.join(", ")}`,
+            organization: assignedOrg
+        });
 
         return NextResponse.json({ success: true, data: userData }, { status: 201 });
     } catch (error) {

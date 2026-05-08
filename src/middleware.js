@@ -47,14 +47,14 @@ async function verifyAuth(request) {
     }
 }
 
-export async function middleware(request) {
+export async function middleware(request, event) {
     const { pathname } = request.nextUrl;
 
-    // Skip middleware for static assets and API routes
+    // Skip middleware for static assets and internal log API
     if (
         pathname.startsWith("/_next") ||
         pathname.startsWith("/assets") ||
-        pathname.startsWith("/api") ||
+        pathname.startsWith("/api/internal/log") ||
         pathname.includes(".")
     ) {
         return NextResponse.next();

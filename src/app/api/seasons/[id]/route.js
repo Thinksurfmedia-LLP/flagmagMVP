@@ -3,6 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import Season from "@/models/Season";
 import User from "@/models/User";
 import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
+import { logActivity } from "@/lib/activityLogger";
 
 // GET single season
 export async function GET(request, { params }) {
@@ -40,7 +41,7 @@ export async function PUT(request, { params }) {
         const { id } = await params;
         const body = await request.json();
 
-        const existingSeason = await Season.findById(id).select("organization").lean();
+        const existingSeason = await Season.findById(id).select("organization name").lean();
         if (!existingSeason) {
             return NextResponse.json(
                 { success: false, error: "Season not found" },
@@ -85,6 +86,14 @@ export async function PUT(request, { params }) {
             );
         }
 
+        await logActivity({
+            userId: auth.user.id,
+            role: auth.user.role || auth.user.roles?.[0] || "unknown",
+            action: "UPDATED_SEASON",
+            details: `Updated season name from '${existingSeason.name}' to '${season.name}'`,
+            organization: season.organization
+        });
+
         return NextResponse.json({ success: true, data: season }, { status: 200 });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
@@ -99,7 +108,7 @@ export async function DELETE(request, { params }) {
 
         await dbConnect();
         const { id } = await params;
-        const season = await Season.findById(id).select("organization");
+        const season = await Season.findById(id).select("organization name");
 
         if (!season) {
             return NextResponse.json(
@@ -124,6 +133,14 @@ export async function DELETE(request, { params }) {
         }
 
         await Season.deleteOne({ _id: id });
+
+        await logActivity({
+            userId: auth.user.id,
+            role: auth.user.role || auth.user.roles?.[0] || "unknown",
+            action: "DELETED_SEASON",
+            details: `Deleted season '${season.name}'`,
+            organization: season.organization
+        });
 
         return NextResponse.json({ success: true, message: "Season deleted" }, { status: 200 });
     } catch (error) {

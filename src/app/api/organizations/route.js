@@ -5,6 +5,7 @@ import Season from "@/models/Season";
 import League from "@/models/League";
 import Player from "@/models/Player";
 import { requireAdmin } from "@/lib/apiAuth";
+import { logActivity } from "@/lib/activityLogger";
 
 export async function GET(request) {
     try {
@@ -124,6 +125,14 @@ export async function POST(request) {
         }
 
         const organization = await Organization.create(body);
+
+        await logActivity({
+            userId: auth.user.id,
+            role: auth.user.role || auth.user.roles?.[0] || "unknown",
+            action: "CREATED_ORGANIZATION",
+            details: `Created new organization ${organization.name}`,
+            organization: organization._id
+        });
 
         return NextResponse.json(
             { success: true, data: organization },

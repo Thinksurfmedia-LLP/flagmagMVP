@@ -4,6 +4,7 @@ import Season from "@/models/Season";
 import Organization from "@/models/Organization";
 import User from "@/models/User";
 import { requireAnyPermission } from "@/lib/apiAuth";
+import { logActivity } from "@/lib/activityLogger";
 
 // GET all seasons (admin sees all; organizer sees own org's)
 export async function GET(request) {
@@ -104,6 +105,14 @@ export async function POST(request) {
             name: body.name.trim(),
             slug,
             isDefault: body.isDefault || false,
+        });
+
+        await logActivity({
+            userId: auth.user.id,
+            role: auth.user.role || auth.user.roles?.[0] || "unknown",
+            action: "CREATED_SEASON",
+            details: `Created new season ${season.name} for organization ${organization.name}`,
+            organization: organization._id
         });
 
         return NextResponse.json({ success: true, data: season }, { status: 201 });
