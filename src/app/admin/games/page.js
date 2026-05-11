@@ -224,31 +224,6 @@ function GameModal({ onClose, onSave, initial, seasons = [], leagues = [], venue
                     </div>
                 </div>
 
-                {/* Status */}
-                <div className="admin-form-group">
-                    <label className="admin-form-label">Status</label>
-                    <select className="admin-form-select" value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}>
-                        <option value="upcoming">Upcoming</option>
-                        <option value="in_progress">In Progress</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
-                    </select>
-                </div>
-
-                {/* Scores (when completed) */}
-                {form.status === "completed" && (
-                    <div style={{ display: "flex", gap: 12 }}>
-                        <div className="admin-form-group" style={{ flex: 1 }}>
-                            <label className="admin-form-label">Team A Score</label>
-                            <input type="number" className="admin-form-input" value={form.teamAScore} onChange={e => setForm({ ...form, teamAScore: e.target.value })} />
-                        </div>
-                        <div className="admin-form-group" style={{ flex: 1 }}>
-                            <label className="admin-form-label">Team B Score</label>
-                            <input type="number" className="admin-form-input" value={form.teamBScore} onChange={e => setForm({ ...form, teamBScore: e.target.value })} />
-                        </div>
-                    </div>
-                )}
-
                 <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
                     <button className="admin-btn admin-btn-ghost" onClick={onClose}>Cancel</button>
                     <button className="admin-btn admin-btn-primary" onClick={handleSave} disabled={saving || !form.date || !form.teamAName || !form.teamBName || !selectedLeagueId}>
@@ -348,7 +323,7 @@ function GameStatsModal({ game, teams, onClose }) {
                 <h3 className="admin-modal-title" style={{ marginBottom: 16 }}>
                     Game Stats &mdash; {game.teamA.name} vs {game.teamB.name}
                     <span style={{ fontWeight: 400, fontSize: 13, marginLeft: 10, color: "#6b7280" }}>
-                        {new Date(game.date).toLocaleDateString()}
+                        {new Date(game.date.split("T")[0] + "T12:00:00Z").toLocaleDateString()}
                     </span>
                 </h3>
 
@@ -1471,7 +1446,7 @@ export default function AdminGamesPage() {
                                     <tbody>
                                         {games.slice((gamePage - 1) * GAMES_PER_PAGE, gamePage * GAMES_PER_PAGE).map(game => (
                                             <tr key={game._id}>
-                                                <td>{new Date(game.date).toLocaleDateString()}</td>
+                                                <td>{new Date(game.date.split("T")[0] + "T12:00:00Z").toLocaleDateString()}</td>
                                                 <td>{game.time || "—"}</td>
                                                 <td style={{ fontWeight: 600 }}>{game.teamA.name}</td>
                                                 <td style={{ fontWeight: 600 }}>{game.teamB.name}</td>
