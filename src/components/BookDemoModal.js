@@ -33,10 +33,6 @@ export default function BookDemoModal({ isOpen, onClose }) {
 
     if (!isOpen) return null;
 
-    const handleOverlayClick = (e) => {
-        if (e.target === e.currentTarget) onClose();
-    };
-
     const validate = () => {
         const errs = {};
         if (!form.fullName.trim()) errs.fullName = "Full name is required";
@@ -101,7 +97,7 @@ export default function BookDemoModal({ isOpen, onClose }) {
     };
 
     return (
-        <div className="book-demo-overlay" onClick={handleOverlayClick}>
+        <div className="book-demo-overlay">
             <div className="book-demo-modal">
                 <button className="book-demo-close" onClick={handleClose} aria-label="Close">
                     <i className="fa-solid fa-xmark"></i>

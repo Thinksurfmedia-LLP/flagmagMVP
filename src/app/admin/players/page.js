@@ -222,8 +222,11 @@ export default function AdminPlayersPage() {
                     </div>
 
                     {editPlayer && (
-                        <div className="admin-modal-backdrop" onClick={() => setEditPlayer(null)}>
+                        <div className="admin-modal-backdrop">
                             <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 450 }}>
+                                <button className="admin-modal-close" onClick={() => setEditPlayer(null)} aria-label="Close">
+                                    <i className="fa-solid fa-xmark"></i>
+                                </button>
                                 <h3 className="admin-modal-title">Edit Player Info</h3>
                                 
                                 <div className="admin-form-group">

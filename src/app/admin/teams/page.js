@@ -203,8 +203,11 @@ function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, ef
     };
 
     return (
-        <div className="admin-modal-backdrop" onClick={onClose}>
+        <div className="admin-modal-backdrop">
             <div className="admin-modal" onClick={(event) => event.stopPropagation()} style={{ maxWidth: 640, maxHeight: "90vh", overflowY: "auto" }}>
+                <button className="admin-modal-close" onClick={onClose} aria-label="Close">
+                    <i className="fa-solid fa-xmark"></i>
+                </button>
                 <h3 className="admin-modal-title">{team ? "Edit Team" : "Create Team"}</h3>
 
                 {effectiveRole === "admin" && (
@@ -575,8 +578,11 @@ function CsvImportModal({ onClose, onImportDone }) {
     const statusIcon = (s) => s === "created" ? "fa-check-circle" : s === "skipped" ? "fa-forward" : "fa-times-circle";
 
     return (
-        <div className="admin-modal-backdrop" onClick={onClose}>
+        <div className="admin-modal-backdrop">
             <div className="admin-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 680, maxHeight: "90vh", overflowY: "auto" }}>
+                <button className="admin-modal-close" onClick={onClose} aria-label="Close">
+                    <i className="fa-solid fa-xmark"></i>
+                </button>
                 <h3 className="admin-modal-title">
                     <i className="fa-solid fa-file-csv" style={{ color: "#FF1E00", marginRight: 8 }}></i>
                     Import Teams from CSV

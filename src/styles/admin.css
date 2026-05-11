@@ -827,6 +827,31 @@
     overflow-y: auto;
     padding: 20px;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+    position: relative;
+}
+
+.admin-modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: none;
+    background: #f3f4f6;
+    color: #6b7280;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.admin-modal-close:hover {
+    background: #e5e7eb;
+    color: #374151;
 }
 
 .admin-modal-title {
@@ -834,6 +859,7 @@
     font-weight: 700;
     color: #1a1d26;
     margin: 0 0 14px 0;
+    padding-right: 40px;
 }
 
 /* ── Empty state ── */

@@ -42,8 +42,11 @@ function AddFreeAgentModal({ onClose, onSave, organizations, isAdmin }) {
     };
 
     return (
-        <div className="admin-modal-backdrop" onClick={onClose}>
+        <div className="admin-modal-backdrop">
             <div className="admin-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 560 }}>
+                <button className="admin-modal-close" onClick={onClose} aria-label="Close">
+                    <i className="fa-solid fa-xmark"></i>
+                </button>
                 <h3 className="admin-modal-title">Add Free Agent</h3>
 
                 {formError && (
@@ -420,8 +423,11 @@ export default function AdminFreeAgentsPage() {
                     )}
 
                     {jerseyPrompt && (
-                        <div className="admin-modal-backdrop" onClick={() => setJerseyPrompt(null)}>
+                        <div className="admin-modal-backdrop">
                             <div className="admin-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 400 }}>
+                                <button className="admin-modal-close" onClick={() => setJerseyPrompt(null)} aria-label="Close">
+                                    <i className="fa-solid fa-xmark"></i>
+                                </button>
                                 <h3 className="admin-modal-title">Assign Jersey Number</h3>
                                 <p style={{ color: "#8b90a0", fontSize: 14, marginBottom: 16 }}>
                                     Assign a jersey number to <strong>{jerseyPrompt.fa.name}</strong> for team <strong>{jerseyPrompt.teamName}</strong>.

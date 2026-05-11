@@ -101,8 +101,11 @@ function LocationModal({ open, editingVenue, orgLocations, onClose, onSave, load
     };
 
     return (
-        <div className="admin-modal-backdrop" onClick={onClose}>
+        <div className="admin-modal-backdrop">
             <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 720 }}>
+                <button className="admin-modal-close" onClick={onClose} aria-label="Close">
+                    <i className="fa-solid fa-xmark"></i>
+                </button>
                 <h3 className="admin-modal-title">{editingVenue ? "Edit Location" : "Add Location"}</h3>
                 <form onSubmit={submit}>
                     <div className="admin-form-group">

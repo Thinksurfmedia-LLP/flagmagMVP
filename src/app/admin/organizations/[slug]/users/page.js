@@ -26,8 +26,11 @@ function AddUserModal({ onClose, onSave, roles }) {
     };
 
     return (
-        <div className="admin-modal-backdrop" onClick={onClose}>
+        <div className="admin-modal-backdrop">
             <div className="admin-modal" onClick={e => e.stopPropagation()}>
+                <button className="admin-modal-close" onClick={onClose} aria-label="Close">
+                    <i className="fa-solid fa-xmark"></i>
+                </button>
                 <h3 className="admin-modal-title">Add New User</h3>
                 {formError && <div className="admin-alert admin-alert-error" style={{ marginBottom: 12 }}><i className="fa-solid fa-exclamation-circle"></i> {formError}</div>}
                 <div className="admin-form-group">
@@ -90,8 +93,11 @@ function EditUserModal({ target, onClose, onSave, roles }) {
     };
 
     return (
-        <div className="admin-modal-backdrop" onClick={onClose}>
+        <div className="admin-modal-backdrop">
             <div className="admin-modal" onClick={e => e.stopPropagation()}>
+                <button className="admin-modal-close" onClick={onClose} aria-label="Close">
+                    <i className="fa-solid fa-xmark"></i>
+                </button>
                 <h3 className="admin-modal-title">Edit User — {target.name}</h3>
                 <div className="admin-form-group">
                     <label className="admin-form-label">Role</label>

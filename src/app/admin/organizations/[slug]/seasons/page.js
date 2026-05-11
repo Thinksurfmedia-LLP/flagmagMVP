@@ -56,8 +56,11 @@ function LeagueModal({ onClose, onSave, initial, orgCategories, venuesByCounty =
     const hasVenues = venuesByCounty.some((group) => group.venues.length > 0);
 
     return (
-        <div className="admin-modal-backdrop" onClick={onClose}>
+        <div className="admin-modal-backdrop">
             <div className="admin-modal" onClick={e => e.stopPropagation()}>
+                <button className="admin-modal-close" onClick={onClose} aria-label="Close">
+                    <i className="fa-solid fa-xmark"></i>
+                </button>
                 <h3 className="admin-modal-title">{initial ? "Edit League" : "Add League"}</h3>
                 <div className="admin-form-group">
                     <label className="admin-form-label">Name *</label>

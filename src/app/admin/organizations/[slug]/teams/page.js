@@ -21,8 +21,11 @@ function AddTeamModal({ onClose, onSave, leagues }) {
     };
 
     return (
-        <div className="admin-modal-backdrop" onClick={onClose}>
+        <div className="admin-modal-backdrop">
             <div className="admin-modal" onClick={e => e.stopPropagation()}>
+                <button className="admin-modal-close" onClick={onClose} aria-label="Close">
+                    <i className="fa-solid fa-xmark"></i>
+                </button>
                 <h3 className="admin-modal-title">Add Team</h3>
                 <div className="admin-form-group">
                     <label className="admin-form-label">League *</label>

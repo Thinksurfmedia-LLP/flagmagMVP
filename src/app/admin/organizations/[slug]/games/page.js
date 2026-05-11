@@ -116,8 +116,11 @@ function GameModal({ onClose, onSave, initial, seasons = [], leagues = [], venue
     };
 
     return (
-        <div className="admin-modal-backdrop" onClick={onClose}>
+        <div className="admin-modal-backdrop">
             <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 600 }}>
+                <button className="admin-modal-close" onClick={onClose} aria-label="Close">
+                    <i className="fa-solid fa-xmark"></i>
+                </button>
                 <h3 className="admin-modal-title">{initial ? "Edit Game" : "Schedule Game"}</h3>
 
                 {/* Season */}
@@ -309,8 +312,11 @@ function GameStatsModal({ game, teams, onClose }) {
     };
 
     return (
-        <div className="admin-modal-backdrop" onClick={onClose}>
+        <div className="admin-modal-backdrop">
             <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 1100, maxHeight: "90vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+                <button className="admin-modal-close" onClick={onClose} aria-label="Close">
+                    <i className="fa-solid fa-xmark"></i>
+                </button>
                 <h3 className="admin-modal-title" style={{ marginBottom: 16 }}>
                     Game Stats &mdash; {game.teamA.name} vs {game.teamB.name}
                     <span style={{ fontWeight: 400, fontSize: 13, marginLeft: 10, color: "#6b7280" }}>
@@ -763,8 +769,11 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
     };
 
     return (
-        <div className="admin-modal-backdrop" onClick={onClose}>
+        <div className="admin-modal-backdrop">
             <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 900, maxHeight: "90vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+                <button className="admin-modal-close" onClick={onClose} aria-label="Close">
+                    <i className="fa-solid fa-xmark"></i>
+                </button>
                 {/* Header */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                     <h3 className="admin-modal-title" style={{ margin: 0 }}>
