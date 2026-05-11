@@ -204,11 +204,7 @@ function LiveGameContent({ gameId }) {
     const handleReset = async () => {
         if (window.confirm("Are you sure you want to reset this game to its initial state? All scores will be cleared.")) {
             try {
-                await apiPut(`/api/games/${gameId}`, {
-                    status: "upcoming",
-                    "teamA.score": 0,
-                    "teamB.score": 0
-                });
+                await apiPost(`/api/games/${gameId}/reset`);
                 setActionLog([]);
                 setHalf("1st");
                 setTimeoutsA(0);
