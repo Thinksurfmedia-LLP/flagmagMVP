@@ -161,7 +161,7 @@ export default function PlayerStatsFilter({ orgSlug, seasonSlug, allTeams }) {
                     const rawPlayers = allPlayersMap[type] || [];
                     const { key: sortKey, dir: sortDir } = sortState[type] || { key: DEFAULT_SORT_KEY[type], dir: "desc" };
                     const players = getSorted(rawPlayers, sortKey, sortDir);
-                    const totalCols = columns.length + 2;
+                    const totalCols = columns.length + 3;
                     const sortIcon = (key) => sortKey === key
                         ? <span className={`sort-icon active`}>{sortDir === "desc" ? "↓" : "↑"}</span>
                         : <span className="sort-icon">⇅</span>;
@@ -173,7 +173,8 @@ export default function PlayerStatsFilter({ orgSlug, seasonSlug, allTeams }) {
                                     <table className="table">
                                         <thead>
                                             <tr>
-                                                <th className="sortable-col" onClick={() => handleSort(type, "playerName")}>
+                                                <th style={{ width: 40, textAlign: "center" }}>#</th>
+                                                <th className="sortable-col" style={{ textAlign: "left" }} onClick={() => handleSort(type, "playerName")}>
                                                     PLAYER {sortIcon("playerName")}
                                                 </th>
                                                 <th className="sortable-col" onClick={() => handleSort(type, "teamName")}>
@@ -198,7 +199,8 @@ export default function PlayerStatsFilter({ orgSlug, seasonSlug, allTeams }) {
                                             ) : (
                                                 players.map((player, i) => (
                                                     <tr key={player.playerId || i}>
-                                                        <td>
+                                                        <td className="jersey-num">{player.jerseyNumber ? `#${player.jerseyNumber}` : "-"}</td>
+                                                        <td style={{ textAlign: "left" }}>
                                                             <img src={player.playerPhoto || "/assets/images/player-placeholder.svg"} alt="" />
                                                             {" "}
                                                             <Link href={`/players/${player.playerId}`}>{player.playerName}</Link>

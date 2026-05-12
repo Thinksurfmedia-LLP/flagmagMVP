@@ -144,7 +144,7 @@ export default function LeagueLeaderboard({ orgSlug, leagueSlug }) {
                     dir: "desc",
                 };
                 const players = getSorted(rawPlayers, sortKey, sortDir);
-                const totalCols = columns.length + 2;
+                const totalCols = columns.length + 3;
 
                 const sortIcon = (key) =>
                     sortKey === key ? (
@@ -161,9 +161,11 @@ export default function LeagueLeaderboard({ orgSlug, leagueSlug }) {
                                 <table className="table">
                                     <thead>
                                         <tr>
+                                            <th style={{ width: 40, textAlign: "center" }}>#</th>
                                             <th
                                                 className="sortable-col"
                                                 onClick={() => handleSort(type, "playerName")}
+                                                style={{ textAlign: "left" }}
                                             >
                                                 PLAYER {sortIcon("playerName")}
                                             </th>
@@ -201,7 +203,10 @@ export default function LeagueLeaderboard({ orgSlug, leagueSlug }) {
                                         ) : (
                                             players.map((player, i) => (
                                                 <tr key={player.playerId || i}>
-                                                    <td>
+                                                    <td className="jersey-num">
+                                                        {player.jerseyNumber ? `#${player.jerseyNumber}` : "-"}
+                                                    </td>
+                                                    <td style={{ textAlign: "left" }}>
                                                         <img
                                                             src={
                                                                 player.playerPhoto ||

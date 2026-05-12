@@ -145,7 +145,7 @@ export default function SeasonLeaderboard({ orgSlug, seasonsParam }) {
                     dir: "desc",
                 };
                 const players = getSorted(rawPlayers, sortKey, sortDir);
-                const totalCols = columns.length + 2;
+                const totalCols = columns.length + 3;
 
                 const sortIcon = (key) =>
                     sortKey === key ? (
@@ -162,8 +162,10 @@ export default function SeasonLeaderboard({ orgSlug, seasonsParam }) {
                                 <table className="table">
                                     <thead>
                                         <tr>
+                                            <th style={{ width: 40, textAlign: "center" }}>#</th>
                                             <th
                                                 className="sortable-col"
+                                                style={{ textAlign: "left" }}
                                                 onClick={() => handleSort(type, "playerName")}
                                             >
                                                 PLAYER {sortIcon("playerName")}
@@ -202,7 +204,8 @@ export default function SeasonLeaderboard({ orgSlug, seasonsParam }) {
                                         ) : (
                                             players.map((player, i) => (
                                                 <tr key={player.playerId || i}>
-                                                    <td>
+                                                    <td className="jersey-num">{player.jerseyNumber ? `#${player.jerseyNumber}` : "-"}</td>
+                                                    <td style={{ textAlign: "left" }}>
                                                         <img
                                                             src={
                                                                 player.playerPhoto ||

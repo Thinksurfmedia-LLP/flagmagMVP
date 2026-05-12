@@ -26,6 +26,7 @@ async function buildRosterMap(game, orgId) {
                 playerId: String(p.player?._id || p.player),
                 playerName: p.player?.name || "",
                 playerPhoto: p.player?.photo || "",
+                jerseyNumber: p.jerseyNumber != null ? String(p.jerseyNumber) : "",
             };
         }
         if (team.name === game.teamA.name) rosterMap.A = map;
@@ -64,6 +65,7 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
                 playerId: player.playerId,
                 playerName: player.playerName,
                 playerPhoto: player.playerPhoto,
+                jerseyNumber: player.jerseyNumber || "",
                 teamName: teamNamesByAB[teamSide] || "",
                 // Will be populated with stat-specific fields
             };
@@ -240,6 +242,7 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
             playerId: p.playerId,
             playerName: p.playerName,
             playerPhoto: p.playerPhoto,
+            jerseyNumber: p.jerseyNumber || "",
             teamName: p.teamName,
             atts,
             comp,
@@ -264,6 +267,7 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
             playerId: r.playerId,
             playerName: r.playerName,
             playerPhoto: r.playerPhoto,
+            jerseyNumber: r.jerseyNumber || "",
             teamName: r.teamName,
             receptions,
             yards,
@@ -282,6 +286,7 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
             playerId: r.playerId,
             playerName: r.playerName,
             playerPhoto: r.playerPhoto,
+            jerseyNumber: r.jerseyNumber || "",
             teamName: r.teamName,
             atts,
             yards,
@@ -300,6 +305,7 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
             playerId: d.playerId,
             playerName: d.playerName,
             playerPhoto: d.playerPhoto,
+            jerseyNumber: d.jerseyNumber || "",
             teamName: d.teamName,
             dint: d.dint || 0,
             dintTD,
