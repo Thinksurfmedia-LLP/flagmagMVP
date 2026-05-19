@@ -18,6 +18,11 @@ const ALL_PERMISSIONS = [
     "season_create",
     "season_update",
     "season_delete",
+    "manage_schedules",
+    "schedule_view",
+    "schedule_create",
+    "schedule_update",
+    "schedule_delete",
     "manage_games",
     "game_view",
     "game_create",
@@ -44,6 +49,7 @@ const PERMISSION_COMPATIBILITY = {
     manage_organizations: ["organization_view", "organization_create", "organization_update", "organization_delete"],
     manage_leagues: ["league_view", "league_create", "league_update", "league_delete"],
     manage_seasons: ["season_view", "season_create", "season_update", "season_delete"],
+    manage_schedules: ["schedule_view", "schedule_create", "schedule_update", "schedule_delete"],
     manage_games: ["game_view", "game_create", "game_update", "game_delete"],
     manage_players: ["player_view", "player_create", "player_update", "player_delete"],
     manage_teams: ["team_view", "team_create", "team_update", "team_delete"],
@@ -78,6 +84,7 @@ const NAV_ITEMS = [
         items: [
             { label: "Organizations", href: "/admin/organizations", icon: "fa-solid fa-building", perm: "manage_organizations" },
             { label: "Seasons", href: "/admin/seasons", icon: "fa-solid fa-calendar-days", perm: "manage_seasons" },
+            // { label: "Schedules", href: "/admin/schedules", icon: "fa-solid fa-calendar-alt", perm: "manage_schedules" },
             // { label: "Teams", href: "/admin/teams", icon: "fa-solid fa-people-group", perm: "manage_teams" },
             // { label: "Players", href: "/admin/players", icon: "fa-solid fa-users", perm: "manage_players" },
             // { label: "Games", href: "/admin/games", icon: "fa-solid fa-football", perm: "manage_games" },
@@ -118,7 +125,8 @@ function getImpersonationNav(orgSlug) {
             section: "Organization",
             items: [
                 { label: "Dashboard", href: `/admin/organizations/${orgSlug}`, icon: "fa-solid fa-chart-pie", perm: "view_dashboard" },
-                { label: "Seasons", href: `/admin/organizations/${orgSlug}/seasons`, icon: "fa-solid fa-calendar-days", perm: "manage_seasons" },
+                { label: "Seasons", href: `/admin/organizations/${orgSlug}/seasons`, icon: "fa-solid fa-calendar-check", perm: "manage_seasons" },
+                { label: "Schedules", href: `/admin/organizations/${orgSlug}/schedules`, icon: "fa-solid fa-clipboard-list", perm: "manage_schedules" },
                 { label: "Games", href: `/admin/organizations/${orgSlug}/games`, icon: "fa-solid fa-football", perm: "manage_games" },
                 { label: "Free Agents", href: `/admin/free-agents`, icon: "fa-solid fa-user-clock", perm: "manage_players" },
                 { label: "Players", href: `/admin/organizations/${orgSlug}/players`, icon: "fa-solid fa-users", perm: "manage_players" },
@@ -155,7 +163,7 @@ function getOrganizerNav(orgSlug) {
                 {
                     label: "Seasons",
                     href: "/admin/seasons",
-                    icon: "fa-solid fa-calendar-days",
+                    icon: "fa-solid fa-calendar-check",
                     perms: ["manage_seasons", "season_view", "season_create", "season_update", "season_delete"],
                 },
                 {
@@ -163,6 +171,12 @@ function getOrganizerNav(orgSlug) {
                     href: "/admin/leagues",
                     icon: "fa-solid fa-trophy",
                     perms: ["manage_leagues", "league_view", "league_create", "league_update", "league_delete"],
+                },
+                {
+                    label: "Schedules",
+                    href: "/admin/schedules",
+                    icon: "fa-solid fa-clipboard-list",
+                    perms: ["manage_schedules", "schedule_view", "schedule_create", "schedule_update", "schedule_delete"],
                 },
                 {
                     label: "Teams",
