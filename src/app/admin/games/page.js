@@ -12,7 +12,7 @@ const GAMES_PER_PAGE = 20;
 const STAT_FIELDS = ["rate", "atts", "comp", "tds", "pct", "xp2", "yards", "ten", "twenty", "forty", "ints", "intOpen", "intXp"];
 const STAT_LABELS = { rate: "Rate", atts: "Atts", comp: "Comp", tds: "TDs", pct: "%", xp2: "XP2", yards: "Yards", ten: "10+", twenty: "20+", forty: "40+", ints: "INTs", intOpen: "Int Open", intXp: "Int XP" };
 
-function GameModal({ onClose, onSave, initial, seasons = [], leagues = [], venues = [], teams = [], pageSelectedSeason = "", scheduleDays = [] }) {
+function GameModal({ onClose, onSave, initial, seasons = [], leagues = [], venues = [], teams = [], pageSelectedSeason = "", pageSelectedLeague = "", scheduleDays = [] }) {
     // Cascading selection state
     const [selectedSeasonId, setSelectedSeasonId] = useState(() => {
         if (initial) {
@@ -31,10 +31,7 @@ function GameModal({ onClose, onSave, initial, seasons = [], leagues = [], venue
     });
     const [selectedLeagueId, setSelectedLeagueId] = useState(() => {
         if (initial) return initial.league || "";
-        if (pageSelectedSeason) {
-            const league = leagues.find(l => l._id === pageSelectedSeason);
-            if (league) return league._id;
-        }
+        if (pageSelectedLeague) return pageSelectedLeague;
         return "";
     });
     const [selectedVenueName, setSelectedVenueName] = useState(() => {
@@ -1268,6 +1265,9 @@ export default function AdminGamesPage() {
     const [showLiveStats, setShowLiveStats] = useState(false);
     const [liveStatsTarget, setLiveStatsTarget] = useState(null);
     const [importModalOpen, setImportModalOpen] = useState(false);
+    const [filterSeason, setFilterSeason] = useState("");
+    const [filterLeague, setFilterLeague] = useState("");
+    const [filterLocationName, setFilterLocationName] = useState("");
     const { showSuccess, showError } = useToast();
 
     const effectiveRole = activeRole || user?.role;
@@ -1328,6 +1328,31 @@ export default function AdminGamesPage() {
             finally { setLoading(false); }
         })();
     }, [selectedOrg]);
+
+    // Computed and cascaded filter logic
+    const availableLeagues = filterSeason 
+        ? leagues.filter(l => (l.season?._id || l.season) === filterSeason)
+        : leagues;
+
+    useEffect(() => {
+        setFilterLeague("");
+    }, [filterSeason]);
+
+    useEffect(() => {
+        if (!filterLeague) {
+            setFilterLocationName("");
+            return;
+        }
+        const league = leagues.find(l => l._id === filterLeague);
+        if (league && league.location) {
+            setFilterLocationName(league.location);
+        } else {
+            setFilterLocationName("");
+        }
+    }, [filterLeague, leagues]);
+
+    const filteredGames = filterLeague ? games.filter(g => String(g.league) === filterLeague) : [];
+
 
     const handleSave = async (payload) => {
         const { leagueId, ...gameData } = payload;
@@ -1402,10 +1427,46 @@ export default function AdminGamesPage() {
                         </div>
                     )}
 
+                    {/* Game Filters */}
+                    <div className="admin-card" style={{ marginBottom: 20 }}>
+                        <div className="admin-card-header" style={{ paddingBottom: 16 }}>
+                            <h3 style={{ margin: 0 }}>Select League to View Games</h3>
+                        </div>
+                        <div className="admin-card-body" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
+                            <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                                <label className="admin-form-label">Season *</label>
+                                <select className="admin-form-select" value={filterSeason} onChange={e => setFilterSeason(e.target.value)}>
+                                    <option value="">Select Season...</option>
+                                    {seasons.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
+                                </select>
+                            </div>
+                            <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                                <label className="admin-form-label">League *</label>
+                                <select className="admin-form-select" value={filterLeague} onChange={e => setFilterLeague(e.target.value)} disabled={!filterSeason}>
+                                    <option value="">Select League...</option>
+                                    {availableLeagues.map(l => <option key={l._id} value={l._id}>{l.name}</option>)}
+                                </select>
+                            </div>
+                            <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                                <label className="admin-form-label">Location</label>
+                                <input className="admin-form-input" value={filterLocationName} readOnly disabled style={{ background: "#f3f4f6", cursor: "not-allowed", color: "#6b7280" }} placeholder="Auto-populated by league" />
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Games List */}
-                    <div className="admin-card">
-                        <div className="admin-card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <h3>Games ({games.length})</h3>
+                    {!filterLeague ? (
+                        <div className="admin-card">
+                            <div className="admin-empty" style={{ padding: "60px 20px" }}>
+                                <i className="fa-solid fa-filter" style={{ fontSize: 40, color: "#cbd5e1", marginBottom: 16, display: "block" }}></i>
+                                <h3 style={{ fontSize: 18, color: "#1e293b", fontWeight: 600 }}>Please select a Season and League</h3>
+                                <p style={{ color: "#6b7280" }}>Select the options above to view the scheduled games.</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="admin-card">
+                            <div className="admin-card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <h3>Games ({filteredGames.length})</h3>
                             {canCreate && (
                                 <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                                     <button className="admin-btn admin-btn-ghost" onClick={() => setImportModalOpen(true)}>
@@ -1423,10 +1484,10 @@ export default function AdminGamesPage() {
                                 <div className="admin-spinner"></div>
                                 Loading games...
                             </div>
-                        ) : games.length === 0 ? (
+                        ) : filteredGames.length === 0 ? (
                             <div className="admin-empty">
                                 <i className="fa-solid fa-football"></i>
-                                <p>No games scheduled yet. Add one to get started.</p>
+                                <p>No games scheduled yet in this league. Add one to get started.</p>
                             </div>
                         ) : (
                             <div style={{ overflowX: "auto" }}>
@@ -1444,7 +1505,7 @@ export default function AdminGamesPage() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {games.slice((gamePage - 1) * GAMES_PER_PAGE, gamePage * GAMES_PER_PAGE).map(game => (
+                                        {filteredGames.slice((gamePage - 1) * GAMES_PER_PAGE, gamePage * GAMES_PER_PAGE).map(game => (
                                             <tr key={game._id}>
                                                 <td>{new Date(game.date.split("T")[0] + "T12:00:00Z").toLocaleDateString()}</td>
                                                 <td>{game.time || "—"}</td>
@@ -1476,11 +1537,6 @@ export default function AdminGamesPage() {
                                                                 <i className="fa-solid fa-pen"></i>
                                                             </button>
                                                         )}
-                                                        {canDelete && (
-                                                            <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => deleteGame(game._id)} title="Delete">
-                                                                <i className="fa-solid fa-trash"></i>
-                                                            </button>
-                                                        )}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -1489,14 +1545,15 @@ export default function AdminGamesPage() {
                                 </table>
                                 <AdminPagination
                                     currentPage={gamePage}
-                                    totalPages={Math.ceil(games.length / GAMES_PER_PAGE)}
+                                    totalPages={Math.ceil(filteredGames.length / GAMES_PER_PAGE)}
                                     onPageChange={setGamePage}
-                                    totalItems={games.length}
+                                    totalItems={filteredGames.length}
                                     itemsPerPage={GAMES_PER_PAGE}
                                 />
                             </div>
                         )}
                     </div>
+                    )}
                 </>
             )}
             {showModal && (
@@ -1507,7 +1564,8 @@ export default function AdminGamesPage() {
                     venues={venues}
                     teams={teams}
                     scheduleDays={scheduleDays}
-                    pageSelectedSeason=""
+                    pageSelectedSeason={filterSeason}
+                    pageSelectedLeague={filterLeague}
                     onClose={() => { setShowModal(false); setEditTarget(null); }}
                     onSave={handleSave}
                 />

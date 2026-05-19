@@ -12,10 +12,12 @@ export default function EditSchedulePage({ params }) {
     const { user, activeRole } = useAuth();
     const { showSuccess, showError } = useToast();
 
+    const [seasons, setSeasons] = useState([]);
     const [leagues, setLeagues] = useState([]);
     const [locations, setLocations] = useState([]);
     const [teams, setTeams] = useState([]);
 
+    const [seasonId, setSeasonId] = useState("");
     const [leagueId, setLeagueId] = useState("");
     const [locationId, setLocationId] = useState("");
     const [status, setStatus] = useState("Active");
@@ -46,18 +48,29 @@ export default function EditSchedulePage({ params }) {
         if (!id) return;
 
         Promise.all([
+            fetch("/api/seasons").then(r => r.json()),
             fetch("/api/leagues").then(r => r.json()),
             fetch("/api/locations").then(r => r.json()),
             fetch("/api/teams").then(r => r.json()),
             fetch(`/api/schedules/${id}`).then(r => r.json())
-        ]).then(([leaguesData, locationsData, teamsData, scheduleData]) => {
+        ]).then(([seasonsData, leaguesData, locationsData, teamsData, scheduleData]) => {
+            if (seasonsData.success) setSeasons(seasonsData.data);
             if (leaguesData.success) setLeagues(leaguesData.data);
             if (locationsData.success) setLocations(locationsData.data);
             if (teamsData.success) setTeams(teamsData.data);
             
             if (scheduleData.success && scheduleData.data) {
                 const schedule = scheduleData.data;
-                setLeagueId(schedule.leagueId?._id || schedule.leagueId || "");
+                const schedLeagueId = schedule.leagueId?._id || schedule.leagueId || "";
+                setLeagueId(schedLeagueId);
+                
+                // Auto-select season based on the schedule's league
+                if (schedLeagueId && leaguesData.success) {
+                    const league = leaguesData.data.find(l => l._id === schedLeagueId);
+                    if (league && league.season) {
+                        setSeasonId(league.season?._id || league.season);
+                    }
+                }
                 setLocationId(schedule.locationId?._id || schedule.locationId || "");
                 setStatus(schedule.status || "Active");
 
@@ -70,7 +83,8 @@ export default function EditSchedulePage({ params }) {
                                 team2: g.team2?._id || g.team2 || "",
                                 field: g.field || "",
                                 date: g.date || "",
-                                time: g.time || ""
+                                time: g.time || "",
+                                gameRef: g.gameRef || null
                             };
                         })
                     }));
@@ -87,7 +101,23 @@ export default function EditSchedulePage({ params }) {
         });
     }, [id]);
 
+    const availableLeagues = seasonId 
+        ? leagues.filter(l => (l.season?._id || l.season) === seasonId)
+        : leagues;
+
     const selectedLeagueData = leagues.find(l => l._id === leagueId);
+
+    // Reset league when season changes, but only if the user manually changed the season
+    // Since we fetch and set seasonId initially, we don't want to clear the leagueId then.
+    // A simple way is to check if leagueId's season matches seasonId
+    useEffect(() => {
+        if (leagueId && selectedLeagueData) {
+            const leagueSeason = selectedLeagueData.season?._id || selectedLeagueData.season;
+            if (leagueSeason !== seasonId) {
+                setLeagueId("");
+            }
+        }
+    }, [seasonId]);
     
     // Auto-select location based on league
     useEffect(() => {
@@ -106,7 +136,7 @@ export default function EditSchedulePage({ params }) {
         setWeeks([...weeks, {
             name: "",
             games: [
-                { team1: "", team2: "", field: "", date: "", time: "" }
+                { team1: "", team2: "", field: "", date: "", time: "", gameRef: null }
             ]
         }]);
     };
@@ -119,7 +149,7 @@ export default function EditSchedulePage({ params }) {
 
     const handleAddGame = (weekIndex) => {
         const newWeeks = [...weeks];
-        newWeeks[weekIndex].games.push({ team1: "", team2: "", field: "", date: "", time: "" });
+        newWeeks[weekIndex].games.push({ team1: "", team2: "", field: "", date: "", time: "", gameRef: null });
         setWeeks(newWeeks);
     };
 
@@ -167,7 +197,8 @@ export default function EditSchedulePage({ params }) {
                     team2: g.team2 || null,
                     field: g.field,
                     date: g.date,
-                    time: g.time
+                    time: g.time,
+                    gameRef: g.gameRef || null
                 }))
             }))
         };
@@ -220,17 +251,33 @@ export default function EditSchedulePage({ params }) {
                     </button>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 24, marginBottom: 40 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 24, marginBottom: 40 }}>
+                    <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                        <label className="admin-form-label" style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#8b90a0" }}>Season</label>
+                        <select 
+                            className="admin-form-select" 
+                            value={seasonId} 
+                            onChange={(e) => setSeasonId(e.target.value)}
+                            style={{ padding: "10px 14px", border: "1px solid #e5e7ef", borderRadius: 8 }}
+                        >
+                            <option value="">Select Season</option>
+                            {seasons.map(s => (
+                                <option key={s._id} value={s._id}>{s.name}</option>
+                            ))}
+                        </select>
+                    </div>
+
                     <div className="admin-form-group" style={{ marginBottom: 0 }}>
                         <label className="admin-form-label" style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#8b90a0" }}>League</label>
                         <select 
                             className="admin-form-select" 
                             value={leagueId} 
                             onChange={(e) => setLeagueId(e.target.value)}
+                            disabled={!seasonId}
                             style={{ padding: "10px 14px", border: "1px solid #e5e7ef", borderRadius: 8 }}
                         >
                             <option value="">Select League</option>
-                            {leagues.map(l => (
+                            {availableLeagues.map(l => (
                                 <option key={l._id} value={l._id}>{l.name}</option>
                             ))}
                         </select>
@@ -238,18 +285,14 @@ export default function EditSchedulePage({ params }) {
                     
                     <div className="admin-form-group" style={{ marginBottom: 0 }}>
                         <label className="admin-form-label" style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#8b90a0" }}>Location</label>
-                        <select 
-                            className="admin-form-select" 
-                            value={locationId} 
-                            onChange={(e) => setLocationId(e.target.value)}
+                        <input 
+                            className="admin-form-input" 
+                            value={locations.find(l => l._id === locationId)?.name || ""} 
+                            readOnly 
+                            disabled 
+                            placeholder="Auto-populated by league"
                             style={{ padding: "10px 14px", border: "1px solid #e5e7ef", borderRadius: 8, background: "#f3f4f6", color: "#6b7280", cursor: "not-allowed" }}
-                            disabled
-                        >
-                            <option value="">Select Location</option>
-                            {locations.map(l => (
-                                <option key={l._id} value={l._id}>{l.name}</option>
-                            ))}
-                        </select>
+                        />
                     </div>
 
                     <div className="admin-form-group" style={{ marginBottom: 0 }}>

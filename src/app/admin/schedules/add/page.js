@@ -11,10 +11,12 @@ export default function AddSchedulePage() {
     const { user, activeRole } = useAuth();
     const { showSuccess, showError } = useToast();
 
+    const [seasons, setSeasons] = useState([]);
     const [leagues, setLeagues] = useState([]);
     const [locations, setLocations] = useState([]);
     const [teams, setTeams] = useState([]);
 
+    const [seasonId, setSeasonId] = useState("");
     const [leagueId, setLeagueId] = useState("");
     const [locationId, setLocationId] = useState("");
     const [status, setStatus] = useState("Active");
@@ -42,10 +44,12 @@ export default function AddSchedulePage() {
     // Fetch initial data
     useEffect(() => {
         Promise.all([
+            fetch("/api/seasons").then(r => r.json()),
             fetch("/api/leagues").then(r => r.json()),
             fetch("/api/locations").then(r => r.json()),
             fetch("/api/teams").then(r => r.json())
-        ]).then(([leaguesData, locationsData, teamsData]) => {
+        ]).then(([seasonsData, leaguesData, locationsData, teamsData]) => {
+            if (seasonsData.success) setSeasons(seasonsData.data);
             if (leaguesData.success) setLeagues(leaguesData.data);
             if (locationsData.success) setLocations(locationsData.data);
             if (teamsData.success) setTeams(teamsData.data);
@@ -54,7 +58,16 @@ export default function AddSchedulePage() {
         });
     }, []);
 
+    const availableLeagues = seasonId 
+        ? leagues.filter(l => (l.season?._id || l.season) === seasonId)
+        : leagues;
+
     const selectedLeagueData = leagues.find(l => l._id === leagueId);
+
+    // Reset league when season changes
+    useEffect(() => {
+        setLeagueId("");
+    }, [seasonId]);
     
     // Auto-select location based on league
     useEffect(() => {
@@ -180,17 +193,33 @@ export default function AddSchedulePage() {
                     </button>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 24, marginBottom: 40 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 24, marginBottom: 40 }}>
+                    <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                        <label className="admin-form-label" style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#8b90a0" }}>Season</label>
+                        <select 
+                            className="admin-form-select" 
+                            value={seasonId} 
+                            onChange={(e) => setSeasonId(e.target.value)}
+                            style={{ padding: "10px 14px", border: "1px solid #e5e7ef", borderRadius: 8 }}
+                        >
+                            <option value="">Select Season</option>
+                            {seasons.map(s => (
+                                <option key={s._id} value={s._id}>{s.name}</option>
+                            ))}
+                        </select>
+                    </div>
+
                     <div className="admin-form-group" style={{ marginBottom: 0 }}>
                         <label className="admin-form-label" style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#8b90a0" }}>League</label>
                         <select 
                             className="admin-form-select" 
                             value={leagueId} 
                             onChange={(e) => setLeagueId(e.target.value)}
+                            disabled={!seasonId}
                             style={{ padding: "10px 14px", border: "1px solid #e5e7ef", borderRadius: 8 }}
                         >
                             <option value="">Select League</option>
-                            {leagues.map(l => (
+                            {availableLeagues.map(l => (
                                 <option key={l._id} value={l._id}>{l.name}</option>
                             ))}
                         </select>
@@ -198,18 +227,14 @@ export default function AddSchedulePage() {
                     
                     <div className="admin-form-group" style={{ marginBottom: 0 }}>
                         <label className="admin-form-label" style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#8b90a0" }}>Location</label>
-                        <select 
-                            className="admin-form-select" 
-                            value={locationId} 
-                            onChange={(e) => setLocationId(e.target.value)}
+                        <input 
+                            className="admin-form-input" 
+                            value={locations.find(l => l._id === locationId)?.name || ""} 
+                            readOnly 
+                            disabled 
+                            placeholder="Auto-populated by league"
                             style={{ padding: "10px 14px", border: "1px solid #e5e7ef", borderRadius: 8, background: "#f3f4f6", color: "#6b7280", cursor: "not-allowed" }}
-                            disabled
-                        >
-                            <option value="">Select Location</option>
-                            {locations.map(l => (
-                                <option key={l._id} value={l._id}>{l.name}</option>
-                            ))}
-                        </select>
+                        />
                     </div>
 
                     <div className="admin-form-group" style={{ marginBottom: 0 }}>

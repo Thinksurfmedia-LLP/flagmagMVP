@@ -6,6 +6,7 @@ const GameDetailsSchema = new mongoose.Schema({
     field: { type: String, default: "" },
     date: { type: String, default: "" },
     time: { type: String, default: "" },
+    gameRef: { type: mongoose.Schema.Types.ObjectId, ref: "Game", default: null },
 });
 
 const WeekSchema = new mongoose.Schema({
@@ -60,7 +61,7 @@ ScheduleSchema.index({ organization: 1 });
 function getScheduleModel() {
     if (mongoose.models.Schedule) {
         const existing = mongoose.models.Schedule;
-        if (!existing.schema.paths.weeks || !existing.schema.paths.leagueId) {
+        if (!existing.schema.paths.weeks || !existing.schema.paths.leagueId || !existing.schema.path('weeks.0.games.0.gameRef')) {
             delete mongoose.models.Schedule;
             return mongoose.model("Schedule", ScheduleSchema);
         }

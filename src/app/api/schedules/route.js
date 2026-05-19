@@ -5,6 +5,8 @@ import Organization from "@/models/Organization";
 import User from "@/models/User";
 import { requireAnyPermission } from "@/lib/apiAuth";
 import { logActivity } from "@/lib/activityLogger";
+import Game from "@/models/Game";
+import Team from "@/models/Team";
 
 // GET all schedules
 export async function GET(request) {
@@ -110,17 +112,64 @@ export async function POST(request) {
 
         if (body.leagueId) payload.leagueId = body.leagueId;
         if (body.locationId) payload.locationId = body.locationId;
+        
         if (body.weeks && Array.isArray(body.weeks)) {
-            payload.weeks = body.weeks.map(week => ({
-                name: week.name || "",
-                games: Array.isArray(week.games) ? week.games.map(game => ({
-                    team1: game.team1 || null,
-                    team2: game.team2 || null,
-                    field: game.field || "",
-                    date: game.date || "",
-                    time: game.time || "",
-                })) : []
-            }));
+            // Pre-fetch all referenced teams to get their names and logos for the Game collection
+            const teamIds = [];
+            body.weeks.forEach(w => {
+                if (Array.isArray(w.games)) {
+                    w.games.forEach(g => {
+                        if (g.team1) teamIds.push(g.team1);
+                        if (g.team2) teamIds.push(g.team2);
+                    });
+                }
+            });
+            const uniqueTeamIds = [...new Set(teamIds.filter(Boolean))];
+            const teams = await Team.find({ _id: { $in: uniqueTeamIds } }).lean();
+            const teamMap = {};
+            teams.forEach(t => { teamMap[String(t._id)] = t; });
+
+            payload.weeks = [];
+            for (const week of body.weeks) {
+                const gamesData = [];
+                if (Array.isArray(week.games)) {
+                    for (const game of week.games) {
+                        if (!game.team1 || !game.team2 || !game.date) continue; // Skip incomplete games
+
+                        const t1 = teamMap[String(game.team1)];
+                        const t2 = teamMap[String(game.team2)];
+                        
+                        if (!t1 || !t2) continue; // Safety check
+
+                        // Compose location string for the Game model
+                        const composedLocation = game.field ? `${payload.locationName} - ${game.field}` : payload.locationName;
+
+                        // Create the standalone Game document
+                        const newGame = await Game.create({
+                            league: payload.leagueId,
+                            date: new Date(game.date),
+                            time: game.time || "",
+                            teamA: { name: t1.name, logo: t1.logo || "", score: null },
+                            teamB: { name: t2.name, logo: t2.logo || "", score: null },
+                            location: composedLocation,
+                            status: "upcoming"
+                        });
+
+                        gamesData.push({
+                            team1: game.team1,
+                            team2: game.team2,
+                            field: game.field || "",
+                            date: game.date,
+                            time: game.time || "",
+                            gameRef: newGame._id
+                        });
+                    }
+                }
+                payload.weeks.push({
+                    name: week.name || "",
+                    games: gamesData
+                });
+            }
         }
 
         const schedule = await Schedule.create(payload);

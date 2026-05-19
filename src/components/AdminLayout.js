@@ -161,6 +161,12 @@ function getOrganizerNav(orgSlug) {
             section: "Management",
             items: [
                 {
+                    label: "Locations",
+                    href: "/admin/locations",
+                    icon: "fa-solid fa-map-location-dot",
+                    perms: ["view_dashboard"],
+                },
+                {
                     label: "Seasons",
                     href: "/admin/seasons",
                     icon: "fa-solid fa-calendar-check",
@@ -171,12 +177,6 @@ function getOrganizerNav(orgSlug) {
                     href: "/admin/leagues",
                     icon: "fa-solid fa-trophy",
                     perms: ["manage_leagues", "league_view", "league_create", "league_update", "league_delete"],
-                },
-                {
-                    label: "Schedules",
-                    href: "/admin/schedules",
-                    icon: "fa-solid fa-clipboard-list",
-                    perms: ["manage_schedules", "schedule_view", "schedule_create", "schedule_update", "schedule_delete"],
                 },
                 {
                     label: "Teams",
@@ -197,6 +197,12 @@ function getOrganizerNav(orgSlug) {
                     perms: ["manage_players", "player_view", "player_create", "player_update", "player_delete"],
                 },
                 {
+                    label: "Schedules",
+                    href: "/admin/schedules",
+                    icon: "fa-solid fa-clipboard-list",
+                    perms: ["manage_schedules", "schedule_view", "schedule_create", "schedule_update", "schedule_delete"],
+                },
+                {
                     label: "Games",
                     href: "/admin/games",
                     icon: "fa-solid fa-football",
@@ -215,7 +221,6 @@ function getOrganizerNav(orgSlug) {
         nav.push({
             section: "Settings",
             items: [
-                { label: "Locations", href: "/admin/locations", icon: "fa-solid fa-map-location-dot", perm: "view_dashboard" },
                 { label: "Organization", href: "/admin/settings", icon: "fa-solid fa-gear", perm: "view_dashboard" },
             ],
         });
