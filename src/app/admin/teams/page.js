@@ -823,7 +823,9 @@ export default function AdminTeamsPage() {
         }
     };
     const totalPages = Math.ceil(teams.length / itemsPerPage);
-    const paginatedTeams = teams.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    const regularTeams = teams.filter((t) => !t.isPlaceholder);
+    const placeholderTeams = teams.filter((t) => t.isPlaceholder);
+    const paginatedTeams = regularTeams.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     return (
         <AdminLayout title="Teams">
@@ -836,7 +838,7 @@ export default function AdminTeamsPage() {
                 <>
                     <div className="admin-card">
                         <div className="admin-card-header">
-                            <h3>Teams ({teams.length})</h3>
+                            <h3>Teams ({regularTeams.length})</h3>
                             <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                                 {canCreate && (
                                     <button className="admin-btn admin-btn-ghost" onClick={() => setImportModalOpen(true)}>
@@ -863,6 +865,31 @@ export default function AdminTeamsPage() {
                             </div>
                         ) : (
                             <div style={{ overflowX: "auto" }}>
+                                {placeholderTeams.length > 0 && (
+                                    <div style={{ marginBottom: 20, padding: "16px 16px 0" }}>
+                                        <div style={{ fontSize: 12, fontWeight: 600, color: "#8b90a0", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>
+                                            <i className="fa-solid fa-layer-group" style={{ marginRight: 6 }}></i>
+                                            System Placeholder Teams
+                                        </div>
+                                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                                            {placeholderTeams.map((t) => (
+                                                <span key={t._id} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(139,144,160,0.12)", border: "1px solid rgba(139,144,160,0.25)", borderRadius: 20, padding: "4px 12px", fontSize: 13, color: "#8b90a0" }}>
+                                                    <i className="fa-solid fa-clock" style={{ fontSize: 11 }}></i>
+                                                    {t.name}
+                                                    {t.organization?.name && (
+                                                        <span style={{ fontSize: 11, opacity: 0.7 }}>— {t.organization.name}</span>
+                                                    )}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                {regularTeams.length === 0 ? (
+                                    <div className="admin-empty">
+                                        <i className="fa-solid fa-people-group"></i>
+                                        <p>No real teams yet. Create one and assign players.</p>
+                                    </div>
+                                ) : (
                                 <table className="admin-table">
                                     <thead>
                                         <tr>
@@ -908,14 +935,15 @@ export default function AdminTeamsPage() {
                                         ))}
                                     </tbody>
                                 </table>
+                                )}
                             </div>
                         )}
                         
-                        {teams.length > 0 && Math.ceil(teams.length / itemsPerPage) > 1 && (
+                        {regularTeams.length > 0 && Math.ceil(regularTeams.length / itemsPerPage) > 1 && (
                             <AdminPagination 
                                 currentPage={currentPage} 
                                 totalPages={totalPages} 
-                                totalItems={teams.length} 
+                                totalItems={regularTeams.length} 
                                 itemsPerPage={itemsPerPage} 
                                 onPageChange={setCurrentPage} 
                             />

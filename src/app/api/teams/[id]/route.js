@@ -130,6 +130,9 @@ export async function PUT(request, { params }) {
         if (team === "forbidden") {
             return NextResponse.json({ success: false, error: "You cannot manage teams outside your organization" }, { status: 403 });
         }
+        if (team.isPlaceholder) {
+            return NextResponse.json({ success: false, error: "Placeholder teams cannot be edited" }, { status: 403 });
+        }
 
         const prevName = team.name;
         const prevPlayerIds = (team.players || []).map(p => String(p.player));
@@ -249,6 +252,9 @@ export async function DELETE(request, { params }) {
         }
         if (team === "forbidden") {
             return NextResponse.json({ success: false, error: "You cannot manage teams outside your organization" }, { status: 403 });
+        }
+        if (team.isPlaceholder) {
+            return NextResponse.json({ success: false, error: "Placeholder teams cannot be deleted" }, { status: 403 });
         }
 
         const teamPlayerIds = (team.players || []).map(p => p.player);

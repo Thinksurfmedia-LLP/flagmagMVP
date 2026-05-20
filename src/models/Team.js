@@ -62,6 +62,10 @@ const TeamSchema = new mongoose.Schema(
                 },
             },
         ],
+        isPlaceholder: {
+            type: Boolean,
+            default: false,
+        },
     },
     { timestamps: true }
 );
@@ -77,7 +81,8 @@ function getTeamModel() {
         const hasCoachName = Boolean(existing.schema.path("coachName"));
         const hasSeason = Boolean(existing.schema.path("season"));
         const hasLeague = Boolean(existing.schema.path("league"));
-        if (!hasPlayers || !hasDescription || !hasJerseyNumber || !hasCoachName || !hasSeason || !hasLeague) {
+        const hasIsPlaceholder = Boolean(existing.schema.path("isPlaceholder"));
+        if (!hasPlayers || !hasDescription || !hasJerseyNumber || !hasCoachName || !hasSeason || !hasLeague || !hasIsPlaceholder) {
             delete mongoose.models.Team;
         }
     }

@@ -6,6 +6,7 @@ import League from "@/models/League";
 import Player from "@/models/Player";
 import { requireAdmin } from "@/lib/apiAuth";
 import { logActivity } from "@/lib/activityLogger";
+import { ensurePlaceholderTeams } from "@/lib/placeholderTeams";
 
 export async function GET(request) {
     try {
@@ -125,6 +126,8 @@ export async function POST(request) {
         }
 
         const organization = await Organization.create(body);
+
+        await ensurePlaceholderTeams(organization._id);
 
         await logActivity({
             userId: auth.user.id,

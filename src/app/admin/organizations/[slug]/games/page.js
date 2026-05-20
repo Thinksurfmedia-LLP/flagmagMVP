@@ -147,18 +147,40 @@ function GameModal({ onClose, onSave, initial, seasons = [], leagues = [], venue
                         <label className="admin-form-label">Team A *</label>
                         <select className="admin-form-select" value={form.teamAName} onChange={e => setForm({ ...form, teamAName: e.target.value })} disabled={!selectedLeagueId}>
                             <option value="">Select team...</option>
-                            {leagueTeams.filter(t => t.name !== form.teamBName).map(t => (
-                                <option key={t._id || t.name} value={t.name}>{t.name}</option>
-                            ))}
+                            {leagueTeams.filter(t => t.isPlaceholder && t.name !== form.teamBName).length > 0 && (
+                                <optgroup label="— Placeholders —">
+                                    {leagueTeams.filter(t => t.isPlaceholder && t.name !== form.teamBName).map(t => (
+                                        <option key={t._id || t.name} value={t.name}>{t.name}</option>
+                                    ))}
+                                </optgroup>
+                            )}
+                            {leagueTeams.filter(t => !t.isPlaceholder && t.name !== form.teamBName).length > 0 && (
+                                <optgroup label="— Teams —">
+                                    {leagueTeams.filter(t => !t.isPlaceholder && t.name !== form.teamBName).map(t => (
+                                        <option key={t._id || t.name} value={t.name}>{t.name}</option>
+                                    ))}
+                                </optgroup>
+                            )}
                         </select>
                     </div>
                     <div className="admin-form-group" style={{ flex: 1 }}>
                         <label className="admin-form-label">Team B *</label>
                         <select className="admin-form-select" value={form.teamBName} onChange={e => setForm({ ...form, teamBName: e.target.value })} disabled={!selectedLeagueId}>
                             <option value="">Select team...</option>
-                            {leagueTeams.filter(t => t.name !== form.teamAName).map(t => (
-                                <option key={t._id || t.name} value={t.name}>{t.name}</option>
-                            ))}
+                            {leagueTeams.filter(t => t.isPlaceholder && t.name !== form.teamAName).length > 0 && (
+                                <optgroup label="— Placeholders —">
+                                    {leagueTeams.filter(t => t.isPlaceholder && t.name !== form.teamAName).map(t => (
+                                        <option key={t._id || t.name} value={t.name}>{t.name}</option>
+                                    ))}
+                                </optgroup>
+                            )}
+                            {leagueTeams.filter(t => !t.isPlaceholder && t.name !== form.teamAName).length > 0 && (
+                                <optgroup label="— Teams —">
+                                    {leagueTeams.filter(t => !t.isPlaceholder && t.name !== form.teamAName).map(t => (
+                                        <option key={t._id || t.name} value={t.name}>{t.name}</option>
+                                    ))}
+                                </optgroup>
+                            )}
                         </select>
                     </div>
                 </div>
