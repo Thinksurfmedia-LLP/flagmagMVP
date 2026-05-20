@@ -23,6 +23,11 @@ const LeagueSchema = new mongoose.Schema(
             enum: ["active", "past"],
             default: "active",
         },
+        leagueType: {
+            type: String,
+            enum: ["league", "playoffs"],
+            default: "league",
+        },
         category: {
             type: String,
             default: "",

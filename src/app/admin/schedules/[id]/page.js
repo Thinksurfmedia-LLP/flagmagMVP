@@ -84,6 +84,7 @@ export default function EditSchedulePage({ params }) {
                                 field: g.field || "",
                                 date: g.date || "",
                                 time: g.time || "",
+                                gameType: g.gameType || "main",
                                 gameRef: g.gameRef || null
                             };
                         })
@@ -136,7 +137,7 @@ export default function EditSchedulePage({ params }) {
         setWeeks([...weeks, {
             name: "",
             games: [
-                { team1: "", team2: "", field: "", date: "", time: "", gameRef: null }
+                { team1: "", team2: "", field: "", date: "", time: "", gameType: "main", gameRef: null }
             ]
         }]);
     };
@@ -149,7 +150,7 @@ export default function EditSchedulePage({ params }) {
 
     const handleAddGame = (weekIndex) => {
         const newWeeks = [...weeks];
-        newWeeks[weekIndex].games.push({ team1: "", team2: "", field: "", date: "", time: "", gameRef: null });
+        newWeeks[weekIndex].games.push({ team1: "", team2: "", field: "", date: "", time: "", gameType: "main", gameRef: null });
         setWeeks(newWeeks);
     };
 
@@ -198,6 +199,7 @@ export default function EditSchedulePage({ params }) {
                     field: g.field,
                     date: g.date,
                     time: g.time,
+                    gameType: g.gameType || "main",
                     gameRef: g.gameRef || null
                 }))
             }))
@@ -414,6 +416,18 @@ export default function EditSchedulePage({ params }) {
                                                     onChange={(e) => updateGame(wIndex, gIndex, "time", e.target.value)}
                                                     style={{ width: 140 }}
                                                 />
+                                        </div>
+                                        <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                                            <label className="admin-form-label" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#8b90a0" }}>Type</label>
+                                            <select
+                                                className="admin-form-select"
+                                                value={game.gameType || "main"}
+                                                onChange={(e) => updateGame(wIndex, gIndex, "gameType", e.target.value)}
+                                                style={{ width: 130 }}
+                                            >
+                                                <option value="main">Main</option>
+                                                <option value="practice">Practice</option>
+                                            </select>
                                         </div>
                                         {week.games.length > 1 && (
                                             <button 

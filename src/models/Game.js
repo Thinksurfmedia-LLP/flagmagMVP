@@ -34,6 +34,11 @@ const GameSchema = new mongoose.Schema(
             enum: ["upcoming", "in_progress", "completed", "cancelled"],
             default: "upcoming",
         },
+        gameType: {
+            type: String,
+            enum: ["main", "practice"],
+            default: "main",
+        },
     },
     {
         timestamps: true,

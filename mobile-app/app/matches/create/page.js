@@ -21,6 +21,7 @@ function CreateMatchContent() {
         date: "",
         time: "",
         notes: "",
+        gameType: "main",
     });
     const [venueDetails, setVenueDetails] = useState({}); // venueName -> fields[]
     const [selectedField, setSelectedField] = useState("");
@@ -144,6 +145,7 @@ function CreateMatchContent() {
                 time: form.time,
                 location: fullLocation,
                 status: "upcoming",
+                gameType: form.gameType || "main",
             });
             router.push("/matches");
         } catch (err) {
@@ -351,6 +353,19 @@ function CreateMatchContent() {
                                 value={form.notes}
                                 onChange={update("notes")}
                             />
+                        </div>
+
+                        {/* Game Type */}
+                        <div className="form-group">
+                            <label>Game Type *</label>
+                            <select
+                                className="form-control select-form-control"
+                                value={form.gameType}
+                                onChange={update("gameType")}
+                            >
+                                <option value="main">Main League Game</option>
+                                <option value="practice">Practice Game</option>
+                            </select>
                         </div>
 
                         <button

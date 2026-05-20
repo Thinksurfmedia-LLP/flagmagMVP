@@ -101,6 +101,7 @@ export async function POST(request) {
             name: body.name.trim(),
             slug,
             type: body.type || "active",
+            leagueType: body.leagueType || "league",
             category: body.category || "",
             locations,
             location: locations[0] || "",

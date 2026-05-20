@@ -350,7 +350,7 @@ export async function computeGameStats(gameId) {
  * Returns per-player stats accumulated over all games.
  */
 export async function computeSeasonStats(leagueId, orgId) {
-    const games = await Game.find({ league: leagueId }).lean();
+    const games = await Game.find({ league: leagueId, gameType: { $ne: "practice" } }).lean();
     if (!games.length) return { passing: [], receiving: [], rushing: [], defensive: [] };
 
     // Build roster maps for all unique team pairs

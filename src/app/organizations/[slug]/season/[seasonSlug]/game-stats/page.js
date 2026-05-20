@@ -23,7 +23,7 @@ async function getData(slug, seasonSlug) {
     const teams = await Team.find({ organization: org._id, league: league._id }).select("name logo division").lean();
 
     // Fetch all completed games for this league
-    const games = await Game.find({ league: league._id, status: "completed" }).lean();
+    const games = await Game.find({ league: league._id, status: "completed", gameType: { $ne: "practice" } }).lean();
 
     // Build a lookup: normalized team name -> { name, logo, division }
     const teamMeta = {};

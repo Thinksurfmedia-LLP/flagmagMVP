@@ -20,7 +20,7 @@ export async function GET(request, { params }) {
             .select("name logo division")
             .lean();
 
-        const games = await Game.find({ league: league._id, status: "completed" }).lean();
+        const games = await Game.find({ league: league._id, status: "completed", gameType: { $ne: "practice" } }).lean();
 
         // Seed all teams with zero stats
         const stats = {};

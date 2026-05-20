@@ -11,6 +11,7 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
     const [form, setForm] = useState({
         name: initial?.name || "",
         type: initial?.type || "active",
+        leagueType: initial?.leagueType || "league",
         category: initial?.category || "",
         locations: Array.isArray(initial?.locations)
             ? initial.locations
@@ -297,6 +298,18 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
                             <button type="button" className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => setForm(prev => ({ ...prev, image: "" }))} style={{ color: "#ef4444" }}>Remove</button>
                         )}
                     </div>
+                </div>
+
+                <div className="admin-form-group">
+                    <label className="admin-form-label">League Type *</label>
+                    <select
+                        className="admin-form-select"
+                        value={form.leagueType}
+                        onChange={(e) => setForm({ ...form, leagueType: e.target.value })}
+                    >
+                        <option value="league">League</option>
+                        <option value="playoffs">Playoffs</option>
+                    </select>
                 </div>
 
                 <div className="admin-form-group">

@@ -3,6 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import Game from "@/models/Game";
 import Team from "@/models/Team";
 import League from "@/models/League";
+import Schedule from "@/models/Schedule";
 import { requireAnyPermission } from "@/lib/apiAuth";
 
 // GET games for a season
@@ -98,6 +99,73 @@ export async function POST(request, { params }) {
         }
 
         const game = await Game.create(body);
+
+        // Sync into a Schedule document so the game appears on the website schedules page
+        try {
+            const league = await League.findById(id).select("name organization").lean();
+            if (league) {
+                // Resolve team ObjectIds by name within the org
+                const teamNames = [body.teamA?.name, body.teamB?.name].filter(Boolean);
+                const teams = teamNames.length
+                    ? await Team.find({ organization: league.organization, name: { $in: teamNames } }).select("_id name").lean()
+                    : [];
+                const teamByName = {};
+                teams.forEach((t) => { teamByName[t.name] = t._id; });
+
+                // Derive location / field from composed location string
+                const dashIdx = (body.location || "").indexOf(" - ");
+                const locationName = dashIdx > -1 ? body.location.slice(0, dashIdx) : (body.location || "");
+                const fieldName = dashIdx > -1 ? body.location.slice(dashIdx + 3) : "";
+
+                // Week label derived from game date (week starting Sunday)
+                const gameDate = new Date(body.date);
+                const weekStart = new Date(gameDate);
+                weekStart.setUTCDate(gameDate.getUTCDate() - gameDate.getUTCDay());
+                const weekLabel = `Week of ${weekStart.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
+
+                const dateStr = typeof body.date === "string"
+                    ? body.date.split("T")[0]
+                    : new Date(body.date).toISOString().split("T")[0];
+
+                const gameEntry = {
+                    team1: teamByName[body.teamA?.name] || null,
+                    team2: teamByName[body.teamB?.name] || null,
+                    field: fieldName,
+                    date: dateStr,
+                    time: body.time || "",
+                    gameType: body.gameType || "main",
+                    gameRef: game._id,
+                };
+
+                // Find an existing schedule for this league or create one
+                const existing = await Schedule.findOne({ leagueId: id }).select("_id weeks").lean();
+                if (!existing) {
+                    await Schedule.create({
+                        organization: league.organization,
+                        scheduleLabel: league.name,
+                        locationName: locationName || "TBD",
+                        leagueId: id,
+                        status: "Active",
+                        weeks: [{ name: weekLabel, games: [gameEntry] }],
+                    });
+                } else {
+                    const weekIdx = (existing.weeks || []).findIndex((w) => w.name === weekLabel);
+                    if (weekIdx >= 0) {
+                        await Schedule.updateOne(
+                            { _id: existing._id },
+                            { $push: { [`weeks.${weekIdx}.games`]: gameEntry } }
+                        );
+                    } else {
+                        await Schedule.updateOne(
+                            { _id: existing._id },
+                            { $push: { weeks: { name: weekLabel, games: [gameEntry] } } }
+                        );
+                    }
+                }
+            }
+        } catch (scheduleErr) {
+            console.error("Schedule sync failed:", scheduleErr);
+        }
 
         return NextResponse.json({ success: true, data: game }, { status: 201 });
     } catch (error) {

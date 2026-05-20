@@ -6,6 +6,7 @@ const GameDetailsSchema = new mongoose.Schema({
     field: { type: String, default: "" },
     date: { type: String, default: "" },
     time: { type: String, default: "" },
+    gameType: { type: String, enum: ["main", "practice"], default: "main" },
     gameRef: { type: mongoose.Schema.Types.ObjectId, ref: "Game", default: null },
 });
 

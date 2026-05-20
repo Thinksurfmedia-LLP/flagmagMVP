@@ -134,7 +134,8 @@ export async function PUT(request, { params }) {
                                 time: game.time || "",
                                 teamA: { name: t1.name, logo: t1.logo || "", score: null },
                                 teamB: { name: t2.name, logo: t2.logo || "", score: null },
-                                location: composedLocation
+                                location: composedLocation,
+                                gameType: game.gameType || "main"
                             });
                         } else {
                             // Create new game
@@ -145,7 +146,8 @@ export async function PUT(request, { params }) {
                                 teamA: { name: t1.name, logo: t1.logo || "", score: null },
                                 teamB: { name: t2.name, logo: t2.logo || "", score: null },
                                 location: composedLocation,
-                                status: "upcoming"
+                                status: "upcoming",
+                                gameType: game.gameType || "main"
                             });
                             gameRef = newGame._id;
                         }
@@ -158,6 +160,7 @@ export async function PUT(request, { params }) {
                             field: game.field || "",
                             date: game.date,
                             time: game.time || "",
+                            gameType: game.gameType || "main",
                             gameRef: gameRef
                         });
                     }
@@ -206,7 +209,7 @@ export async function DELETE(request, { params }) {
 
         await dbConnect();
         const { id } = await params;
-        const schedule = await Schedule.findById(id).select("organization scheduleLabel");
+        const schedule = await Schedule.findById(id).select("organization scheduleLabel weeks");
 
         if (!schedule) {
             return NextResponse.json(
@@ -228,6 +231,19 @@ export async function DELETE(request, { params }) {
                     { status: 403 }
                 );
             }
+        }
+
+        // Collect all linked Game IDs and delete them
+        const gameRefs = [];
+        if (schedule.weeks) {
+            schedule.weeks.forEach(w => {
+                w.games?.forEach(g => {
+                    if (g.gameRef) gameRefs.push(g.gameRef);
+                });
+            });
+        }
+        if (gameRefs.length > 0) {
+            await Game.deleteMany({ _id: { $in: gameRefs } });
         }
 
         await Schedule.deleteOne({ _id: id });
