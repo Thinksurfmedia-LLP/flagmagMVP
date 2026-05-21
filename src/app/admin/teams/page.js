@@ -723,6 +723,13 @@ export default function AdminTeamsPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 50;
 
+    // Sort + geo filter state
+    const [sortField, setSortField] = useState("name");
+    const [sortDir, setSortDir] = useState("asc");
+    const [filterState, setFilterState] = useState("");
+    const [filterCounty, setFilterCounty] = useState("");
+    const [filterCity, setFilterCity] = useState("");
+
     const canView = hasAnyAccess(user, [
         "manage_teams", "team_view", "team_create", "team_update", "team_delete",
         "manage_players", "player_view", "player_update",
@@ -822,10 +829,49 @@ export default function AdminTeamsPage() {
             showError("Failed to delete team");
         }
     };
-    const totalPages = Math.ceil(teams.length / itemsPerPage);
     const regularTeams = teams.filter((t) => !t.isPlaceholder);
     const placeholderTeams = teams.filter((t) => t.isPlaceholder);
-    const paginatedTeams = regularTeams.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    // Cascading filter options derived from loaded teams
+    const stateOptions = [...new Set(regularTeams.map(t => t.location?.stateName).filter(Boolean))].sort();
+    const countyOptions = filterState
+        ? [...new Set(regularTeams.filter(t => t.location?.stateName === filterState).map(t => t.location?.countyName).filter(Boolean))].sort()
+        : [];
+    const cityOptions = filterState
+        ? [...new Set(regularTeams.filter(t => t.location?.stateName === filterState && (!filterCounty || t.location?.countyName === filterCounty)).map(t => t.location?.cityName).filter(Boolean))].sort()
+        : [];
+    const handleStateChange = (val) => { setFilterState(val); setFilterCounty(""); setFilterCity(""); };
+    const handleCountyChange = (val) => { setFilterCounty(val); setFilterCity(""); };
+    const toggleSort = (field) => {
+        if (sortField === field) setSortDir(d => d === "asc" ? "desc" : "asc");
+        else { setSortField(field); setSortDir("asc"); }
+    };
+    const SortIcon = ({ field }) => {
+        if (sortField !== field) return <i className="fa-solid fa-sort" style={{ marginLeft: 4, opacity: 0.35, fontSize: 11 }}></i>;
+        return sortDir === "asc"
+            ? <i className="fa-solid fa-sort-up" style={{ marginLeft: 4, fontSize: 11, color: "#e63946" }}></i>
+            : <i className="fa-solid fa-sort-down" style={{ marginLeft: 4, fontSize: 11, color: "#e63946" }}></i>;
+    };
+
+    const displayTeams = regularTeams
+        .filter((t) => {
+            if (!filterState) return true;
+            if (t.location?.stateName !== filterState) return false;
+            if (filterCounty && t.location?.countyName !== filterCounty) return false;
+            if (filterCity && t.location?.cityName !== filterCity) return false;
+            return true;
+        })
+        .sort((a, b) => {
+            let va = "", vb = "";
+            if (sortField === "season") { va = a.season?.name || ""; vb = b.season?.name || ""; }
+            else if (sortField === "league") { va = a.league?.name || ""; vb = b.league?.name || ""; }
+            else { va = a.name || ""; vb = b.name || ""; }
+            va = va.toLowerCase(); vb = vb.toLowerCase();
+            return sortDir === "asc" ? va.localeCompare(vb) : vb.localeCompare(va);
+        });
+
+    const totalPages = Math.ceil(displayTeams.length / itemsPerPage);
+    const paginatedTeams = displayTeams.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     return (
         <AdminLayout title="Teams">
@@ -838,7 +884,7 @@ export default function AdminTeamsPage() {
                 <>
                     <div className="admin-card">
                         <div className="admin-card-header">
-                            <h3>Teams ({regularTeams.length})</h3>
+                            <h3>Teams ({displayTeams.length})</h3>
                             <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                                 {canCreate && (
                                     <button className="admin-btn admin-btn-ghost" onClick={() => setImportModalOpen(true)}>
@@ -851,6 +897,42 @@ export default function AdminTeamsPage() {
                                     </button>
                                 )}
                             </div>
+                        </div>
+
+                        {/* Filter + Sort bar */}
+                        <div style={{ display: "flex", justifyContent: "flex-end", flexWrap: "wrap", gap: 8, padding: "10px 16px 10px", borderBottom: "1px solid #e8eaf0", marginBottom: 4, alignItems: "center" }}>
+                            {stateOptions.length > 0 && (
+                                <select className="admin-form-select" value={filterState} onChange={(e) => handleStateChange(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
+                                    <option value="">All States</option>
+                                    {stateOptions.map((s) => <option key={s} value={s}>{s}</option>)}
+                                </select>
+                            )}
+                            {filterState && countyOptions.length > 0 && (
+                                <select className="admin-form-select" value={filterCounty} onChange={(e) => handleCountyChange(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
+                                    <option value="">All Counties</option>
+                                    {countyOptions.map((c) => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                            )}
+                            {filterState && cityOptions.length > 0 && (
+                                <select className="admin-form-select" value={filterCity} onChange={(e) => setFilterCity(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
+                                    <option value="">All Cities</option>
+                                    {cityOptions.map((c) => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                            )}
+                            <div style={{ width: 1, height: 24, background: "#e0e2ea", margin: "0 4px", flexShrink: 0 }} />
+                            <select className="admin-form-select" value={`${sortField}:${sortDir}`} onChange={(e) => { const [f, d] = e.target.value.split(":"); setSortField(f); setSortDir(d); }} style={{ width: 200, height: 34, fontSize: 13 }}>
+                                <option value="name:asc">Name (A → Z)</option>
+                                <option value="name:desc">Name (Z → A)</option>
+                                <option value="season:asc">Season (A → Z)</option>
+                                <option value="season:desc">Season (Z → A)</option>
+                                <option value="league:asc">League (A → Z)</option>
+                                <option value="league:desc">League (Z → A)</option>
+                            </select>
+                            {(filterState || filterCounty || filterCity) && (
+                                <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setFilterState(""); setFilterCounty(""); setFilterCity(""); }} style={{ height: 34, whiteSpace: "nowrap" }}>
+                                    <i className="fa-solid fa-xmark"></i> Clear
+                                </button>
+                            )}
                         </div>
 
                         {loading ? (
@@ -939,13 +1021,13 @@ export default function AdminTeamsPage() {
                             </div>
                         )}
                         
-                        {regularTeams.length > 0 && Math.ceil(regularTeams.length / itemsPerPage) > 1 && (
-                            <AdminPagination 
-                                currentPage={currentPage} 
-                                totalPages={totalPages} 
-                                totalItems={regularTeams.length} 
-                                itemsPerPage={itemsPerPage} 
-                                onPageChange={setCurrentPage} 
+                        {displayTeams.length > 0 && totalPages > 1 && (
+                            <AdminPagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                totalItems={displayTeams.length}
+                                itemsPerPage={itemsPerPage}
+                                onPageChange={setCurrentPage}
                             />
                         )}
                     </div>

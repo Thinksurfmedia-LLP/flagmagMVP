@@ -1290,6 +1290,11 @@ export default function AdminGamesPage() {
     const [filterSeason, setFilterSeason] = useState("");
     const [filterLeague, setFilterLeague] = useState("");
     const [filterLocationName, setFilterLocationName] = useState("");
+    // Geo filter state
+    const [filterState, setFilterState] = useState("");
+    const [filterCounty, setFilterCounty] = useState("");
+    const [filterCity, setFilterCity] = useState("");
+    const [filterVenue, setFilterVenue] = useState("");
     const { showSuccess, showError } = useToast();
 
     const effectiveRole = activeRole || user?.role;
@@ -1360,6 +1365,11 @@ export default function AdminGamesPage() {
         setFilterLeague("");
     }, [filterSeason]);
 
+    // Reset geo filters when league changes
+    useEffect(() => {
+        setFilterState(""); setFilterCounty(""); setFilterCity(""); setFilterVenue("");
+    }, [filterLeague]);
+
     useEffect(() => {
         if (!filterLeague) {
             setFilterLocationName("");
@@ -1373,7 +1383,35 @@ export default function AdminGamesPage() {
         }
     }, [filterLeague, leagues]);
 
-    const filteredGames = filterLeague ? games.filter(g => String(g.league) === filterLeague) : [];
+    // Geo filter derived options (from venues already fetched for the org)
+    const geoStateOptions = [...new Map(venues.filter(v => v.stateId).map(v => [String(v.stateId), { id: String(v.stateId), name: v.stateName }])).values()].sort((a, b) => a.name.localeCompare(b.name));
+    const geoCountyOptions = filterState ? [...new Map(venues.filter(v => String(v.stateId) === filterState).map(v => [String(v.countyId), { id: String(v.countyId), name: v.countyName }])).values()].sort((a, b) => a.name.localeCompare(b.name)) : [];
+    const geoCityOptions = filterState ? [...new Set(venues.filter(v => (filterCounty ? String(v.countyId) === filterCounty : String(v.stateId) === filterState) && v.cityName).map(v => v.cityName))].sort() : [];
+    const geoVenueOptions = filterCity
+        ? venues.filter(v => v.cityName === filterCity && (filterCounty ? String(v.countyId) === filterCounty : String(v.stateId) === filterState)).sort((a, b) => a.name.localeCompare(b.name))
+        : filterCounty ? venues.filter(v => String(v.countyId) === filterCounty).sort((a, b) => a.name.localeCompare(b.name))
+        : filterState ? venues.filter(v => String(v.stateId) === filterState).sort((a, b) => a.name.localeCompare(b.name))
+        : [];
+    const handleGeoStateChange = (val) => { setFilterState(val); setFilterCounty(""); setFilterCity(""); setFilterVenue(""); };
+    const handleGeoCountyChange = (val) => { setFilterCounty(val); setFilterCity(""); setFilterVenue(""); };
+
+    const filteredGames = (() => {
+        if (!filterLeague) return [];
+        const byLeague = games.filter(g => String(g.league) === filterLeague);
+        if (!filterState && !filterCounty && !filterCity && !filterVenue) return byLeague;
+        return byLeague.filter(g => {
+            const locStr = g.location || "";
+            const dashIdx = locStr.indexOf(" - ");
+            const venueName = dashIdx > -1 ? locStr.substring(0, dashIdx) : locStr;
+            const v = venues.find(ven => ven.name === venueName);
+            if (!v) return false;
+            if (filterVenue) return venueName === filterVenue;
+            if (filterCity) return (v.cityName || "") === filterCity;
+            if (filterCounty) return String(v.countyId) === filterCounty;
+            if (filterState) return String(v.stateId) === filterState;
+            return true;
+        });
+    })();
 
 
     const handleSave = async (payload) => {
@@ -1500,6 +1538,39 @@ export default function AdminGamesPage() {
                                 </div>
                             )}
                         </div>
+
+                        {/* Geo Filter bar */}
+                        {geoStateOptions.length > 0 && (
+                            <div style={{ display: "flex", justifyContent: "flex-end", flexWrap: "wrap", gap: 8, padding: "10px 16px 10px", borderBottom: "1px solid #e8eaf0", marginBottom: 4, alignItems: "center" }}>
+                                <select className="admin-form-select" value={filterState} onChange={(e) => handleGeoStateChange(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
+                                    <option value="">All States</option>
+                                    {geoStateOptions.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                </select>
+                                {filterState && (
+                                    <select className="admin-form-select" value={filterCounty} onChange={(e) => handleGeoCountyChange(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
+                                        <option value="">All Counties</option>
+                                        {geoCountyOptions.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                    </select>
+                                )}
+                                {filterState && (
+                                    <select className="admin-form-select" value={filterCity} onChange={(e) => { setFilterCity(e.target.value); setFilterVenue(""); }} style={{ width: 155, height: 34, fontSize: 13 }}>
+                                        <option value="">All Cities</option>
+                                        {geoCityOptions.map((c) => <option key={c} value={c}>{c}</option>)}
+                                    </select>
+                                )}
+                                {filterState && (
+                                    <select className="admin-form-select" value={filterVenue} onChange={(e) => setFilterVenue(e.target.value)} style={{ width: 175, height: 34, fontSize: 13 }}>
+                                        <option value="">All Locations</option>
+                                        {geoVenueOptions.map((v) => <option key={v._id} value={v.name}>{v.name}</option>)}
+                                    </select>
+                                )}
+                                {(filterState || filterCounty || filterCity || filterVenue) && (
+                                    <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setFilterState(""); setFilterCounty(""); setFilterCity(""); setFilterVenue(""); }} style={{ height: 34, whiteSpace: "nowrap" }}>
+                                        <i className="fa-solid fa-xmark"></i> Clear
+                                    </button>
+                                )}
+                            </div>
+                        )}
 
                         {loading ? (
                             <div className="admin-loading">
