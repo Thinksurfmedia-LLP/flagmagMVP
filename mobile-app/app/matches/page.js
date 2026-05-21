@@ -8,6 +8,13 @@ import { apiGet } from "../lib/api";
 import MobileHeader from "../components/MobileHeader";
 import MatchCard from "../components/MatchCard";
 
+const MATCH_TABS = [
+    { key: "today", label: "Today" },
+    { key: "upcoming", label: "Upcoming" },
+    { key: "incomplete", label: "Incomplete Games" },
+    { key: "completed", label: "Completed" },
+];
+
 function MatchListContent() {
     const router = useRouter();
     const { user, loading: authLoading } = useAuth();
@@ -72,6 +79,10 @@ function MatchListContent() {
         } else if (activeTab === "upcoming") {
             filtered = filtered.filter(
                 (g) => g.status === "upcoming" && new Date(g.date) >= tomorrow
+            );
+        } else if (activeTab === "incomplete") {
+            filtered = filtered.filter(
+                (g) => g.status === "upcoming" && new Date(g.date) < today
             );
         } else if (activeTab === "completed") {
             filtered = filtered.filter((g) => g.status === "completed");
@@ -209,14 +220,14 @@ function MatchListContent() {
 
                 {/* Tab navigation */}
                 <ul className="match-area-nav">
-                    {["today", "upcoming", "completed"].map((tab) => (
+                    {MATCH_TABS.map((tab) => (
                         <li
-                            key={tab}
-                            className={activeTab === tab ? "active" : ""}
-                            onClick={() => setActiveTab(tab)}
+                            key={tab.key}
+                            className={activeTab === tab.key ? "active" : ""}
+                            onClick={() => setActiveTab(tab.key)}
                         >
                             <a href="#" onClick={(e) => e.preventDefault()}>
-                                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                                {tab.label}
                             </a>
                         </li>
                     ))}
@@ -234,6 +245,8 @@ function MatchListContent() {
                                     ? "No games scheduled for today."
                                     : activeTab === "upcoming"
                                     ? "No upcoming games."
+                                    : activeTab === "incomplete"
+                                    ? "No incomplete games."
                                     : "No completed games yet."}
                             </p>
                         </div>
