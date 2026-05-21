@@ -889,6 +889,18 @@ p {
     color: #ccc;
 }
 
+.confirm-actions .btn-danger {
+    background: #dc2626;
+    border-color: #ef4444;
+    color: #fff;
+}
+
+.confirm-actions .btn-danger:hover {
+    background: #ef4444;
+    border-color: #f87171;
+    color: #fff;
+}
+
 /* ===== CONTENT WRAPPER (Login/Welcome) ===== */
 .content-wrapper {
     width: 100%;
@@ -1249,7 +1261,7 @@ p {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
 }
 
 .footer-btn {
@@ -1258,8 +1270,9 @@ p {
     align-items: center;
     justify-content: center;
     gap: 5px;
-    padding: 10px 14px;
-    min-width: 100px;
+    padding: 10px 8px;
+    min-width: 0;
+    flex: 1;
     border-radius: 12px;
     border: none;
     cursor: pointer;
@@ -1297,8 +1310,8 @@ p {
 .footer-btn.footer-btn-complete {
     background: #ff6a00;
     color: #fff;
-    min-width: 120px;
-    padding: 12px 18px;
+    min-width: 0;
+    padding: 12px 10px;
     font-size: 12px;
     box-shadow: 0 4px 16px rgba(255, 106, 0, 0.4);
 }
@@ -1324,6 +1337,17 @@ p {
 .footer-btn.footer-btn-reset:hover {
     background: rgba(255, 255, 255, 0.15);
     color: #fff;
+}
+
+.footer-btn.footer-btn-forfeit {
+    background: rgba(220, 38, 38, 0.18);
+    color: #fca5a5;
+    border: 1px solid rgba(220, 38, 38, 0.4);
+}
+.footer-btn.footer-btn-forfeit:hover {
+    background: rgba(220, 38, 38, 0.28);
+    color: #fecaca;
+    border-color: rgba(248, 113, 113, 0.5);
 }
 
 .bottom-footer ul li a img,

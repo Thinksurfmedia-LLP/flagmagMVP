@@ -39,6 +39,7 @@ function LiveGameContent({ gameId }) {
     const [showHalfConfirm, setShowHalfConfirm] = useState(false);
     const [firstHalfSnapshot, setFirstHalfSnapshot] = useState(null); // { timeoutsA, timeoutsB, scoreA, scoreB, actionLog }
     const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+    const [showForfeitConfirm, setShowForfeitConfirm] = useState(false);
     const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
 
@@ -1045,6 +1046,7 @@ function LiveGameContent({ gameId }) {
                 {!isGameFinished && (
                 <BottomFooter
                     onCancel={() => setShowCancelConfirm(true)}
+                    onForfeit={() => setShowForfeitConfirm(true)}
                     onComplete={() => {
                         if (isPaused) {
                             setIsPaused(false);
@@ -1077,6 +1079,38 @@ function LiveGameContent({ gameId }) {
                                         showToast(err.message, "error");
                                     }
                                 }}>Yes, Cancel Game</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Forfeit Game Confirmation */}
+                {showForfeitConfirm && (
+                    <div className="confirm-overlay" onClick={() => setShowForfeitConfirm(false)}>
+                        <div className="confirm-box" onClick={e => e.stopPropagation()}>
+                            <h4>Forfeit Game?</h4>
+                            <p>
+                                {activeTeam === "A" ? game?.teamA?.name : game?.teamB?.name} will forfeit.
+                            </p>
+                            <p className="confirm-detail">
+                                Final score will be {game?.teamA?.name} {activeTeam === "A" ? 0 : 6} - {activeTeam === "B" ? 0 : 6} {game?.teamB?.name}.
+                            </p>
+                            <div className="confirm-actions">
+                                <button className="btn btn-secondary" onClick={() => setShowForfeitConfirm(false)}>No, Go Back</button>
+                                <button className="btn btn-danger" onClick={async () => {
+                                    try {
+                                        await apiPut(`/api/games/${gameId}`, {
+                                            status: "completed",
+                                            "teamA.score": activeTeam === "A" ? 0 : 6,
+                                            "teamB.score": activeTeam === "B" ? 0 : 6,
+                                        });
+                                        showToast("Game forfeited and completed", "success");
+                                        setShowForfeitConfirm(false);
+                                        router.push("/matches");
+                                    } catch (err) {
+                                        showToast(err.message, "error");
+                                    }
+                                }}>Yes, Forfeit</button>
                             </div>
                         </div>
                     </div>
