@@ -444,6 +444,18 @@ export default function LeaguesPage() {
     const [showModal, setShowModal] = useState(false);
     const [editTarget, setEditTarget] = useState(null);
 
+    // Sort
+    const [sortField, setSortField] = useState("name"); // "name" | "startDate" | "endDate"
+    const [sortDir, setSortDir] = useState("asc"); // "asc" | "desc"
+
+    // Filters
+    const [allStates, setAllStates] = useState([]);
+    const [allVenues, setAllVenues] = useState([]);
+    const [filterState, setFilterState] = useState("");
+    const [filterCounty, setFilterCounty] = useState("");
+    const [filterCity, setFilterCity] = useState("");
+    const [filterLocation, setFilterLocation] = useState("");
+
     const isAdmin = user?.role === "admin";
     const effectiveRole = activeRole || user?.role;
     const organizerOrg = user?.roleOrganizations?.[effectiveRole] || user?.organization;
@@ -471,6 +483,61 @@ export default function LeaguesPage() {
             .catch(() => {});
     }, [isAdmin]);
 
+    // Fetch states and all venues once for filter dropdowns
+    useEffect(() => {
+        fetch("/api/states")
+            .then((r) => r.json())
+            .then((d) => { if (d.success) setAllStates(d.data || []); })
+            .catch(() => {});
+        fetch("/api/locations")
+            .then((r) => r.json())
+            .then((d) => { if (d.success) setAllVenues(d.data || []); })
+            .catch(() => {});
+    }, []);
+
+    // Cascading county options based on selected state
+    const countyOptions = filterState
+        ? [...new Map(
+            allVenues
+                .filter((v) => v.stateId === filterState)
+                .map((v) => [v.countyId, { id: v.countyId, name: v.countyName }])
+          ).values()].sort((a, b) => a.name.localeCompare(b.name))
+        : [];
+
+    // Cascading city options based on selected state/county
+    const cityOptions = filterState
+        ? [...new Set(
+            allVenues
+                .filter((v) => (filterCounty ? v.countyId === filterCounty : v.stateId === filterState) && v.cityName)
+                .map((v) => v.cityName)
+          )].sort()
+        : [];
+
+    // Cascading venue options based on selected city/county/state
+    const venueOptions = filterCity
+        ? allVenues
+            .filter((v) => v.cityName === filterCity && (filterCounty ? v.countyId === filterCounty : v.stateId === filterState))
+            .sort((a, b) => a.name.localeCompare(b.name))
+        : filterCounty
+        ? allVenues.filter((v) => v.countyId === filterCounty).sort((a, b) => a.name.localeCompare(b.name))
+        : filterState
+        ? allVenues.filter((v) => v.stateId === filterState).sort((a, b) => a.name.localeCompare(b.name))
+        : [];
+
+    // Reset county/city/location when state changes
+    const handleStateChange = (val) => {
+        setFilterState(val);
+        setFilterCounty("");
+        setFilterCity("");
+        setFilterLocation("");
+    };
+    // Reset city/location when county changes
+    const handleCountyChange = (val) => {
+        setFilterCounty(val);
+        setFilterCity("");
+        setFilterLocation("");
+    };
+
     const fetchLeagues = useCallback(async () => {
         if (!canView) { setLoading(false); return; }
         setLoading(true);
@@ -484,6 +551,61 @@ export default function LeaguesPage() {
         } catch { showError("Failed to load leagues"); }
         finally { setLoading(false); }
     }, [canView, search, showError]);
+
+    // Build venue-name → stateId/countyId/cityName lookup
+    const venueLookup = Object.fromEntries(
+        allVenues.map((v) => [v.name, { stateId: v.stateId, countyId: v.countyId, cityName: v.cityName || "" }])
+    );
+
+    // Derive filtered + sorted league list
+    const displayLeagues = [...leagues]
+        .filter((league) => {
+            if (!filterState && !filterCounty && !filterCity && !filterLocation) return true;
+            const names = Array.isArray(league.locations) && league.locations.length > 0
+                ? league.locations
+                : league.location ? [league.location] : [];
+            return names.some((n) => {
+                const v = venueLookup[n];
+                if (!v) return false;
+                if (filterLocation) return n === filterLocation;
+                if (filterCity) return v.cityName === filterCity;
+                if (filterCounty) return v.countyId === filterCounty;
+                if (filterState) return v.stateId === filterState;
+                return true;
+            });
+        })
+        .sort((a, b) => {
+            let valA, valB;
+            if (sortField === "name") {
+                valA = (a.name || "").toLowerCase();
+                valB = (b.name || "").toLowerCase();
+                return sortDir === "asc" ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            }
+            if (sortField === "startDate") {
+                valA = a.startDate ? new Date(a.startDate).getTime() : 0;
+                valB = b.startDate ? new Date(b.startDate).getTime() : 0;
+            } else if (sortField === "endDate") {
+                valA = a.endDate ? new Date(a.endDate).getTime() : 0;
+                valB = b.endDate ? new Date(b.endDate).getTime() : 0;
+            }
+            return sortDir === "asc" ? valA - valB : valB - valA;
+        });
+
+    const toggleSort = (field) => {
+        if (sortField === field) {
+            setSortDir((d) => d === "asc" ? "desc" : "asc");
+        } else {
+            setSortField(field);
+            setSortDir("asc");
+        }
+    };
+
+    const SortIcon = ({ field }) => {
+        if (sortField !== field) return <i className="fa-solid fa-sort" style={{ marginLeft: 4, opacity: 0.35, fontSize: 11 }}></i>;
+        return sortDir === "asc"
+            ? <i className="fa-solid fa-sort-up" style={{ marginLeft: 4, fontSize: 11, color: "#e63946" }}></i>
+            : <i className="fa-solid fa-sort-down" style={{ marginLeft: 4, fontSize: 11, color: "#e63946" }}></i>;
+    };
 
     useEffect(() => { fetchLeagues(); }, [fetchLeagues]);
 
@@ -539,7 +661,7 @@ export default function LeaguesPage() {
             ) : (
                 <div className="admin-card">
                     <div className="admin-card-header">
-                        <h3>Leagues ({leagues.length})</h3>
+                        <h3>Leagues ({displayLeagues.length})</h3>
                         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                             <input
                                 className="admin-form-input"
@@ -559,6 +681,100 @@ export default function LeaguesPage() {
                         </div>
                     </div>
 
+                    {/* Filter + Sort bar */}
+                    <div style={{ display: "flex", justifyContent: "flex-end", flexWrap: "wrap", gap: 8, padding: "10px 16px 10px", borderBottom: "1px solid #e8eaf0", marginBottom: 4, alignItems: "center" }}>
+                        {/* State */}
+                        <select
+                            className="admin-form-select"
+                            value={filterState}
+                            onChange={(e) => handleStateChange(e.target.value)}
+                            style={{ width: 155, height: 34, fontSize: 13 }}
+                        >
+                            <option value="">All States</option>
+                            {allStates.map((s) => (
+                                <option key={s._id} value={s._id}>{s.name}</option>
+                            ))}
+                        </select>
+
+                        {/* County — only shown once a state is picked */}
+                        {filterState && (
+                            <select
+                                className="admin-form-select"
+                                value={filterCounty}
+                                onChange={(e) => handleCountyChange(e.target.value)}
+                                style={{ width: 155, height: 34, fontSize: 13 }}
+                            >
+                                <option value="">All Counties</option>
+                                {countyOptions.map((c) => (
+                                    <option key={c.id} value={c.id}>{c.name}</option>
+                                ))}
+                            </select>
+                        )}
+
+                        {/* City — only shown once a state is picked */}
+                        {filterState && (
+                            <select
+                                className="admin-form-select"
+                                value={filterCity}
+                                onChange={(e) => { setFilterCity(e.target.value); setFilterLocation(""); }}
+                                style={{ width: 155, height: 34, fontSize: 13 }}
+                            >
+                                <option value="">All Cities</option>
+                                {cityOptions.map((c) => (
+                                    <option key={c} value={c}>{c}</option>
+                                ))}
+                            </select>
+                        )}
+
+                        {/* Location — only shown once a state is picked */}
+                        {filterState && (
+                            <select
+                                className="admin-form-select"
+                                value={filterLocation}
+                                onChange={(e) => setFilterLocation(e.target.value)}
+                                style={{ width: 175, height: 34, fontSize: 13 }}
+                            >
+                                <option value="">All Locations</option>
+                                {venueOptions.map((v) => (
+                                    <option key={v._id} value={v.name}>{v.name}</option>
+                                ))}
+                            </select>
+                        )}
+
+                        {/* Divider between filters and sort */}
+                        <div style={{ width: 1, height: 24, background: "#e0e2ea", margin: "0 4px", flexShrink: 0 }} />
+
+                        {/* Sort */}
+                        <select
+                            className="admin-form-select"
+                            value={`${sortField}:${sortDir}`}
+                            onChange={(e) => {
+                                const [f, d] = e.target.value.split(":");
+                                setSortField(f);
+                                setSortDir(d);
+                            }}
+                            style={{ width: 200, height: 34, fontSize: 13 }}
+                        >
+                            <option value="name:asc">Name (A → Z)</option>
+                            <option value="name:desc">Name (Z → A)</option>
+                            <option value="startDate:asc">Start Date (Oldest first)</option>
+                            <option value="startDate:desc">Start Date (Newest first)</option>
+                            <option value="endDate:asc">End Date (Oldest first)</option>
+                            <option value="endDate:desc">End Date (Newest first)</option>
+                        </select>
+
+                        {/* Clear filters */}
+                        {(filterState || filterCounty || filterCity || filterLocation) && (
+                            <button
+                                className="admin-btn admin-btn-ghost admin-btn-sm"
+                                onClick={() => { setFilterState(""); setFilterCounty(""); setFilterCity(""); setFilterLocation(""); }}
+                                style={{ height: 34, whiteSpace: "nowrap" }}
+                            >
+                                <i className="fa-solid fa-xmark"></i> Clear
+                            </button>
+                        )}
+                    </div>
+
                     {loading ? (
                         <div className="admin-loading"><div className="admin-spinner"></div>Loading leagues...</div>
                     ) : leagues.length === 0 ? (
@@ -566,24 +782,35 @@ export default function LeaguesPage() {
                             <i className="fa-solid fa-trophy"></i>
                             <p>No leagues found.</p>
                         </div>
+                    ) : displayLeagues.length === 0 ? (
+                        <div className="admin-empty">
+                            <i className="fa-solid fa-filter"></i>
+                            <p>No leagues match the selected filters.</p>
+                        </div>
                     ) : (
                         <div style={{ overflowX: "auto" }}>
                             <table className="admin-table">
                                 <thead>
                                     <tr>
-                                        <th>Name</th>
+                                        <th style={{ cursor: "pointer", userSelect: "none" }} onClick={() => toggleSort("name")}>
+                                            Name <SortIcon field="name" />
+                                        </th>
                                         {isAdmin && <th>Organization</th>}
                                         <th>Season</th>
                                         <th>Status</th>
                                         <th>Category</th>
                                         <th>Location</th>
-                                        <th>Start Date</th>
-                                        <th>End Date</th>
+                                        <th style={{ cursor: "pointer", userSelect: "none" }} onClick={() => toggleSort("startDate")}>
+                                            Start Date <SortIcon field="startDate" />
+                                        </th>
+                                        <th style={{ cursor: "pointer", userSelect: "none" }} onClick={() => toggleSort("endDate")}>
+                                            End Date <SortIcon field="endDate" />
+                                        </th>
                                         <th style={{ width: 120 }}>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {leagues.map((league) => (
+                                    {displayLeagues.map((league) => (
                                         <tr key={league._id}>
                                             <td style={{ fontWeight: 600 }}>{league.name}</td>
                                             {isAdmin && (
