@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 const inputStyle = {
@@ -45,6 +45,10 @@ export default function PlayerEditModal({ onClose }) {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+    const [uploadingPhoto, setUploadingPhoto] = useState(false);
+    const [uploadingBanner, setUploadingBanner] = useState(false);
+    const photoInputRef = useRef(null);
+    const bannerInputRef = useRef(null);
 
     useEffect(() => {
         fetch("/api/players/me")
@@ -82,6 +86,27 @@ export default function PlayerEditModal({ onClose }) {
             setForm((f) => ({ ...f, socialLinks: { ...f.socialLinks, [key]: value } }));
         } else {
             setForm((f) => ({ ...f, [name]: value }));
+        }
+    };
+
+    const handleImageUpload = async (field, file, setUploading, inputRef) => {
+        if (!file) return;
+        setUploading(true);
+        try {
+            const fd = new FormData();
+            fd.append("file", file);
+            const res = await fetch("/api/upload", { method: "POST", body: fd });
+            const data = await res.json();
+            if (data.success) {
+                setForm((f) => ({ ...f, [field]: data.url }));
+            } else {
+                setError(data.error || "Upload failed.");
+            }
+        } catch {
+            setError("Upload failed. Please try again.");
+        } finally {
+            setUploading(false);
+            if (inputRef.current) inputRef.current.value = "";
         }
     };
 
@@ -241,25 +266,75 @@ export default function PlayerEditModal({ onClose }) {
                         {/* Images */}
                         <p style={{ ...sectionTitleStyle, marginTop: "20px" }}>Images</p>
 
-                        <label style={labelStyle}>Profile Photo URL</label>
-                        <input
-                            type="url"
-                            name="photo"
-                            value={form.photo}
-                            onChange={handleChange}
-                            placeholder="https://…"
-                            style={inputStyle}
-                        />
+                        {/* Profile Photo */}
+                        <div style={{ marginBottom: "20px" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                                <span style={labelStyle}>Profile Photo</span>
+                                {form.photo && (
+                                    <img src={form.photo} alt="preview" style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(255,255,255,0.15)" }} />
+                                )}
+                            </div>
+                            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                                <input
+                                    type="text"
+                                    name="photo"
+                                    value={form.photo}
+                                    onChange={handleChange}
+                                    placeholder="https://… or upload a file"
+                                    style={{ ...inputStyle, flex: 1, marginBottom: 0 }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => photoInputRef.current?.click()}
+                                    disabled={uploadingPhoto}
+                                    style={{ flexShrink: 0, padding: "10px 14px", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "8px", color: "#fff", cursor: "pointer", fontSize: "13px", fontWeight: 600, whiteSpace: "nowrap" }}
+                                >
+                                    {uploadingPhoto ? "Uploading…" : "⬆ Upload"}
+                                </button>
+                                <input
+                                    ref={photoInputRef}
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/webp,image/gif"
+                                    style={{ display: "none" }}
+                                    onChange={(e) => handleImageUpload("photo", e.target.files[0], setUploadingPhoto, photoInputRef)}
+                                />
+                            </div>
+                        </div>
 
-                        <label style={labelStyle}>Banner Image URL</label>
-                        <input
-                            type="url"
-                            name="bannerImage"
-                            value={form.bannerImage}
-                            onChange={handleChange}
-                            placeholder="https://…"
-                            style={inputStyle}
-                        />
+                        {/* Banner Image */}
+                        <div style={{ marginBottom: "14px" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                                <span style={labelStyle}>Banner Image</span>
+                                {form.bannerImage && (
+                                    <img src={form.bannerImage} alt="preview" style={{ height: 32, width: 80, objectFit: "cover", borderRadius: "4px", border: "2px solid rgba(255,255,255,0.15)" }} />
+                                )}
+                            </div>
+                            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                                <input
+                                    type="text"
+                                    name="bannerImage"
+                                    value={form.bannerImage}
+                                    onChange={handleChange}
+                                    placeholder="https://… or upload a file"
+                                    style={{ ...inputStyle, flex: 1, marginBottom: 0 }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => bannerInputRef.current?.click()}
+                                    disabled={uploadingBanner}
+                                    style={{ flexShrink: 0, padding: "10px 14px", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "8px", color: "#fff", cursor: "pointer", fontSize: "13px", fontWeight: 600, whiteSpace: "nowrap" }}
+                                >
+                                    {uploadingBanner ? "Uploading…" : "⬆ Upload"}
+                                </button>
+                                <input
+                                    ref={bannerInputRef}
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/webp,image/gif"
+                                    style={{ display: "none" }}
+                                    onChange={(e) => handleImageUpload("bannerImage", e.target.files[0], setUploadingBanner, bannerInputRef)}
+                                />
+                            </div>
+                        </div>
 
                         {/* Social Links */}
                         <p style={{ ...sectionTitleStyle, marginTop: "20px" }}>Social Links</p>
