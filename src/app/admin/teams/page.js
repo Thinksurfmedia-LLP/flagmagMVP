@@ -726,6 +726,7 @@ export default function AdminTeamsPage() {
     // Sort + geo filter state
     const [sortField, setSortField] = useState("name");
     const [sortDir, setSortDir] = useState("asc");
+    const [filterLeague, setFilterLeague] = useState("");
     const [filterState, setFilterState] = useState("");
     const [filterCounty, setFilterCounty] = useState("");
     const [filterCity, setFilterCity] = useState("");
@@ -833,6 +834,7 @@ export default function AdminTeamsPage() {
     const placeholderTeams = teams.filter((t) => t.isPlaceholder);
 
     // Cascading filter options derived from loaded teams
+    const leagueOptions = [...new Map(regularTeams.filter(t => t.league).map(t => [t.league._id, { id: t.league._id, name: t.league.name }])).values()].sort((a, b) => a.name.localeCompare(b.name));
     const stateOptions = [...new Set(regularTeams.map(t => t.location?.stateName).filter(Boolean))].sort();
     const countyOptions = filterState
         ? [...new Set(regularTeams.filter(t => t.location?.stateName === filterState).map(t => t.location?.countyName).filter(Boolean))].sort()
@@ -855,6 +857,7 @@ export default function AdminTeamsPage() {
 
     const displayTeams = regularTeams
         .filter((t) => {
+            if (filterLeague && t.league?._id !== filterLeague) return false;
             if (!filterState) return true;
             if (t.location?.stateName !== filterState) return false;
             if (filterCounty && t.location?.countyName !== filterCounty) return false;
@@ -901,6 +904,12 @@ export default function AdminTeamsPage() {
 
                         {/* Filter + Sort bar */}
                         <div style={{ display: "flex", justifyContent: "flex-end", flexWrap: "wrap", gap: 8, padding: "10px 16px 10px", borderBottom: "1px solid #e8eaf0", marginBottom: 4, alignItems: "center" }}>
+                            {leagueOptions.length > 0 && (
+                                <select className="admin-form-select" value={filterLeague} onChange={(e) => setFilterLeague(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
+                                    <option value="">All Leagues</option>
+                                    {leagueOptions.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+                                </select>
+                            )}
                             {stateOptions.length > 0 && (
                                 <select className="admin-form-select" value={filterState} onChange={(e) => handleStateChange(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
                                     <option value="">All States</option>
@@ -928,8 +937,8 @@ export default function AdminTeamsPage() {
                                 <option value="league:asc">League (A → Z)</option>
                                 <option value="league:desc">League (Z → A)</option>
                             </select>
-                            {(filterState || filterCounty || filterCity) && (
-                                <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setFilterState(""); setFilterCounty(""); setFilterCity(""); }} style={{ height: 34, whiteSpace: "nowrap" }}>
+                            {(filterLeague || filterState || filterCounty || filterCity) && (
+                                <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setFilterLeague(""); setFilterState(""); setFilterCounty(""); setFilterCity(""); }} style={{ height: 34, whiteSpace: "nowrap" }}>
                                     <i className="fa-solid fa-xmark"></i> Clear
                                 </button>
                             )}
