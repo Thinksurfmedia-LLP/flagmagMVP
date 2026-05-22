@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export default function PlayerProfileHeader({ player, activeTab = "overview" }) {
+export default function PlayerProfileHeader({ player, derivedLocations = [], activeTab = "overview" }) {
     const id = player._id;
 
     return (
@@ -27,8 +27,24 @@ export default function PlayerProfileHeader({ player, activeTab = "overview" }) 
                                 <div className="content-area mt-4">
                                     <h4>about</h4>
                                     <p>{player.about}</p>
-                                    <h4>Locations List</h4>
-                                    <p>{player.locationsDescription}</p>
+                                    {derivedLocations.length > 0 && (
+                                        <>
+                                            <h4>Locations</h4>
+                                            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexWrap: "wrap", alignItems: "center", gap: "8px" }}>
+                                                {derivedLocations.slice(0, 3).map((loc, i) => (
+                                                    <li key={i} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 14, paddingRight: 16, marginRight: 8, borderRight: i < Math.min(derivedLocations.length, 3) - 1 || derivedLocations.length > 3 ? "1px solid rgba(255,255,255,0.2)" : "none" }}>
+                                                        <span style={{ color: "#FF8C00" }}>●</span>
+                                                        {loc.split(" ")[0]}
+                                                    </li>
+                                                ))}
+                                                {derivedLocations.length > 3 && (
+                                                    <li style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontWeight: 600 }}>
+                                                        +{derivedLocations.length - 3}
+                                                    </li>
+                                                )}
+                                            </ul>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -62,7 +78,6 @@ export default function PlayerProfileHeader({ player, activeTab = "overview" }) 
                             <li className={activeTab === "overview" ? "active" : ""}><Link href={`/players/${id}`}>Overview</Link></li>
                             <li className={activeTab === "stats" ? "active" : ""}><Link href={`/players/${id}/stats`}>Stats</Link></li>
                             <li className={activeTab === "teams" ? "active" : ""}><Link href={`/players/${id}/teams`}>Teams</Link></li>
-                            <li className={activeTab === "organization" ? "active" : ""}><Link href="#">Organization</Link></li>
                             <li className={activeTab === "awards" ? "active" : ""}><Link href={`/players/${id}/awards`}>Awards</Link></li>
                         </ul>
                     </div>

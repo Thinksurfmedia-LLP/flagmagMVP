@@ -1,15 +1,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PlayerProfileHeader from "@/components/PlayerProfileHeader";
-import dbConnect from "@/lib/dbConnect";
-import Player from "@/models/Player";
-
-async function getPlayer(id) {
-    await dbConnect();
-    const player = await Player.findById(id).lean();
-    if (!player) return null;
-    return JSON.parse(JSON.stringify(player));
-}
+import { getPlayerWithLocations } from "@/lib/getPlayerData";
 
 function StatsColumn({ title, stats }) {
     return (
@@ -28,7 +20,7 @@ function StatsColumn({ title, stats }) {
 
 export default async function PlayerStatsPage({ params }) {
     const { id } = await params;
-    const player = await getPlayer(id);
+    const { player, derivedLocations } = await getPlayerWithLocations(id);
 
     if (!player) {
         return (
@@ -50,7 +42,7 @@ export default async function PlayerStatsPage({ params }) {
     return (
         <>
             <Header />
-            <PlayerProfileHeader player={player} activeTab="stats" />
+            <PlayerProfileHeader player={player} derivedLocations={derivedLocations} activeTab="stats" />
 
             <section className="leagues-section" style={{ paddingTop: 0 }}>
                 <div className="container">

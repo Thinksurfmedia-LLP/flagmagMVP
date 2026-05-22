@@ -2,36 +2,27 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PlayerProfileHeader from "@/components/PlayerProfileHeader";
 import dbConnect from "@/lib/dbConnect";
-import Player from "@/models/Player";
 import Award from "@/models/Award";
-
-async function getData(id) {
-    await dbConnect();
-    const player = await Player.findById(id).lean();
-    if (!player) return null;
-    const awards = await Award.find({ player: id }).sort({ createdAt: -1 }).lean();
-    return {
-        player: JSON.parse(JSON.stringify(player)),
-        awards: JSON.parse(JSON.stringify(awards)),
-    };
-}
+import { getPlayerWithLocations } from "@/lib/getPlayerData";
 
 export default async function PlayerAwardsPage({ params }) {
     const { id } = await params;
-    const data = await getData(id);
+    const { player, derivedLocations } = await getPlayerWithLocations(id);
 
-    if (!data) {
+    if (!player) {
         return (
             <><Header /><section className="innerpage-section type2"><div className="container py-5 text-center"><h1>Player not found</h1></div></section><Footer /></>
         );
     }
 
-    const { player, awards } = data;
+    await dbConnect();
+    const awardsRaw = await Award.find({ player: id }).sort({ createdAt: -1 }).lean();
+    const awards = JSON.parse(JSON.stringify(awardsRaw));
 
     return (
         <>
             <Header />
-            <PlayerProfileHeader player={player} activeTab="awards" />
+            <PlayerProfileHeader player={player} derivedLocations={derivedLocations} activeTab="awards" />
 
             <section className="leagues-section" style={{ paddingTop: 0 }}>
                 <div className="container">

@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
 import Role from "@/models/Role";
+import Player from "@/models/Player";
 import "@/models/Organization"; // register schema for populate
 import { signToken, setAuthCookie } from "@/lib/auth";
 
@@ -59,6 +60,14 @@ export async function POST(request) {
         });
         await setAuthCookie(token);
 
+        // If the user is a player, find their Player document
+        let playerId = null;
+        const allRoles = roles.length ? roles : [user.role];
+        if (allRoles.includes("player")) {
+            const playerDoc = await Player.findOne({ user: user._id }).select("_id").lean();
+            if (playerDoc) playerId = playerDoc._id.toString();
+        }
+
         return NextResponse.json(
             {
                 success: true,
@@ -69,6 +78,7 @@ export async function POST(request) {
                     role: user.role,
                     roles,
                     permissions: perms,
+                    playerId,
                     organization: user.organization
                         ? {
                             id: user.organization._id,

@@ -4,11 +4,13 @@ import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useRouter } from "next/navigation";
+import PlayerEditModal from "@/components/PlayerEditModal";
 
 export default function HeaderAuth({ className = "", onBookDemo }) {
     const { user, loading, logout } = useAuth();
     const router = useRouter();
     const [open, setOpen] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
     const dropdownRef = useRef(null);
 
     useEffect(() => {
@@ -37,7 +39,9 @@ export default function HeaderAuth({ className = "", onBookDemo }) {
     }
 
     if (user) {
-        const hasDashboardRoles = (user.roles || [user.role]).some(r => ["admin", "organizer"].includes(r));
+        const allRoles = user.roles || [user.role];
+        const hasDashboardRoles = allRoles.some(r => ["admin", "organizer"].includes(r));
+        const isPlayer = allRoles.includes("player");
         return (
             <div className={`header-btn-col ${className}`.trim()}>
                 {hasDashboardRoles ? (
@@ -85,6 +89,15 @@ export default function HeaderAuth({ className = "", onBookDemo }) {
                             </div>
                         )}
                     </div>
+                ) : isPlayer ? (
+                    <button
+                        className="btn btn-info-primary"
+                        onClick={() => setShowEditModal(true)}
+                        style={{ cursor: "pointer" }}
+                        title="Edit your profile"
+                    >
+                        <i className="fa-solid fa-user me-1"></i> {user.name.split(" ")[0]}
+                    </button>
                 ) : (
                     <div className="btn btn-info-primary" style={{ cursor: "default", opacity: 0.9 }}>
                         <i className="fa-solid fa-user me-1"></i> {user.name.split(" ")[0]}
@@ -93,6 +106,9 @@ export default function HeaderAuth({ className = "", onBookDemo }) {
                 <button onClick={handleLogout} className="btn btn-primary btn-with-arrow">
                     LOGOUT <span><img src="/assets/images/btn-arrow.png" alt="" /></span>
                 </button>
+                {showEditModal && (
+                    <PlayerEditModal onClose={() => setShowEditModal(false)} />
+                )}
             </div>
         );
     }

@@ -38,7 +38,12 @@ export default function LoginForm() {
                 setTimeout(() => {
                     // Hard navigation to fully reset all component state
                     // (prevents stale sidebar/logo from previous user session)
-                    window.location.href = redirectTo;
+                    const allRoles = data.data.roles?.length ? data.data.roles : [data.data.role];
+                    if (allRoles.includes("player") && data.data.playerId) {
+                        window.location.href = `/players/${data.data.playerId}`;
+                    } else {
+                        window.location.href = redirectTo;
+                    }
                 }, 1000);
             }
         } catch (err) {
