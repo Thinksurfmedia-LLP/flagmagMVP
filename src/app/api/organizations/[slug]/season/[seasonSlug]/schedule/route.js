@@ -26,8 +26,8 @@ export async function GET(request, { params }) {
 
         const leagueId = String(league._id);
 
-        // Build week metadata from all game dates
-        const gameDates = await Game.find({ league: league._id }).select("date").sort({ date: 1 }).lean();
+        // Build week metadata from all game dates (exclude practice games)
+        const gameDates = await Game.find({ league: league._id, gameType: { $ne: "practice" } }).select("date").sort({ date: 1 }).lean();
 
         const weekMap = new Map();
         for (const { date } of gameDates) {
@@ -54,6 +54,7 @@ export async function GET(request, { params }) {
         const initialGames = await Game.find({
             league: league._id,
             date: { $gte: new Date(ws), $lt: weekEnd },
+            gameType: { $ne: "practice" },
         })
             .sort({ date: 1, time: 1 })
             .lean();

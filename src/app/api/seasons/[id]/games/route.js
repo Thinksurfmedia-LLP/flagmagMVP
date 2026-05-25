@@ -17,7 +17,7 @@ export async function GET(request, { params }) {
 
         const weekStart = searchParams.get("weekStart");
 
-        const filter = { league: id };
+        const filter = { league: id, gameType: { $ne: "practice" } };
         if (status) filter.status = status;
         if (weekStart) {
             const start = new Date(weekStart);

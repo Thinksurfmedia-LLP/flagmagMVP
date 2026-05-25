@@ -29,7 +29,7 @@ async function getData(slug, seasonSlug) {
 
     // Lightweight query — only dates to build week navigation metadata
     const [gameDates, playerCount] = await Promise.all([
-        Game.find({ league: league._id }).select("date").sort({ date: 1 }).lean(),
+        Game.find({ league: league._id, gameType: { $ne: "practice" } }).select("date").sort({ date: 1 }).lean(),
         Player.countDocuments({ organization: org._id }),
     ]);
 
@@ -57,6 +57,7 @@ async function getData(slug, seasonSlug) {
         initialGames = await Game.find({
             league: league._id,
             date: { $gte: new Date(ws), $lt: weekEnd },
+            gameType: { $ne: "practice" },
         })
             .sort({ date: 1, time: 1 })
             .lean();

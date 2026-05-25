@@ -35,8 +35,8 @@ export async function GET(request, { params }) {
         const leagueMap = Object.fromEntries(leagues.map((l) => [String(l._id), l]));
         const teamMap = Object.fromEntries(teams.map((t) => [t.name, t]));
 
-        // Single query for all games across all leagues
-        const filter = { league: { $in: leagueIds } };
+        // Single query for all games across all leagues (exclude practice games)
+        const filter = { league: { $in: leagueIds }, gameType: { $ne: "practice" } };
         if (status) filter.status = status;
 
         const games = await Game.find(filter).sort({ date: 1, time: 1 }).lean();
