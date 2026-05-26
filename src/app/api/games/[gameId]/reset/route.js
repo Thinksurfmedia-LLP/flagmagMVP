@@ -5,7 +5,7 @@ import GameStat from "@/models/GameStat";
 import Play from "@/models/Play";
 import User from "@/models/User";
 import League from "@/models/League";
-import { requireAdmin, hasRole } from "@/lib/apiAuth";
+import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
 
 async function getOrgIdForOrganizer(authUser) {
     if (authUser.organization?.id) return authUser.organization.id;
@@ -23,9 +23,9 @@ async function getOrgIdForOrganizer(authUser) {
 }
 
 // POST /api/games/[gameId]/reset
-// Resets all scores, plays, and stats for a game. Organizer/admin only.
+// Resets all scores, plays, and stats for a game. Admin/organizer/statistician only.
 export async function POST(request, { params }) {
-    const auth = await requireAdmin();
+    const auth = await requireAnyPermission(["manage_games", "game_update", "stats_record"]);
     if (!auth.authorized) return auth.response;
 
     try {
@@ -37,8 +37,8 @@ export async function POST(request, { params }) {
             return NextResponse.json({ success: false, error: "Game not found" }, { status: 404 });
         }
 
-        // Organizers may only reset games within their own organization
-        if (hasRole(auth.user, "organizer") && !hasRole(auth.user, "admin")) {
+        // Non-admin users may only reset games within their own organization
+        if (!hasRole(auth.user, "admin")) {
             const orgId = await getOrgIdForOrganizer(auth.user);
             if (!orgId) {
                 return NextResponse.json(
