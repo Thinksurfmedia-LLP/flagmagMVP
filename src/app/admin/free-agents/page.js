@@ -386,7 +386,7 @@ export default function AdminFreeAgentsPage() {
                                                             disabled={assigning === fa._id}
                                                         >
                                                             <option value="">{assigning === fa._id ? "Assigning..." : "Select team..."}</option>
-                                                            {teams.map((t) => (
+                                                            {teams.filter((t) => !t.isPlaceholder).map((t) => (
                                                                 <option key={t._id} value={t._id}>{t.name}</option>
                                                             ))}
                                                         </select>

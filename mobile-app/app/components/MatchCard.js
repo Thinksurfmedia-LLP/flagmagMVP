@@ -45,7 +45,7 @@ export default function MatchCard({ game, onStart }) {
         try {
             const res = await apiGet("/api/teams");
             const teams = Array.isArray(res.data) ? res.data : [];
-            const realTeams = teams.filter((t) => !isPlaceholderTeamName(t?.name));
+            const realTeams = teams.filter((t) => !t.isPlaceholder && !isPlaceholderTeamName(t?.name));
             setAllTeams(realTeams);
 
             const currentA = realTeams.find((t) => t?.name === game.teamA?.name);
@@ -222,9 +222,11 @@ export default function MatchCard({ game, onStart }) {
                                         disabled={loadingTeams || starting}
                                     >
                                         <option value="">Select Team 1</option>
-                                        {allTeams.map((team) => (
-                                            <option key={team._id} value={team._id}>{team.name}</option>
-                                        ))}
+                                        {allTeams
+                                            .filter((team) => String(team._id) !== teamBSelection)
+                                            .map((team) => (
+                                                <option key={team._id} value={team._id}>{team.name}</option>
+                                            ))}
                                     </select>
                                 </div>
                                 <div className="form-group" style={{ textAlign: "left" }}>
@@ -236,9 +238,11 @@ export default function MatchCard({ game, onStart }) {
                                         disabled={loadingTeams || starting}
                                     >
                                         <option value="">Select Team 2</option>
-                                        {allTeams.map((team) => (
-                                            <option key={team._id} value={team._id}>{team.name}</option>
-                                        ))}
+                                        {allTeams
+                                            .filter((team) => String(team._id) !== teamASelection)
+                                            .map((team) => (
+                                                <option key={team._id} value={team._id}>{team.name}</option>
+                                            ))}
                                     </select>
                                 </div>
                             </>

@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FlagMag Mobile App
 
-## Getting Started
+This is the mobile-facing Next.js frontend for FlagMag. It runs as a standalone app and proxies all API calls to the main FlagMag backend server.
 
-First, run the development server:
+## Prerequisites
+
+- [Node.js](https://nodejs.org/) v18 or higher
+- The main FlagMag backend running (locally or hosted)
+
+## Setup
+
+### 1. Install dependencies
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Configure the API URL
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+Copy the example environment file and edit it:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# On Mac/Linux:
+cp .env.example .env.local
 
-## Learn More
+# On Windows:
+copy .env.example .env.local
+```
 
-To learn more about Next.js, take a look at the following resources:
+Open `.env.local` and set `API_BASE_URL` to point to the backend:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Scenario | Value |
+|---|---|
+| Running the main project locally | `http://localhost:3000` (default, no change needed) |
+| Using a hosted/staging API | The full URL provided by the team (e.g. `https://api.flagmag.com`) |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 3. Run the development server
 
-## Deploy on Vercel
+Since the main backend already uses port 3000, run the mobile app on a different port:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run dev -- -p 3001
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open [http://localhost:3001](http://localhost:3001) in your browser.
+
+---
+
+## How it works
+
+All `/api/*` requests made by the mobile app are automatically **proxied** to the backend URL configured in `API_BASE_URL`. You do not need to change any API call URLs in the source code — just point `.env.local` at the right backend.
+
+## Project structure
+
+```
+app/
+  page.js          # Home / entry point
+  layout.js        # Root layout
+  login/           # Login screen
+  signup/          # Sign-up screen
+  welcome/         # Welcome / onboarding screen
+  matches/         # Match listing and details
+  components/      # Shared UI components
+  lib/
+    api.js         # Fetch wrapper (GET/POST/PUT/DELETE)
+    AuthContext.js # Auth state provider
+```
+
+## Available scripts
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start dev server (default port 3000) |
+| `npm run dev -- -p 3001` | Start dev server on port 3001 |
+| `npm run build` | Build for production |
+| `npm run start` | Start production server |
+| `npm run lint` | Run ESLint |
