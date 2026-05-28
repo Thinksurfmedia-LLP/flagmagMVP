@@ -12,6 +12,19 @@
  * Roughriders 8u vs Lil Rascals 8u:     39 -  0  →  33 -  0   (1 TD extra on Roughriders)
  * Hawkeyes 12u vs Scallywags 12u:        8 - 39  →  14 - 39   (1 TD short on Hawkeyes)
  * Golden Eagles 8u vs Lil Rascals 8u:   20 - 21  →  14 - 20   (both wrong)
+ * Zombies 14u vs Bolts 14u:             24 - 37  →  24 - 43   (Bolts missing 1 TD)
+ *
+ * -- April 18 (Week 3) --
+ * Blue Heat 8u vs Roughriders 8u:       14 - 39  →  12 - 41   (both wrong)
+ * Pick 6 Mafia 10u vs Scallywags 10u:   18 - 32  →  12 - 38   (both wrong)
+ * Powerhouse 12u vs Cardinals 12u:      33 - 35  →  34 - 35   (Powerhouse 1 pt short)
+ *
+ * -- April 25 (Week 4) --
+ * Renegades 10u vs Scallywags 10u:       13 - 14  →   7 - 14   (Renegades 1 TD extra)
+ *
+ * -- May 8-9 (Week 6) --
+ * Bone Collectors 14u vs Bolts 14u:      45 - 32  →  46 - 32   (Bone Collectors 1 pt short)
+ * Blue Heat 8u vs Hot Shotz 8u:           8 - 24  →  14 - 24   (Blue Heat 1 TD short)
  *
  * Usage:
  *   DRY_RUN=1 node scripts/fix-two-incorrect-scores.mjs
@@ -81,6 +94,51 @@ const fixes = [
         label: "Golden Eagles 8u vs Lil Rascals 8u",
         teamA: { score: 14 },  // DB had 20, correct is 14 per zortssports
         teamB: { score: 20 },  // DB had 21, correct is 20 per zortssports
+    },
+    {
+        _id:   "69d0bda380313eff138f7869",
+        label: "Zombies 14u vs Bolts 14u",
+        teamA: { score: 24 },
+        teamB: { score: 43 },  // DB had 37, correct is 43 per zortssports (missing 1 TD)
+    },
+    // ── April 18 (Week 3) ────────────────────────────────────────────────────
+    {
+        _id:   "69d0bda580313eff138f787e",
+        label: "Blue Heat 8u vs Roughriders 8u",
+        teamA: { score: 12 },  // DB had 14
+        teamB: { score: 41 },  // DB had 39
+    },
+    {
+        _id:   "69d0bda580313eff138f7884",
+        label: "Pick 6 Mafia 10u vs Scallywags 10u",
+        teamA: { score: 12 },  // DB had 18
+        teamB: { score: 38 },  // DB had 32
+    },
+    {
+        _id:   "69d0bda680313eff138f7887",
+        label: "Powerhouse 12u vs Cardinals 12u",
+        teamA: { score: 34 },  // DB had 33
+        teamB: { score: 35 },
+    },
+    // ── April 25 (Week 4) ────────────────────────────────────────────────────
+    {
+        _id:   "69d0bdaa80313eff138f78b1",
+        label: "Renegades 10u vs Scallywags 10u",
+        teamA: { score: 7 },   // DB had 13 (1 TD extra)
+        teamB: { score: 14 },
+    },
+    // ── May 8-9 (Week 6) ─────────────────────────────────────────────────────
+    {
+        _id:   "69fe868e0817e06c03656869",
+        label: "Bone Collectors 14u vs Bolts 14u",
+        teamA: { score: 46 },  // DB had 45 (1 pt short)
+        teamB: { score: 32 },
+    },
+    {
+        _id:   "69de1c28b2b80b2f1f375f89",
+        label: "Blue Heat 8u vs Hot Shotz 8u",
+        teamA: { score: 14 },  // DB had 8 (1 TD short)
+        teamB: { score: 24 },
     },
 ];
 
