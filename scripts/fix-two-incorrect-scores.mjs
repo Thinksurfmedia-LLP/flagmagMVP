@@ -10,6 +10,8 @@
  * -- April 11 (Week 2) --
  * Nightcrawlers 8u vs Blue Heat 8u:     26 - 20  →  26 - 19   (1 pt off on Blue Heat)
  * Roughriders 8u vs Lil Rascals 8u:     39 -  0  →  33 -  0   (1 TD extra on Roughriders)
+ * Hawkeyes 12u vs Scallywags 12u:        8 - 39  →  14 - 39   (1 TD short on Hawkeyes)
+ * Golden Eagles 8u vs Lil Rascals 8u:   20 - 21  →  14 - 20   (both wrong)
  *
  * Usage:
  *   DRY_RUN=1 node scripts/fix-two-incorrect-scores.mjs
@@ -67,6 +69,18 @@ const fixes = [
         label: "Roughriders 8u vs Lil Rascals 8u",
         teamA: { score: 33 },  // DB had 39 (1 extra TD), correct is 33 per zortssports
         teamB: { score: 0 },
+    },
+    {
+        _id:   "69d0bda180313eff138f785a",
+        label: "Hawkeyes 12u vs Scallywags 12u",
+        teamA: { score: 14 },  // DB had 8, correct is 14 per zortssports
+        teamB: { score: 39 },
+    },
+    {
+        _id:   "69d0bda180313eff138f7857",
+        label: "Golden Eagles 8u vs Lil Rascals 8u",
+        teamA: { score: 14 },  // DB had 20, correct is 14 per zortssports
+        teamB: { score: 20 },  // DB had 21, correct is 20 per zortssports
     },
 ];
 
