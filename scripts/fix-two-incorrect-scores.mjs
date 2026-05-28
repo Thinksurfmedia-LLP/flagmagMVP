@@ -2,9 +2,14 @@
  * Fix all known-wrong game scores.
  * Correct values verified against zortssports.com game results and backup analysis.
  *
+ * -- April 4 (Week 1) --
  * Mayhem 10u vs Scallywags 10u:       NULL - 32  →   0 - 32   (null filled in)
  * Hot Shotz 8u vs Blue Heat 8u:         12 - 13  →  12 - 19   (backup had wrong value)
  * Renegades 10u vs Pick 6 Mafia 10u:    25 -  0  →  32 -  0   (backup had wrong value)
+ *
+ * -- April 11 (Week 2) --
+ * Nightcrawlers 8u vs Blue Heat 8u:     26 - 20  →  26 - 19   (1 pt off on Blue Heat)
+ * Roughriders 8u vs Lil Rascals 8u:     39 -  0  →  33 -  0   (1 TD extra on Roughriders)
  *
  * Usage:
  *   DRY_RUN=1 node scripts/fix-two-incorrect-scores.mjs
@@ -31,6 +36,7 @@ const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/flagma
 const DRY_RUN    = process.env.DRY_RUN === "1";
 
 const fixes = [
+    // ── April 4 (Week 1) ─────────────────────────────────────────────────────
     {
         _id:   "69d0bd9e80313eff138f783c",
         label: "Mayhem 10u vs Scallywags 10u",
@@ -47,6 +53,19 @@ const fixes = [
         _id:   "69d0bd9f80313eff138f7842",
         label: "Renegades 10u vs Pick 6 Mafia 10u",
         teamA: { score: 32 },  // backup had 25, correct is 32 per zortssports
+        teamB: { score: 0 },
+    },
+    // ── April 11 (Week 2) ────────────────────────────────────────────────────
+    {
+        _id:   "69d0bda080313eff138f784b",
+        label: "Nightcrawlers 8u vs Blue Heat 8u",
+        teamA: { score: 26 },
+        teamB: { score: 19 },  // DB had 20, correct is 19 per zortssports
+    },
+    {
+        _id:   "69d0bda080313eff138f7851",
+        label: "Roughriders 8u vs Lil Rascals 8u",
+        teamA: { score: 33 },  // DB had 39 (1 extra TD), correct is 33 per zortssports
         teamB: { score: 0 },
     },
 ];
