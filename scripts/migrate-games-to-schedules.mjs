@@ -13,7 +13,24 @@
  */
 
 import mongoose from "mongoose";
-import "dotenv/config";
+import { readFileSync } from "fs";
+import { resolve } from "path";
+
+// Load .env manually without requiring dotenv package
+try {
+    const envPath = resolve(process.cwd(), ".env");
+    const lines = readFileSync(envPath, "utf8").split("\n");
+    for (const line of lines) {
+        const match = line.match(/^\s*([^#=\s][^=]*?)\s*=\s*(.*)\s*$/);
+        if (match) {
+            const key = match[1];
+            const val = match[2].replace(/^["']|["']$/g, "");
+            if (!process.env[key]) process.env[key] = val;
+        }
+    }
+} catch {
+    // .env not found – rely on environment variables already set
+}
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/flagmag";
 const DRY_RUN = process.env.DRY_RUN === "1";
