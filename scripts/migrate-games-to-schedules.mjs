@@ -10,6 +10,9 @@
  *
  * Dry-run (no writes):
  *   DRY_RUN=1 node scripts/migrate-games-to-schedules.mjs
+ *
+ * Force re-create schedules for leagues already migrated (fixes date/field):
+ *   FORCE=1 node scripts/migrate-games-to-schedules.mjs
  */
 
 import mongoose from "mongoose";
@@ -34,6 +37,7 @@ try {
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/flagmag";
 const DRY_RUN = process.env.DRY_RUN === "1";
+const FORCE = process.env.FORCE === "1"; // Set FORCE=1 to re-process leagues that already have a schedule
 
 // ── Inline schemas (avoids Next.js ESM issues) ─────────────────────────────
 
@@ -104,8 +108,7 @@ const ScheduleSchema = new mongoose.Schema(
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 /**
- * Format a Date → "MM/DD/YYYY" string (matching how games store their dates in
- * the schedule GameDetails sub-documents).
+ * Format a Date → "YYYY-MM-DD" string required by HTML <input type="date">.
  */
 function formatDate(date) {
     if (!date) return "";
@@ -113,7 +116,19 @@ function formatDate(date) {
     const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
     const dd = String(d.getUTCDate()).padStart(2, "0");
     const yyyy = d.getUTCFullYear();
-    return `${mm}/${dd}/${yyyy}`;
+    return `${yyyy}-${mm}-${dd}`;
+}
+
+/**
+ * Extract the field name/number from a location string like
+ * "Cottonwood Kids Park - 1"  →  "1"
+ * "Cottonwood Kids Park - 2"  →  "2"
+ * "Cottonwood Kids Park"       →  ""  (no field suffix)
+ */
+function extractField(location) {
+    if (!location) return "";
+    const match = location.match(/\s*-\s*([^-]+)$/);
+    return match ? match[1].trim() : "";
 }
 
 /**
@@ -177,9 +192,16 @@ async function main() {
 
     for (const [leagueId, leagueGames] of byLeague) {
         if (coveredLeagueIds.has(leagueId)) {
-            console.log(`  SKIP league ${leagueId} – schedule already exists.`);
-            skipped++;
-            continue;
+            if (!FORCE) {
+                console.log(`  SKIP league ${leagueId} – schedule already exists. Use FORCE=1 to re-create.`);
+                skipped++;
+                continue;
+            }
+            // FORCE mode: delete existing schedule so we can recreate with fixed data
+            console.log(`  FORCE mode: deleting existing schedule for league ${leagueId}…`);
+            if (!DRY_RUN) {
+                await Schedule.deleteMany({ leagueId });
+            }
         }
 
         // Load league doc for metadata
@@ -221,7 +243,7 @@ async function main() {
                 return {
                     team1: teamMap.get(t1Name)?._id || null,
                     team2: teamMap.get(t2Name)?._id || null,
-                    field: game.location || "",
+                    field: extractField(game.location),
                     date: dateStr,
                     time: game.time || "",
                     gameType: game.gameType || "main",
