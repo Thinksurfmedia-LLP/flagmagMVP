@@ -33,6 +33,7 @@ try {
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/flagmag";
 const RESTORE = process.env.RESTORE === "1";
 const BACKUP_FILE = process.env.BACKUP_FILE || "";
+const FORCE = process.env.FORCE === "1"; // overwrite even if score is already non-null
 
 const GameSchema = new mongoose.Schema({
     league: mongoose.Schema.Types.ObjectId,
@@ -69,8 +70,8 @@ async function main() {
             const current = await Game.findById(id).lean();
             if (!current) { skipped++; continue; }
 
-            // Only fix if current scores are null (i.e. affected by the bug)
-            if (current.teamA?.score === null || current.teamB?.score === null) {
+            // Only fix if current scores are null (i.e. affected by the bug), or FORCE=1
+            if (FORCE || current.teamA?.score === null || current.teamB?.score === null) {
                 await Game.findByIdAndUpdate(id, {
                     "teamA.score": scoreA ?? null,
                     "teamB.score": scoreB ?? null,
