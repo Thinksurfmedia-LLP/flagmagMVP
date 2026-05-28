@@ -127,13 +127,15 @@ export async function PUT(request, { params }) {
                         let gameRef = game.gameRef || null;
 
                         if (gameRef && prevGameRefs.has(String(gameRef))) {
-                            // Update existing game
+                            // Update existing game — preserve scores, only update structural fields
                             await Game.findByIdAndUpdate(gameRef, {
                                 league: lgId,
                                 date: new Date(game.date),
                                 time: game.time || "",
-                                teamA: { name: t1.name, logo: t1.logo || "", score: null },
-                                teamB: { name: t2.name, logo: t2.logo || "", score: null },
+                                "teamA.name": t1.name,
+                                "teamA.logo": t1.logo || "",
+                                "teamB.name": t2.name,
+                                "teamB.logo": t2.logo || "",
                                 location: composedLocation,
                                 gameType: game.gameType || "main"
                             });
