@@ -67,9 +67,10 @@ function WeekLoadingSkeleton() {
 }
 
 // weekMeta: [{ weekNum, weekStart, gameCount }]
+// weekNames: optional string[] of custom names from the Schedule document
 // initialGames: full game objects for initialWeekIdx
 // leagueId: string MongoDB _id for the API
-export default function ScheduleWithDateStrip({ weekMeta, initialWeekIdx, initialGames, leagueId, orgSlug, seasonSlug }) {
+export default function ScheduleWithDateStrip({ weekMeta, initialWeekIdx, initialGames, leagueId, orgSlug, seasonSlug, weekNames = [] }) {
     const [selectedIdx, setSelectedIdx] = useState(initialWeekIdx);
     const [gamesByWeek, setGamesByWeek] = useState(() => ({
         [initialWeekIdx]: initialGames,
@@ -116,6 +117,8 @@ export default function ScheduleWithDateStrip({ weekMeta, initialWeekIdx, initia
     const nextIdx = selectedIdx < weekMeta.length - 1 ? selectedIdx + 1 : null;
     const currentGames = gamesByWeek[selectedIdx];
 
+    const getWeekLabel = (idx) => weekNames[idx] || `Week ${weekMeta[idx].weekNum}`;
+
     return (
         <>
             <div className="organization-date-wrap">
@@ -125,17 +128,17 @@ export default function ScheduleWithDateStrip({ weekMeta, initialWeekIdx, initia
                     style={{ cursor: prevIdx !== null ? "pointer" : "default", visibility: prevIdx !== null ? "visible" : "hidden" }}
                 >
                     <span>&lt;</span>
-                    <p>{prevIdx !== null ? `Week ${weekMeta[prevIdx].weekNum}` : ""}</p>
+                    <p>{prevIdx !== null ? getWeekLabel(prevIdx) : ""}</p>
                 </div>
                 <div className="current">
-                    <p>{`Week ${weekMeta[selectedIdx].weekNum}`}</p>
+                    <p>{getWeekLabel(selectedIdx)}</p>
                 </div>
                 <div
                     className="next"
                     onClick={() => nextIdx !== null && navigateToWeek(nextIdx)}
                     style={{ cursor: nextIdx !== null ? "pointer" : "default", visibility: nextIdx !== null ? "visible" : "hidden" }}
                 >
-                    <p>{nextIdx !== null ? `Week ${weekMeta[nextIdx].weekNum}` : ""}</p>
+                    <p>{nextIdx !== null ? getWeekLabel(nextIdx) : ""}</p>
                     <span>&gt;</span>
                 </div>
             </div>

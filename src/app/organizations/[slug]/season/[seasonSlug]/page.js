@@ -10,6 +10,7 @@ import League from "@/models/League";
 import Game from "@/models/Game";
 import Team from "@/models/Team";
 import Player from "@/models/Player";
+import Schedule from "@/models/Schedule";
 import { formatOrganizationLocations } from "@/lib/organizationLocations";
 
 function getWeekStart(date) {
@@ -28,10 +29,14 @@ async function getData(slug, seasonSlug) {
     if (!league) return null;
 
     // Lightweight query — only dates to build week navigation metadata
-    const [gameDates, playerCount] = await Promise.all([
+    const [gameDates, playerCount, leagueSchedule] = await Promise.all([
         Game.find({ league: league._id, gameType: { $ne: "practice" } }).select("date").sort({ date: 1 }).lean(),
         Player.countDocuments({ organization: org._id }),
+        Schedule.findOne({ leagueId: league._id }).select("weeks.name").lean(),
     ]);
+
+    // Extract custom week names set by the organizer (in order)
+    const scheduleWeekNames = (leagueSchedule?.weeks || []).map((w) => w.name || "").filter(Boolean);
 
     // Build week metadata (weekNum, weekStart, gameCount)
     const weekMap = new Map();
@@ -80,6 +85,7 @@ async function getData(slug, seasonSlug) {
         weekMeta,
         initialWeekIdx,
         initialGames: JSON.parse(JSON.stringify(initialGames)),
+        scheduleWeekNames,
     };
 }
 
@@ -93,7 +99,7 @@ export default async function SeasonSchedulePage({ params }) {
         );
     }
 
-    const { org, league, weekMeta, initialWeekIdx, initialGames } = data;
+    const { org, league, weekMeta, initialWeekIdx, initialGames, scheduleWeekNames } = data;
     const locationText = formatOrganizationLocations(org);
 
     return (
@@ -151,6 +157,7 @@ export default async function SeasonSchedulePage({ params }) {
                         leagueId={String(league._id)}
                         orgSlug={slug}
                         seasonSlug={seasonSlug}
+                        weekNames={scheduleWeekNames}
                     />
                 </div>
             </section>
