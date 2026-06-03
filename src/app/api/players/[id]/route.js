@@ -37,7 +37,41 @@ export async function PUT(request, { params }) {
         const { teamName, jerseyNumber, ...playerUpdates } = body;
         let updateData = { ...playerUpdates };
 
-        if (teamName !== undefined || jerseyNumber !== undefined) {
+        if (body.teams !== undefined) {
+            // New parallel assignment logic
+            const TeamModel = require("@/models/Team").default || require("mongoose").models.Team;
+            
+            const currentTeams = await TeamModel.find({ "players.player": id });
+            const currentTeamIds = new Set(currentTeams.map(t => String(t._id)));
+            const nextTeamIds = new Set(body.teams.map(t => String(t.teamId)));
+            
+            // Remove from teams no longer in the list
+            for (const t of currentTeams) {
+                if (!nextTeamIds.has(String(t._id))) {
+                    await TeamModel.findByIdAndUpdate(t._id, { $pull: { players: { player: id } } });
+                }
+            }
+            
+            // Add or update teams in the list
+            let latestTeam = null;
+            for (const tReq of body.teams) {
+                const jNum = tReq.jerseyNumber != null && tReq.jerseyNumber !== "" ? Number(tReq.jerseyNumber) : 0;
+                if (currentTeamIds.has(String(tReq.teamId))) {
+                    await TeamModel.updateOne({ _id: tReq.teamId, "players.player": id }, { $set: { "players.$.jerseyNumber": jNum } });
+                    if (!latestTeam) latestTeam = await TeamModel.findById(tReq.teamId);
+                } else {
+                    await TeamModel.findByIdAndUpdate(tReq.teamId, { $push: { players: { player: id, jerseyNumber: jNum } } });
+                    if (!latestTeam) latestTeam = await TeamModel.findById(tReq.teamId);
+                }
+            }
+            
+            if (body.teams.length > 0) {
+                updateData.status = "player";
+                if (latestTeam) updateData.presentTeam = { name: latestTeam.name, logo: latestTeam.logo || "" };
+            } else {
+                updateData.presentTeam = { name: "", logo: "" };
+            }
+        } else if (teamName !== undefined || jerseyNumber !== undefined) {
             const TeamModel = require("@/models/Team").default || require("mongoose").models.Team;
             
             // 1. Remove player from any team they are currently attached to

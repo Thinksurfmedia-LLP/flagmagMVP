@@ -250,59 +250,52 @@ export default function AdminFreeAgentsPage() {
         }
     };
 
-    const assignToTeam = async (fa, teamId) => {
-        if (!teamId) return;
-        const team = teams.find(t => String(t._id) === teamId);
-        if (!team) return;
-
-        // Prompt for jersey number first
-        setJerseyPrompt({ fa, teamId, teamName: team.name });
-        setJerseyInput("");
+    const openAssignModal = (fa) => {
+        setJerseyPrompt({ fa, selectedTeams: [] });
     };
 
     const confirmAssignToTeam = async () => {
         if (!jerseyPrompt) return;
-        const { fa, teamId, teamName } = jerseyPrompt;
-        const jerseyNumber = Number(jerseyInput);
+        const { fa, selectedTeams } = jerseyPrompt;
 
-        if (!jerseyInput || isNaN(jerseyNumber)) {
-            showError("Please enter a valid jersey number");
+        if (selectedTeams.length === 0) {
+            showError("Please select at least one team");
             return;
         }
 
-        const team = teams.find(t => String(t._id) === teamId);
-        if (!team) return;
-
-        // Check for duplicate jersey number
-        const existing = (team.players || []).find(p => p.jerseyNumber === jerseyNumber);
-        if (existing) {
-            showError(`Jersey #${jerseyNumber} is already taken on ${teamName}`);
-            return;
+        // Validate all have jersey numbers
+        for (const tReq of selectedTeams) {
+            if (!tReq.jerseyNumber || isNaN(Number(tReq.jerseyNumber))) {
+                showError(`Please enter a valid jersey number for ${tReq.teamName}`);
+                return;
+            }
+            const team = teams.find(t => String(t._id) === tReq.teamId);
+            if (team) {
+                const existing = (team.players || []).find(p => p.jerseyNumber === Number(tReq.jerseyNumber));
+                if (existing) {
+                    showError(`Jersey #${tReq.jerseyNumber} is already taken on ${team.name}`);
+                    return;
+                }
+            }
         }
 
         setAssigning(fa._id);
-        setJerseyPrompt(null);
         try {
-            const currentPlayers = (team.players || []).map(p => ({
-                player: String(p.player?._id || p.player),
-                jerseyNumber: p.jerseyNumber,
-            }));
-            const updatedPlayers = [...currentPlayers, { player: String(fa._id), jerseyNumber }];
-
-            const res = await fetch(`/api/teams/${teamId}`, {
+            const res = await fetch(`/api/players/${fa._id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ players: updatedPlayers }),
+                body: JSON.stringify({ teams: selectedTeams }),
             });
             const data = await res.json();
             if (!data.success) {
-                showError(data.error || "Failed to assign to team");
+                showError(data.error || "Failed to assign to team(s)");
                 return;
             }
             fetchData();
-            showSuccess(`${fa.name} assigned to ${teamName} as #${jerseyNumber}!`);
+            setJerseyPrompt(null);
+            showSuccess(`${fa.name} assigned successfully!`);
         } catch {
-            showError("Failed to assign to team");
+            showError("Failed to assign to team(s)");
         } finally {
             setAssigning(null);
         }
@@ -378,18 +371,13 @@ export default function AdminFreeAgentsPage() {
                                                             {fa.createdAt ? new Date(fa.createdAt).toLocaleDateString() : "—"}
                                                         </span>
                                                     ) : (
-                                                        <select
-                                                            className="admin-form-select"
-                                                            style={{ minWidth: 160, padding: "4px 8px", fontSize: 13 }}
-                                                            value=""
-                                                            onChange={(e) => assignToTeam(fa, e.target.value)}
+                                                        <button
+                                                            className="admin-btn admin-btn-secondary admin-btn-sm"
+                                                            onClick={() => openAssignModal(fa)}
                                                             disabled={assigning === fa._id}
                                                         >
-                                                            <option value="">{assigning === fa._id ? "Assigning..." : "Select team..."}</option>
-                                                            {teams.filter((t) => !t.isPlaceholder).map((t) => (
-                                                                <option key={t._id} value={t._id}>{t.name}</option>
-                                                            ))}
-                                                        </select>
+                                                            <i className="fa-solid fa-plus"></i> Add to Team
+                                                        </button>
                                                     )}
                                                 </td>
                                                 {isAdmin && (
@@ -428,27 +416,89 @@ export default function AdminFreeAgentsPage() {
                                 <button className="admin-modal-close" onClick={() => setJerseyPrompt(null)} aria-label="Close">
                                     <i className="fa-solid fa-xmark"></i>
                                 </button>
-                                <h3 className="admin-modal-title">Assign Jersey Number</h3>
+                                <h3 className="admin-modal-title">Assign to Team</h3>
                                 <p style={{ color: "#8b90a0", fontSize: 14, marginBottom: 16 }}>
-                                    Assign a jersey number to <strong>{jerseyPrompt.fa.name}</strong> for team <strong>{jerseyPrompt.teamName}</strong>.
+                                    Assign <strong>{jerseyPrompt.fa.name}</strong> to a team.
                                 </p>
                                 <div className="admin-form-group">
-                                    <label className="admin-form-label">Jersey Number *</label>
-                                    <input
-                                        className="admin-form-input"
-                                        type="number"
-                                        min="0"
-                                        max="99"
-                                        value={jerseyInput}
-                                        onChange={(e) => setJerseyInput(e.target.value)}
-                                        placeholder="e.g. 7"
-                                        autoFocus
-                                        onKeyDown={(e) => { if (e.key === "Enter") confirmAssignToTeam(); }}
-                                    />
+                                    <label className="admin-form-label">Available Teams</label>
+                                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+                                        {teams.filter(t => !t.isPlaceholder && !jerseyPrompt.selectedTeams.find(st => st.teamId === String(t._id))).map(t => (
+                                            <div
+                                                key={t._id}
+                                                onClick={() => {
+                                                    setJerseyPrompt(prev => ({
+                                                        ...prev,
+                                                        selectedTeams: [...prev.selectedTeams, { teamId: String(t._id), teamName: t.name, jerseyNumber: "" }]
+                                                    }));
+                                                }}
+                                                style={{
+                                                    padding: "6px 12px",
+                                                    background: "#f0f1f5",
+                                                    border: "1px solid #d5d8e0",
+                                                    borderRadius: 16,
+                                                    fontSize: 13,
+                                                    cursor: "pointer",
+                                                    color: "#1a1d26",
+                                                    transition: "all 0.2s"
+                                                }}
+                                                onMouseEnter={e => { e.currentTarget.style.background = "#e5e7ef"; e.currentTarget.style.borderColor = "#c5c8d0"; }}
+                                                onMouseLeave={e => { e.currentTarget.style.background = "#f0f1f5"; e.currentTarget.style.borderColor = "#d5d8e0"; }}
+                                            >
+                                                + {t.name}
+                                            </div>
+                                        ))}
+                                        {teams.filter(t => !t.isPlaceholder && !jerseyPrompt.selectedTeams.find(st => st.teamId === String(t._id))).length === 0 && (
+                                            <div style={{ fontSize: 13, color: "#8b90a0", fontStyle: "italic" }}>No more teams available.</div>
+                                        )}
+                                    </div>
+                                    
+                                    <label className="admin-form-label">Team Pool (Selected)</label>
+                                    <div style={{ background: "#f9fafb", border: "1px solid #e8eaef", borderRadius: 8, padding: 12 }}>
+                                        {jerseyPrompt.selectedTeams.length === 0 ? (
+                                            <div style={{ fontSize: 13, color: "#8b90a0", fontStyle: "italic", padding: "8px 0" }}>Click a team above to add it to the pool.</div>
+                                        ) : (
+                                            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                                                {jerseyPrompt.selectedTeams.map((st, index) => (
+                                                    <div key={st.teamId} style={{ display: "flex", alignItems: "center", background: "#fff", border: "1px solid #e5e7ef", borderRadius: 6, padding: "8px 12px", gap: 12 }}>
+                                                        <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#1a1d26" }}>{st.teamName}</div>
+                                                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                                            <label style={{ fontSize: 12, color: "#5a5f72", fontWeight: 500 }}>Jersey #</label>
+                                                            <input
+                                                                type="number"
+                                                                className="admin-form-input"
+                                                                value={st.jerseyNumber}
+                                                                onChange={(e) => {
+                                                                    const newTeams = [...jerseyPrompt.selectedTeams];
+                                                                    newTeams[index].jerseyNumber = e.target.value;
+                                                                    setJerseyPrompt(prev => ({ ...prev, selectedTeams: newTeams }));
+                                                                }}
+                                                                placeholder="0-99"
+                                                                min="0"
+                                                                max="99"
+                                                                style={{ width: 64, textAlign: "center", padding: "6px" }}
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                className="admin-btn admin-btn-ghost admin-btn-sm"
+                                                                onClick={() => {
+                                                                    setJerseyPrompt(prev => ({ ...prev, selectedTeams: prev.selectedTeams.filter((_, i) => i !== index) }));
+                                                                }}
+                                                                style={{ color: "#dc2626", marginLeft: 4 }}
+                                                                title="Remove team"
+                                                            >
+                                                                <i className="fa-solid fa-xmark"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                                 <div style={{ display: "flex", gap: 10, marginTop: 20, justifyContent: "flex-end" }}>
                                     <button className="admin-btn admin-btn-ghost" onClick={() => setJerseyPrompt(null)}>Cancel</button>
-                                    <button className="admin-btn admin-btn-primary" onClick={confirmAssignToTeam} disabled={!jerseyInput}>
+                                    <button className="admin-btn admin-btn-primary" onClick={confirmAssignToTeam} disabled={jerseyPrompt.selectedTeams.length === 0 || jerseyPrompt.selectedTeams.some(t => !t.jerseyNumber)}>
                                         Assign
                                     </button>
                                 </div>

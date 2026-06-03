@@ -56,7 +56,31 @@ export async function POST(request, { params }) {
             }
         }
 
-        const player = await Player.create(body);
+        const { teams, ...playerData } = body;
+        
+        // Ensure status is player if teams are assigned
+        if (teams && teams.length > 0) {
+            playerData.status = "player";
+        }
+
+        const player = await Player.create(playerData);
+        
+        if (teams && teams.length > 0) {
+            const TeamModel = require("@/models/Team").default || require("mongoose").models.Team;
+            let latestTeam = null;
+            
+            for (const tReq of teams) {
+                const jNum = tReq.jerseyNumber != null && tReq.jerseyNumber !== "" ? Number(tReq.jerseyNumber) : 0;
+                await TeamModel.findByIdAndUpdate(tReq.teamId, { $push: { players: { player: player._id, jerseyNumber: jNum } } });
+                if (!latestTeam) latestTeam = await TeamModel.findById(tReq.teamId);
+            }
+            
+            if (latestTeam) {
+                player.presentTeam = { name: latestTeam.name, logo: latestTeam.logo || "" };
+                await player.save();
+            }
+        }
+        
         return NextResponse.json({ success: true, data: player }, { status: 201 });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });

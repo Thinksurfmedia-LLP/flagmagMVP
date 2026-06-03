@@ -74,14 +74,6 @@ function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, ef
     );
     const [season, setSeason] = useState(team?.season?._id || team?.season || "");
     const [league, setLeague] = useState(team?.league?._id || team?.league || "");
-    const [query, setQuery] = useState("");
-    // Track selected players as { player: id, jerseyNumber: num }
-    const [selectedPlayers, setSelectedPlayers] = useState(() => {
-        return (team?.players || []).map((entry) => ({
-            player: String(entry.player?._id || entry.player || entry._id || entry),
-            jerseyNumber: entry.jerseyNumber ?? "",
-        }));
-    });
     const [saving, setSaving] = useState(false);
 
     // Location picker state
@@ -113,43 +105,6 @@ function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, ef
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Merge existing team players with free agents for the candidate list
-    const allCandidates = useMemo(() => {
-        const existingPlayers = (team?.players || []).map(entry => ({
-            ...(entry.player || {}),
-            _id: entry.player?._id || entry.player,
-            _isExistingTeamPlayer: true,
-        }));
-        const existingIds = new Set(existingPlayers.map(p => String(p._id)));
-        const newFreeAgents = (freeAgents || []).filter(fa => !existingIds.has(String(fa._id)));
-        return [...existingPlayers, ...newFreeAgents];
-    }, [team, freeAgents]);
-
-    const selectedPlayerIds = selectedPlayers.map(p => p.player);
-
-    const filteredPlayers = allCandidates.filter((player) => {
-        const haystack = `${player.name} ${player.organization?.name || ""}`.toLowerCase();
-        return haystack.includes(query.toLowerCase());
-    });
-
-    const togglePlayer = (playerId) => {
-        const id = String(playerId);
-        setSelectedPlayers((prev) => {
-            const exists = prev.find(p => p.player === id);
-            if (exists) {
-                return prev.filter(p => p.player !== id);
-            }
-            return [...prev, { player: id, jerseyNumber: "" }];
-        });
-    };
-
-    const updateJerseyNumber = (playerId, jerseyNumber) => {
-        const id = String(playerId);
-        setSelectedPlayers((prev) =>
-            prev.map(p => p.player === id ? { ...p, jerseyNumber } : p)
-        );
-    };
-
     const handleSave = async () => {
         if (!name.trim()) return;
 
@@ -159,21 +114,6 @@ function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, ef
         }
         if (!league) {
             showError("League is required");
-            return;
-        }
-
-        // Validate jersey numbers for all selected players
-        const missingJersey = selectedPlayers.some(p => p.jerseyNumber === "" || p.jerseyNumber === undefined || p.jerseyNumber === null);
-        if (selectedPlayers.length > 0 && missingJersey) {
-            showError("Jersey number is required for all players");
-            return;
-        }
-
-        // Check for duplicate jersey numbers
-        const jerseyNums = selectedPlayers.map(p => Number(p.jerseyNumber));
-        const uniqueJerseys = new Set(jerseyNums);
-        if (uniqueJerseys.size !== jerseyNums.length) {
-            showError("Duplicate jersey numbers are not allowed within the same team");
             return;
         }
 
@@ -197,7 +137,6 @@ function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, ef
             organization: effectiveRole === "admin" ? organization : undefined,
             season: season || null,
             league: league || null,
-            players: selectedPlayers,
         });
         setSaving(false);
     };
@@ -427,51 +366,6 @@ function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, ef
                     </div>
                 </div>
 
-                <div className="admin-form-group">
-                    <label className="admin-form-label">Assign Free Agents</label>
-                    <input
-                        className="admin-form-input"
-                        value={query}
-                        onChange={(event) => setQuery(event.target.value)}
-                        placeholder="Search free agents..."
-                        style={{ marginBottom: 8 }}
-                    />
-                    <div className="admin-location-list" style={{ maxHeight: 200 }}>
-                        {filteredPlayers.length > 0 ? filteredPlayers.map((player) => {
-                            const playerId = String(player._id);
-                            const checked = selectedPlayerIds.includes(playerId);
-                            const selectedEntry = selectedPlayers.find(p => p.player === playerId);
-                            return (
-                                <label key={player._id} className={`admin-location-option ${checked ? "selected" : ""}`} style={{ alignItems: "flex-start" }}>
-                                    <input type="checkbox" checked={checked} onChange={() => togglePlayer(player._id)} style={{ marginTop: 4 }} />
-                                    <span style={{ flex: 1 }}>
-                                        <strong>{player.name}</strong>
-                                        {player._isExistingTeamPlayer ? (
-                                            <small style={{ color: "#22c55e" }}>Currently on this team</small>
-                                        ) : (
-                                            <small>Free Agent{player.organization?.name ? ` — ${player.organization.name}` : ""}</small>
-                                        )}
-                                    </span>
-                                    {checked && (
-                                        <input
-                                            type="number"
-                                            className="admin-form-input"
-                                            value={selectedEntry?.jerseyNumber ?? ""}
-                                            onChange={(e) => updateJerseyNumber(playerId, e.target.value)}
-                                            placeholder="#"
-                                            onClick={(e) => e.stopPropagation()}
-                                            style={{ width: 64, padding: "4px 8px", fontSize: 13, textAlign: "center", marginLeft: 8, flexShrink: 0 }}
-                                            min="0"
-                                            max="99"
-                                        />
-                                    )}
-                                </label>
-                            );
-                        }) : (
-                            <div style={{ color: "#8b90a0", fontSize: 13, padding: 8 }}>No matching free agents.</div>
-                        )}
-                    </div>
-                </div>
 
                 <div style={{ display: "flex", gap: 10, marginTop: 20, justifyContent: "flex-end" }}>
                     <button className="admin-btn admin-btn-ghost" onClick={onClose}>Cancel</button>
@@ -758,8 +652,8 @@ export default function AdminTeamsPage() {
             .catch(() => showError("Failed to load teams"))
             .finally(() => setLoading(false));
 
-        // 2) Fetch secondary data (free agents, organizations, seasons, leagues) in the background
-        fetch("/api/free-agents")
+        // 2) Fetch secondary data (players, organizations, seasons, leagues) in the background
+        fetch("/api/players")
             .then(res => res.json())
             .then(data => {
                 if (data.success) setFreeAgents(data.data || []);

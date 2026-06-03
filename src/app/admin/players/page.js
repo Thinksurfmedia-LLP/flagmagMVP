@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import AdminPagination from "@/components/AdminPagination";
 import AdminLayout, { hasAccess } from "@/components/AdminLayout";
@@ -87,11 +87,29 @@ export default function AdminPlayersPage() {
         finally { setSaving(false); }
     };
 
-    const uniqueTeamsForFilter = Array.from(new Set(players.map(p => p.presentTeam?.name).filter(Boolean))).sort();
+    const playerTeamsMap = useMemo(() => {
+        const map = {};
+        players.forEach(p => map[p._id] = []);
+        allTeams.forEach(t => {
+            if (t.isPlaceholder) return;
+            (t.players || []).forEach(tp => {
+                const pid = String(tp.player?._id || tp.player);
+                if (map[pid]) {
+                    if (!map[pid].includes(t.name)) map[pid].push(t.name);
+                }
+            });
+        });
+        return map;
+    }, [players, allTeams]);
+
+    const uniqueTeamsForFilter = Array.from(new Set(Object.values(playerTeamsMap).flat())).sort();
 
     const filtered = players.filter(p => {
-        const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || (p.presentTeam?.name || "").toLowerCase().includes(search.toLowerCase());
-        const matchesTeam = teamFilter === "all" || (p.presentTeam?.name === teamFilter);
+        const pTeams = playerTeamsMap[p._id] || [];
+        const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || 
+                              pTeams.some(tn => tn.toLowerCase().includes(search.toLowerCase())) ||
+                              (p.presentTeam?.name || "").toLowerCase().includes(search.toLowerCase());
+        const matchesTeam = teamFilter === "all" || pTeams.includes(teamFilter) || (p.presentTeam?.name === teamFilter);
         return matchesSearch && matchesTeam;
     });
 
@@ -159,18 +177,43 @@ export default function AdminPlayersPage() {
                                     <tbody>
                                         {paginatedPlayers.map(p => {
                                             const isInactive = p.isActive === false;
+                                            const playerTeams = allTeams.filter(t => (t.players || []).some(tp => String(tp.player?._id || tp.player) === String(p._id))).map(t => {
+                                                const tp = (t.players || []).find(tp => String(tp.player?._id || tp.player) === String(p._id));
+                                                return { teamId: String(t._id), teamName: t.name, jerseyNumber: tp.jerseyNumber };
+                                            });
+                                            const firstTeam = playerTeams[0];
+                                            const additionalTeamsCount = playerTeams.length > 1 ? playerTeams.length - 1 : 0;
+
                                             return (
                                             <tr key={p._id} style={{ opacity: isInactive ? 0.4 : 1, transition: "opacity 0.2s" }}>
                                                 <td style={{ fontWeight: 600 }}>
                                                     <img src={p.photo || "/assets/images/player-placeholder.svg"} alt="" style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", marginRight: 12, verticalAlign: "middle" }} />
                                                     <span style={{ verticalAlign: "middle" }}>{p.name}</span>
-                                                    {p.jerseyNumber != null && (
+                                                    {firstTeam && firstTeam.jerseyNumber != null && (
                                                         <span className={`admin-badge ${isInactive ? "secondary" : "player"}`} style={{ marginLeft: 8, verticalAlign: "middle", fontSize: 11 }}>
-                                                            #{p.jerseyNumber}
+                                                            #{firstTeam.jerseyNumber}
+                                                        </span>
+                                                    )}
+                                                    {additionalTeamsCount > 0 && (
+                                                        <span style={{ marginLeft: 6, verticalAlign: "middle", fontSize: 10, background: "#e8eaef", color: "#5a5f72", padding: "2px 6px", borderRadius: 10, fontWeight: 600, border: "1px solid #d5d8e0" }}>
+                                                            +{additionalTeamsCount}
                                                         </span>
                                                     )}
                                                 </td>
-                                                <td>{p.presentTeam?.name || "—"}</td>
+                                                <td>
+                                                    {firstTeam ? (
+                                                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                                            <span>{firstTeam.teamName}</span>
+                                                            {additionalTeamsCount > 0 && (
+                                                                <span style={{ fontSize: 10, background: "#e8eaef", color: "#5a5f72", padding: "2px 6px", borderRadius: 10, fontWeight: 600, border: "1px solid #d5d8e0" }}>
+                                                                    +{additionalTeamsCount}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        "—"
+                                                    )}
+                                                </td>
                                                 <td>⭐ {p.overallRating || p.rating || 0}</td>
                                                 <td>
                                                     <div style={{ display: "flex", gap: 6, opacity: isInactive ? 0.8 : 1 }}>
@@ -182,8 +225,7 @@ export default function AdminPlayersPage() {
                                                                 setEditForm({ 
                                                                     name: p.name, 
                                                                     photo: p.photo || "", 
-                                                                    teamName: p.presentTeam?.name || "", 
-                                                                    jerseyNumber: p.jerseyNumber != null ? p.jerseyNumber : "" 
+                                                                    teams: playerTeams
                                                                 });
                                                             }}
                                                         >
@@ -269,30 +311,81 @@ export default function AdminPlayersPage() {
                                 </div>
                                 
                                 <div className="admin-form-group">
-                                    <label className="admin-form-label">Team</label>
-                                    <select 
-                                        className="admin-form-select" 
-                                        value={editForm.teamName} 
-                                        onChange={e => setEditForm(prev => ({ ...prev, teamName: e.target.value }))} 
-                                    >
-                                        <option value="">-- No Team (Free Agent) --</option>
-                                        {allTeams.map(t => <option key={t._id} value={t.name}>{t.name}</option>)}
-                                    </select>
-                                </div>
-
-                                {editForm.teamName && (
-                                    <div className="admin-form-group">
-                                        <label className="admin-form-label">Jersey Number</label>
-                                        <input 
-                                            type="number"
-                                            min="0"
-                                            max="99"
-                                            className="admin-form-input" 
-                                            value={editForm.jerseyNumber} 
-                                            onChange={e => setEditForm(prev => ({ ...prev, jerseyNumber: e.target.value }))} 
-                                        />
+                                    <label className="admin-form-label">Available Teams</label>
+                                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+                                        {allTeams.filter(t => !t.isPlaceholder && !(editForm.teams || []).find(st => st.teamId === String(t._id))).map(t => (
+                                            <div
+                                                key={t._id}
+                                                onClick={() => {
+                                                    setEditForm(prev => ({
+                                                        ...prev,
+                                                        teams: [...(prev.teams || []), { teamId: String(t._id), teamName: t.name, jerseyNumber: "" }]
+                                                    }));
+                                                }}
+                                                style={{
+                                                    padding: "6px 12px",
+                                                    background: "#f0f1f5",
+                                                    border: "1px solid #d5d8e0",
+                                                    borderRadius: 16,
+                                                    fontSize: 13,
+                                                    cursor: "pointer",
+                                                    color: "#1a1d26",
+                                                    transition: "all 0.2s"
+                                                }}
+                                                onMouseEnter={e => { e.currentTarget.style.background = "#e5e7ef"; e.currentTarget.style.borderColor = "#c5c8d0"; }}
+                                                onMouseLeave={e => { e.currentTarget.style.background = "#f0f1f5"; e.currentTarget.style.borderColor = "#d5d8e0"; }}
+                                            >
+                                                + {t.name}
+                                            </div>
+                                        ))}
+                                        {allTeams.filter(t => !t.isPlaceholder && !(editForm.teams || []).find(st => st.teamId === String(t._id))).length === 0 && (
+                                            <div style={{ fontSize: 13, color: "#8b90a0", fontStyle: "italic" }}>No more teams available.</div>
+                                        )}
                                     </div>
-                                )}
+
+                                    <label className="admin-form-label">Team Pool (Selected)</label>
+                                    <div style={{ background: "#f9fafb", border: "1px solid #e8eaef", borderRadius: 8, padding: 12 }}>
+                                        {editForm.teams?.length === 0 ? (
+                                            <div style={{ fontSize: 13, color: "#8b90a0", fontStyle: "italic", padding: "8px 0" }}>Not assigned to any teams.</div>
+                                        ) : (
+                                            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                                                {(editForm.teams || []).map((t, index) => (
+                                                    <div key={t.teamId} style={{ display: "flex", alignItems: "center", background: "#fff", border: "1px solid #e5e7ef", borderRadius: 6, padding: "8px 12px", gap: 12 }}>
+                                                        <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#1a1d26" }}>{t.teamName}</div>
+                                                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                                            <label style={{ fontSize: 12, color: "#5a5f72", fontWeight: 500 }}>Jersey #</label>
+                                                            <input
+                                                                type="number"
+                                                                className="admin-form-input"
+                                                                value={t.jerseyNumber}
+                                                                onChange={(e) => {
+                                                                    const newTeams = [...editForm.teams];
+                                                                    newTeams[index].jerseyNumber = e.target.value;
+                                                                    setEditForm(prev => ({ ...prev, teams: newTeams }));
+                                                                }}
+                                                                placeholder="0-99"
+                                                                min="0"
+                                                                max="99"
+                                                                style={{ width: 64, textAlign: "center", padding: "6px" }}
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                className="admin-btn admin-btn-ghost admin-btn-sm"
+                                                                onClick={() => {
+                                                                    setEditForm(prev => ({ ...prev, teams: prev.teams.filter((_, i) => i !== index) }));
+                                                                }}
+                                                                style={{ color: "#dc2626", marginLeft: 4 }}
+                                                                title="Remove team"
+                                                            >
+                                                                <i className="fa-solid fa-xmark"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
 
                                 <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
                                     <button className="admin-btn admin-btn-ghost" onClick={() => setEditPlayer(null)}>Cancel</button>
