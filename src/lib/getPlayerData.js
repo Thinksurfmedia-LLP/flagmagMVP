@@ -13,9 +13,19 @@ export async function getPlayerWithLocations(id) {
     if (!player) return { player: null, derivedLocations: [] };
 
     const teams = await Team.find({ "players.player": player._id })
-        .select("location league")
+        .select("name logo location league players")
         .populate("league", "location locations")
         .lean();
+
+    const presentTeams = teams.map(t => {
+        const tp = (t.players || []).find(p => String(p.player) === String(player._id));
+        return {
+            _id: t._id,
+            name: t.name,
+            logo: t.logo,
+            jerseyNumber: tp?.jerseyNumber
+        };
+    });
 
     const locationSet = new Set();
 
@@ -35,5 +45,6 @@ export async function getPlayerWithLocations(id) {
     return {
         player: JSON.parse(JSON.stringify(player)),
         derivedLocations: [...locationSet].filter(Boolean),
+        presentTeams: JSON.parse(JSON.stringify(presentTeams)),
     };
 }

@@ -7,7 +7,7 @@ import { getPlayerWithLocations } from "@/lib/getPlayerData";
 
 export default async function PlayerAwardsPage({ params }) {
     const { id } = await params;
-    const { player, derivedLocations } = await getPlayerWithLocations(id);
+    const { player, derivedLocations, presentTeams } = await getPlayerWithLocations(id);
 
     if (!player) {
         return (
@@ -22,7 +22,7 @@ export default async function PlayerAwardsPage({ params }) {
     return (
         <>
             <Header />
-            <PlayerProfileHeader player={player} derivedLocations={derivedLocations} activeTab="awards" />
+            <PlayerProfileHeader player={player} derivedLocations={derivedLocations} presentTeams={presentTeams} activeTab="awards" />
 
             <section className="leagues-section" style={{ paddingTop: 0 }}>
                 <div className="container">

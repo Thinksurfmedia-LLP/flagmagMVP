@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export default function PlayerProfileHeader({ player, derivedLocations = [], activeTab = "overview" }) {
+export default function PlayerProfileHeader({ player, derivedLocations = [], presentTeams = [], activeTab = "overview" }) {
     const id = player._id;
 
     return (
@@ -57,12 +57,38 @@ export default function PlayerProfileHeader({ player, derivedLocations = [], act
                                     {player.socialLinks?.youtube && <li><a href={player.socialLinks.youtube}><i className="fa-brands fa-youtube"></i></a></li>}
                                 </ul>
                             </div>
-                            {player.presentTeam?.name && (
+                            {presentTeams && presentTeams.length > 0 ? (
                                 <div className="item">
                                     <h4>Present Team</h4>
-                                    <div className="team">
-                                        <img src={player.presentTeam.logo || "/assets/images/team-placeholder.svg"} alt="" />
-                                        <h6><a href="#">{player.presentTeam.name}</a></h6>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 12 }}>
+                                        {presentTeams.map(team => (
+                                            <div key={team._id} className="team" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                                                <img src={team.logo || "/assets/images/team-placeholder.svg"} alt="" style={{ width: 40, height: 40, objectFit: "contain" }} />
+                                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                                    <h6 style={{ margin: 0 }}><a href="#" style={{ color: "#fff", textDecoration: "none" }}>{team.name}</a></h6>
+                                                    {team.jerseyNumber != null && (
+                                                        <span style={{ background: "rgba(255,255,255,0.1)", padding: "2px 6px", borderRadius: 4, fontSize: 12, fontWeight: 600, color: "#FF8C00" }}>
+                                                            #{team.jerseyNumber}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : player.presentTeam?.name && (
+                                <div className="item">
+                                    <h4>Present Team</h4>
+                                    <div className="team" style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 12 }}>
+                                        <img src={player.presentTeam.logo || "/assets/images/team-placeholder.svg"} alt="" style={{ width: 40, height: 40, objectFit: "contain" }} />
+                                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                            <h6 style={{ margin: 0 }}><a href="#" style={{ color: "#fff", textDecoration: "none" }}>{player.presentTeam.name}</a></h6>
+                                            {player.jerseyNumber != null && (
+                                                <span style={{ background: "rgba(255,255,255,0.1)", padding: "2px 6px", borderRadius: 4, fontSize: 12, fontWeight: 600, color: "#FF8C00" }}>
+                                                    #{player.jerseyNumber}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             )}

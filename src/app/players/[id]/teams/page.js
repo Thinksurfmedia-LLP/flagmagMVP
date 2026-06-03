@@ -28,7 +28,7 @@ function TeamCard({ team }) {
 
 export default async function PlayerTeamsPage({ params }) {
     const { id } = await params;
-    const { player, derivedLocations } = await getPlayerWithLocations(id);
+    const { player, derivedLocations, presentTeams } = await getPlayerWithLocations(id);
 
     if (!player) {
         return (
@@ -39,7 +39,7 @@ export default async function PlayerTeamsPage({ params }) {
     return (
         <>
             <Header />
-            <PlayerProfileHeader player={player} derivedLocations={derivedLocations} activeTab="teams" />
+            <PlayerProfileHeader player={player} derivedLocations={derivedLocations} presentTeams={presentTeams} activeTab="teams" />
 
             <section className="leagues-section" style={{ paddingTop: 0 }}>
                 <div className="container">
