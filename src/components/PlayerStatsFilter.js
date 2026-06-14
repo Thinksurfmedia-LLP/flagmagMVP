@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
 
 const statTypeLabels = {
     passing: "Passing",
@@ -203,7 +202,7 @@ export default function PlayerStatsFilter({ orgSlug, seasonSlug, allTeams }) {
                                                         <td style={{ textAlign: "left" }}>
                                                             <img src={player.playerPhoto || "/assets/images/player-placeholder.svg"} alt="" />
                                                             {" "}
-                                                            <Link href={`/players/${player.playerId}`}>{player.playerName}</Link>
+                                                            <span>{player.playerName}</span>
                                                         </td>
                                                         <td>{player.teamName}</td>
                                                         {columns.map((col) => (

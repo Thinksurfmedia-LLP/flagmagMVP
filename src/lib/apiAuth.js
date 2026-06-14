@@ -51,6 +51,27 @@ export async function requireAdmin() {
 }
 
 /**
+ * Check if the current request is from an admin, organizer, OR statistician.
+ * Used for game management actions (start, score) that statisticians need access to.
+ */
+export async function requireAdminOrStatistician() {
+    const auth = await requireAuth();
+    if (!auth.authorized) return auth;
+
+    const allRoles = auth.user.roles?.length ? auth.user.roles : [auth.user.role];
+    if (!allRoles.includes("admin") && !allRoles.includes("organizer") && !allRoles.includes("statistician")) {
+        return {
+            authorized: false,
+            response: NextResponse.json(
+                { success: false, error: "Admin, organizer, or statistician access required" },
+                { status: 403 }
+            ),
+        };
+    }
+    return auth;
+}
+
+/**
  * Check if a user has a specific role (checks both primary role and roles array).
  */
 export function hasRole(user, role) {

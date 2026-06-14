@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Game from "@/models/Game";
 import League from "@/models/League";
-import { requireAdmin } from "@/lib/apiAuth";
+import { requireAdmin, requireAdminOrStatistician } from "@/lib/apiAuth";
 import Schedule from "@/models/Schedule";
 import Team from "@/models/Team";
 
@@ -21,10 +21,10 @@ export async function GET(request, { params }) {
     }
 }
 
-// UPDATE game (admin/organizer only)
+// UPDATE game (admin/organizer/statistician)
 export async function PUT(request, { params }) {
     try {
-        const auth = await requireAdmin();
+        const auth = await requireAdminOrStatistician();
         if (!auth.authorized) return auth.response;
 
         await dbConnect();

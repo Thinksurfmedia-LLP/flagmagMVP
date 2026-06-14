@@ -381,19 +381,21 @@ export async function computeSeasonStats(leagueId, orgId) {
         const { rosterMap, teamNamesByAB } = await buildRosterMap(game, orgId);
         const gameStats = aggregateStats(gamePlays, rosterMap, teamNamesByAB);
 
-        // Helper to merge rows
+        // Helper to merge rows — keyed by playerId|||teamName so each player's
+        // stats remain isolated per team (fixes multi-team player aggregation bug).
         const mergeRows = (target, rows, fields) => {
             for (const row of rows) {
-                if (!target[row.playerId]) {
-                    target[row.playerId] = { ...row };
+                const key = `${row.playerId}|||${row.teamName}`;
+                if (!target[key]) {
+                    target[key] = { ...row };
                 } else {
                     for (const f of fields) {
-                        target[row.playerId][f] = (target[row.playerId][f] || 0) + (row[f] || 0);
+                        target[key][f] = (target[key][f] || 0) + (row[f] || 0);
                     }
                 }
-                // Track games played
-                if (!gamesPlayedByPlayer[row.playerId]) gamesPlayedByPlayer[row.playerId] = new Set();
-                gamesPlayedByPlayer[row.playerId].add(gid);
+                // Track games played per player+team combination
+                if (!gamesPlayedByPlayer[key]) gamesPlayedByPlayer[key] = new Set();
+                gamesPlayedByPlayer[key].add(gid);
             }
         };
 
@@ -443,14 +445,16 @@ export async function computeSeasonStats(leagueId, orgId) {
     });
 
     const rushingRows = Object.values(mergedRushing).map((r) => {
+        const key = `${r.playerId}|||${r.teamName}`;
         const ypc = r.atts > 0 ? (r.yards / r.atts).toFixed(1) : "0.0";
-        const gp = gamesPlayedByPlayer[r.playerId]?.size || 1;
+        const gp = gamesPlayedByPlayer[key]?.size || 1;
         const rushAvgPerGame = (r.yards / gp).toFixed(1);
         return { ...r, ypc: parseFloat(ypc), gamesPlayed: gp, rushAvgPerGame: parseFloat(rushAvgPerGame) };
     });
 
     const defensiveRows = Object.values(mergedDefensive).map((d) => {
-        const gp = gamesPlayedByPlayer[d.playerId]?.size || 1;
+        const key = `${d.playerId}|||${d.teamName}`;
+        const gp = gamesPlayedByPlayer[key]?.size || 1;
         const fpPerGame = (d.flagPulls / gp).toFixed(1);
         const impact = (d.dint || 0) + (d.dsacks || 0);
         return { ...d, gamesPlayed: gp, flagPullsPerGame: parseFloat(fpPerGame), defImpact: impact };
@@ -462,4 +466,91 @@ export async function computeSeasonStats(leagueId, orgId) {
         rushing: rushingRows,
         defensive: defensiveRows,
     };
+}
+
+// ---------------------------------------------------------------------------
+// Helpers for "All Players" view — merge per-player-per-team rows into one
+// row per player, recalculating derived fields from the raw totals.
+// ---------------------------------------------------------------------------
+
+const RAW_FIELDS = {
+    passing:   ["atts", "comp", "yards", "tds", "pat", "ints", "sacks", "safety"],
+    receiving: ["receptions", "yards", "tds", "pat"],
+    rushing:   ["atts", "yards", "tds", "pat", "gamesPlayed"],
+    defensive: ["dint", "dintTD", "dtd", "dpat", "dsacks", "dsafety", "flagPulls", "gamesPlayed"],
+};
+
+function recalcDerivedFields(p, statType) {
+    if (statType === "passing") {
+        const atts = p.atts || 0;
+        const comp = p.comp || 0;
+        const yards = p.yards || 0;
+        const tds = p.tds || 0;
+        const ints = p.ints || 0;
+        const pct = atts > 0 ? ((comp / atts) * 100).toFixed(1) : "0.0";
+        const ypc = comp > 0 ? (yards / comp).toFixed(1) : "0.0";
+        let rate = 0;
+        if (atts > 0) {
+            let a = ((comp / atts) - 0.3) * 5;
+            let b = ((yards / atts) - 3) * 0.25;
+            let c = (tds / atts) * 20;
+            let d = 2.375 - ((ints / atts) * 25);
+            a = Math.max(0, Math.min(a, 2.375));
+            b = Math.max(0, Math.min(b, 2.375));
+            c = Math.max(0, Math.min(c, 2.375));
+            d = Math.max(0, Math.min(d, 2.375));
+            rate = ((a + b + c + d) / 6) * 100;
+        }
+        return { ...p, pct: parseFloat(pct), ypc: parseFloat(ypc), rate: parseFloat(rate.toFixed(1)) };
+    }
+    if (statType === "receiving") {
+        const ypr = (p.receptions || 0) > 0 ? (p.yards / p.receptions).toFixed(1) : "0.0";
+        return { ...p, ypr: parseFloat(ypr) };
+    }
+    if (statType === "rushing") {
+        const ypc = (p.atts || 0) > 0 ? (p.yards / p.atts).toFixed(1) : "0.0";
+        const gp = p.gamesPlayed || 1;
+        const rushAvgPerGame = (p.yards / gp).toFixed(1);
+        return { ...p, ypc: parseFloat(ypc), rushAvgPerGame: parseFloat(rushAvgPerGame) };
+    }
+    if (statType === "defensive") {
+        const gp = p.gamesPlayed || 1;
+        const fpPerGame = ((p.flagPulls || 0) / gp).toFixed(1);
+        const impact = (p.dint || 0) + (p.dsacks || 0);
+        return { ...p, flagPullsPerGame: parseFloat(fpPerGame), defImpact: impact };
+    }
+    return p;
+}
+
+/**
+ * Merge per-player-per-team rows (from computeSeasonStats) into one row per
+ * player for the "All Players" view. Raw totals are summed and derived fields
+ * (pct, ypc, rate, etc.) are recalculated from the combined totals.
+ *
+ * Players who appear on multiple teams will show all team names joined with " / ".
+ */
+export function mergeStatRowsByPlayer(rows, statType) {
+    const rawFields = RAW_FIELDS[statType] || [];
+    const merged = {};
+
+    for (const row of rows) {
+        if (!merged[row.playerId]) {
+            merged[row.playerId] = {
+                ...row,
+                _teamNames: new Set([row.teamName]),
+            };
+        } else {
+            merged[row.playerId]._teamNames.add(row.teamName);
+            for (const f of rawFields) {
+                merged[row.playerId][f] = (merged[row.playerId][f] || 0) + (row[f] || 0);
+            }
+        }
+    }
+
+    return Object.values(merged).map((p) => {
+        const teamNames = [...p._teamNames];
+        delete p._teamNames;
+        p.teamName = teamNames.join(" / ");
+        return recalcDerivedFields(p, statType);
+    });
 }

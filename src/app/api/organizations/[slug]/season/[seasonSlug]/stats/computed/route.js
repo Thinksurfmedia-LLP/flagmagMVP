@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import League from "@/models/League";
-import { computeSeasonStats } from "@/lib/statsAggregation";
+import { computeSeasonStats, mergeStatRowsByPlayer } from "@/lib/statsAggregation";
 
 /**
  * GET /api/organizations/[slug]/season/[seasonSlug]/stats/computed?statType=passing&team=TeamName
@@ -34,8 +34,13 @@ export async function GET(request, { params }) {
         let rows = stats[statType] || [];
 
         if (teamFilter) {
+            // Team filter active: return only that team's per-player rows
             const re = new RegExp(teamFilter, "i");
             rows = rows.filter((r) => re.test(r.teamName));
+        } else {
+            // All Players: merge per-player-per-team rows into one row per player,
+            // summing raw stats across all teams and recalculating derived fields.
+            rows = mergeStatRowsByPlayer(rows, statType);
         }
 
         return NextResponse.json({ players: rows });
