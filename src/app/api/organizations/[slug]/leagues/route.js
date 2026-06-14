@@ -25,7 +25,7 @@ export async function GET(request, { params }) {
         if (type) filter.type = type;
 
         const leagues = await League.find(filter)
-            .populate("season", "name")
+            .populate("season", "name isDefault")
             .sort({ startDate: -1 })
             .lean();
 
