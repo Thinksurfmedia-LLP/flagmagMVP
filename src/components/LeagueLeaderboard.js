@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 
 const statTypeLabels = {
     passing: "Passing",
@@ -215,9 +214,7 @@ export default function LeagueLeaderboard({ orgSlug, leagueSlug }) {
                                                             alt=""
                                                         />
                                                         {" "}
-                                                        <Link href={`/players/${player.playerId}`}>
-                                                            {player.playerName}
-                                                        </Link>
+                                                        <span>{player.playerName}</span>
                                                     </td>
                                                     <td>{player.teamName}</td>
                                                     {columns.map((col) => (
