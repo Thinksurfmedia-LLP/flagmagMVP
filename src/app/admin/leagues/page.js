@@ -834,12 +834,12 @@ export default function LeaguesPage() {
                                             </td>
                                             <td style={{ color: "#8b90a0", fontSize: 13 }}>
                                                 {league.startDate
-                                                    ? new Date(league.startDate).toLocaleDateString()
+                                                    ? new Date(league.startDate).toLocaleDateString("en-US", { timeZone: "UTC" })
                                                     : "-"}
                                             </td>
                                             <td style={{ color: "#8b90a0", fontSize: 13 }}>
                                                 {league.endDate
-                                                    ? new Date(league.endDate).toLocaleDateString()
+                                                    ? new Date(league.endDate).toLocaleDateString("en-US", { timeZone: "UTC" })
                                                     : "-"}
                                             </td>
                                             <td>

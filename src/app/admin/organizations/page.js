@@ -69,6 +69,7 @@ function OrgForm({ org, onSave, onCancel }) {
             name: "", slug: "", description: "", location: "",
             sport: "Flag Football", memberCount: 0,
             foundedYear: new Date().getFullYear(), categories: [], scheduleDays: [], locations: [],
+            timezone: "America/Los_Angeles",
             logo: "", bannerImage: "",
             contactInfo: { phone: "", email: "", website: "" },
             socialLinks: { facebook: "", twitter: "", instagram: "" },
@@ -193,6 +194,19 @@ function OrgForm({ org, onSave, onCancel }) {
                     <div className="admin-form-group">
                         <label className="admin-form-label">Founded Year</label>
                         <input type="number" className="admin-form-input" value={form.foundedYear || ""} onChange={e => setForm({ ...form, foundedYear: +e.target.value })} />
+                    </div>
+                    <div className="admin-form-group">
+                        <label className="admin-form-label">Timezone</label>
+                        <select className="admin-form-select" value={form.timezone || "America/Los_Angeles"} onChange={e => setForm({ ...form, timezone: e.target.value })}>
+                            <option value="America/New_York">Eastern Time (ET)</option>
+                            <option value="America/Chicago">Central Time (CT)</option>
+                            <option value="America/Denver">Mountain Time (MT)</option>
+                            <option value="America/Phoenix">Mountain Time – Arizona (no DST)</option>
+                            <option value="America/Los_Angeles">Pacific Time (PT)</option>
+                            <option value="America/Anchorage">Alaska Time (AKT)</option>
+                            <option value="Pacific/Honolulu">Hawaii Time (HT)</option>
+                            <option value="UTC">UTC</option>
+                        </select>
                     </div>
                     <div className="admin-form-group">
                         <label className="admin-form-label">Logo</label>

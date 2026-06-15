@@ -289,7 +289,7 @@ export default function OrgSeasonsPage() {
                                             <td style={{ color: "#5a5f72" }}>{s.category || "—"}</td>
                                             <td style={{ color: "#5a5f72" }}>{s.location || "—"}</td>
                                             <td style={{ color: "#8b90a0", fontSize: 13 }}>
-                                                {s.startDate ? new Date(s.startDate).toLocaleDateString() : "—"}
+                                                {s.startDate ? new Date(s.startDate).toLocaleDateString("en-US", { timeZone: "UTC" }) : "—"}
                                             </td>
                                             <td>
                                                 <div style={{ display: "flex", gap: 6 }}>

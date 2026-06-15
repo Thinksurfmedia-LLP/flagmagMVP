@@ -82,6 +82,10 @@ const OrganizationSchema = new mongoose.Schema(
             type: String,
             default: "",
         },
+        timezone: {
+            type: String,
+            default: "America/Los_Angeles",
+        },
         scheduleDays: {
             type: [String],
             default: [],
@@ -134,7 +138,7 @@ function getOrganizationModel() {
     if (existing) {
         const locationsSchema = existing.schema.path("locations");
         const subdocPaths = locationsSchema?.schema?.paths || {};
-        if (!subdocPaths.cityName) {
+        if (!subdocPaths.cityName || !existing.schema.path("timezone")) {
             delete mongoose.models.Organization;
         }
     }

@@ -17,7 +17,7 @@ function LeagueCard({ season, orgSlug }) {
                     <h5>{season.name}</h5>
                     <ul>
                         <li><img src="/assets/images/icon-map.png" alt="" /> Locations - <span>{season.location}</span></li>
-                        <li><img src="/assets/images/icon-calander.png" alt="" /> Start date - <span>{new Date(season.startDate).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "2-digit" })}</span></li>
+                        <li><img src="/assets/images/icon-calander.png" alt="" /> Start date - <span>{new Date(season.startDate).toLocaleDateString("en-US", { timeZone: "UTC", weekday: "short", month: "short", day: "2-digit" })}</span></li>
                         <li><img src="/assets/images/icon-clock.png" alt="" /> Time - <span>{season.firstGameTime || season.time || "TBD"}</span></li>
                     </ul>
                     <div className="button-area">

@@ -6,7 +6,7 @@ import { formatTimePDT, formatDatePST } from "@/lib/timeUtils";
 
 const teamLogoFallback = "/assets/images/team-placeholder.svg";
 
-function MatchCard({ game, orgSlug, seasonSlug }) {
+function MatchCard({ game, orgSlug, seasonSlug, orgTimezone }) {
     const gameStatsUrl = `/organizations/${orgSlug}/season/${seasonSlug}/game/${game._id}/stats`;
     return (
         <div className="col-xl-6">
@@ -14,7 +14,7 @@ function MatchCard({ game, orgSlug, seasonSlug }) {
                 <div className="organization-team-area">
                     <div className="top">
                         <ul>
-                            <li><img src="/assets/images/icon-clock.png" alt="" loading="lazy" /> Time - <span>{formatTimePDT(game.time)}</span></li>
+                            <li><img src="/assets/images/icon-clock.png" alt="" loading="lazy" /> Time - <span>{formatTimePDT(game.time, orgTimezone, game.date)}</span></li>
                             <li><img src="/assets/images/icon-calander.png" alt="" loading="lazy" /> Date - <span>{formatDatePST(game.date)}</span></li>
                         </ul>
                     </div>
@@ -70,7 +70,7 @@ function WeekLoadingSkeleton() {
 // weekNames: optional string[] of custom names from the Schedule document
 // initialGames: full game objects for initialWeekIdx
 // leagueId: string MongoDB _id for the API
-export default function ScheduleWithDateStrip({ weekMeta, initialWeekIdx, initialGames, leagueId, orgSlug, seasonSlug, weekNames = [] }) {
+export default function ScheduleWithDateStrip({ weekMeta, initialWeekIdx, initialGames, leagueId, orgSlug, seasonSlug, weekNames = [], orgTimezone = "America/Los_Angeles" }) {
     const [selectedIdx, setSelectedIdx] = useState(initialWeekIdx);
     const [gamesByWeek, setGamesByWeek] = useState(() => ({
         [initialWeekIdx]: initialGames,
@@ -148,7 +148,7 @@ export default function ScheduleWithDateStrip({ weekMeta, initialWeekIdx, initia
                     <WeekLoadingSkeleton />
                 ) : currentGames && currentGames.length > 0 ? (
                     currentGames.map((game) => (
-                        <MatchCard key={game._id} game={game} orgSlug={orgSlug} seasonSlug={seasonSlug} />
+                        <MatchCard key={game._id} game={game} orgSlug={orgSlug} seasonSlug={seasonSlug} orgTimezone={orgTimezone} />
                     ))
                 ) : (
                     <div className="col-12 text-center py-4"><p>No games this week.</p></div>

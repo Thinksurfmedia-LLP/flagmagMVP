@@ -158,6 +158,7 @@ export default async function SeasonSchedulePage({ params }) {
                         orgSlug={slug}
                         seasonSlug={seasonSlug}
                         weekNames={scheduleWeekNames}
+                        orgTimezone={org.timezone || "America/Los_Angeles"}
                     />
                 </div>
             </section>

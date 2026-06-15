@@ -24,6 +24,7 @@ export default function OrgSettingsPage() {
         location: "",
         sport: "",
         foundedYear: "",
+        timezone: "America/Los_Angeles",
         logo: "",
         bannerImage: "",
         phone: "",
@@ -51,6 +52,7 @@ export default function OrgSettingsPage() {
                         location: org.location || "",
                         sport: org.sport || "",
                         foundedYear: org.foundedYear || "",
+                        timezone: org.timezone || "America/Los_Angeles",
                         logo: org.logo || "",
                         bannerImage: org.bannerImage || "",
                         phone: org.contactInfo?.phone || "",
@@ -85,6 +87,7 @@ export default function OrgSettingsPage() {
                 location: form.location,
                 sport: form.sport,
                 foundedYear: form.foundedYear ? Number(form.foundedYear) : undefined,
+                timezone: form.timezone,
                 logo: form.logo,
                 bannerImage: form.bannerImage,
                 contactInfo: { phone: form.phone, email: form.email, website: form.website },
@@ -142,6 +145,19 @@ export default function OrgSettingsPage() {
                                 <div className="admin-form-group" style={{ flex: 1 }}>
                                     <label className="admin-form-label">Founded Year</label>
                                     <input type="number" className="admin-form-input" value={form.foundedYear} onChange={e => setForm({ ...form, foundedYear: e.target.value })} placeholder="e.g. 2020" />
+                                </div>
+                                <div className="admin-form-group" style={{ flex: 1 }}>
+                                    <label className="admin-form-label">Timezone</label>
+                                    <select className="admin-form-input" value={form.timezone} onChange={e => setForm({ ...form, timezone: e.target.value })}>
+                                        <option value="America/New_York">Eastern Time (ET)</option>
+                                        <option value="America/Chicago">Central Time (CT)</option>
+                                        <option value="America/Denver">Mountain Time (MT)</option>
+                                        <option value="America/Phoenix">Mountain Time – Arizona (no DST)</option>
+                                        <option value="America/Los_Angeles">Pacific Time (PT)</option>
+                                        <option value="America/Anchorage">Alaska Time (AKT)</option>
+                                        <option value="Pacific/Honolulu">Hawaii Time (HT)</option>
+                                        <option value="UTC">UTC</option>
+                                    </select>
                                 </div>
                             </div>
                             <div className="admin-form-group">
