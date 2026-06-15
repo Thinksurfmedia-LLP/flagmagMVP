@@ -2,6 +2,7 @@ import Play from "@/models/Play";
 import Team from "@/models/Team";
 import Game from "@/models/Game";
 import League from "@/models/League";
+import "@/models/Player";
 
 /**
  * Build a jersey-number-to-player lookup for a game.
