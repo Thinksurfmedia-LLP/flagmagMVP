@@ -31,18 +31,18 @@ export async function GET(request, { params }) {
 
         if (leagues.length === 0) return NextResponse.json({ players: [] });
 
-        // Aggregate stats across all leagues and merge by playerId
+        // Aggregate stats across all leagues, keeping separate rows per player-team combination
         const merged = {};
 
         for (const league of leagues) {
             const stats = await computeSeasonStats(league._id, org._id);
             const rows = stats[statType] || [];
             for (const row of rows) {
-                const id = row.playerId;
+                const id = `${row.playerId}|||${row.teamName}`;
                 if (!merged[id]) {
                     merged[id] = { ...row };
                 } else {
-                    // Merge numeric fields
+                    // Merge numeric fields across leagues for the same player-team combo
                     for (const key of Object.keys(row)) {
                         if (key === "playerId" || key === "playerName" || key === "playerPhoto" || key === "teamName") continue;
                         if (typeof row[key] === "number") {

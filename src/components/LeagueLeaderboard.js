@@ -201,7 +201,7 @@ export default function LeagueLeaderboard({ orgSlug, leagueSlug }) {
                                             </tr>
                                         ) : (
                                             players.map((player, i) => (
-                                                <tr key={player.playerId || i}>
+                                                <tr key={`${player.playerId || ''}_${player.teamName || ''}_${i}`}>
                                                     <td className="jersey-num">
                                                         {player.jerseyNumber ? `#${player.jerseyNumber}` : "-"}
                                                     </td>

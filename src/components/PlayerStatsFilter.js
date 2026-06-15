@@ -197,7 +197,7 @@ export default function PlayerStatsFilter({ orgSlug, seasonSlug, allTeams }) {
                                                 </tr>
                                             ) : (
                                                 players.map((player, i) => (
-                                                    <tr key={player.playerId || i}>
+                                                    <tr key={`${player.playerId || ''}_${player.teamName || ''}_${i}`}>
                                                         <td className="jersey-num">{player.jerseyNumber ? `#${player.jerseyNumber}` : "-"}</td>
                                                         <td style={{ textAlign: "left" }}>
                                                             <img src={player.playerPhoto || "/assets/images/player-placeholder.svg"} alt="" />

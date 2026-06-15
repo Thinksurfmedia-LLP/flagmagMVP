@@ -202,7 +202,7 @@ export default function SeasonLeaderboard({ orgSlug, seasonsParam }) {
                                             </tr>
                                         ) : (
                                             players.map((player, i) => (
-                                                <tr key={player.playerId || i}>
+                                                <tr key={`${player.playerId || ''}_${player.teamName || ''}_${i}`}>
                                                     <td className="jersey-num">{player.jerseyNumber ? `#${player.jerseyNumber}` : "-"}</td>
                                                     <td style={{ textAlign: "left" }}>
                                                         <img
