@@ -11,7 +11,7 @@ export function AuthProvider({ children }) {
 
     const fetchUser = useCallback(async () => {
         try {
-            const res = await apiGet("/api/auth/me");
+            const res = await apiGet("/api/auth/me/mobile");
             setUser(res.data || null);
         } catch {
             setUser(null);
@@ -38,7 +38,7 @@ export function AuthProvider({ children }) {
 
     const logout = async () => {
         try {
-            await apiPost("/api/auth/logout");
+            await apiPost("/api/auth/logout/mobile");
         } catch {
             // ignore
         }

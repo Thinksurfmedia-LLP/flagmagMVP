@@ -4,7 +4,7 @@ import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
 import Role from "@/models/Role";
 import "@/models/Organization"; // register schema for populate
-import { signToken, setAuthCookie } from "@/lib/auth";
+import { signToken } from "@/lib/auth";
 
 export async function POST(request) {
     try {
@@ -69,9 +69,8 @@ export async function POST(request) {
                 }
                 : null,
         });
-        await setAuthCookie(token);
 
-        return NextResponse.json(
+        const response = NextResponse.json(
             {
                 success: true,
                 data: {
@@ -93,6 +92,14 @@ export async function POST(request) {
             },
             { status: 200 }
         );
+        response.cookies.set("flagmag-mobile-token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 60 * 60 * 24 * 7,
+            path: "/",
+        });
+        return response;
     } catch (error) {
         return NextResponse.json(
             { success: false, error: error.message },

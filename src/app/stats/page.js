@@ -79,7 +79,7 @@ function StandingsView({ orgSlug, leagueSlug }) {
 }
 
 // ── League schedule (week selector + game cards) ──────────────────────────────
-function LeagueSchedule({ orgSlug, leagueSlug }) {
+function LeagueSchedule({ orgSlug, leagueSlug, orgTimezone }) {
     const [scheduleData, setScheduleData] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -104,6 +104,7 @@ function LeagueSchedule({ orgSlug, leagueSlug }) {
             leagueId={scheduleData.leagueId}
             orgSlug={orgSlug}
             seasonSlug={leagueSlug}
+            orgTimezone={orgTimezone}
         />
     );
 }
@@ -500,6 +501,7 @@ function StatsPageContent() {
                                         key={`sched-${orgSlug}-${leagueSlug}`}
                                         orgSlug={orgSlug}
                                         leagueSlug={leagueSlug}
+                                        orgTimezone={selectedOrg?.timezone || "America/Los_Angeles"}
                                     />
                                 </>
                             )}
