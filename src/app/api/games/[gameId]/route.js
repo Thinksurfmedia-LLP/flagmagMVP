@@ -112,6 +112,13 @@ export async function DELETE(request, { params }) {
         if (!game) {
             return NextResponse.json({ success: false, error: "Game not found" }, { status: 404 });
         }
+
+        // Remove the game entry from any schedule that references it
+        await Schedule.updateMany(
+            { "weeks.games.gameRef": game._id },
+            { $pull: { "weeks.$[].games": { gameRef: game._id } } }
+        );
+
         return NextResponse.json({ success: true, message: "Game deleted" }, { status: 200 });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });

@@ -22,6 +22,7 @@ export default function AdminPlayersPage() {
     const [editPlayer, setEditPlayer] = useState(null);
     const [editForm, setEditForm] = useState({ name: "", photo: "", teamName: "", jerseyNumber: "" });
     const [saving, setSaving] = useState(false);
+    const [teamRemovalPrompt, setTeamRemovalPrompt] = useState(null); // { team, index }
 
     const fetchPlayers = useCallback(async () => {
         try {
@@ -222,11 +223,13 @@ export default function AdminPlayersPage() {
                                                             title="Edit Info"
                                                             onClick={() => {
                                                                 setEditPlayer(p);
-                                                                setEditForm({ 
-                                                                    name: p.name, 
-                                                                    photo: p.photo || "", 
-                                                                    teams: playerTeams
+                                                                setEditForm({
+                                                                    name: p.name,
+                                                                    photo: p.photo || "",
+                                                                    teams: playerTeams,
+                                                                    deleteStatsFor: []
                                                                 });
+                                                                setTeamRemovalPrompt(null);
                                                             }}
                                                         >
                                                             <i className="fa-solid fa-pen"></i>
@@ -265,7 +268,51 @@ export default function AdminPlayersPage() {
 
                     {editPlayer && (
                         <div className="admin-modal-backdrop">
-                            <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 450 }}>
+                            <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 450, position: "relative", overflow: "hidden" }}>
+                                {teamRemovalPrompt && (
+                                    <div style={{ position: "absolute", inset: 0, background: "#fff", borderRadius: 8, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 10, padding: 32 }}>
+                                        <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#fef2f2", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+                                            <i className="fa-solid fa-triangle-exclamation" style={{ color: "#dc2626", fontSize: 20 }}></i>
+                                        </div>
+                                        <p style={{ fontWeight: 700, fontSize: 17, marginBottom: 10, textAlign: "center", color: "#1a1d26" }}>
+                                            Remove {teamRemovalPrompt.team.teamName}?
+                                        </p>
+                                        <p style={{ fontSize: 13, color: "#5a5f72", marginBottom: 28, textAlign: "center", lineHeight: 1.6, maxWidth: 320 }}>
+                                            Do you also want to <strong style={{ color: "#dc2626" }}>delete all stats</strong> for this player from <strong style={{ color: "#1a1d26" }}>{teamRemovalPrompt.team.teamName}</strong>, or keep them as historical records?
+                                        </p>
+                                        <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%", maxWidth: 300 }}>
+                                            <button
+                                                className="admin-btn admin-btn-danger"
+                                                style={{ width: "100%", justifyContent: "center" }}
+                                                onClick={() => {
+                                                    setEditForm(prev => ({
+                                                        ...prev,
+                                                        teams: prev.teams.filter((_, i) => i !== teamRemovalPrompt.index),
+                                                        deleteStatsFor: [...(prev.deleteStatsFor || []), teamRemovalPrompt.team.teamName]
+                                                    }));
+                                                    setTeamRemovalPrompt(null);
+                                                }}
+                                            >
+                                                <i className="fa-solid fa-trash" style={{ marginRight: 8 }}></i>
+                                                Remove &amp; Delete Stats
+                                            </button>
+                                            <button
+                                                className="admin-btn admin-btn-primary"
+                                                style={{ width: "100%", justifyContent: "center" }}
+                                                onClick={() => {
+                                                    setEditForm(prev => ({ ...prev, teams: prev.teams.filter((_, i) => i !== teamRemovalPrompt.index) }));
+                                                    setTeamRemovalPrompt(null);
+                                                }}
+                                            >
+                                                <i className="fa-solid fa-clock-rotate-left" style={{ marginRight: 8 }}></i>
+                                                Remove &amp; Keep Stats
+                                            </button>
+                                            <button className="admin-btn admin-btn-ghost" style={{ width: "100%", justifyContent: "center" }} onClick={() => setTeamRemovalPrompt(null)}>
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                                 <button className="admin-modal-close" onClick={() => setEditPlayer(null)} aria-label="Close">
                                     <i className="fa-solid fa-xmark"></i>
                                 </button>
@@ -371,9 +418,7 @@ export default function AdminPlayersPage() {
                                                             <button
                                                                 type="button"
                                                                 className="admin-btn admin-btn-ghost admin-btn-sm"
-                                                                onClick={() => {
-                                                                    setEditForm(prev => ({ ...prev, teams: prev.teams.filter((_, i) => i !== index) }));
-                                                                }}
+                                                                onClick={() => setTeamRemovalPrompt({ team: t, index })}
                                                                 style={{ color: "#dc2626", marginLeft: 4 }}
                                                                 title="Remove team"
                                                             >

@@ -1630,6 +1630,11 @@ export default function AdminGamesPage() {
                                                                 <i className="fa-solid fa-pen"></i>
                                                             </button>
                                                         )}
+                                                        {canDelete && (
+                                                            <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => deleteGame(game._id)} title="Delete Game" style={{ color: "#dc2626" }}>
+                                                                <i className="fa-solid fa-trash"></i>
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </td>
                                             </tr>

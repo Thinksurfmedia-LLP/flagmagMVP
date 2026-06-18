@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Player from "@/models/Player";
+import GameStat from "@/models/GameStat";
 import { requireAdmin } from "@/lib/apiAuth";
 
 // GET single player
@@ -69,7 +70,13 @@ export async function PUT(request, { params }) {
                 updateData.status = "player";
                 if (latestTeam) updateData.presentTeam = { name: latestTeam.name, logo: latestTeam.logo || "" };
             } else {
+                updateData.status = "free_agent";
                 updateData.presentTeam = { name: "", logo: "" };
+            }
+
+            // Delete stats for teams flagged by the organizer (wrong assignment or season change)
+            if (body.deleteStatsFor?.length > 0) {
+                await GameStat.deleteMany({ player: id, teamName: { $in: body.deleteStatsFor } });
             }
         } else if (teamName !== undefined || jerseyNumber !== undefined) {
             const TeamModel = require("@/models/Team").default || require("mongoose").models.Team;
