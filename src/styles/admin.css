@@ -967,3 +967,460 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ── Schedules page responsive ── */
+.schedules-table-wrap { display: block; }
+.schedules-card-list  { display: none;  }
+
+@media (max-width: 768px) {
+    .schedules-table-wrap { display: none; }
+
+    .schedules-toolbar {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+        padding: 12px !important;
+    }
+
+    .schedules-toolbar-left,
+    .schedules-toolbar-right {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .schedules-toolbar-right input {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .schedules-filter-bar {
+        padding: 10px 12px !important;
+        gap: 6px !important;
+    }
+
+    .schedules-filter-bar select,
+    .schedules-filter-bar button {
+        flex: 1 1 calc(50% - 6px);
+        min-width: 0;
+        width: auto !important;
+        height: 36px;
+        box-sizing: border-box;
+    }
+
+    .schedules-card-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 4px 0 8px;
+    }
+
+    .schedules-card-item {
+        border: 1px solid #e8eaef;
+        border-radius: 8px;
+        padding: 12px 14px;
+        background: #fff;
+    }
+
+    .schedules-card-item-title {
+        font-weight: 700;
+        font-size: 15px;
+        color: #1a1d26;
+        margin-bottom: 6px;
+    }
+
+    .schedules-card-item-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        font-size: 13px;
+        color: #5a5f72;
+        margin-bottom: 10px;
+    }
+
+    .schedules-card-item-actions {
+        display: flex;
+        gap: 8px;
+    }
+}
+
+/* ── Players page responsive ── */
+.players-table-wrap { display: block; }
+.players-card-list  { display: none;  }
+
+@media (max-width: 768px) {
+    .players-table-wrap { display: none; }
+
+    .players-card-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 4px 0 8px;
+    }
+
+    .players-card-item {
+        border: 1px solid #e8eaef;
+        border-radius: 8px;
+        padding: 12px 14px;
+        background: #fff;
+        transition: opacity 0.2s;
+    }
+
+    .players-card-item-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 6px;
+    }
+
+    .players-card-item-title {
+        font-weight: 700;
+        font-size: 15px;
+        color: #1a1d26;
+        flex: 1;
+    }
+
+    .players-card-item-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        font-size: 13px;
+        color: #5a5f72;
+        margin-bottom: 10px;
+    }
+
+    .players-card-item-meta span {
+        line-height: 1.4;
+    }
+
+    .players-card-item-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    /* header filters wrap on mobile */
+    .players-header-filters {
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .players-header-filters select,
+    .players-header-filters input {
+        flex: 1 1 140px;
+        min-width: 120px;
+        max-width: 100%;
+    }
+}
+
+/* ── Free Agents page responsive ── */
+.free-agents-table-wrap { display: block; }
+.free-agents-card-list  { display: none;  }
+
+@media (max-width: 768px) {
+    .free-agents-table-wrap { display: none; }
+
+    .free-agents-card-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 4px 0 8px;
+    }
+
+    .free-agents-card-item {
+        border: 1px solid #e8eaef;
+        border-radius: 8px;
+        padding: 12px 14px;
+        background: #fff;
+    }
+
+    .free-agents-card-item-title {
+        font-weight: 700;
+        font-size: 15px;
+        color: #1a1d26;
+        margin-bottom: 6px;
+    }
+
+    .free-agents-card-item-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        font-size: 13px;
+        color: #5a5f72;
+        margin-bottom: 10px;
+    }
+
+    .free-agents-card-item-meta span {
+        line-height: 1.4;
+    }
+
+    .free-agents-card-item-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+}
+
+/* ── Teams page responsive ── */
+.teams-table-wrap { display: block; }
+.teams-card-list  { display: none;  }
+
+@media (max-width: 768px) {
+    .teams-table-wrap { display: none; }
+
+    .teams-filter-bar {
+        padding: 10px 12px !important;
+        gap: 6px !important;
+    }
+
+    .teams-filter-bar select,
+    .teams-filter-bar button {
+        flex: 1 1 calc(50% - 6px);
+        min-width: 0;
+        width: auto !important;
+        height: 36px;
+        box-sizing: border-box;
+    }
+
+    .teams-card-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 4px 0 8px;
+    }
+
+    .teams-card-item {
+        border: 1px solid #e8eaef;
+        border-radius: 8px;
+        padding: 12px 14px;
+        background: #fff;
+    }
+
+    .teams-card-item-title {
+        font-weight: 700;
+        font-size: 15px;
+        color: #1a1d26;
+        margin-bottom: 6px;
+    }
+
+    .teams-card-item-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        font-size: 13px;
+        color: #5a5f72;
+        margin-bottom: 10px;
+    }
+
+    .teams-card-item-meta span {
+        line-height: 1.4;
+    }
+
+    .teams-card-item-actions {
+        display: flex;
+        gap: 8px;
+    }
+}
+
+/* ── Leagues page responsive ── */
+.leagues-table-wrap { display: block; }
+.leagues-card-list  { display: none;  }
+
+@media (max-width: 768px) {
+    .leagues-table-wrap { display: none; }
+
+    .leagues-filter-bar {
+        padding: 10px 12px !important;
+        gap: 6px !important;
+    }
+
+    .leagues-filter-bar select,
+    .leagues-filter-bar button {
+        flex: 1 1 calc(50% - 6px);
+        min-width: 0;
+        width: auto !important;
+        height: 36px;
+        box-sizing: border-box;
+    }
+
+    .leagues-card-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 4px 0 8px;
+    }
+
+    .leagues-card-item {
+        border: 1px solid #e8eaef;
+        border-radius: 8px;
+        padding: 12px 14px;
+        background: #fff;
+    }
+
+    .leagues-card-item-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 6px;
+    }
+
+    .leagues-card-item-title {
+        font-weight: 700;
+        font-size: 15px;
+        color: #1a1d26;
+        line-height: 1.3;
+    }
+
+    .leagues-card-item-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        font-size: 13px;
+        color: #5a5f72;
+        margin-bottom: 10px;
+    }
+
+    .leagues-card-item-meta span {
+        line-height: 1.4;
+    }
+
+    .leagues-card-item-actions {
+        display: flex;
+        gap: 8px;
+    }
+}
+
+/* ── Locations page responsive ── */
+.locations-table-wrap { display: block; }
+.locations-card-list  { display: none;  }
+
+@media (max-width: 768px) {
+    .locations-table-wrap { display: none; }
+
+    .locations-card-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 4px 0 8px;
+    }
+
+    .locations-card-item {
+        border: 1px solid #e8eaef;
+        border-radius: 8px;
+        padding: 12px 14px;
+        background: #fff;
+    }
+
+    .locations-card-item-title {
+        font-weight: 700;
+        font-size: 15px;
+        color: #1a1d26;
+        margin-bottom: 6px;
+    }
+
+    .locations-card-item-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        font-size: 13px;
+        color: #5a5f72;
+        margin-bottom: 10px;
+    }
+
+    .locations-card-item-meta span {
+        line-height: 1.4;
+    }
+
+    .locations-card-item-actions {
+        display: flex;
+        gap: 8px;
+    }
+}
+
+/* ── Settings page responsive ── */
+@media (max-width: 768px) {
+    .settings-form-row {
+        flex-wrap: wrap !important;
+    }
+    .settings-form-row > .admin-form-group {
+        flex: 1 1 100% !important;
+    }
+}
+
+/* ── Schedule Edit page responsive ── */
+@media (max-width: 768px) {
+    .schedule-edit-top-grid {
+        grid-template-columns: 1fr 1fr !important;
+    }
+
+    .schedule-edit-game-row {
+        flex-wrap: wrap !important;
+        gap: 10px !important;
+    }
+
+    .schedule-edit-game-row > .admin-form-group {
+        flex: 1 1 calc(50% - 5px) !important;
+        min-width: 0;
+    }
+
+    .schedule-edit-game-row > .admin-form-group input,
+    .schedule-edit-game-row > .admin-form-group select {
+        width: 100% !important;
+    }
+}
+
+/* ── Games page responsive ── */
+.games-table-wrap { display: block; }
+.games-card-list  { display: none;  }
+
+@media (max-width: 768px) {
+    .games-table-wrap { display: none; }
+
+    .games-geo-filter-bar {
+        padding: 10px 12px !important;
+        gap: 6px !important;
+    }
+
+    .games-geo-filter-bar select,
+    .games-geo-filter-bar button {
+        flex: 1 1 calc(50% - 6px);
+        min-width: 0;
+        width: auto !important;
+        height: 36px;
+        box-sizing: border-box;
+    }
+
+    .games-card-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 4px 0 8px;
+    }
+
+    .games-card-item {
+        border: 1px solid #e8eaef;
+        border-radius: 8px;
+        padding: 12px 14px;
+        background: #fff;
+    }
+
+    .games-card-item-title {
+        font-weight: 700;
+        font-size: 15px;
+        color: #1a1d26;
+        margin-bottom: 6px;
+    }
+
+    .games-card-item-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        font-size: 13px;
+        color: #5a5f72;
+        margin-bottom: 10px;
+    }
+
+    .games-card-item-actions {
+        display: flex;
+        gap: 8px;
+    }
+}

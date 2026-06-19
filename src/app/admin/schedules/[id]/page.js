@@ -242,7 +242,7 @@ export default function EditSchedulePage({ params }) {
     return (
         <AdminLayout title="Edit Schedule">
             <div className="admin-card" style={{ maxWidth: 1200, margin: "0 auto", padding: 24 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32, flexWrap: "wrap", gap: 10 }}>
                     <h2 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Edit Schedule</h2>
                     <button 
                         className="admin-btn admin-btn-danger"
@@ -253,7 +253,7 @@ export default function EditSchedulePage({ params }) {
                     </button>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 24, marginBottom: 40 }}>
+                <div className="schedule-edit-top-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 24, marginBottom: 40 }}>
                     <div className="admin-form-group" style={{ marginBottom: 0 }}>
                         <label className="admin-form-label" style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#8b90a0" }}>Season</label>
                         <select 
@@ -357,7 +357,7 @@ export default function EditSchedulePage({ params }) {
 
                             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                                 {week.games.map((game, gIndex) => (
-                                    <div key={gIndex} style={{ display: "flex", gap: 16, alignItems: "flex-end" }}>
+                                    <div key={gIndex} className="schedule-edit-game-row" style={{ display: "flex", gap: 16, alignItems: "flex-end" }}>
                                         <div className="admin-form-group" style={{ marginBottom: 0, flex: 1 }}>
                                             <label className="admin-form-label" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#8b90a0" }}>Team 1</label>
                                             <select 

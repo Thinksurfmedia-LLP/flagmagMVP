@@ -311,21 +311,22 @@ export default function AdminFreeAgentsPage() {
             ) : (
                 <>
                     <div className="admin-card">
-                        <div className="admin-card-header">
+                        <div className="admin-card-header" style={{ flexWrap: "wrap", gap: 10 }}>
                             <h3>Free Agents ({filtered.length})</h3>
-                            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                            <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
                                 <input
                                     type="text"
                                     className="admin-form-input"
                                     placeholder="Search..."
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    style={{ maxWidth: 220 }}
+                                    style={{ flex: "1 1 140px", minWidth: 120, maxWidth: 220 }}
                                 />
                                 {canCreate && (
                                     <button
                                         className="admin-btn admin-btn-primary"
                                         onClick={() => setModalOpen(true)}
+                                        style={{ flexShrink: 0 }}
                                     >
                                         <i className="fa-solid fa-plus"></i> Add Free Agent
                                     </button>
@@ -344,60 +345,103 @@ export default function AdminFreeAgentsPage() {
                                 <p>No free agents found.</p>
                             </div>
                         ) : (
-                            <div style={{ overflowX: "auto" }}>
-                                <table className="admin-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>Email</th>
-                                            {isAdmin && <th>Organization</th>}
-                                            <th>Phone</th>
-                                            <th>{isAdmin ? "Added" : "Assign to Team"}</th>
-                                            {isAdmin && <th style={{ width: 80 }}>Actions</th>}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {filtered.map((fa) => (
-                                            <tr key={fa._id}>
-                                                <td style={{ fontWeight: 600 }}>{fa.name}</td>
-                                                <td style={{ color: "#6b7280" }}>{fa.user?.email || "—"}</td>
-                                                {isAdmin && (
-                                                    <td>{fa.organization?.name || "—"}</td>
-                                                )}
-                                                <td style={{ color: "#6b7280" }}>{fa.user?.phone || "—"}</td>
-                                                <td>
-                                                    {isAdmin ? (
-                                                        <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
-                                                            {fa.createdAt ? new Date(fa.createdAt).toLocaleDateString() : "—"}
-                                                        </span>
-                                                    ) : (
-                                                        <button
-                                                            className="admin-btn admin-btn-secondary admin-btn-sm"
-                                                            onClick={() => openAssignModal(fa)}
-                                                            disabled={assigning === fa._id}
-                                                        >
-                                                            <i className="fa-solid fa-plus"></i> Add to Team
-                                                        </button>
-                                                    )}
-                                                </td>
-                                                {isAdmin && (
-                                                    <td>
-                                                        {canDelete && (
-                                                            <button
-                                                                className="admin-btn admin-btn-danger admin-btn-sm"
-                                                                onClick={() => deleteFreeAgent(fa)}
-                                                                title="Remove free agent"
-                                                            >
-                                                                <i className="fa-solid fa-trash"></i>
-                                                            </button>
+                            <>
+                                {/* Desktop table */}
+                                <div className="free-agents-table-wrap">
+                                    <div style={{ overflowX: "auto" }}>
+                                        <table className="admin-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>Email</th>
+                                                    {isAdmin && <th>Organization</th>}
+                                                    <th>Phone</th>
+                                                    <th>{isAdmin ? "Added" : "Assign to Team"}</th>
+                                                    {isAdmin && <th style={{ width: 80 }}>Actions</th>}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {filtered.map((fa) => (
+                                                    <tr key={fa._id}>
+                                                        <td style={{ fontWeight: 600 }}>{fa.name}</td>
+                                                        <td style={{ color: "#6b7280" }}>{fa.user?.email || "—"}</td>
+                                                        {isAdmin && (
+                                                            <td>{fa.organization?.name || "—"}</td>
                                                         )}
-                                                    </td>
+                                                        <td style={{ color: "#6b7280" }}>{fa.user?.phone || "—"}</td>
+                                                        <td>
+                                                            {isAdmin ? (
+                                                                <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
+                                                                    {fa.createdAt ? new Date(fa.createdAt).toLocaleDateString() : "—"}
+                                                                </span>
+                                                            ) : (
+                                                                <button
+                                                                    className="admin-btn admin-btn-secondary admin-btn-sm"
+                                                                    onClick={() => openAssignModal(fa)}
+                                                                    disabled={assigning === fa._id}
+                                                                >
+                                                                    <i className="fa-solid fa-plus"></i> Add to Team
+                                                                </button>
+                                                            )}
+                                                        </td>
+                                                        {isAdmin && (
+                                                            <td>
+                                                                {canDelete && (
+                                                                    <button
+                                                                        className="admin-btn admin-btn-danger admin-btn-sm"
+                                                                        onClick={() => deleteFreeAgent(fa)}
+                                                                        title="Remove free agent"
+                                                                    >
+                                                                        <i className="fa-solid fa-trash"></i>
+                                                                    </button>
+                                                                )}
+                                                            </td>
+                                                        )}
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                {/* Mobile cards */}
+                                <div className="free-agents-card-list">
+                                    {filtered.map((fa) => (
+                                        <div key={fa._id} className="free-agents-card-item">
+                                            <div className="free-agents-card-item-title">{fa.name}</div>
+                                            <div className="free-agents-card-item-meta">
+                                                {fa.user?.email && <span>{fa.user.email}</span>}
+                                                {fa.user?.phone && <span>{fa.user.phone}</span>}
+                                                {isAdmin && fa.organization?.name && (
+                                                    <span><strong>Org:</strong> {fa.organization.name}</span>
                                                 )}
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                                {isAdmin && fa.createdAt && (
+                                                    <span>Added: {new Date(fa.createdAt).toLocaleDateString()}</span>
+                                                )}
+                                            </div>
+                                            <div className="free-agents-card-item-actions">
+                                                {!isAdmin && (
+                                                    <button
+                                                        className="admin-btn admin-btn-secondary admin-btn-sm"
+                                                        onClick={() => openAssignModal(fa)}
+                                                        disabled={assigning === fa._id}
+                                                    >
+                                                        <i className="fa-solid fa-plus"></i> Add to Team
+                                                    </button>
+                                                )}
+                                                {isAdmin && canDelete && (
+                                                    <button
+                                                        className="admin-btn admin-btn-danger admin-btn-sm"
+                                                        onClick={() => deleteFreeAgent(fa)}
+                                                    >
+                                                        <i className="fa-solid fa-trash"></i> Remove
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
                         )}
                     </div>
 

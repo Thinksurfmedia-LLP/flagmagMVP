@@ -133,10 +133,10 @@ export default function AdminPlayersPage() {
                     <div className="admin-card">
                         <div className="admin-card-header" style={{ flexWrap: "wrap", gap: 12 }}>
                             <h3>Players ({filtered.length})</h3>
-                            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                                <select 
-                                    className="admin-form-select" 
-                                    value={teamFilter} 
+                            <div className="players-header-filters" style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                                <select
+                                    className="admin-form-select"
+                                    value={teamFilter}
                                     onChange={e => setTeamFilter(e.target.value)}
                                     style={{ maxWidth: 180 }}
                                 >
@@ -165,94 +165,169 @@ export default function AdminPlayersPage() {
                                 <p>No players found.</p>
                             </div>
                         ) : (
-                            <div style={{ overflowX: "auto" }}>
-                                <table className="admin-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>Team</th>
-                                            <th>Rating</th>
-                                            <th style={{ width: 140 }}>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {paginatedPlayers.map(p => {
-                                            const isInactive = p.isActive === false;
-                                            const playerTeams = allTeams.filter(t => (t.players || []).some(tp => String(tp.player?._id || tp.player) === String(p._id))).map(t => {
-                                                const tp = (t.players || []).find(tp => String(tp.player?._id || tp.player) === String(p._id));
-                                                return { teamId: String(t._id), teamName: t.name, jerseyNumber: tp.jerseyNumber };
-                                            });
-                                            const firstTeam = playerTeams[0];
-                                            const additionalTeamsCount = playerTeams.length > 1 ? playerTeams.length - 1 : 0;
+                            <>
+                                {/* Desktop table */}
+                                <div className="players-table-wrap">
+                                    <div style={{ overflowX: "auto" }}>
+                                        <table className="admin-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>Team</th>
+                                                    <th>Rating</th>
+                                                    <th style={{ width: 140 }}>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {paginatedPlayers.map(p => {
+                                                    const isInactive = p.isActive === false;
+                                                    const playerTeams = allTeams.filter(t => (t.players || []).some(tp => String(tp.player?._id || tp.player) === String(p._id))).map(t => {
+                                                        const tp = (t.players || []).find(tp => String(tp.player?._id || tp.player) === String(p._id));
+                                                        return { teamId: String(t._id), teamName: t.name, jerseyNumber: tp.jerseyNumber };
+                                                    });
+                                                    const firstTeam = playerTeams[0];
+                                                    const additionalTeamsCount = playerTeams.length > 1 ? playerTeams.length - 1 : 0;
 
-                                            return (
-                                            <tr key={p._id} style={{ opacity: isInactive ? 0.4 : 1, transition: "opacity 0.2s" }}>
-                                                <td style={{ fontWeight: 600 }}>
-                                                    <img src={p.photo || "/assets/images/player-placeholder.svg"} alt="" style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", marginRight: 12, verticalAlign: "middle" }} />
-                                                    <span style={{ verticalAlign: "middle" }}>{p.name}</span>
-                                                    {firstTeam && firstTeam.jerseyNumber != null && (
-                                                        <span className={`admin-badge ${isInactive ? "secondary" : "player"}`} style={{ marginLeft: 8, verticalAlign: "middle", fontSize: 11 }}>
-                                                            #{firstTeam.jerseyNumber}
-                                                        </span>
-                                                    )}
-                                                    {additionalTeamsCount > 0 && (
-                                                        <span style={{ marginLeft: 6, verticalAlign: "middle", fontSize: 10, background: "#e8eaef", color: "#5a5f72", padding: "2px 6px", borderRadius: 10, fontWeight: 600, border: "1px solid #d5d8e0" }}>
-                                                            +{additionalTeamsCount}
-                                                        </span>
-                                                    )}
-                                                </td>
-                                                <td>
-                                                    {firstTeam ? (
-                                                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                                            <span>{firstTeam.teamName}</span>
+                                                    return (
+                                                    <tr key={p._id} style={{ opacity: isInactive ? 0.4 : 1, transition: "opacity 0.2s" }}>
+                                                        <td style={{ fontWeight: 600 }}>
+                                                            <img src={p.photo || "/assets/images/player-placeholder.svg"} alt="" style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", marginRight: 12, verticalAlign: "middle" }} />
+                                                            <span style={{ verticalAlign: "middle" }}>{p.name}</span>
+                                                            {firstTeam && firstTeam.jerseyNumber != null && (
+                                                                <span className={`admin-badge ${isInactive ? "secondary" : "player"}`} style={{ marginLeft: 8, verticalAlign: "middle", fontSize: 11 }}>
+                                                                    #{firstTeam.jerseyNumber}
+                                                                </span>
+                                                            )}
                                                             {additionalTeamsCount > 0 && (
-                                                                <span style={{ fontSize: 10, background: "#e8eaef", color: "#5a5f72", padding: "2px 6px", borderRadius: 10, fontWeight: 600, border: "1px solid #d5d8e0" }}>
+                                                                <span style={{ marginLeft: 6, verticalAlign: "middle", fontSize: 10, background: "#e8eaef", color: "#5a5f72", padding: "2px 6px", borderRadius: 10, fontWeight: 600, border: "1px solid #d5d8e0" }}>
                                                                     +{additionalTeamsCount}
                                                                 </span>
                                                             )}
-                                                        </div>
-                                                    ) : (
-                                                        "—"
-                                                    )}
-                                                </td>
-                                                <td>⭐ {p.overallRating || p.rating || 0}</td>
-                                                <td>
-                                                    <div style={{ display: "flex", gap: 6, opacity: isInactive ? 0.8 : 1 }}>
-                                                        <button 
-                                                            className="admin-btn admin-btn-ghost admin-btn-sm" 
-                                                            title="Edit Info"
-                                                            onClick={() => {
-                                                                setEditPlayer(p);
-                                                                setEditForm({
-                                                                    name: p.name,
-                                                                    photo: p.photo || "",
-                                                                    teams: playerTeams,
-                                                                    deleteStatsFor: []
-                                                                });
-                                                                setTeamRemovalPrompt(null);
-                                                            }}
-                                                        >
-                                                            <i className="fa-solid fa-pen"></i>
-                                                        </button>
-                                                        <Link href={`/players/${p._id}`} className="admin-btn admin-btn-ghost admin-btn-sm" title="View Profile">
-                                                            <i className="fa-solid fa-eye"></i>
-                                                        </Link>
-                                                        {isInactive ? (
-                                                            <button className="admin-btn admin-btn-success admin-btn-sm" title="Reactivate Player" onClick={() => togglePlayerStatus(p._id, p.name, p.isActive)}>
-                                                                <i className="fa-solid fa-check"></i>
-                                                            </button>
-                                                        ) : (
-                                                            <button className="admin-btn admin-btn-danger admin-btn-sm" title="Deactivate Player" onClick={() => togglePlayerStatus(p._id, p.name, p.isActive)}>
-                                                                <i className="fa-solid fa-power-off"></i>
-                                                            </button>
+                                                        </td>
+                                                        <td>
+                                                            {firstTeam ? (
+                                                                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                                                    <span>{firstTeam.teamName}</span>
+                                                                    {additionalTeamsCount > 0 && (
+                                                                        <span style={{ fontSize: 10, background: "#e8eaef", color: "#5a5f72", padding: "2px 6px", borderRadius: 10, fontWeight: 600, border: "1px solid #d5d8e0" }}>
+                                                                            +{additionalTeamsCount}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            ) : (
+                                                                "—"
+                                                            )}
+                                                        </td>
+                                                        <td>⭐ {p.overallRating || p.rating || 0}</td>
+                                                        <td>
+                                                            <div style={{ display: "flex", gap: 6, opacity: isInactive ? 0.8 : 1 }}>
+                                                                <button
+                                                                    className="admin-btn admin-btn-ghost admin-btn-sm"
+                                                                    title="Edit Info"
+                                                                    onClick={() => {
+                                                                        setEditPlayer(p);
+                                                                        setEditForm({
+                                                                            name: p.name,
+                                                                            photo: p.photo || "",
+                                                                            teams: playerTeams,
+                                                                            deleteStatsFor: []
+                                                                        });
+                                                                        setTeamRemovalPrompt(null);
+                                                                    }}
+                                                                >
+                                                                    <i className="fa-solid fa-pen"></i>
+                                                                </button>
+                                                                {/* <Link href={`/players/${p._id}`} className="admin-btn admin-btn-ghost admin-btn-sm" title="View Profile">
+                                                                    <i className="fa-solid fa-eye"></i>
+                                                                </Link> */}
+                                                                {isInactive ? (
+                                                                    <button className="admin-btn admin-btn-success admin-btn-sm" title="Reactivate Player" onClick={() => togglePlayerStatus(p._id, p.name, p.isActive)}>
+                                                                        <i className="fa-solid fa-check"></i>
+                                                                    </button>
+                                                                ) : (
+                                                                    <button className="admin-btn admin-btn-danger admin-btn-sm" title="Deactivate Player" onClick={() => togglePlayerStatus(p._id, p.name, p.isActive)}>
+                                                                        <i className="fa-solid fa-power-off"></i>
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                )})}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                {/* Mobile cards */}
+                                <div className="players-card-list">
+                                    {paginatedPlayers.map(p => {
+                                        const isInactive = p.isActive === false;
+                                        const playerTeams = allTeams.filter(t => (t.players || []).some(tp => String(tp.player?._id || tp.player) === String(p._id))).map(t => {
+                                            const tp = (t.players || []).find(tp => String(tp.player?._id || tp.player) === String(p._id));
+                                            return { teamId: String(t._id), teamName: t.name, jerseyNumber: tp.jerseyNumber };
+                                        });
+                                        const firstTeam = playerTeams[0];
+                                        const additionalTeamsCount = playerTeams.length > 1 ? playerTeams.length - 1 : 0;
+
+                                        return (
+                                            <div key={p._id} className="players-card-item" style={{ opacity: isInactive ? 0.5 : 1 }}>
+                                                <div className="players-card-item-header">
+                                                    <img src={p.photo || "/assets/images/player-placeholder.svg"} alt="" style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                                                    <div className="players-card-item-title">
+                                                        {p.name}
+                                                        {firstTeam && firstTeam.jerseyNumber != null && (
+                                                            <span className={`admin-badge ${isInactive ? "secondary" : "player"}`} style={{ marginLeft: 8, fontSize: 11 }}>
+                                                                #{firstTeam.jerseyNumber}
+                                                            </span>
                                                         )}
                                                     </div>
-                                                </td>
-                                            </tr>
-                                        )})}
-                                    </tbody>
-                                </table>
-                            </div>
+                                                    <span style={{ fontSize: 13, color: "#8b90a0", flexShrink: 0 }}>⭐ {p.overallRating || p.rating || 0}</span>
+                                                </div>
+                                                <div className="players-card-item-meta">
+                                                    {firstTeam ? (
+                                                        <span>
+                                                            {firstTeam.teamName}
+                                                            {additionalTeamsCount > 0 && (
+                                                                <span style={{ marginLeft: 6, fontSize: 11, background: "#e8eaef", color: "#5a5f72", padding: "2px 6px", borderRadius: 10, fontWeight: 600 }}>
+                                                                    +{additionalTeamsCount} more
+                                                                </span>
+                                                            )}
+                                                        </span>
+                                                    ) : (
+                                                        <span style={{ fontStyle: "italic" }}>No team assigned</span>
+                                                    )}
+                                                </div>
+                                                <div className="players-card-item-actions">
+                                                    <button
+                                                        className="admin-btn admin-btn-ghost admin-btn-sm"
+                                                        onClick={() => {
+                                                            setEditPlayer(p);
+                                                            setEditForm({
+                                                                name: p.name,
+                                                                photo: p.photo || "",
+                                                                teams: playerTeams,
+                                                                deleteStatsFor: []
+                                                            });
+                                                            setTeamRemovalPrompt(null);
+                                                        }}
+                                                    >
+                                                        <i className="fa-solid fa-pen"></i> Edit
+                                                    </button>
+                                                    {isInactive ? (
+                                                        <button className="admin-btn admin-btn-success admin-btn-sm" onClick={() => togglePlayerStatus(p._id, p.name, p.isActive)}>
+                                                            <i className="fa-solid fa-check"></i> Reactivate
+                                                        </button>
+                                                    ) : (
+                                                        <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => togglePlayerStatus(p._id, p.name, p.isActive)}>
+                                                            <i className="fa-solid fa-power-off"></i> Deactivate
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </>
                         )}
                         
                         {filtered.length > 0 && Math.ceil(filtered.length / itemsPerPage) > 1 && (
@@ -268,7 +343,7 @@ export default function AdminPlayersPage() {
 
                     {editPlayer && (
                         <div className="admin-modal-backdrop">
-                            <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 450, position: "relative", overflow: "hidden" }}>
+                            <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 450, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", maxHeight: "90vh" }}>
                                 {teamRemovalPrompt && (
                                     <div style={{ position: "absolute", inset: 0, background: "#fff", borderRadius: 8, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 10, padding: 32 }}>
                                         <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#fef2f2", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
@@ -317,7 +392,8 @@ export default function AdminPlayersPage() {
                                     <i className="fa-solid fa-xmark"></i>
                                 </button>
                                 <h3 className="admin-modal-title">Edit Player Info</h3>
-                                
+
+                                <div style={{ overflowY: "auto", flex: 1, paddingRight: 2 }}>
                                 <div className="admin-form-group">
                                     <label className="admin-form-label">Profile Image</label>
                                     <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
@@ -432,7 +508,9 @@ export default function AdminPlayersPage() {
                                     </div>
                                 </div>
 
-                                <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
+                                </div>
+
+                                <div style={{ display: "flex", gap: 10, marginTop: 16, paddingTop: 16, borderTop: "1px solid #e8eaef", justifyContent: "flex-end", flexShrink: 0 }}>
                                     <button className="admin-btn admin-btn-ghost" onClick={() => setEditPlayer(null)}>Cancel</button>
                                     <button className="admin-btn admin-btn-primary" onClick={handleSaveEdit} disabled={saving || !editForm.name}>
                                         {saving ? "Saving..." : "Save Changes"}

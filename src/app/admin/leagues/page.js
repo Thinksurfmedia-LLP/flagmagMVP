@@ -660,20 +660,21 @@ export default function LeaguesPage() {
                 </div>
             ) : (
                 <div className="admin-card">
-                    <div className="admin-card-header">
+                    <div className="admin-card-header" style={{ flexWrap: "wrap", gap: 10 }}>
                         <h3>Leagues ({displayLeagues.length})</h3>
-                        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                             <input
                                 className="admin-form-input"
                                 placeholder="Search..."
                                 value={searchInput}
                                 onChange={(e) => setSearchInput(e.target.value)}
-                                style={{ width: 200, height: 36, fontSize: 13 }}
+                                style={{ width: 200, height: 36, fontSize: 13, minWidth: 120, flex: "1 1 140px" }}
                             />
                             {canCreate && (
                                 <button
                                     className="admin-btn admin-btn-primary"
                                     onClick={() => { setEditTarget(null); setShowModal(true); }}
+                                    style={{ flexShrink: 0 }}
                                 >
                                     <i className="fa-solid fa-plus"></i> Add League
                                 </button>
@@ -682,7 +683,7 @@ export default function LeaguesPage() {
                     </div>
 
                     {/* Filter + Sort bar */}
-                    <div style={{ display: "flex", justifyContent: "flex-end", flexWrap: "wrap", gap: 8, padding: "10px 16px 10px", borderBottom: "1px solid #e8eaf0", marginBottom: 4, alignItems: "center" }}>
+                    <div className="leagues-filter-bar" style={{ display: "flex", justifyContent: "flex-end", flexWrap: "wrap", gap: 8, padding: "10px 16px 10px", borderBottom: "1px solid #e8eaf0", marginBottom: 4, alignItems: "center" }}>
                         {/* State */}
                         <select
                             className="admin-form-select"
@@ -788,87 +789,150 @@ export default function LeaguesPage() {
                             <p>No leagues match the selected filters.</p>
                         </div>
                     ) : (
-                        <div style={{ overflowX: "auto" }}>
-                            <table className="admin-table">
-                                <thead>
-                                    <tr>
-                                        <th style={{ cursor: "pointer", userSelect: "none" }} onClick={() => toggleSort("name")}>
-                                            Name <SortIcon field="name" />
-                                        </th>
-                                        {isAdmin && <th>Organization</th>}
-                                        <th>Season</th>
-                                        <th>Status</th>
-                                        <th>Category</th>
-                                        <th>Location</th>
-                                        <th style={{ cursor: "pointer", userSelect: "none" }} onClick={() => toggleSort("startDate")}>
-                                            Start Date <SortIcon field="startDate" />
-                                        </th>
-                                        <th style={{ cursor: "pointer", userSelect: "none" }} onClick={() => toggleSort("endDate")}>
-                                            End Date <SortIcon field="endDate" />
-                                        </th>
-                                        <th style={{ width: 120 }}>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {displayLeagues.map((league) => (
-                                        <tr key={league._id}>
-                                            <td style={{ fontWeight: 600 }}>{league.name}</td>
-                                            {isAdmin && (
-                                                <td style={{ color: "#5a5f72" }}>
-                                                    {league.organization?.name || "-"}
-                                                </td>
-                                            )}
-                                            <td style={{ color: "#5a5f72" }}>
-                                                {league.season?.name || "-"}
-                                            </td>
-                                            <td>
-                                                <span className={`admin-badge ${league.type === "active" ? "player" : ""}`}>
+                        <>
+                            <div className="leagues-table-wrap">
+                                <div style={{ overflowX: "auto" }}>
+                                    <table className="admin-table">
+                                        <thead>
+                                            <tr>
+                                                <th style={{ cursor: "pointer", userSelect: "none" }} onClick={() => toggleSort("name")}>
+                                                    Name <SortIcon field="name" />
+                                                </th>
+                                                {isAdmin && <th>Organization</th>}
+                                                <th>Season</th>
+                                                <th>Status</th>
+                                                <th>Category</th>
+                                                <th>Location</th>
+                                                <th style={{ cursor: "pointer", userSelect: "none" }} onClick={() => toggleSort("startDate")}>
+                                                    Start Date <SortIcon field="startDate" />
+                                                </th>
+                                                <th style={{ cursor: "pointer", userSelect: "none" }} onClick={() => toggleSort("endDate")}>
+                                                    End Date <SortIcon field="endDate" />
+                                                </th>
+                                                <th style={{ width: 120 }}>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {displayLeagues.map((league) => (
+                                                <tr key={league._id}>
+                                                    <td style={{ fontWeight: 600 }}>{league.name}</td>
+                                                    {isAdmin && (
+                                                        <td style={{ color: "#5a5f72" }}>
+                                                            {league.organization?.name || "-"}
+                                                        </td>
+                                                    )}
+                                                    <td style={{ color: "#5a5f72" }}>
+                                                        {league.season?.name || "-"}
+                                                    </td>
+                                                    <td>
+                                                        <span className={`admin-badge ${league.type === "active" ? "player" : ""}`}>
+                                                            {league.type === "active" ? "Active" : "Past"}
+                                                        </span>
+                                                    </td>
+                                                    <td style={{ color: "#5a5f72" }}>{league.category || "-"}</td>
+                                                    <td style={{ color: "#5a5f72" }}>
+                                                        {Array.isArray(league.locations) && league.locations.length > 0
+                                                            ? league.locations.join(", ")
+                                                            : league.location || "-"}
+                                                    </td>
+                                                    <td style={{ color: "#8b90a0", fontSize: 13 }}>
+                                                        {league.startDate
+                                                            ? new Date(league.startDate).toLocaleDateString("en-US", { timeZone: "UTC" })
+                                                            : "-"}
+                                                    </td>
+                                                    <td style={{ color: "#8b90a0", fontSize: 13 }}>
+                                                        {league.endDate
+                                                            ? new Date(league.endDate).toLocaleDateString("en-US", { timeZone: "UTC" })
+                                                            : "-"}
+                                                    </td>
+                                                    <td>
+                                                        <div style={{ display: "flex", gap: 6 }}>
+                                                            {canUpdate && (
+                                                                <button
+                                                                    className="admin-btn admin-btn-ghost admin-btn-sm"
+                                                                    onClick={() => { setEditTarget(league); setShowModal(true); }}
+                                                                    title="Edit"
+                                                                >
+                                                                    <i className="fa-solid fa-pen"></i>
+                                                                </button>
+                                                            )}
+                                                            {canDelete && (
+                                                                <button
+                                                                    className="admin-btn admin-btn-danger admin-btn-sm"
+                                                                    onClick={() => deleteLeague(league)}
+                                                                    title="Delete"
+                                                                >
+                                                                    <i className="fa-solid fa-trash"></i>
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div className="leagues-card-list">
+                                {displayLeagues.map((league) => {
+                                    const locationText = Array.isArray(league.locations) && league.locations.length > 0
+                                        ? league.locations.join(", ")
+                                        : league.location || null;
+                                    const startDate = league.startDate
+                                        ? new Date(league.startDate).toLocaleDateString("en-US", { timeZone: "UTC" })
+                                        : null;
+                                    const endDate = league.endDate
+                                        ? new Date(league.endDate).toLocaleDateString("en-US", { timeZone: "UTC" })
+                                        : null;
+                                    return (
+                                        <div key={league._id} className="leagues-card-item">
+                                            <div className="leagues-card-item-header">
+                                                <div className="leagues-card-item-title">{league.name}</div>
+                                                <span className={`admin-badge ${league.type === "active" ? "player" : ""}`} style={{ flexShrink: 0 }}>
                                                     {league.type === "active" ? "Active" : "Past"}
                                                 </span>
-                                            </td>
-                                            <td style={{ color: "#5a5f72" }}>{league.category || "-"}</td>
-                                            <td style={{ color: "#5a5f72" }}>
-                                                {Array.isArray(league.locations) && league.locations.length > 0
-                                                    ? league.locations.join(", ")
-                                                    : league.location || "-"}
-                                            </td>
-                                            <td style={{ color: "#8b90a0", fontSize: 13 }}>
-                                                {league.startDate
-                                                    ? new Date(league.startDate).toLocaleDateString("en-US", { timeZone: "UTC" })
-                                                    : "-"}
-                                            </td>
-                                            <td style={{ color: "#8b90a0", fontSize: 13 }}>
-                                                {league.endDate
-                                                    ? new Date(league.endDate).toLocaleDateString("en-US", { timeZone: "UTC" })
-                                                    : "-"}
-                                            </td>
-                                            <td>
-                                                <div style={{ display: "flex", gap: 6 }}>
-                                                    {canUpdate && (
-                                                        <button
-                                                            className="admin-btn admin-btn-ghost admin-btn-sm"
-                                                            onClick={() => { setEditTarget(league); setShowModal(true); }}
-                                                            title="Edit"
-                                                        >
-                                                            <i className="fa-solid fa-pen"></i>
-                                                        </button>
-                                                    )}
-                                                    {canDelete && (
-                                                        <button
-                                                            className="admin-btn admin-btn-danger admin-btn-sm"
-                                                            onClick={() => deleteLeague(league)}
-                                                            title="Delete"
-                                                        >
-                                                            <i className="fa-solid fa-trash"></i>
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                            </div>
+                                            <div className="leagues-card-item-meta">
+                                                {isAdmin && league.organization?.name && (
+                                                    <span><strong>Org:</strong> {league.organization.name}</span>
+                                                )}
+                                                {league.season?.name && (
+                                                    <span><strong>Season:</strong> {league.season.name}</span>
+                                                )}
+                                                {league.category && (
+                                                    <span><strong>Category:</strong> {league.category}</span>
+                                                )}
+                                                {locationText && (
+                                                    <span><strong>Location:</strong> {locationText}</span>
+                                                )}
+                                                {(startDate || endDate) && (
+                                                    <span>{startDate || "—"} → {endDate || "—"}</span>
+                                                )}
+                                            </div>
+                                            <div className="leagues-card-item-actions">
+                                                {canUpdate && (
+                                                    <button
+                                                        className="admin-btn admin-btn-ghost admin-btn-sm"
+                                                        onClick={() => { setEditTarget(league); setShowModal(true); }}
+                                                    >
+                                                        <i className="fa-solid fa-pen"></i> Edit
+                                                    </button>
+                                                )}
+                                                {canDelete && (
+                                                    <button
+                                                        className="admin-btn admin-btn-danger admin-btn-sm"
+                                                        onClick={() => deleteLeague(league)}
+                                                    >
+                                                        <i className="fa-solid fa-trash"></i> Delete
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </>
                     )}
                 </div>
             )}

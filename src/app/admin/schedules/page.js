@@ -223,8 +223,8 @@ export default function SchedulesPage() {
                     </div>
                 ) : (
                     <>
-                        <div style={{ padding: "16px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #e5e7ef" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: "#5a5f72" }}>
+                        <div className="schedules-toolbar" style={{ padding: "16px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #e5e7ef" }}>
+                            <div className="schedules-toolbar-left" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: "#5a5f72" }}>
                                 Show
                                 <select
                                     style={{ padding: "4px 8px", border: "1px solid #d5d8e0", borderRadius: 6, fontSize: 14 }}
@@ -238,7 +238,7 @@ export default function SchedulesPage() {
                                 </select>
                                 entries
                             </div>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: "#5a5f72" }}>
+                            <div className="schedules-toolbar-right" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: "#5a5f72" }}>
                                 Search:
                                 <input
                                     type="text"
@@ -251,7 +251,7 @@ export default function SchedulesPage() {
                         </div>
 
                         {/* Geo Filter bar */}
-                        <div style={{ display: "flex", justifyContent: "flex-end", flexWrap: "wrap", gap: 8, padding: "10px 16px 10px", borderBottom: "1px solid #e8eaf0", marginBottom: 4, alignItems: "center" }}>
+                        <div className="schedules-filter-bar" style={{ display: "flex", justifyContent: "flex-end", flexWrap: "wrap", gap: 8, padding: "10px 16px 10px", borderBottom: "1px solid #e8eaf0", marginBottom: 4, alignItems: "center" }}>
                             <select className="admin-form-select" value={filterState} onChange={(e) => handleGeoStateChange(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
                                 <option value="">All States</option>
                                 {geoStateOptions.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -288,39 +288,31 @@ export default function SchedulesPage() {
                             </div>
                         ) : (
                             <>
-                                <div style={{ overflowX: "auto" }}>
-                                    <table className="admin-table">
-                                        <thead>
-                                            <tr>
-                                                <th
-                                                    onClick={() => toggleSort("scheduleLabel")}
-                                                    style={{ cursor: "pointer", textTransform: "uppercase" }}
-                                                >
-                                                    League {sortIcon("scheduleLabel")}
-                                                </th>
-                                                <th
-                                                    onClick={() => toggleSort("locationName")}
-                                                    style={{ cursor: "pointer" }}
-                                                >
-                                                    Location Name {sortIcon("locationName")}
-                                                </th>
-                                                <th
-                                                    onClick={() => toggleSort("status")}
-                                                    style={{ cursor: "pointer" }}
-                                                >
-                                                    Status {sortIcon("status")}
-                                                </th>
-                                                {(canUpdate || canDelete) && <th style={{ width: 120 }}>Actions</th>}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {paginatedSchedules.map((schedule) => (
-                                                <tr key={schedule._id}>
-                                                    <td style={{ fontWeight: 600 }}>{schedule.scheduleLabel}</td>
-                                                    <td>{schedule.locationName}</td>
-                                                    <td>
-                                                        <span
-                                                            style={{
+                                {/* Desktop table */}
+                                <div className="schedules-table-wrap">
+                                    <div style={{ overflowX: "auto" }}>
+                                        <table className="admin-table">
+                                            <thead>
+                                                <tr>
+                                                    <th onClick={() => toggleSort("scheduleLabel")} style={{ cursor: "pointer", textTransform: "uppercase" }}>
+                                                        League {sortIcon("scheduleLabel")}
+                                                    </th>
+                                                    <th onClick={() => toggleSort("locationName")} style={{ cursor: "pointer" }}>
+                                                        Location Name {sortIcon("locationName")}
+                                                    </th>
+                                                    <th onClick={() => toggleSort("status")} style={{ cursor: "pointer" }}>
+                                                        Status {sortIcon("status")}
+                                                    </th>
+                                                    {(canUpdate || canDelete) && <th style={{ width: 120 }}>Actions</th>}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {paginatedSchedules.map((schedule) => (
+                                                    <tr key={schedule._id}>
+                                                        <td style={{ fontWeight: 600 }}>{schedule.scheduleLabel}</td>
+                                                        <td>{schedule.locationName}</td>
+                                                        <td>
+                                                            <span style={{
                                                                 display: "inline-block",
                                                                 padding: "4px 10px",
                                                                 borderRadius: 6,
@@ -328,39 +320,70 @@ export default function SchedulesPage() {
                                                                 fontWeight: 600,
                                                                 background: schedule.status === "Active" ? "#d1fae5" : "#e5e7eb",
                                                                 color: schedule.status === "Active" ? "#065f46" : "#6b7280",
-                                                            }}
-                                                        >
-                                                            {schedule.status}
-                                                        </span>
-                                                    </td>
-                                                    {(canUpdate || canDelete) && (
-                                                        <td>
-                                                            <div style={{ display: "flex", gap: 6 }}>
-                                                                {canUpdate && (
-                                                                    <button
-                                                                        className="admin-btn admin-btn-ghost admin-btn-sm"
-                                                                        onClick={() => openEditModal(schedule)}
-                                                                        title="Edit"
-                                                                    >
-                                                                        <i className="fa-solid fa-pen"></i>
-                                                                    </button>
-                                                                )}
-                                                                {canDelete && (
-                                                                    <button
-                                                                        className="admin-btn admin-btn-danger admin-btn-sm"
-                                                                        onClick={() => handleDelete(schedule)}
-                                                                        title="Delete"
-                                                                    >
-                                                                        <i className="fa-solid fa-trash"></i>
-                                                                    </button>
-                                                                )}
-                                                            </div>
+                                                            }}>
+                                                                {schedule.status}
+                                                            </span>
                                                         </td>
+                                                        {(canUpdate || canDelete) && (
+                                                            <td>
+                                                                <div style={{ display: "flex", gap: 6 }}>
+                                                                    {canUpdate && (
+                                                                        <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => openEditModal(schedule)} title="Edit">
+                                                                            <i className="fa-solid fa-pen"></i>
+                                                                        </button>
+                                                                    )}
+                                                                    {canDelete && (
+                                                                        <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => handleDelete(schedule)} title="Delete">
+                                                                            <i className="fa-solid fa-trash"></i>
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </td>
+                                                        )}
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                {/* Mobile cards */}
+                                <div className="schedules-card-list">
+                                    {paginatedSchedules.map((schedule) => (
+                                        <div key={schedule._id} className="schedules-card-item">
+                                            <div className="schedules-card-item-title">{schedule.scheduleLabel}</div>
+                                            <div className="schedules-card-item-meta">
+                                                {schedule.locationName && <span><strong>Location:</strong> {schedule.locationName}</span>}
+                                                <span>
+                                                    <span style={{
+                                                        display: "inline-block",
+                                                        padding: "2px 8px",
+                                                        borderRadius: 6,
+                                                        fontSize: 12,
+                                                        fontWeight: 600,
+                                                        background: schedule.status === "Active" ? "#d1fae5" : "#e5e7eb",
+                                                        color: schedule.status === "Active" ? "#065f46" : "#6b7280",
+                                                    }}>
+                                                        {schedule.status}
+                                                    </span>
+                                                </span>
+                                            </div>
+                                            {(canUpdate || canDelete) && (
+                                                <div className="schedules-card-item-actions">
+                                                    {canUpdate && (
+                                                        <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => openEditModal(schedule)}>
+                                                            <i className="fa-solid fa-pen"></i> Edit
+                                                        </button>
                                                     )}
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                                    {canDelete && (
+                                                        <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => handleDelete(schedule)}>
+                                                            <i className="fa-solid fa-trash"></i> Delete
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
 
                                 {totalPages > 1 && (

@@ -797,7 +797,7 @@ export default function AdminTeamsPage() {
                         </div>
 
                         {/* Filter + Sort bar */}
-                        <div style={{ display: "flex", justifyContent: "flex-end", flexWrap: "wrap", gap: 8, padding: "10px 16px 10px", borderBottom: "1px solid #e8eaf0", marginBottom: 4, alignItems: "center" }}>
+                        <div className="teams-filter-bar" style={{ display: "flex", justifyContent: "flex-end", flexWrap: "wrap", gap: 8, padding: "10px 16px 10px", borderBottom: "1px solid #e8eaf0", marginBottom: 4, alignItems: "center" }}>
                             {leagueOptions.length > 0 && (
                                 <select className="admin-form-select" value={filterLeague} onChange={(e) => setFilterLeague(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
                                     <option value="">All Leagues</option>
@@ -849,7 +849,8 @@ export default function AdminTeamsPage() {
                                 <p>No teams yet. Create one and assign players.</p>
                             </div>
                         ) : (
-                            <div style={{ overflowX: "auto" }}>
+                            <>
+                                {/* Placeholder teams — shown in both views */}
                                 {placeholderTeams.length > 0 && (
                                     <div style={{ marginBottom: 20, padding: "16px 16px 0" }}>
                                         <div style={{ fontSize: 12, fontWeight: 600, color: "#8b90a0", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>
@@ -869,59 +870,106 @@ export default function AdminTeamsPage() {
                                         </div>
                                     </div>
                                 )}
+
                                 {regularTeams.length === 0 ? (
                                     <div className="admin-empty">
                                         <i className="fa-solid fa-people-group"></i>
                                         <p>No real teams yet. Create one and assign players.</p>
                                     </div>
                                 ) : (
-                                <table className="admin-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Team</th>
-                                            <th>Organization</th>
-                                            <th>Season</th>
-                                            <th>League</th>
-                                            <th>Players</th>
-                                            <th style={{ width: 130 }}>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {paginatedTeams.map((team) => (
-                                            <tr key={team._id}>
-                                                <td style={{ fontWeight: 600 }}>{team.name}</td>
-                                                <td>{team.organization?.name || "—"}</td>
-                                                <td>{team.season?.name || "—"}</td>
-                                                <td>{team.league?.name || "—"}</td>
-                                                <td>{team.players?.length || 0}</td>
-                                                <td>
-                                                    <div style={{ display: "flex", gap: 6 }}>
+                                    <>
+                                        {/* Desktop table */}
+                                        <div className="teams-table-wrap">
+                                            <div style={{ overflowX: "auto" }}>
+                                                <table className="admin-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Team</th>
+                                                            <th>Organization</th>
+                                                            <th>Season</th>
+                                                            <th>League</th>
+                                                            <th>Players</th>
+                                                            <th style={{ width: 130 }}>Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {paginatedTeams.map((team) => (
+                                                            <tr key={team._id}>
+                                                                <td style={{ fontWeight: 600 }}>{team.name}</td>
+                                                                <td>{team.organization?.name || "—"}</td>
+                                                                <td>{team.season?.name || "—"}</td>
+                                                                <td>{team.league?.name || "—"}</td>
+                                                                <td>{team.players?.length || 0}</td>
+                                                                <td>
+                                                                    <div style={{ display: "flex", gap: 6 }}>
+                                                                        {canUpdate && (
+                                                                            <button
+                                                                                className="admin-btn admin-btn-ghost admin-btn-sm"
+                                                                                onClick={() => { setEditTarget(team); setModalOpen(true); }}
+                                                                                title="Edit"
+                                                                            >
+                                                                                <i className="fa-solid fa-pen"></i>
+                                                                            </button>
+                                                                        )}
+                                                                        {canDelete && (
+                                                                            <button
+                                                                                className="admin-btn admin-btn-danger admin-btn-sm"
+                                                                                onClick={() => deleteTeam(team)}
+                                                                                title="Delete"
+                                                                            >
+                                                                                <i className="fa-solid fa-trash"></i>
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        {/* Mobile cards */}
+                                        <div className="teams-card-list">
+                                            {paginatedTeams.map((team) => (
+                                                <div key={team._id} className="teams-card-item">
+                                                    <div className="teams-card-item-title">{team.name}</div>
+                                                    <div className="teams-card-item-meta">
+                                                        {team.organization?.name && (
+                                                            <span><strong>Org:</strong> {team.organization.name}</span>
+                                                        )}
+                                                        {team.season?.name && (
+                                                            <span><strong>Season:</strong> {team.season.name}</span>
+                                                        )}
+                                                        {team.league?.name && (
+                                                            <span><strong>League:</strong> {team.league.name}</span>
+                                                        )}
+                                                        <span><strong>Players:</strong> {team.players?.length || 0}</span>
+                                                    </div>
+                                                    <div className="teams-card-item-actions">
                                                         {canUpdate && (
                                                             <button
                                                                 className="admin-btn admin-btn-ghost admin-btn-sm"
                                                                 onClick={() => { setEditTarget(team); setModalOpen(true); }}
-                                                                title="Edit"
                                                             >
-                                                                <i className="fa-solid fa-pen"></i>
+                                                                <i className="fa-solid fa-pen"></i> Edit
                                                             </button>
                                                         )}
                                                         {canDelete && (
                                                             <button
                                                                 className="admin-btn admin-btn-danger admin-btn-sm"
                                                                 onClick={() => deleteTeam(team)}
-                                                                title="Delete"
                                                             >
-                                                                <i className="fa-solid fa-trash"></i>
+                                                                <i className="fa-solid fa-trash"></i> Delete
                                                             </button>
                                                         )}
                                                     </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </>
                                 )}
-                            </div>
+                            </>
                         )}
                         
                         {displayTeams.length > 0 && totalPages > 1 && (

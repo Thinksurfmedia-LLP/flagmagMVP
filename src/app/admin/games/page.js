@@ -1525,7 +1525,7 @@ export default function AdminGamesPage() {
                         </div>
                     ) : (
                         <div className="admin-card">
-                            <div className="admin-card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <div className="admin-card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
                                 <h3>Games ({filteredGames.length})</h3>
                             {canCreate && (
                                 <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
@@ -1541,7 +1541,7 @@ export default function AdminGamesPage() {
 
                         {/* Geo Filter bar */}
                         {geoStateOptions.length > 0 && (
-                            <div style={{ display: "flex", justifyContent: "flex-end", flexWrap: "wrap", gap: 8, padding: "10px 16px 10px", borderBottom: "1px solid #e8eaf0", marginBottom: 4, alignItems: "center" }}>
+                            <div className="games-geo-filter-bar" style={{ display: "flex", justifyContent: "flex-end", flexWrap: "wrap", gap: 8, padding: "10px 16px 10px", borderBottom: "1px solid #e8eaf0", marginBottom: 4, alignItems: "center" }}>
                                 <select className="admin-form-select" value={filterState} onChange={(e) => handleGeoStateChange(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
                                     <option value="">All States</option>
                                     {geoStateOptions.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -1583,7 +1583,8 @@ export default function AdminGamesPage() {
                                 <p>No games scheduled yet in this league. Add one to get started.</p>
                             </div>
                         ) : (
-                            <div style={{ overflowX: "auto" }}>
+                            <>
+                            <div className="games-table-wrap" style={{ overflowX: "auto" }}>
                                 <table className="admin-table">
                                     <thead>
                                         <tr>
@@ -1641,14 +1642,47 @@ export default function AdminGamesPage() {
                                         ))}
                                     </tbody>
                                 </table>
-                                <AdminPagination
-                                    currentPage={gamePage}
-                                    totalPages={Math.ceil(filteredGames.length / GAMES_PER_PAGE)}
-                                    onPageChange={setGamePage}
-                                    totalItems={filteredGames.length}
-                                    itemsPerPage={GAMES_PER_PAGE}
-                                />
                             </div>
+                            <div className="games-card-list">
+                                {filteredGames.slice((gamePage - 1) * GAMES_PER_PAGE, gamePage * GAMES_PER_PAGE).map(game => (
+                                    <div key={game._id} className="games-card-item">
+                                        <div className="games-card-item-title">{game.teamA.name} vs {game.teamB.name}</div>
+                                        <div className="games-card-item-meta">
+                                            <span>{new Date(game.date.split("T")[0] + "T12:00:00Z").toLocaleDateString()}{game.time ? ` · ${game.time}` : ""}</span>
+                                            {game.location && <span>{game.location}</span>}
+                                            {game.status === "completed" && <span>Score: {game.teamA.score} – {game.teamB.score}</span>}
+                                        </div>
+                                        <div style={{ marginBottom: 10 }}>
+                                            <span className={`admin-badge ${game.status === "completed" ? "player" : game.status === "in_progress" ? "organizer" : game.status === "cancelled" ? "danger" : ""}`}>
+                                                {game.status}
+                                            </span>
+                                        </div>
+                                        <div className="games-card-item-actions">
+                                            <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setLiveStatsTarget(game); setShowLiveStats(true); }} style={{ color: "#ff1e00" }}>
+                                                <i className="fa-solid fa-play-circle"></i> Live
+                                            </button>
+                                            {canUpdate && (
+                                                <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setEditTarget(game); setShowModal(true); }}>
+                                                    <i className="fa-solid fa-pen"></i> Edit
+                                                </button>
+                                            )}
+                                            {canDelete && (
+                                                <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => deleteGame(game._id)} style={{ color: "#dc2626" }}>
+                                                    <i className="fa-solid fa-trash"></i>
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <AdminPagination
+                                currentPage={gamePage}
+                                totalPages={Math.ceil(filteredGames.length / GAMES_PER_PAGE)}
+                                onPageChange={setGamePage}
+                                totalItems={filteredGames.length}
+                                itemsPerPage={GAMES_PER_PAGE}
+                            />
+                            </>
                         )}
                     </div>
                     )}

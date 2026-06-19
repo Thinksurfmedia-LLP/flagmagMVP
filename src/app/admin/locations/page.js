@@ -513,36 +513,64 @@ function OrgLocationsView() {
                         <p>No locations found. Add your first location.</p>
                     </div>
                 ) : (
-                    <div style={{ overflowX: "auto" }}>
-                        <table className="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>#</th><th>State</th><th>County</th><th>City</th><th>Name</th><th>Address</th><th>Fields</th><th>Manager</th><th>Phone</th><th style={{ width: 120 }}>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {venues.map((venue, index) => (
-                                    <tr key={venue._id}>
-                                        <td>{index + 1}</td>
-                                        <td>{venue.stateAbbr || "-"}</td>
-                                        <td>{venue.countyName || "-"}</td>
-                                        <td>{venue.cityName || "-"}</td>
-                                        <td style={{ fontWeight: 600 }}>{venue.name}</td>
-                                        <td>{venue.address || "-"}</td>
-                                        <td>{venue.fields?.length || 0}</td>
-                                        <td>{venue.managerName || "-"}</td>
-                                        <td>{venue.managerPhone || "-"}</td>
-                                        <td>
-                                            <div style={{ display: "flex", gap: 6 }}>
-                                                <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => openEditModal(venue)} title="Edit"><i className="fa-solid fa-pen"></i></button>
-                                                <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => deleteVenue(venue)} title="Delete"><i className="fa-solid fa-trash"></i></button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                    <>
+                        <div className="locations-table-wrap">
+                            <div style={{ overflowX: "auto" }}>
+                                <table className="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th><th>State</th><th>County</th><th>City</th><th>Name</th><th>Address</th><th>Fields</th><th>Manager</th><th>Phone</th><th style={{ width: 120 }}>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {venues.map((venue, index) => (
+                                            <tr key={venue._id}>
+                                                <td>{index + 1}</td>
+                                                <td>{venue.stateAbbr || "-"}</td>
+                                                <td>{venue.countyName || "-"}</td>
+                                                <td>{venue.cityName || "-"}</td>
+                                                <td style={{ fontWeight: 600 }}>{venue.name}</td>
+                                                <td>{venue.address || "-"}</td>
+                                                <td>{venue.fields?.length || 0}</td>
+                                                <td>{venue.managerName || "-"}</td>
+                                                <td>{venue.managerPhone || "-"}</td>
+                                                <td>
+                                                    <div style={{ display: "flex", gap: 6 }}>
+                                                        <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => openEditModal(venue)} title="Edit"><i className="fa-solid fa-pen"></i></button>
+                                                        <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => deleteVenue(venue)} title="Delete"><i className="fa-solid fa-trash"></i></button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div className="locations-card-list">
+                            {venues.map((venue) => (
+                                <div key={venue._id} className="locations-card-item">
+                                    <div className="locations-card-item-title">{venue.name}</div>
+                                    <div className="locations-card-item-meta">
+                                        <span>{[venue.cityName, venue.countyName, venue.stateAbbr].filter(Boolean).join(", ") || "—"}</span>
+                                        {venue.address && <span>{venue.address}</span>}
+                                        {(venue.managerName || venue.managerPhone) && (
+                                            <span>{[venue.managerName, venue.managerPhone].filter(Boolean).join(" · ")}</span>
+                                        )}
+                                        <span>{venue.fields?.length || 0} field{venue.fields?.length !== 1 ? "s" : ""}</span>
+                                    </div>
+                                    <div className="locations-card-item-actions">
+                                        <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => openEditModal(venue)}>
+                                            <i className="fa-solid fa-pen"></i> Edit
+                                        </button>
+                                        <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => deleteVenue(venue)}>
+                                            <i className="fa-solid fa-trash"></i> Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </>
                 )}
             </div>
 
@@ -884,47 +912,75 @@ function AdminVenuesView() {
                             <p>No venues found. Add your first venue.</p>
                         </div>
                     ) : (
-                        <div style={{ overflowX: "auto" }}>
-                            <table className="admin-table">
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>State</th>
-                                        <th>County</th>
-                                        <th>Venue</th>
-                                        <th>Address</th>
-                                        <th>Fields</th>
-                                        <th>Manager</th>
-                                        <th>Phone Number</th>
-                                        <th style={{ width: 120 }}>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {venues.map((venue, index) => (
-                                        <tr key={venue._id}>
-                                            <td>{index + 1}</td>
-                                            <td>{venue.stateAbbr || "-"}</td>
-                                            <td>{venue.countyName || "-"}</td>
-                                            <td style={{ fontWeight: 600 }}>{venue.name}</td>
-                                            <td>{venue.address || "-"}</td>
-                                            <td>{venue.fields?.length || 0}</td>
-                                            <td>{venue.managerName || "-"}</td>
-                                            <td>{venue.managerPhone || "-"}</td>
-                                            <td>
-                                                <div style={{ display: "flex", gap: 6 }}>
-                                                    <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => openEditModal(venue)} title="Edit">
-                                                        <i className="fa-solid fa-pen"></i>
-                                                    </button>
-                                                    <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => deleteVenue(venue)} title="Delete">
-                                                        <i className="fa-solid fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                        <>
+                            <div className="locations-table-wrap">
+                                <div style={{ overflowX: "auto" }}>
+                                    <table className="admin-table">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>State</th>
+                                                <th>County</th>
+                                                <th>Venue</th>
+                                                <th>Address</th>
+                                                <th>Fields</th>
+                                                <th>Manager</th>
+                                                <th>Phone Number</th>
+                                                <th style={{ width: 120 }}>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {venues.map((venue, index) => (
+                                                <tr key={venue._id}>
+                                                    <td>{index + 1}</td>
+                                                    <td>{venue.stateAbbr || "-"}</td>
+                                                    <td>{venue.countyName || "-"}</td>
+                                                    <td style={{ fontWeight: 600 }}>{venue.name}</td>
+                                                    <td>{venue.address || "-"}</td>
+                                                    <td>{venue.fields?.length || 0}</td>
+                                                    <td>{venue.managerName || "-"}</td>
+                                                    <td>{venue.managerPhone || "-"}</td>
+                                                    <td>
+                                                        <div style={{ display: "flex", gap: 6 }}>
+                                                            <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => openEditModal(venue)} title="Edit">
+                                                                <i className="fa-solid fa-pen"></i>
+                                                            </button>
+                                                            <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => deleteVenue(venue)} title="Delete">
+                                                                <i className="fa-solid fa-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div className="locations-card-list">
+                                {venues.map((venue) => (
+                                    <div key={venue._id} className="locations-card-item">
+                                        <div className="locations-card-item-title">{venue.name}</div>
+                                        <div className="locations-card-item-meta">
+                                            <span>{[venue.countyName, venue.stateAbbr].filter(Boolean).join(", ") || "—"}</span>
+                                            {venue.address && <span>{venue.address}</span>}
+                                            {(venue.managerName || venue.managerPhone) && (
+                                                <span>{[venue.managerName, venue.managerPhone].filter(Boolean).join(" · ")}</span>
+                                            )}
+                                            <span>{venue.fields?.length || 0} field{venue.fields?.length !== 1 ? "s" : ""}</span>
+                                        </div>
+                                        <div className="locations-card-item-actions">
+                                            <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => openEditModal(venue)}>
+                                                <i className="fa-solid fa-pen"></i> Edit
+                                            </button>
+                                            <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => deleteVenue(venue)}>
+                                                <i className="fa-solid fa-trash"></i> Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </>
                     )}
                 </div>
             )}

@@ -151,7 +151,7 @@ export default function SettingsPage() {
                     <div className="admin-card">
                         <div className="admin-card-header"><h3>General</h3></div>
                         <div className="admin-card-body">
-                            <div style={{ display: "flex", gap: 12 }}>
+                            <div className="settings-form-row" style={{ display: "flex", gap: 12 }}>
                                 <div className="admin-form-group" style={{ flex: 2 }}>
                                     <label className="admin-form-label">Organization Name *</label>
                                     <input className="admin-form-input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
@@ -177,7 +177,7 @@ export default function SettingsPage() {
                                     )}
                                 </div>
                             </div>
-                            <div style={{ display: "flex", gap: 12 }}>
+                            <div className="settings-form-row" style={{ display: "flex", gap: 12 }}>
                                 <div className="admin-form-group" style={{ flex: 1 }}>
                                     <label className="admin-form-label" style={{ display: "flex", alignItems: "center", gap: 6 }}>
                                         Location
@@ -214,7 +214,7 @@ export default function SettingsPage() {
                     <div className="admin-card">
                         <div className="admin-card-header"><h3>Branding</h3></div>
                         <div className="admin-card-body">
-                            <div style={{ display: "flex", gap: 12 }}>
+                            <div className="settings-form-row" style={{ display: "flex", gap: 12 }}>
                                 <div className="admin-form-group" style={{ flex: 1 }}>
                                     <label className="admin-form-label">Logo URL</label>
                                     <div style={{ display: "flex", gap: 8 }}>
@@ -279,7 +279,7 @@ export default function SettingsPage() {
                     <div className="admin-card">
                         <div className="admin-card-header"><h3>Contact Info</h3></div>
                         <div className="admin-card-body">
-                            <div style={{ display: "flex", gap: 12 }}>
+                            <div className="settings-form-row" style={{ display: "flex", gap: 12 }}>
                                 <div className="admin-form-group" style={{ flex: 1 }}>
                                     <label className="admin-form-label">Phone</label>
                                     <input className="admin-form-input" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="(555) 123-4567" />
@@ -300,7 +300,7 @@ export default function SettingsPage() {
                     <div className="admin-card">
                         <div className="admin-card-header"><h3>Social Links</h3></div>
                         <div className="admin-card-body">
-                            <div style={{ display: "flex", gap: 12 }}>
+                            <div className="settings-form-row" style={{ display: "flex", gap: 12 }}>
                                 <div className="admin-form-group" style={{ flex: 1 }}>
                                     <label className="admin-form-label"><i className="fa-brands fa-facebook" style={{ marginRight: 6 }}></i>Facebook</label>
                                     <input className="admin-form-input" value={form.facebook} onChange={e => setForm({ ...form, facebook: e.target.value })} placeholder="https://facebook.com/..." />
