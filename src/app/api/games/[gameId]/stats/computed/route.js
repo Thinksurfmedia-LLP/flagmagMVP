@@ -25,8 +25,8 @@ export async function GET(request, { params }) {
         let rows = result.stats[statType] || [];
 
         if (teamFilter) {
-            const re = new RegExp(teamFilter, "i");
-            rows = rows.filter((r) => re.test(r.teamName));
+            const lower = teamFilter.toLowerCase();
+            rows = rows.filter((r) => r.teamName.toLowerCase().includes(lower));
         }
 
         return NextResponse.json({ players: rows });
