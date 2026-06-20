@@ -57,6 +57,7 @@ function LoginForm() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
+                            suppressHydrationWarning
                         />
                         <div className="password-group">
                             <input

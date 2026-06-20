@@ -52,7 +52,8 @@ export async function setAuthCookie(token) {
  */
 export async function getCurrentUser() {
     const cookieStore = await cookies();
-    const token = cookieStore.get(COOKIE_NAME)?.value;
+    const token = cookieStore.get(COOKIE_NAME)?.value
+               || cookieStore.get("flagmag-mobile-token")?.value;
     if (!token) return null;
     return verifyToken(token);
 }
