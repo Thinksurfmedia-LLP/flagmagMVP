@@ -20,7 +20,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <head>
         <link rel="stylesheet" href="/assets/css/owl.carousel.min.css" />
         <link rel="stylesheet" href="/assets/css/owl.theme.default.min.css" />

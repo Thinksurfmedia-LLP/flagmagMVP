@@ -47,7 +47,7 @@ async function verifyAuth(request) {
     }
 }
 
-export async function middleware(request, event) {
+export async function proxy(request, event) {
     const { pathname } = request.nextUrl;
 
     // Skip middleware for static assets and internal log API
