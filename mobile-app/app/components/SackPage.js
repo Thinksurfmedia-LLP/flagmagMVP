@@ -70,21 +70,25 @@ export default function SackPage({ game, activeTeam, roster, onSave, onCancel, o
                 <div className="form-area" style={{ width: "100%", padding: "10px 0" }}>
                     <div className="form-group">
                         <input
-                            type="text"
+                            type="tel"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             className="form-control"
                             placeholder="Passer Number*"
                             value={passer}
-                            onChange={(e) => setPasser(e.target.value)}
+                            onChange={(e) => setPasser(e.target.value.replace(/\D/g, ""))}
                         />
                         <PlayerNumberWarning valid={validatePlayerNumber(passer, activeRoster).valid} playerNumber={passer} label="passer" />
                     </div>
                     <div className="form-group">
                         <input
-                            type="text"
+                            type="tel"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             className="form-control"
                             placeholder="Defender Number*"
                             value={defender}
-                            onChange={(e) => setDefender(e.target.value)}
+                            onChange={(e) => setDefender(e.target.value.replace(/\D/g, ""))}
                         />
                         <PlayerNumberWarning valid={validatePlayerNumber(defender, otherRoster).valid} playerNumber={defender} label="defender" />
                     </div>

@@ -63,9 +63,15 @@ function MatchListContent() {
     // Filter games by tab + search + filters
     useEffect(() => {
         let filtered = [...games];
-        // Build today/tomorrow as UTC midnight so comparisons match game dates (stored as midnight UTC)
+        // Derive "today" in PDT/PST (America/Los_Angeles) so tab boundaries match the
+        // timezone shown to users — not UTC, which flips at 5 PM / 4 PM PDT/PST.
         const now = new Date();
-        const todayStr = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-${String(now.getUTCDate()).padStart(2, "0")}`;
+        const todayStr = new Intl.DateTimeFormat("en-CA", {
+            timeZone: "America/Los_Angeles",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+        }).format(now); // "YYYY-MM-DD" in LA time
         const today = new Date(todayStr + "T00:00:00Z");
         const tomorrow = new Date(today);
         tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);

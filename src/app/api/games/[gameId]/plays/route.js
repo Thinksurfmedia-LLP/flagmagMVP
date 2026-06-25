@@ -24,7 +24,7 @@ export async function POST(request, { params }) {
         const { gameId } = await params;
         const body = await request.json();
 
-        const validTypes = ["completion", "incomplete", "interception", "fumble", "sack", "run"];
+        const validTypes = ["completion", "incomplete", "interception", "fumble", "sack", "run", "timeout"];
         if (!body.type || !validTypes.includes(body.type)) {
             return NextResponse.json(
                 { success: false, error: "Invalid play type" },
@@ -87,7 +87,7 @@ export async function PUT(request, { params }) {
         }
 
         const body = await request.json();
-        const validTypes = ["completion", "incomplete", "interception", "fumble", "sack", "run"];
+        const validTypes = ["completion", "incomplete", "interception", "fumble", "sack", "run", "timeout"];
 
         const updates = {};
         if (body.type !== undefined) {

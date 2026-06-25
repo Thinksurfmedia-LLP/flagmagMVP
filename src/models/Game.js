@@ -39,6 +39,10 @@ const GameSchema = new mongoose.Schema(
             enum: ["main", "practice"],
             default: "main",
         },
+        currentHalf: { type: String, enum: ["1st", "2nd"], default: "1st" },
+        firstHalfCompleted: { type: Boolean, default: false },
+        halfOneScoreA: { type: Number, default: 0 },
+        halfOneScoreB: { type: Number, default: 0 },
     },
     {
         timestamps: true,

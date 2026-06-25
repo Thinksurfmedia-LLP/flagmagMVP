@@ -87,38 +87,74 @@ function LiveGameContent({ gameId }) {
         fetchRoster();
     }, [fetchGame, fetchStats, fetchRoster]);
 
-    // Load persisted plays into action log for completed/cancelled games
+    // Load persisted plays into action log on page load / refresh — runs once when game first loads
     useEffect(() => {
-        if (!game || (game.status !== "completed" && game.status !== "cancelled")) return;
+        if (!game) return;
+        const playTypeMap = {
+            completion: "Completion",
+            incomplete: "Incompletion",
+            interception: "Interception",
+            sack: "Sack",
+            fumble: "Fumble",
+            run: "Run",
+            timeout: "Timeout",
+        };
+        const toLog = (play) => ({
+            time: new Date(play.createdAt).toLocaleTimeString(),
+            action: playTypeMap[play.type] || play.type,
+            team: play.teamName || "",
+            half: play.half || "1st",
+            type: playTypeMap[play.type] || play.type,
+            activeTeam: play.activeTeam || "A",
+            data: {
+                passer: play.passer || "",
+                receiver: play.receiver || "",
+                rusher: play.rusher || "",
+                defender: play.defender || "",
+                flagPull: play.flagPull || "",
+                yards: play.yards || 0,
+                points: play.points || "",
+                safety: play.safety || false,
+            },
+        });
         const loadPlays = async () => {
             try {
                 const res = await apiGet(`/api/games/${gameId}/plays`);
-                if (res.data && res.data.length > 0) {
-                    const playTypeMap = { completion: "Completion", incomplete: "Incompletion", interception: "Interception", sack: "Sack", fumble: "Fumble", run: "Run" };
-                    const logs = res.data.map(play => ({
-                        time: new Date(play.createdAt).toLocaleTimeString(),
-                        action: playTypeMap[play.type] || play.type,
-                        team: play.teamName || "",
-                        half: play.half || "1st",
-                        type: playTypeMap[play.type] || play.type,
-                        activeTeam: play.activeTeam || "A",
-                        data: {
-                            passer: play.passer || "",
-                            receiver: play.receiver || "",
-                            rusher: play.rusher || "",
-                            defender: play.defender || "",
-                            flagPull: play.flagPull || "",
-                            yards: play.yards || 0,
-                            points: play.points || "",
-                            safety: play.safety || false,
-                        },
-                    })).reverse();
-                    setActionLog(logs);
+                if (!res.data || res.data.length === 0) return;
+                const allPlays = res.data; // oldest-first (API sorts createdAt: 1)
+                const firstHalfPlays = allPlays.filter(p => (p.half || "1st") === "1st");
+                const secondHalfPlays = allPlays.filter(p => p.half === "2nd");
+                const isInSecondHalf = game.firstHalfCompleted || secondHalfPlays.length > 0;
+                if (isInSecondHalf) {
+                    const h1TimeoutsA = firstHalfPlays.filter(p => p.type === "timeout" && p.activeTeam === "A").length;
+                    const h1TimeoutsB = firstHalfPlays.filter(p => p.type === "timeout" && p.activeTeam === "B").length;
+                    setFirstHalfSnapshot({
+                        timeoutsA: h1TimeoutsA,
+                        timeoutsB: h1TimeoutsB,
+                        scoreA: game.halfOneScoreA ?? 0,
+                        scoreB: game.halfOneScoreB ?? 0,
+                        actionLog: firstHalfPlays.map(toLog).reverse(),
+                    });
+                    setFirstHalfCompleted(true);
+                    setHalf("2nd");
+                    setViewingHalf("2nd");
+                    const h2TimeoutsA = secondHalfPlays.filter(p => p.type === "timeout" && p.activeTeam === "A").length;
+                    const h2TimeoutsB = secondHalfPlays.filter(p => p.type === "timeout" && p.activeTeam === "B").length;
+                    setTimeoutsA(h2TimeoutsA);
+                    setTimeoutsB(h2TimeoutsB);
+                    setActionLog(secondHalfPlays.map(toLog).reverse());
+                } else {
+                    const h1TimeoutsA = firstHalfPlays.filter(p => p.type === "timeout" && p.activeTeam === "A").length;
+                    const h1TimeoutsB = firstHalfPlays.filter(p => p.type === "timeout" && p.activeTeam === "B").length;
+                    setTimeoutsA(h1TimeoutsA);
+                    setTimeoutsB(h1TimeoutsB);
+                    setActionLog(allPlays.map(toLog).reverse());
                 }
             } catch { /* ignore */ }
         };
         loadPlays();
-    }, [game?.status, gameId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [game?._id, gameId]);
 
     const showToast = (message, type = "") => {
         setToast({ message, type });
@@ -690,26 +726,26 @@ function LiveGameContent({ gameId }) {
                 {/* Live match score */}
                 <div className="live-match-wrapper">
                     <div className="top">
-                        <div
-                            className={`team-box ${activeTeam === "A" ? "active" : ""}`}
-                            onClick={() => {
-                                if (isPaused) { showToast("Resume the game first", "error"); return; }
-                                setActiveTeam("A");
-                            }}
-                            style={{
-                                cursor: "pointer",
-                            }}
-                        >
-                            <h5>{game.teamA?.name || "Team A"}</h5>
-                            <div className="image-area">
-                                <img
-                                    src={game.teamA?.logo || "/assets/images/team-placeholder.svg"}
-                                    alt={game.teamA?.name}
-                                />
+                        {/* Team A column — selector box + timeout below it */}
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1, gap: 10 }}>
+                            <div
+                                className={`team-box ${activeTeam === "A" ? "active" : ""}`}
+                                onClick={() => {
+                                    if (isPaused) { showToast("Resume the game first", "error"); return; }
+                                    setActiveTeam("A");
+                                }}
+                                style={{ cursor: "pointer", width: "100%" }}
+                            >
+                                <h5>{game.teamA?.name || "Team A"}</h5>
+                                <div className="image-area">
+                                    <img
+                                        src={game.teamA?.logo || "/assets/images/team-placeholder.svg"}
+                                        alt={game.teamA?.name}
+                                    />
+                                </div>
                             </div>
-                            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 8 }}>
-                                <span style={{ color: "#ccc", fontSize: 12 }}>TO: {displayTimeoutsA}/3</span>
-                                {!isViewOnly && (
+                            <span style={{ color: "#ccc", fontSize: 12, fontWeight: 600, letterSpacing: 1 }}>TO: {displayTimeoutsA}/3</span>
+                            {!isViewOnly && (
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -722,25 +758,36 @@ function LiveGameContent({ gameId }) {
                                                 action: "Timeout",
                                                 team: game.teamA?.name,
                                                 half,
+                                                type: "Timeout",
+                                                activeTeam: "A",
+                                                data: {},
                                             };
                                             setActionLog(prev => [logEntry, ...prev]);
+                                            apiPost(`/api/games/${gameId}/plays`, {
+                                                type: "timeout",
+                                                activeTeam: "A",
+                                                teamName: game.teamA?.name,
+                                                half,
+                                            }).catch(() => {});
                                             showToast(`Timeout taken by ${game.teamA?.name} (${timeoutsA + 1}/3 this half)`, "success");
                                         } else {
                                             showToast(`${game.teamA?.name} has no timeouts left this half`, "error");
                                         }
                                     }}
                                     style={{
-                                        width: 24, height: 24, borderRadius: "50%",
-                                        background: (isPaused || timeoutsA >= 3) ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.15)",
-                                        color: (isPaused || timeoutsA >= 3) ? "#555" : "#fff",
-                                        display: "flex", alignItems: "center", justifyContent: "center",
-                                        fontSize: 16, border: "none", cursor: (isPaused || timeoutsA >= 3) ? "not-allowed" : "pointer",
+                                        padding: "8px 16px",
+                                        borderRadius: 20,
+                                        background: (isPaused || timeoutsA >= 3) ? "rgba(255,255,255,0.05)" : "rgba(255,100,30,0.25)",
+                                        color: (isPaused || timeoutsA >= 3) ? "#555" : "#ff8040",
+                                        border: `1.5px solid ${(isPaused || timeoutsA >= 3) ? "rgba(255,255,255,0.08)" : "rgba(255,120,40,0.5)"}`,
+                                        fontSize: 12, fontWeight: 700, letterSpacing: 1,
+                                        cursor: (isPaused || timeoutsA >= 3) ? "not-allowed" : "pointer",
+                                        whiteSpace: "nowrap",
                                     }}
                                 >
-                                    +
+                                    TIMEOUT
                                 </button>
-                                )}
-                            </div>
+                            )}
                         </div>
 
                         <div className="team-score">
@@ -750,26 +797,26 @@ function LiveGameContent({ gameId }) {
                             <h6>Score</h6>
                         </div>
 
-                        <div
-                            className={`team-box ${activeTeam === "B" ? "active" : ""}`}
-                            onClick={() => {
-                                if (isPaused) { showToast("Resume the game first", "error"); return; }
-                                setActiveTeam("B");
-                            }}
-                            style={{
-                                cursor: "pointer",
-                            }}
-                        >
-                            <h5>{game.teamB?.name || "Team B"}</h5>
-                            <div className="image-area">
-                                <img
-                                    src={game.teamB?.logo || "/assets/images/team-placeholder.svg"}
-                                    alt={game.teamB?.name}
-                                />
+                        {/* Team B column — selector box + timeout below it */}
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1, gap: 10 }}>
+                            <div
+                                className={`team-box ${activeTeam === "B" ? "active" : ""}`}
+                                onClick={() => {
+                                    if (isPaused) { showToast("Resume the game first", "error"); return; }
+                                    setActiveTeam("B");
+                                }}
+                                style={{ cursor: "pointer", width: "100%" }}
+                            >
+                                <h5>{game.teamB?.name || "Team B"}</h5>
+                                <div className="image-area">
+                                    <img
+                                        src={game.teamB?.logo || "/assets/images/team-placeholder.svg"}
+                                        alt={game.teamB?.name}
+                                    />
+                                </div>
                             </div>
-                            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 8 }}>
-                                <span style={{ color: "#ccc", fontSize: 12 }}>TO: {displayTimeoutsB}/3</span>
-                                {!isViewOnly && (
+                            <span style={{ color: "#ccc", fontSize: 12, fontWeight: 600, letterSpacing: 1 }}>TO: {displayTimeoutsB}/3</span>
+                            {!isViewOnly && (
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -782,25 +829,36 @@ function LiveGameContent({ gameId }) {
                                                 action: "Timeout",
                                                 team: game.teamB?.name,
                                                 half,
+                                                type: "Timeout",
+                                                activeTeam: "B",
+                                                data: {},
                                             };
                                             setActionLog(prev => [logEntry, ...prev]);
+                                            apiPost(`/api/games/${gameId}/plays`, {
+                                                type: "timeout",
+                                                activeTeam: "B",
+                                                teamName: game.teamB?.name,
+                                                half,
+                                            }).catch(() => {});
                                             showToast(`Timeout taken by ${game.teamB?.name} (${timeoutsB + 1}/3 this half)`, "success");
                                         } else {
                                             showToast(`${game.teamB?.name} has no timeouts left this half`, "error");
                                         }
                                     }}
                                     style={{
-                                        width: 24, height: 24, borderRadius: "50%",
-                                        background: (isPaused || timeoutsB >= 3) ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.15)",
-                                        color: (isPaused || timeoutsB >= 3) ? "#555" : "#fff",
-                                        display: "flex", alignItems: "center", justifyContent: "center",
-                                        fontSize: 16, border: "none", cursor: (isPaused || timeoutsB >= 3) ? "not-allowed" : "pointer",
+                                        padding: "8px 16px",
+                                        borderRadius: 20,
+                                        background: (isPaused || timeoutsB >= 3) ? "rgba(255,255,255,0.05)" : "rgba(255,100,30,0.25)",
+                                        color: (isPaused || timeoutsB >= 3) ? "#555" : "#ff8040",
+                                        border: `1.5px solid ${(isPaused || timeoutsB >= 3) ? "rgba(255,255,255,0.08)" : "rgba(255,120,40,0.5)"}`,
+                                        fontSize: 12, fontWeight: 700, letterSpacing: 1,
+                                        cursor: (isPaused || timeoutsB >= 3) ? "not-allowed" : "pointer",
+                                        whiteSpace: "nowrap",
                                     }}
                                 >
-                                    +
+                                    TIMEOUT
                                 </button>
-                                )}
-                            </div>
+                            )}
                         </div>
                     </div>
 
@@ -872,7 +930,7 @@ function LiveGameContent({ gameId }) {
                                 </button>
                                 <button
                                     className="btn btn-primary"
-                                    onClick={() => {
+                                    onClick={async () => {
                                         setFirstHalfSnapshot({
                                             timeoutsA,
                                             timeoutsB,
@@ -888,6 +946,12 @@ function LiveGameContent({ gameId }) {
                                         setActionLog([]);
                                         setShowHalfConfirm(false);
                                         showToast("1st half completed. Now in 2nd half.", "success");
+                                        apiPut(`/api/games/${gameId}`, {
+                                            firstHalfCompleted: true,
+                                            currentHalf: "2nd",
+                                            halfOneScoreA: teamAScore,
+                                            halfOneScoreB: teamBScore,
+                                        }).catch(() => {});
                                     }}
                                 >
                                     Yes, Start 2nd Half
@@ -933,10 +997,10 @@ function LiveGameContent({ gameId }) {
                 {displayActionLog.length > 0 && (
                     <div style={{ width: "100%", marginTop: 15 }}>
                         <h6 style={{ fontSize: 14, marginBottom: 8, color: "#b0b0b0", fontFamily: "'DM Sans', sans-serif" }}>
-                            Recent Actions {isViewOnly ? "(1st Half)" : ""}
+                            Recent Actions ({displayActionLog.length}){isViewOnly ? " — 1st Half" : ""}
                         </h6>
                         <div style={{ maxHeight: 220, overflowY: "auto" }}>
-                            {displayActionLog.slice(0, 10).map((log, i) => {
+                            {displayActionLog.map((log, i) => {
                                 const d = log.data || {};
                                 const typeColors = {
                                     Completion: { bg: "rgba(34,197,94,0.15)", color: "#22c55e" },

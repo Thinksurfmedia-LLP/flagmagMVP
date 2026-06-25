@@ -9,7 +9,7 @@ const PlaySchema = new mongoose.Schema(
         },
         type: {
             type: String,
-            enum: ["completion", "incomplete", "interception", "fumble", "sack", "run"],
+            enum: ["completion", "incomplete", "interception", "fumble", "sack", "run", "timeout"],
             required: true,
         },
         activeTeam: {
@@ -45,4 +45,5 @@ const PlaySchema = new mongoose.Schema(
 PlaySchema.index({ game: 1 });
 PlaySchema.index({ game: 1, type: 1 });
 
-export default mongoose.models.Play || mongoose.model("Play", PlaySchema);
+if (mongoose.models.Play) mongoose.deleteModel("Play");
+export default mongoose.model("Play", PlaySchema);

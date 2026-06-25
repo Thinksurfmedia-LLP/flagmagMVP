@@ -73,21 +73,25 @@ export default function InterceptionPage({ game, activeTeam, roster, onSave, onC
                 <div className="form-area" style={{ width: "100%", padding: "10px 0" }}>
                     <div className="form-group">
                         <input
-                            type="text"
+                            type="tel"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             className="form-control"
                             placeholder="Passer Number*"
                             value={passer}
-                            onChange={(e) => setPasser(e.target.value)}
+                            onChange={(e) => setPasser(e.target.value.replace(/\D/g, ""))}
                         />
                         <PlayerNumberWarning valid={validatePlayerNumber(passer, activeRoster).valid} playerNumber={passer} label="passer" />
                     </div>
                     <div className="form-group">
                         <input
-                            type="text"
+                            type="tel"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             className="form-control"
                             placeholder="Defender Number*"
                             value={defender}
-                            onChange={(e) => setDefender(e.target.value)}
+                            onChange={(e) => setDefender(e.target.value.replace(/\D/g, ""))}
                         />
                         <PlayerNumberWarning valid={validatePlayerNumber(defender, otherRoster).valid} playerNumber={defender} label="defender" />
                     </div>
@@ -120,11 +124,13 @@ export default function InterceptionPage({ game, activeTeam, roster, onSave, onC
                     <h6 style={{ margin: 0, fontSize: 14, marginBottom: 15 }}>Flag Pull</h6>
                     <div className="form-group" style={{ marginBottom: 0 }}>
                         <input
-                            type="text"
+                            type="tel"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             className="form-control"
                             placeholder="Flag Pull*"
                             value={flagPull}
-                            onChange={(e) => setFlagPull(e.target.value)}
+                            onChange={(e) => setFlagPull(e.target.value.replace(/\D/g, ""))}
                             disabled={points !== null}
                             style={{ backgroundColor: points !== null ? "rgba(0,0,0,0.2)" : "#2b2726" }}
                         />
