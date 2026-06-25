@@ -997,7 +997,7 @@ function LiveGameContent({ gameId }) {
                 {displayActionLog.length > 0 && (
                     <div style={{ width: "100%", marginTop: 15 }}>
                         <h6 style={{ fontSize: 14, marginBottom: 8, color: "#b0b0b0", fontFamily: "'DM Sans', sans-serif" }}>
-                            Recent Actions ({displayActionLog.length}){isViewOnly ? " — 1st Half" : ""}
+                            Recent Actions ({displayActionLog.length}){(firstHalfCompleted || isGameFinished) ? ` — ${viewingHalf} Half` : ""}
                         </h6>
                         <div style={{ maxHeight: 220, overflowY: "auto" }}>
                             {displayActionLog.map((log, i) => {
