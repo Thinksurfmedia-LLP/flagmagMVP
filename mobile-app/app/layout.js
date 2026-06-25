@@ -3,15 +3,21 @@ import "./globals.css";
 export const metadata = {
     title: "FlagMag App",
     description: "FlagMag - Mobile Stats Recorder for Flag Football",
-    viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
     icons: {
         icon: "/assets/images/favicon.png",
     },
 };
 
+export const viewport = {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+};
+
 export default function RootLayout({ children }) {
     return (
-        <html lang="en">
+        <html lang="en" data-scroll-behavior="smooth">
             <head>
                 <meta name="theme-color" content="#0B0D14" />
                 <meta name="apple-mobile-web-app-capable" content="yes" />

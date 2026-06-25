@@ -1,10 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiGet, apiPut } from "../lib/api";
 import { formatTimePDT, formatDatePST } from "../lib/timeUtils";
+
+function useGameCountdown(date, time) {
+    const [msLeft, setMsLeft] = useState(null);
+
+    useEffect(() => {
+        if (!date || !time) return;
+        const [hStr, mStr] = time.split(":");
+        const h = parseInt(hStr, 10);
+        const m = parseInt(mStr, 10);
+        if (isNaN(h) || isNaN(m)) return;
+        // game.time is PDT (UTC-7); convert to UTC ms from midnight UTC of game.date
+        const gameStartMs = new Date(date).getTime() + (h + 7) * 3600000 + m * 60000;
+        const tick = () => setMsLeft(gameStartMs - Date.now());
+        tick();
+        const id = setInterval(tick, 1000);
+        return () => clearInterval(id);
+    }, [date, time]);
+
+    return msLeft;
+}
+
+function formatCountdown(ms) {
+    if (ms === null) return null;
+    if (ms <= 0) return "Starting soon";
+    const s = Math.floor(ms / 1000);
+    const days = Math.floor(s / 86400);
+    const hours = Math.floor((s % 86400) / 3600);
+    const mins = Math.floor((s % 3600) / 60);
+    const secs = s % 60;
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${mins}m`;
+    return `${mins}m ${secs}s`;
+}
 
 function isPlaceholderTeamName(name) {
     if (!name || !String(name).trim()) return true;
@@ -26,6 +59,8 @@ export default function MatchCard({ game, onStart }) {
     const [startError, setStartError] = useState("");
     const [starting, setStarting] = useState(false);
     const router = useRouter();
+    const msLeft = useGameCountdown(game.date, game.time);
+    const countdown = game.status === "upcoming" ? formatCountdown(msLeft) : null;
     const formatDate = (dateStr) => formatDatePST(dateStr);
     const formatTime = (timeStr) => formatTimePDT(timeStr);
     const needsTeamEdit =
@@ -165,6 +200,11 @@ export default function MatchCard({ game, onStart }) {
                         <li>
                             Time – <span>{formatDate(game.date)}{game.time ? `, ${formatTime(game.time)}` : ""}</span>
                         </li>
+                        {countdown && (
+                            <li>
+                                Starts In – <span className="countdown-timer">{countdown}</span>
+                            </li>
+                        )}
                         <li>
                             Location – <span>{game.location || "TBD"}</span>
                         </li>

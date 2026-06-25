@@ -1,0 +1,5754 @@
+[
+  {
+    "_id": "69d0bd9b80313eff138f781e",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "09:00",
+    "teamA": {
+      "name": "Roughriders 8u",
+      "logo": "/api/uploads/1775236657098-7o6p8e.jpeg",
+      "score": 31
+    },
+    "teamB": {
+      "name": "Golden Eagles 8u",
+      "logo": "/api/uploads/1775236587510-sb8s6f.jpg",
+      "score": 0
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:27.853Z",
+    "updatedAt": "2026-05-28T11:24:49.225Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bd9c80313eff138f7821",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "09:00",
+    "teamA": {
+      "name": "Powerhouse 12u",
+      "logo": "/api/uploads/1775236287325-bkexlt.jpeg",
+      "score": 19
+    },
+    "teamB": {
+      "name": "Hawkeyes 12u",
+      "logo": "/api/uploads/1775236148588-nw9325.jpeg",
+      "score": 27
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:28.150Z",
+    "updatedAt": "2026-05-28T11:24:49.526Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bd9c80313eff138f7824",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "10:00",
+    "teamA": {
+      "name": "Lil Rascals 8u",
+      "logo": "/api/uploads/1775236610144-wcc285.jpeg",
+      "score": 8
+    },
+    "teamB": {
+      "name": "Nightcrawlers 8u",
+      "logo": "/api/uploads/1775236241305-z4fhf2.jpeg",
+      "score": 19
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:28.446Z",
+    "updatedAt": "2026-05-28T11:24:49.818Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bd9c80313eff138f7827",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "10:00",
+    "teamA": {
+      "name": "Crimson Eclipse 12u",
+      "logo": "/api/uploads/1775236114302-dh3de9.jpeg",
+      "score": 6
+    },
+    "teamB": {
+      "name": "Scallywags 12u",
+      "logo": "/api/uploads/1775236386238-6t22dh.jpeg",
+      "score": 33
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:28.742Z",
+    "updatedAt": "2026-05-28T11:24:50.109Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bd9d80313eff138f782a",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "11:00",
+    "teamA": {
+      "name": "Hot Shotz 8u",
+      "logo": "/api/uploads/1775236178367-3x83om.jpeg",
+      "score": 6
+    },
+    "teamB": {
+      "name": "Nightcrawlers 8u",
+      "logo": "/api/uploads/1775236241305-z4fhf2.jpeg",
+      "score": 28
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:29.038Z",
+    "updatedAt": "2026-05-28T11:24:50.400Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bd9d80313eff138f782d",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "11:00",
+    "teamA": {
+      "name": "Crimson Eclipse 12u",
+      "logo": "/api/uploads/1775236114302-dh3de9.jpeg",
+      "score": 20
+    },
+    "teamB": {
+      "name": "Cardinals 12u",
+      "logo": "/api/uploads/1775278088375-ld5uj9.jpg",
+      "score": 27
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:29.334Z",
+    "updatedAt": "2026-05-28T11:24:50.692Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bd9d80313eff138f7830",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "12:00",
+    "teamA": {
+      "name": "Hot Shotz 8u",
+      "logo": "/api/uploads/1775236178367-3x83om.jpeg",
+      "score": 12
+    },
+    "teamB": {
+      "name": "Blue Heat 8u",
+      "logo": "/api/uploads/1775235837837-9p2k93.jpeg",
+      "score": 19
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:29.628Z",
+    "updatedAt": "2026-05-28T13:12:55.124Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bd9d80313eff138f7833",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "12:00",
+    "teamA": {
+      "name": "Zombies 12u",
+      "logo": "/api/uploads/1775236406225-2q4qmz.jpeg",
+      "score": 20
+    },
+    "teamB": {
+      "name": "Cardinals 12u",
+      "logo": "/api/uploads/1775278088375-ld5uj9.jpg",
+      "score": 28
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:29.923Z",
+    "updatedAt": "2026-05-28T11:24:51.276Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bd9e80313eff138f7836",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "13:00",
+    "teamA": {
+      "name": "Gridiron Goons 10u",
+      "logo": "/api/uploads/1775236134297-xribll.jpeg",
+      "score": 28
+    },
+    "teamB": {
+      "name": "Pick 6 Mafia 10u",
+      "logo": "/api/uploads/1775236626081-apcu5u.jpg",
+      "score": 26
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:30.218Z",
+    "updatedAt": "2026-05-28T11:24:51.567Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bd9e80313eff138f7839",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "13:00",
+    "teamA": {
+      "name": "Powerhouse 14u",
+      "logo": "/api/uploads/1775236306615-12bnr4.jpeg",
+      "score": 13
+    },
+    "teamB": {
+      "name": "Bone Collectors 14u",
+      "logo": "/api/uploads/1775236062666-wpkrsr.jpeg",
+      "score": 19
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:30.513Z",
+    "updatedAt": "2026-05-28T11:24:51.859Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bd9e80313eff138f783c",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "14:00",
+    "teamA": {
+      "name": "Mayhem 10u",
+      "logo": "/api/uploads/1775236226360-70450y.jpeg",
+      "score": 0
+    },
+    "teamB": {
+      "name": "Scallywags 10u",
+      "logo": "/api/uploads/1775236364327-uib47e.jpeg",
+      "score": 32
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:30.809Z",
+    "updatedAt": "2026-05-28T13:12:54.973Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bd9f80313eff138f783f",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "14:00",
+    "teamA": {
+      "name": "Powerhouse 14u",
+      "logo": "/api/uploads/1775236306615-12bnr4.jpeg",
+      "score": 25
+    },
+    "teamB": {
+      "name": "Zombies 14u",
+      "logo": "/api/uploads/1775236421813-90u7pc.jpeg",
+      "score": 16
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:31.104Z",
+    "updatedAt": "2026-05-28T11:24:52.442Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bd9f80313eff138f7842",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "15:00",
+    "teamA": {
+      "name": "Renegades 10u",
+      "logo": "/api/uploads/1775236329728-8ti06l.jpeg",
+      "score": 32
+    },
+    "teamB": {
+      "name": "Pick 6 Mafia 10u",
+      "logo": "/api/uploads/1775236626081-apcu5u.jpg",
+      "score": 0
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:31.400Z",
+    "updatedAt": "2026-05-28T13:12:55.285Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bd9f80313eff138f7845",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "15:00",
+    "teamA": {
+      "name": "Bolts 14u",
+      "logo": "/api/uploads/1775236047480-6fw9n7.jpeg",
+      "score": 6
+    },
+    "teamB": {
+      "name": "Zombies 14u",
+      "logo": "/api/uploads/1775236421813-90u7pc.jpeg",
+      "score": 36
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:31.695Z",
+    "updatedAt": "2026-05-28T11:24:53.024Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bd9f80313eff138f7848",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-04T00:00:00.000Z",
+    "time": "16:00",
+    "teamA": {
+      "name": "Renegades 10u",
+      "logo": "/api/uploads/1775236329728-8ti06l.jpeg",
+      "score": 14
+    },
+    "teamB": {
+      "name": "Mayhem 10u",
+      "logo": "/api/uploads/1775236226360-70450y.jpeg",
+      "score": 6
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:31.991Z",
+    "updatedAt": "2026-05-28T11:24:53.315Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda080313eff138f784b",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-11T00:00:00.000Z",
+    "time": "09:00",
+    "teamA": {
+      "name": "Nightcrawlers 8u",
+      "logo": "/api/uploads/1775236241305-z4fhf2.jpeg",
+      "score": 26
+    },
+    "teamB": {
+      "name": "Blue Heat 8u",
+      "logo": "/api/uploads/1775235837837-9p2k93.jpeg",
+      "score": 19
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:32.286Z",
+    "updatedAt": "2026-05-28T13:12:55.430Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda080313eff138f784e",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-11T00:00:00.000Z",
+    "time": "09:00",
+    "teamA": {
+      "name": "Cardinals 12u",
+      "logo": "/api/uploads/1775278088375-ld5uj9.jpg",
+      "score": 20
+    },
+    "teamB": {
+      "name": "Crimson Eclipse 12u",
+      "logo": "/api/uploads/1775236114302-dh3de9.jpeg",
+      "score": 7
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:32.582Z",
+    "updatedAt": "2026-05-28T11:14:23.524Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda080313eff138f7851",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-11T00:00:00.000Z",
+    "time": "10:00",
+    "teamA": {
+      "name": "Roughriders 8u",
+      "logo": "/api/uploads/1775236657098-7o6p8e.jpeg",
+      "score": 33
+    },
+    "teamB": {
+      "name": "Lil Rascals 8u",
+      "logo": "/api/uploads/1775236610144-wcc285.jpeg",
+      "score": 0
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:32.877Z",
+    "updatedAt": "2026-05-28T13:12:55.574Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda180313eff138f7854",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-11T00:00:00.000Z",
+    "time": "10:00",
+    "teamA": {
+      "name": "Hawkeyes 12u",
+      "logo": "/api/uploads/1775236148588-nw9325.jpeg",
+      "score": 14
+    },
+    "teamB": {
+      "name": "Crimson Eclipse 12u",
+      "logo": "/api/uploads/1775236114302-dh3de9.jpeg",
+      "score": 27
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:33.173Z",
+    "updatedAt": "2026-05-28T11:14:23.825Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda180313eff138f7857",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-11T00:00:00.000Z",
+    "time": "11:00",
+    "teamA": {
+      "name": "Golden Eagles 8u",
+      "logo": "/api/uploads/1775236587510-sb8s6f.jpg",
+      "score": 14
+    },
+    "teamB": {
+      "name": "Lil Rascals 8u",
+      "logo": "/api/uploads/1775236610144-wcc285.jpeg",
+      "score": 20
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:33.468Z",
+    "updatedAt": "2026-05-28T13:12:55.876Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda180313eff138f785a",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-11T00:00:00.000Z",
+    "time": "11:00",
+    "teamA": {
+      "name": "Hawkeyes 12u",
+      "logo": "/api/uploads/1775236148588-nw9325.jpeg",
+      "score": 14
+    },
+    "teamB": {
+      "name": "Scallywags 12u",
+      "logo": "/api/uploads/1775236386238-6t22dh.jpeg",
+      "score": 39
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:33.763Z",
+    "updatedAt": "2026-05-28T13:12:55.728Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda280313eff138f785d",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-11T00:00:00.000Z",
+    "time": "12:00",
+    "teamA": {
+      "name": "Golden Eagles 8u",
+      "logo": "/api/uploads/1775236587510-sb8s6f.jpg",
+      "score": 7
+    },
+    "teamB": {
+      "name": "Hot Shotz 8u",
+      "logo": "/api/uploads/1775236178367-3x83om.jpeg",
+      "score": 6
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:34.057Z",
+    "updatedAt": "2026-05-28T11:14:24.274Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda280313eff138f7860",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-11T00:00:00.000Z",
+    "time": "13:00",
+    "teamA": {
+      "name": "Scallywags 10u",
+      "logo": "/api/uploads/1775236364327-uib47e.jpeg",
+      "score": 20
+    },
+    "teamB": {
+      "name": "Gridiron Goons 10u",
+      "logo": "/api/uploads/1775236134297-xribll.jpeg",
+      "score": 0
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:34.353Z",
+    "updatedAt": "2026-05-28T11:14:24.424Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda280313eff138f7863",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-11T00:00:00.000Z",
+    "time": "14:00",
+    "teamA": {
+      "name": "Scallywags 10u",
+      "logo": "/api/uploads/1775236364327-uib47e.jpeg",
+      "score": 39
+    },
+    "teamB": {
+      "name": "Pick 6 Mafia 10u",
+      "logo": "/api/uploads/1775236626081-apcu5u.jpg",
+      "score": 6
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:34.649Z",
+    "updatedAt": "2026-05-28T11:14:24.574Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda280313eff138f7866",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-11T00:00:00.000Z",
+    "time": "15:00",
+    "teamA": {
+      "name": "Renegades 10u",
+      "logo": "/api/uploads/1775236329728-8ti06l.jpeg",
+      "score": 22
+    },
+    "teamB": {
+      "name": "Pick 6 Mafia 10u",
+      "logo": "/api/uploads/1775236626081-apcu5u.jpg",
+      "score": 6
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:34.943Z",
+    "updatedAt": "2026-05-28T11:14:24.724Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda380313eff138f7869",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-04-11T00:00:00.000Z",
+    "time": "16:00",
+    "teamA": {
+      "name": "Zombies 14u",
+      "logo": "/api/uploads/1775236421813-90u7pc.jpeg",
+      "score": 24
+    },
+    "teamB": {
+      "name": "Bolts 14u",
+      "logo": "/api/uploads/1775236047480-6fw9n7.jpeg",
+      "score": 43
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:35.249Z",
+    "updatedAt": "2026-05-28T13:12:56.017Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda380313eff138f786c",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "09:00",
+    "teamA": {
+      "name": "Nightcrawlers 8u",
+      "logo": "/api/uploads/1775236241305-z4fhf2.jpeg",
+      "score": 27
+    },
+    "teamB": {
+      "name": "Hot Shotz 8u",
+      "logo": "/api/uploads/1775236178367-3x83om.jpeg",
+      "score": 13
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:35.543Z",
+    "updatedAt": "2026-05-28T11:14:25.023Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda380313eff138f786f",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "09:00",
+    "teamA": {
+      "name": "Crimson Eclipse 12u",
+      "logo": "/api/uploads/1775236114302-dh3de9.jpeg",
+      "score": 22
+    },
+    "teamB": {
+      "name": "Hawkeyes 12u",
+      "logo": "/api/uploads/1775236148588-nw9325.jpeg",
+      "score": 19
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:35.838Z",
+    "updatedAt": "2026-05-28T11:14:25.173Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda480313eff138f7872",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "10:00",
+    "teamA": {
+      "name": "Golden Eagles 8u",
+      "logo": "/api/uploads/1775236587510-sb8s6f.jpg",
+      "score": 26
+    },
+    "teamB": {
+      "name": "Hot Shotz 8u",
+      "logo": "/api/uploads/1775236178367-3x83om.jpeg",
+      "score": 13
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:36.134Z",
+    "updatedAt": "2026-05-28T11:14:25.323Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda480313eff138f7875",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "10:00",
+    "teamA": {
+      "name": "Scallywags 12u",
+      "logo": "/api/uploads/1775236386238-6t22dh.jpeg",
+      "score": 41
+    },
+    "teamB": {
+      "name": "Hawkeyes 12u",
+      "logo": "/api/uploads/1775236148588-nw9325.jpeg",
+      "score": 14
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:36.429Z",
+    "updatedAt": "2026-05-28T11:14:25.474Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda480313eff138f7878",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "11:00",
+    "teamA": {
+      "name": "Golden Eagles 8u",
+      "logo": "/api/uploads/1775236587510-sb8s6f.jpg",
+      "score": 20
+    },
+    "teamB": {
+      "name": "Lil Rascals 8u",
+      "logo": "/api/uploads/1775236610144-wcc285.jpeg",
+      "score": 6
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:36.724Z",
+    "updatedAt": "2026-05-28T11:14:25.624Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda580313eff138f787b",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "11:00",
+    "teamA": {
+      "name": "Scallywags 12u",
+      "logo": "/api/uploads/1775236386238-6t22dh.jpeg",
+      "score": 24
+    },
+    "teamB": {
+      "name": "Zombies 12u",
+      "logo": "/api/uploads/1775236406225-2q4qmz.jpeg",
+      "score": 6
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:37.019Z",
+    "updatedAt": "2026-05-28T11:14:25.774Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda580313eff138f787e",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "12:00",
+    "teamA": {
+      "name": "Blue Heat 8u",
+      "logo": "/api/uploads/1775235837837-9p2k93.jpeg",
+      "score": 12
+    },
+    "teamB": {
+      "name": "Roughriders 8u",
+      "logo": "/api/uploads/1775236657098-7o6p8e.jpeg",
+      "score": 41
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:37.313Z",
+    "updatedAt": "2026-05-28T13:12:56.183Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda580313eff138f7881",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "12:00",
+    "teamA": {
+      "name": "Powerhouse 12u",
+      "logo": "/api/uploads/1775236287325-bkexlt.jpeg",
+      "score": 19
+    },
+    "teamB": {
+      "name": "Zombies 12u",
+      "logo": "/api/uploads/1775236406225-2q4qmz.jpeg",
+      "score": 32
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:37.608Z",
+    "updatedAt": "2026-05-28T11:14:26.073Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda580313eff138f7884",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "13:00",
+    "teamA": {
+      "name": "Pick 6 Mafia 10u",
+      "logo": "/api/uploads/1775236626081-apcu5u.jpg",
+      "score": 12
+    },
+    "teamB": {
+      "name": "Scallywags 10u",
+      "logo": "/api/uploads/1775236364327-uib47e.jpeg",
+      "score": 38
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:37.903Z",
+    "updatedAt": "2026-05-28T13:12:56.338Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda680313eff138f7887",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "13:00",
+    "teamA": {
+      "name": "Powerhouse 12u",
+      "logo": "/api/uploads/1775236287325-bkexlt.jpeg",
+      "score": 34
+    },
+    "teamB": {
+      "name": "Cardinals 12u",
+      "logo": "/api/uploads/1775278088375-ld5uj9.jpg",
+      "score": 35
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:38.199Z",
+    "updatedAt": "2026-05-28T13:12:56.478Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda680313eff138f788a",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "14:00",
+    "teamA": {
+      "name": "Gridiron Goons 10u",
+      "logo": "/api/uploads/1775236134297-xribll.jpeg",
+      "score": 21
+    },
+    "teamB": {
+      "name": "Scallywags 10u",
+      "logo": "/api/uploads/1775236364327-uib47e.jpeg",
+      "score": 33
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:38.494Z",
+    "updatedAt": "2026-05-28T11:14:26.522Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda680313eff138f788d",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "14:00",
+    "teamA": {
+      "name": "Powerhouse 14u",
+      "logo": "/api/uploads/1775236306615-12bnr4.jpeg",
+      "score": 13
+    },
+    "teamB": {
+      "name": "Bolts 14u",
+      "logo": "/api/uploads/1775236047480-6fw9n7.jpeg",
+      "score": 14
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:38.789Z",
+    "updatedAt": "2026-05-28T11:14:26.672Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda780313eff138f7890",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "15:00",
+    "teamA": {
+      "name": "Gridiron Goons 10u",
+      "logo": "/api/uploads/1775236134297-xribll.jpeg",
+      "score": 26
+    },
+    "teamB": {
+      "name": "Mayhem 10u",
+      "logo": "/api/uploads/1775236226360-70450y.jpeg",
+      "score": 0
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:39.085Z",
+    "updatedAt": "2026-05-28T11:14:26.822Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda780313eff138f7893",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "15:00",
+    "teamA": {
+      "name": "Zombies 14u",
+      "logo": "/api/uploads/1775236421813-90u7pc.jpeg",
+      "score": 19
+    },
+    "teamB": {
+      "name": "Bone Collectors 14u",
+      "logo": "/api/uploads/1775236062666-wpkrsr.jpeg",
+      "score": 27
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:39.380Z",
+    "updatedAt": "2026-05-28T11:14:26.972Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda780313eff138f7896",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-04-18T00:00:00.000Z",
+    "time": "16:00",
+    "teamA": {
+      "name": "Bolts 14u",
+      "logo": "/api/uploads/1775236047480-6fw9n7.jpeg",
+      "score": 49
+    },
+    "teamB": {
+      "name": "Bone Collectors 14u",
+      "logo": "/api/uploads/1775236062666-wpkrsr.jpeg",
+      "score": 7
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:39.676Z",
+    "updatedAt": "2026-05-28T11:14:27.121Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda780313eff138f7899",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "09:00",
+    "teamA": {
+      "name": "Lil Rascals 8u",
+      "logo": "/api/uploads/1775236610144-wcc285.jpeg",
+      "score": 14
+    },
+    "teamB": {
+      "name": "Hot Shotz 8u",
+      "logo": "/api/uploads/1775236178367-3x83om.jpeg",
+      "score": 20
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:39.972Z",
+    "updatedAt": "2026-05-28T11:14:27.271Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda880313eff138f789c",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "09:00",
+    "teamA": {
+      "name": "Zombies 12u",
+      "logo": "/api/uploads/1775236406225-2q4qmz.jpeg",
+      "score": 13
+    },
+    "teamB": {
+      "name": "Hawkeyes 12u",
+      "logo": "/api/uploads/1775236148588-nw9325.jpeg",
+      "score": 12
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:40.266Z",
+    "updatedAt": "2026-05-28T11:14:27.420Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda880313eff138f789f",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "10:00",
+    "teamA": {
+      "name": "Blue Heat 8u",
+      "logo": "/api/uploads/1775235837837-9p2k93.jpeg",
+      "score": 18
+    },
+    "teamB": {
+      "name": "Golden Eagles 8u",
+      "logo": "/api/uploads/1775236587510-sb8s6f.jpg",
+      "score": 27
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:40.561Z",
+    "updatedAt": "2026-05-28T11:14:27.570Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda880313eff138f78a2",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "10:00",
+    "teamA": {
+      "name": "Scallywags 12u",
+      "logo": "/api/uploads/1775236386238-6t22dh.jpeg",
+      "score": 47
+    },
+    "teamB": {
+      "name": "Cardinals 12u",
+      "logo": "/api/uploads/1775278088375-ld5uj9.jpg",
+      "score": 35
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:40.856Z",
+    "updatedAt": "2026-05-28T11:14:27.720Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda980313eff138f78a5",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "11:00",
+    "teamA": {
+      "name": "Blue Heat 8u",
+      "logo": "/api/uploads/1775235837837-9p2k93.jpeg",
+      "score": 6
+    },
+    "teamB": {
+      "name": "Roughriders 8u",
+      "logo": "/api/uploads/1775236657098-7o6p8e.jpeg",
+      "score": 38
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:41.151Z",
+    "updatedAt": "2026-05-28T11:14:27.872Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda980313eff138f78a8",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "11:00",
+    "teamA": {
+      "name": "Powerhouse 12u",
+      "logo": "/api/uploads/1775236287325-bkexlt.jpeg",
+      "score": 34
+    },
+    "teamB": {
+      "name": "Cardinals 12u",
+      "logo": "/api/uploads/1775278088375-ld5uj9.jpg",
+      "score": 29
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:41.446Z",
+    "updatedAt": "2026-05-28T11:14:28.021Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bda980313eff138f78ab",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "12:00",
+    "teamA": {
+      "name": "Nightcrawlers 8u",
+      "logo": "/api/uploads/1775236241305-z4fhf2.jpeg",
+      "score": 20
+    },
+    "teamB": {
+      "name": "Roughriders 8u",
+      "logo": "/api/uploads/1775236657098-7o6p8e.jpeg",
+      "score": 14
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:41.742Z",
+    "updatedAt": "2026-05-28T11:14:28.171Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bdaa80313eff138f78ae",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "12:00",
+    "teamA": {
+      "name": "Powerhouse 12u",
+      "logo": "/api/uploads/1775236287325-bkexlt.jpeg",
+      "score": 34
+    },
+    "teamB": {
+      "name": "Crimson Eclipse 12u",
+      "logo": "/api/uploads/1775236114302-dh3de9.jpeg",
+      "score": 18
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:42.037Z",
+    "updatedAt": "2026-05-28T11:14:28.321Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bdaa80313eff138f78b1",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "13:00",
+    "teamA": {
+      "name": "Renegades 10u",
+      "logo": "/api/uploads/1775236329728-8ti06l.jpeg",
+      "score": 7
+    },
+    "teamB": {
+      "name": "Scallywags 10u",
+      "logo": "/api/uploads/1775236364327-uib47e.jpeg",
+      "score": 14
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:42.332Z",
+    "updatedAt": "2026-05-28T13:12:56.622Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bdaa80313eff138f78b4",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-05-08T00:00:00.000Z",
+    "time": "17:00",
+    "teamA": {
+      "name": "Bone Collectors 14u",
+      "logo": "/api/uploads/1775236062666-wpkrsr.jpeg",
+      "score": 27
+    },
+    "teamB": {
+      "name": "Powerhouse 14u",
+      "logo": "/api/uploads/1775236306615-12bnr4.jpeg",
+      "score": 13
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:42.627Z",
+    "updatedAt": "2026-05-28T11:14:28.621Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bdaa80313eff138f78b7",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "14:00",
+    "teamA": {
+      "name": "Renegades 10u",
+      "logo": "/api/uploads/1775236329728-8ti06l.jpeg",
+      "score": 6
+    },
+    "teamB": {
+      "name": "Gridiron Goons 10u",
+      "logo": "/api/uploads/1775236134297-xribll.jpeg",
+      "score": 12
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:42.922Z",
+    "updatedAt": "2026-05-28T11:14:28.770Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bdab80313eff138f78ba",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-05-08T00:00:00.000Z",
+    "time": "18:00",
+    "teamA": {
+      "name": "Bone Collectors 14u",
+      "logo": "/api/uploads/1775236062666-wpkrsr.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Bolts 14u",
+      "logo": "/api/uploads/1775236047480-6fw9n7.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "upcoming",
+    "createdAt": "2026-04-04T07:28:43.219Z",
+    "updatedAt": "2026-05-28T11:13:46.103Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bdab80313eff138f78bd",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "15:00",
+    "teamA": {
+      "name": "Mayhem 10u",
+      "logo": "/api/uploads/1775236226360-70450y.jpeg",
+      "score": 12
+    },
+    "teamB": {
+      "name": "Gridiron Goons 10u",
+      "logo": "/api/uploads/1775236134297-xribll.jpeg",
+      "score": 27
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:43.514Z",
+    "updatedAt": "2026-05-28T11:14:28.920Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bdab80313eff138f78c0",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "13:00",
+    "teamA": {
+      "name": "Zombies 14u",
+      "logo": "/api/uploads/1775236421813-90u7pc.jpeg",
+      "score": 30
+    },
+    "teamB": {
+      "name": "Bolts 14u",
+      "logo": "/api/uploads/1775236047480-6fw9n7.jpeg",
+      "score": 0
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:43.809Z",
+    "updatedAt": "2026-05-28T11:14:29.070Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69d0bdac80313eff138f78c3",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-04-25T00:00:00.000Z",
+    "time": "16:00",
+    "teamA": {
+      "name": "Mayhem 10u",
+      "logo": "/api/uploads/1775236226360-70450y.jpeg",
+      "score": 6
+    },
+    "teamB": {
+      "name": "Pick 6 Mafia 10u",
+      "logo": "/api/uploads/1775236626081-apcu5u.jpg",
+      "score": 13
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-04T07:28:44.104Z",
+    "updatedAt": "2026-05-28T11:14:29.220Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de17f3b2b80b2f1f375f56",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-05-02T00:00:00.000Z",
+    "time": "09:00",
+    "teamA": {
+      "name": "Hot Shotz 8u",
+      "logo": "/api/uploads/1775236178367-3x83om.jpeg",
+      "score": 7
+    },
+    "teamB": {
+      "name": "Roughriders 8u",
+      "logo": "/api/uploads/1775236657098-7o6p8e.jpeg",
+      "score": 19
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:33:23.586Z",
+    "updatedAt": "2026-05-28T11:14:29.369Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de17f3b2b80b2f1f375f59",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-05-02T00:00:00.000Z",
+    "time": "09:00",
+    "teamA": {
+      "name": "Hawkeyes 12u",
+      "logo": "/api/uploads/1775236148588-nw9325.jpeg",
+      "score": 12
+    },
+    "teamB": {
+      "name": "Cardinals 12u",
+      "logo": "/api/uploads/1775278088375-ld5uj9.jpg",
+      "score": 39
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:33:23.894Z",
+    "updatedAt": "2026-05-28T11:14:29.518Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de17f4b2b80b2f1f375f5c",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-05-02T00:00:00.000Z",
+    "time": "10:00",
+    "teamA": {
+      "name": "Lil Rascals 8u",
+      "logo": "/api/uploads/1775236610144-wcc285.jpeg",
+      "score": 24
+    },
+    "teamB": {
+      "name": "Blue Heat 8u",
+      "logo": "/api/uploads/1775235837837-9p2k93.jpeg",
+      "score": 37
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:33:24.190Z",
+    "updatedAt": "2026-05-28T11:14:29.668Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de17f4b2b80b2f1f375f5f",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-05-02T00:00:00.000Z",
+    "time": "10:00",
+    "teamA": {
+      "name": "Powerhouse 12u",
+      "logo": "/api/uploads/1775236287325-bkexlt.jpeg",
+      "score": 12
+    },
+    "teamB": {
+      "name": "Scallywags 12u",
+      "logo": "/api/uploads/1775236386238-6t22dh.jpeg",
+      "score": 33
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:33:24.486Z",
+    "updatedAt": "2026-05-28T11:14:29.818Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de17f4b2b80b2f1f375f62",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-05-02T00:00:00.000Z",
+    "time": "11:00",
+    "teamA": {
+      "name": "Nightcrawlers 8u",
+      "logo": "/api/uploads/1775236241305-z4fhf2.jpeg",
+      "score": 45
+    },
+    "teamB": {
+      "name": "Blue Heat 8u",
+      "logo": "/api/uploads/1775235837837-9p2k93.jpeg",
+      "score": 7
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:33:24.784Z",
+    "updatedAt": "2026-05-28T11:14:29.967Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de17f5b2b80b2f1f375f65",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-05-02T00:00:00.000Z",
+    "time": "11:00",
+    "teamA": {
+      "name": "Powerhouse 12u",
+      "logo": "/api/uploads/1775236287325-bkexlt.jpeg",
+      "score": 14
+    },
+    "teamB": {
+      "name": "Zombies 12u",
+      "logo": "/api/uploads/1775236406225-2q4qmz.jpeg",
+      "score": 20
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:33:25.080Z",
+    "updatedAt": "2026-05-28T11:14:30.117Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de17f5b2b80b2f1f375f68",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-05-02T00:00:00.000Z",
+    "time": "12:00",
+    "teamA": {
+      "name": "Nightcrawlers 8u",
+      "logo": "/api/uploads/1775236241305-z4fhf2.jpeg",
+      "score": 19
+    },
+    "teamB": {
+      "name": "Golden Eagles 8u",
+      "logo": "/api/uploads/1775236587510-sb8s6f.jpg",
+      "score": 0
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:33:25.376Z",
+    "updatedAt": "2026-05-28T11:14:30.267Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de17f5b2b80b2f1f375f6b",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-05-02T00:00:00.000Z",
+    "time": "12:00",
+    "teamA": {
+      "name": "Crimson Eclipse 12u",
+      "logo": "/api/uploads/1775236114302-dh3de9.jpeg",
+      "score": 6
+    },
+    "teamB": {
+      "name": "Zombies 12u",
+      "logo": "/api/uploads/1775236406225-2q4qmz.jpeg",
+      "score": 12
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:33:25.675Z",
+    "updatedAt": "2026-05-28T11:14:30.416Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de17f5b2b80b2f1f375f6e",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-05-02T00:00:00.000Z",
+    "time": "13:00",
+    "teamA": {
+      "name": "Scallywags 10u",
+      "logo": "/api/uploads/1775236364327-uib47e.jpeg",
+      "score": 40
+    },
+    "teamB": {
+      "name": "Mayhem 10u",
+      "logo": "/api/uploads/1775236226360-70450y.jpeg",
+      "score": 0
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:33:25.972Z",
+    "updatedAt": "2026-05-28T11:14:30.566Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de17f6b2b80b2f1f375f71",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-05-02T00:00:00.000Z",
+    "time": "13:00",
+    "teamA": {
+      "name": "Powerhouse 14u",
+      "logo": "/api/uploads/1775236306615-12bnr4.jpeg",
+      "score": 27
+    },
+    "teamB": {
+      "name": "Zombies 14u",
+      "logo": "/api/uploads/1775236421813-90u7pc.jpeg",
+      "score": 38
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:33:26.269Z",
+    "updatedAt": "2026-05-28T11:14:30.715Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de17f6b2b80b2f1f375f74",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-05-02T00:00:00.000Z",
+    "time": "14:00",
+    "teamA": {
+      "name": "Pick 6 Mafia 10u",
+      "logo": "/api/uploads/1775236626081-apcu5u.jpg",
+      "score": 12
+    },
+    "teamB": {
+      "name": "Mayhem 10u",
+      "logo": "/api/uploads/1775236226360-70450y.jpeg",
+      "score": 0
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:33:26.566Z",
+    "updatedAt": "2026-05-28T11:14:30.865Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de17f6b2b80b2f1f375f77",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-05-02T00:00:00.000Z",
+    "time": "14:00",
+    "teamA": {
+      "name": "Powerhouse 14u",
+      "logo": "/api/uploads/1775236306615-12bnr4.jpeg",
+      "score": 14
+    },
+    "teamB": {
+      "name": "Bone Collectors 14u",
+      "logo": "/api/uploads/1775236062666-wpkrsr.jpeg",
+      "score": 27
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:33:26.865Z",
+    "updatedAt": "2026-05-28T11:14:31.014Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de17f7b2b80b2f1f375f7a",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-05-02T00:00:00.000Z",
+    "time": "15:00",
+    "teamA": {
+      "name": "Renegades 10u",
+      "logo": "/api/uploads/1775236329728-8ti06l.jpeg",
+      "score": 34
+    },
+    "teamB": {
+      "name": "Gridiron Goons 10u",
+      "logo": "/api/uploads/1775236134297-xribll.jpeg",
+      "score": 8
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:33:27.161Z",
+    "updatedAt": "2026-05-28T11:14:31.164Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de17f7b2b80b2f1f375f7d",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-05-02T00:00:00.000Z",
+    "time": "15:00",
+    "teamA": {
+      "name": "Bolts 14u",
+      "logo": "/api/uploads/1775236047480-6fw9n7.jpeg",
+      "score": 24
+    },
+    "teamB": {
+      "name": "Bone Collectors 14u",
+      "logo": "/api/uploads/1775236062666-wpkrsr.jpeg",
+      "score": 6
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:33:27.458Z",
+    "updatedAt": "2026-05-28T11:14:31.313Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de1c28b2b80b2f1f375f89",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-05-09T00:00:00.000Z",
+    "time": "09:00",
+    "teamA": {
+      "name": "Blue Heat 8u",
+      "logo": "/api/uploads/1775235837837-9p2k93.jpeg",
+      "score": 14
+    },
+    "teamB": {
+      "name": "Hot Shotz 8u",
+      "logo": "/api/uploads/1775236178367-3x83om.jpeg",
+      "score": 24
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:51:20.022Z",
+    "updatedAt": "2026-05-28T13:12:56.902Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de1c28b2b80b2f1f375f8c",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-05-09T00:00:00.000Z",
+    "time": "09:00",
+    "teamA": {
+      "name": "Cardinals 12u",
+      "logo": "/api/uploads/1775278088375-ld5uj9.jpg",
+      "score": 38
+    },
+    "teamB": {
+      "name": "Zombies 12u",
+      "logo": "/api/uploads/1775236406225-2q4qmz.jpeg",
+      "score": 39
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:51:20.326Z",
+    "updatedAt": "2026-05-28T11:14:31.612Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de1c28b2b80b2f1f375f8f",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-05-09T00:00:00.000Z",
+    "time": "10:00",
+    "teamA": {
+      "name": "Roughriders 8u",
+      "logo": "/api/uploads/1775236657098-7o6p8e.jpeg",
+      "score": 20
+    },
+    "teamB": {
+      "name": "Golden Eagles 8u",
+      "logo": "/api/uploads/1775236587510-sb8s6f.jpg",
+      "score": 0
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:51:20.619Z",
+    "updatedAt": "2026-05-28T11:14:31.761Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de1c28b2b80b2f1f375f92",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-05-09T00:00:00.000Z",
+    "time": "10:00",
+    "teamA": {
+      "name": "Scallywags 12u",
+      "logo": "/api/uploads/1775236386238-6t22dh.jpeg",
+      "score": 42
+    },
+    "teamB": {
+      "name": "Zombies 12u",
+      "logo": "/api/uploads/1775236406225-2q4qmz.jpeg",
+      "score": 20
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:51:20.912Z",
+    "updatedAt": "2026-05-28T11:14:31.911Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de1c29b2b80b2f1f375f95",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-05-09T00:00:00.000Z",
+    "time": "11:00",
+    "teamA": {
+      "name": "Roughriders 8u",
+      "logo": "/api/uploads/1775236657098-7o6p8e.jpeg",
+      "score": 26
+    },
+    "teamB": {
+      "name": "Lil Rascals 8u",
+      "logo": "/api/uploads/1775236610144-wcc285.jpeg",
+      "score": 7
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:51:21.205Z",
+    "updatedAt": "2026-05-28T11:14:32.061Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de1c29b2b80b2f1f375f98",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-05-09T00:00:00.000Z",
+    "time": "11:00",
+    "teamA": {
+      "name": "Scallywags 12u",
+      "logo": "/api/uploads/1775236386238-6t22dh.jpeg",
+      "score": 33
+    },
+    "teamB": {
+      "name": "Crimson Eclipse 12u",
+      "logo": "/api/uploads/1775236114302-dh3de9.jpeg",
+      "score": 20
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:51:21.498Z",
+    "updatedAt": "2026-05-28T11:14:32.211Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de1c29b2b80b2f1f375f9b",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-05-09T00:00:00.000Z",
+    "time": "12:00",
+    "teamA": {
+      "name": "Nightcrawlers 8u",
+      "logo": "/api/uploads/1775236241305-z4fhf2.jpeg",
+      "score": 14
+    },
+    "teamB": {
+      "name": "Lil Rascals 8u",
+      "logo": "/api/uploads/1775236610144-wcc285.jpeg",
+      "score": 7
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:51:21.791Z",
+    "updatedAt": "2026-05-28T11:14:32.360Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de1c2ab2b80b2f1f375f9e",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-05-09T00:00:00.000Z",
+    "time": "12:00",
+    "teamA": {
+      "name": "Hawkeyes 12u",
+      "logo": "/api/uploads/1775236148588-nw9325.jpeg",
+      "score": 22
+    },
+    "teamB": {
+      "name": "Powerhouse 12u",
+      "logo": "/api/uploads/1775236287325-bkexlt.jpeg",
+      "score": 38
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:51:22.085Z",
+    "updatedAt": "2026-05-28T11:14:32.514Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de1c2ab2b80b2f1f375fa1",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-05-09T00:00:00.000Z",
+    "time": "13:00",
+    "teamA": {
+      "name": "Pick 6 Mafia 10u",
+      "logo": "/api/uploads/1775236626081-apcu5u.jpg",
+      "score": 6
+    },
+    "teamB": {
+      "name": "Gridiron Goons 10u",
+      "logo": "/api/uploads/1775236134297-xribll.jpeg",
+      "score": 13
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:51:22.377Z",
+    "updatedAt": "2026-05-28T11:14:32.663Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de1c2ab2b80b2f1f375fa4",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-05-09T00:00:00.000Z",
+    "time": "16:00",
+    "teamA": {
+      "name": "Bolts 14u",
+      "logo": "/api/uploads/1775236047480-6fw9n7.jpeg",
+      "score": 46
+    },
+    "teamB": {
+      "name": "Powerhouse 14u",
+      "logo": "/api/uploads/1775236306615-12bnr4.jpeg",
+      "score": 22
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:51:22.671Z",
+    "updatedAt": "2026-05-28T11:14:32.813Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de1c2ab2b80b2f1f375fa7",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-05-09T00:00:00.000Z",
+    "time": "14:00",
+    "teamA": {
+      "name": "Renegades 10u",
+      "logo": "/api/uploads/1775236329728-8ti06l.jpeg",
+      "score": 0
+    },
+    "teamB": {
+      "name": "Scallywags 10u",
+      "logo": "/api/uploads/1775236364327-uib47e.jpeg",
+      "score": 21
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:51:22.964Z",
+    "updatedAt": "2026-05-28T11:14:32.963Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de1c2bb2b80b2f1f375faa",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-05-09T00:00:00.000Z",
+    "time": "17:00",
+    "teamA": {
+      "name": "Zombies 14u",
+      "logo": "/api/uploads/1775236421813-90u7pc.jpeg",
+      "score": 7
+    },
+    "teamB": {
+      "name": "Powerhouse 14u",
+      "logo": "/api/uploads/1775236306615-12bnr4.jpeg",
+      "score": 21
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:51:23.258Z",
+    "updatedAt": "2026-05-28T11:14:33.113Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de1c2bb2b80b2f1f375fad",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-05-09T00:00:00.000Z",
+    "time": "15:00",
+    "teamA": {
+      "name": "Renegades 10u",
+      "logo": "/api/uploads/1775236329728-8ti06l.jpeg",
+      "score": 19
+    },
+    "teamB": {
+      "name": "Mayhem 10u",
+      "logo": "/api/uploads/1775236226360-70450y.jpeg",
+      "score": 7
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:51:23.551Z",
+    "updatedAt": "2026-05-28T11:14:33.263Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69de1c2bb2b80b2f1f375fb0",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-05-10T00:00:00.000Z",
+    "time": "09:00",
+    "teamA": {
+      "name": "Zombies 14u",
+      "logo": "/api/uploads/1775236421813-90u7pc.jpeg",
+      "score": 34
+    },
+    "teamB": {
+      "name": "Bone Collectors 14u",
+      "logo": "/api/uploads/1775236062666-wpkrsr.jpeg",
+      "score": 21
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-04-14T10:51:23.844Z",
+    "updatedAt": "2026-05-28T11:14:33.412Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69f5af6de7729de62249692d",
+    "league": "69f581e3e7729de622495fd9",
+    "date": "2026-05-03T00:00:00.000Z",
+    "time": "09:40",
+    "teamA": {
+      "name": "Trojans",
+      "logo": "/api/uploads/1777776242198-xqifr5.jpeg",
+      "score": 0
+    },
+    "teamB": {
+      "name": "Dragons",
+      "logo": "/api/uploads/1777776213958-3zcy1x.jpeg",
+      "score": 8
+    },
+    "location": "Beverly Field",
+    "status": "completed",
+    "createdAt": "2026-05-02T08:01:49.977Z",
+    "updatedAt": "2026-05-09T19:27:38.730Z",
+    "__v": 0
+  },
+  {
+    "_id": "69f5af6ee7729de622496930",
+    "league": "69f581e3e7729de622495fd9",
+    "date": "2026-05-03T00:00:00.000Z",
+    "time": "10:25",
+    "teamA": {
+      "name": "Trojans",
+      "logo": "/api/uploads/1777776242198-xqifr5.jpeg",
+      "score": 18
+    },
+    "teamB": {
+      "name": "Crusaders",
+      "logo": "/api/uploads/1777776264034-op8uwo.jpeg",
+      "score": 0
+    },
+    "location": "Beverly Field",
+    "status": "completed",
+    "createdAt": "2026-05-02T08:01:50.288Z",
+    "updatedAt": "2026-05-09T19:45:40.279Z",
+    "__v": 0
+  },
+  {
+    "_id": "69f5af6fe7729de622496939",
+    "league": "69f581e3e7729de622495fd9",
+    "date": "2026-05-17T00:00:00.000Z",
+    "time": "09:40",
+    "teamA": {
+      "name": "Crusaders",
+      "logo": "",
+      "score": 6
+    },
+    "teamB": {
+      "name": "Trojans",
+      "logo": "",
+      "score": 26
+    },
+    "location": "Beverly Field",
+    "status": "completed",
+    "createdAt": "2026-05-02T08:01:51.192Z",
+    "updatedAt": "2026-05-17T14:22:24.708Z",
+    "__v": 0
+  },
+  {
+    "_id": "69f5af6fe7729de62249693c",
+    "league": "69f581e3e7729de622495fd9",
+    "date": "2026-05-17T00:00:00.000Z",
+    "time": "10:25",
+    "teamA": {
+      "name": "Crusaders",
+      "logo": "",
+      "score": 16
+    },
+    "teamB": {
+      "name": "Dragons",
+      "logo": "",
+      "score": 20
+    },
+    "location": "Beverly Field",
+    "status": "completed",
+    "createdAt": "2026-05-02T08:01:51.493Z",
+    "updatedAt": "2026-05-17T15:13:47.496Z",
+    "__v": 0
+  },
+  {
+    "_id": "69f5af6fe7729de62249693f",
+    "league": "69f581e3e7729de622495fd9",
+    "date": "2026-05-24T00:00:00.000Z",
+    "time": "09:40",
+    "teamA": {
+      "name": "Trojans",
+      "logo": "",
+      "score": 44
+    },
+    "teamB": {
+      "name": "Dragons",
+      "logo": "",
+      "score": 0
+    },
+    "location": "Beverly Field",
+    "status": "completed",
+    "createdAt": "2026-05-02T08:01:51.794Z",
+    "updatedAt": "2026-05-28T11:14:33.562Z",
+    "__v": 0
+  },
+  {
+    "_id": "69f5af70e7729de622496942",
+    "league": "69f581e3e7729de622495fd9",
+    "date": "2026-05-24T00:00:00.000Z",
+    "time": "10:25",
+    "teamA": {
+      "name": "Trojans",
+      "logo": "",
+      "score": 45
+    },
+    "teamB": {
+      "name": "Crusaders",
+      "logo": "",
+      "score": 0
+    },
+    "location": "Beverly Field",
+    "status": "completed",
+    "createdAt": "2026-05-02T08:01:52.096Z",
+    "updatedAt": "2026-05-28T11:14:33.712Z",
+    "__v": 0
+  },
+  {
+    "_id": "69f5af70e7729de622496945",
+    "league": "69f581e3e7729de622495fd9",
+    "date": "2026-05-31T00:00:00.000Z",
+    "time": "09:40",
+    "teamA": {
+      "name": "Dragons",
+      "logo": "",
+      "score": 20
+    },
+    "teamB": {
+      "name": "Crusaders",
+      "logo": "",
+      "score": 14
+    },
+    "location": "Beverly Field",
+    "status": "completed",
+    "createdAt": "2026-05-02T08:01:52.396Z",
+    "updatedAt": "2026-05-31T14:28:24.947Z",
+    "__v": 0
+  },
+  {
+    "_id": "69f5af70e7729de622496948",
+    "league": "69f581e3e7729de622495fd9",
+    "date": "2026-05-31T00:00:00.000Z",
+    "time": "10:25",
+    "teamA": {
+      "name": "Dragons",
+      "logo": "",
+      "score": 8
+    },
+    "teamB": {
+      "name": "Trojans",
+      "logo": "",
+      "score": 6
+    },
+    "location": "Beverly Field",
+    "status": "completed",
+    "createdAt": "2026-05-02T08:01:52.697Z",
+    "updatedAt": "2026-05-31T15:20:34.849Z",
+    "__v": 0
+  },
+  {
+    "_id": "69f5af70e7729de62249694b",
+    "league": "69f581e3e7729de622495fd9",
+    "date": "2026-06-07T00:00:00.000Z",
+    "time": "09:40",
+    "teamA": {
+      "name": "Crusaders",
+      "logo": "",
+      "score": 28
+    },
+    "teamB": {
+      "name": "Trojans",
+      "logo": "",
+      "score": 16
+    },
+    "location": "Beverly Field",
+    "status": "completed",
+    "createdAt": "2026-05-02T08:01:52.997Z",
+    "updatedAt": "2026-06-07T14:22:46.739Z",
+    "__v": 0
+  },
+  {
+    "_id": "69f5af71e7729de62249694e",
+    "league": "69f581e3e7729de622495fd9",
+    "date": "2026-06-07T00:00:00.000Z",
+    "time": "10:25",
+    "teamA": {
+      "name": "Crusaders",
+      "logo": "",
+      "score": 12
+    },
+    "teamB": {
+      "name": "Dragons",
+      "logo": "",
+      "score": 26
+    },
+    "location": "Beverly Field",
+    "status": "completed",
+    "createdAt": "2026-05-02T08:01:53.298Z",
+    "updatedAt": "2026-06-07T15:11:22.586Z",
+    "__v": 0
+  },
+  {
+    "_id": "69f64ab7e7729de62249715e",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-05-09T00:00:00.000Z",
+    "time": "12:03",
+    "teamA": {
+      "name": "Gridiron Goons 10u",
+      "logo": "/api/uploads/1775236134297-xribll.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Mayhem 10u",
+      "logo": "/api/uploads/1775236226360-70450y.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "cancelled",
+    "createdAt": "2026-05-02T19:04:23.057Z",
+    "updatedAt": "2026-05-28T11:13:23.702Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69fe861e0817e06c03656823",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-05-08T00:00:00.000Z",
+    "time": "18:00",
+    "teamA": {
+      "name": "Bone Collectors 14u",
+      "logo": "/api/uploads/1775236062666-wpkrsr.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Bolts 14u",
+      "logo": "/api/uploads/1775236047480-6fw9n7.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-05-09T00:55:58.143Z",
+    "updatedAt": "2026-05-28T11:13:46.250Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "69fe868e0817e06c03656869",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-05-09T00:00:00.000Z",
+    "time": "08:00",
+    "teamA": {
+      "name": "Bone Collectors 14u",
+      "logo": "/api/uploads/1775236062666-wpkrsr.jpeg",
+      "score": 46
+    },
+    "teamB": {
+      "name": "Bolts 14u",
+      "logo": "/api/uploads/1775236047480-6fw9n7.jpeg",
+      "score": 32
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-05-09T00:57:50.860Z",
+    "updatedAt": "2026-05-28T13:12:56.761Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "6a052f600817e06c03660d8d",
+    "league": "69f581e3e7729de622495fd9",
+    "date": "2026-05-10T00:00:00.000Z",
+    "time": "09:40",
+    "teamA": {
+      "name": "Dragons",
+      "logo": "/api/uploads/1777776213958-3zcy1x.jpeg",
+      "score": 30
+    },
+    "teamB": {
+      "name": "Crusaders",
+      "logo": "/api/uploads/1777776264034-op8uwo.jpeg",
+      "score": 6
+    },
+    "location": "Beverly Field",
+    "status": "completed",
+    "createdAt": "2026-05-14T02:11:44.844Z",
+    "updatedAt": "2026-05-20T16:15:11.176Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a052f870817e06c03660d94",
+    "league": "69f581e3e7729de622495fd9",
+    "date": "2026-05-10T00:00:00.000Z",
+    "time": "10:25",
+    "teamA": {
+      "name": "Dragons",
+      "logo": "/api/uploads/1777776213958-3zcy1x.jpeg",
+      "score": 12
+    },
+    "teamB": {
+      "name": "Trojans",
+      "logo": "/api/uploads/1777776242198-xqifr5.jpeg",
+      "score": 6
+    },
+    "location": "Beverly Field",
+    "status": "completed",
+    "createdAt": "2026-05-14T02:12:23.031Z",
+    "updatedAt": "2026-05-20T16:15:43.445Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a086ad9d4704adc02fe23cd",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-05-16T00:00:00.000Z",
+    "time": "09:00",
+    "teamA": {
+      "name": "Blue Heat 8u",
+      "logo": "/api/uploads/1775235837837-9p2k93.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Hot Shotz 8u",
+      "logo": "/api/uploads/1775236178367-3x83om.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-05-16T13:02:17.335Z",
+    "updatedAt": "2026-05-28T11:12:34.558Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "6a086e9ed4704adc02fe2479",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-05-16T00:00:00.000Z",
+    "time": "09:00",
+    "teamA": {
+      "name": "Crimson Eclipse 12u",
+      "logo": "/api/uploads/1775236114302-dh3de9.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Powerhouse 12u",
+      "logo": "/api/uploads/1775236287325-bkexlt.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "upcoming",
+    "createdAt": "2026-05-16T13:18:22.921Z",
+    "updatedAt": "2026-05-28T11:13:00.918Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "6a086f13d4704adc02fe2493",
+    "league": "69cf3539268fc7ba310d2936",
+    "date": "2026-05-16T00:00:00.000Z",
+    "time": "10:00",
+    "teamA": {
+      "name": "Lil Rascals 8u",
+      "logo": "/api/uploads/1775236610144-wcc285.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Golden Eagles 8u",
+      "logo": "/api/uploads/1775236587510-sb8s6f.jpg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-05-16T13:20:19.837Z",
+    "updatedAt": "2026-05-28T11:12:34.706Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "6a086f4ad4704adc02fe24ad",
+    "league": "69cf3578268fc7ba310d2956",
+    "date": "2026-05-16T00:00:00.000Z",
+    "time": "10:00",
+    "teamA": {
+      "name": "Hawkeyes 12u",
+      "logo": "/api/uploads/1775236148588-nw9325.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Zombies 12u",
+      "logo": "/api/uploads/1775236406225-2q4qmz.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "upcoming",
+    "createdAt": "2026-05-16T13:21:14.186Z",
+    "updatedAt": "2026-05-28T11:13:01.064Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "6a087256d4704adc02fe24d4",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-05-16T00:00:00.000Z",
+    "time": "13:00",
+    "teamA": {
+      "name": "Mayhem 10u",
+      "logo": "/api/uploads/1775236226360-70450y.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Pick 6 Mafia 10u",
+      "logo": "/api/uploads/1775236626081-apcu5u.jpg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-05-16T13:34:14.906Z",
+    "updatedAt": "2026-05-28T11:13:23.849Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "6a08727cd4704adc02fe24ee",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-05-16T00:00:00.000Z",
+    "time": "13:00",
+    "teamA": {
+      "name": "Powerhouse 14u",
+      "logo": "/api/uploads/1775236306615-12bnr4.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Bolts 14u",
+      "logo": "/api/uploads/1775236047480-6fw9n7.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "upcoming",
+    "createdAt": "2026-05-16T13:34:52.690Z",
+    "updatedAt": "2026-05-28T11:13:46.987Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "6a0872a8d4704adc02fe2508",
+    "league": "69cf359b268fc7ba310d2966",
+    "date": "2026-05-16T00:00:00.000Z",
+    "time": "14:00",
+    "teamA": {
+      "name": "Zombies 14u",
+      "logo": "/api/uploads/1775236421813-90u7pc.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Bone Collectors 14u",
+      "logo": "/api/uploads/1775236062666-wpkrsr.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "upcoming",
+    "createdAt": "2026-05-16T13:35:36.260Z",
+    "updatedAt": "2026-05-28T11:13:47.134Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "6a0872cbd4704adc02fe2521",
+    "league": "69cf355a268fc7ba310d2946",
+    "date": "2026-05-16T00:00:00.000Z",
+    "time": "15:00",
+    "teamA": {
+      "name": "Gridiron Goons 10u",
+      "logo": "/api/uploads/1775236134297-xribll.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Renegades 10u",
+      "logo": "/api/uploads/1775236329728-8ti06l.jpeg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "createdAt": "2026-05-16T13:36:11.726Z",
+    "updatedAt": "2026-05-28T11:13:23.996Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "6a17fe7dd4704adc02fe9ad0",
+    "league": "6a17fd12d4704adc02fe99e0",
+    "date": "2026-05-28T00:00:00.000Z",
+    "time": "17:10",
+    "teamA": {
+      "name": "Champs",
+      "logo": "",
+      "score": null
+    },
+    "teamB": {
+      "name": "Challenger",
+      "logo": "/api/uploads/1780508473484-qxjos4.jpg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "in_progress",
+    "createdAt": "2026-05-28T08:36:13.905Z",
+    "updatedAt": "2026-06-18T10:26:27.795Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "6a17fec3d4704adc02fe9b1c",
+    "league": "6a17fd12d4704adc02fe99e0",
+    "date": "2026-05-29T00:00:00.000Z",
+    "time": "16:10",
+    "teamA": {
+      "name": "Champs",
+      "logo": "",
+      "score": null
+    },
+    "teamB": {
+      "name": "Challenger",
+      "logo": "/api/uploads/1780508473484-qxjos4.jpg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "createdAt": "2026-05-28T08:37:23.319Z",
+    "updatedAt": "2026-06-18T10:26:27.853Z",
+    "__v": 0,
+    "gameType": "main"
+  },
+  {
+    "_id": "6a1990ec2a5786f17814801c",
+    "league": "6a17fd12d4704adc02fe99e0",
+    "date": "2026-05-29T00:00:00.000Z",
+    "time": "19:00",
+    "teamA": {
+      "name": "Champs",
+      "logo": "",
+      "score": null
+    },
+    "teamB": {
+      "name": "Challenger",
+      "logo": "/api/uploads/1780508473484-qxjos4.jpg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-05-29T13:13:16.065Z",
+    "updatedAt": "2026-06-18T10:26:27.892Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a19e0102a5786f17814828c",
+    "league": "6a17fd12d4704adc02fe99e0",
+    "date": "2026-05-30T00:00:00.000Z",
+    "time": "00:20",
+    "teamA": {
+      "name": "Champs",
+      "logo": "",
+      "score": null
+    },
+    "teamB": {
+      "name": "Challenger",
+      "logo": "/api/uploads/1780508473484-qxjos4.jpg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-05-29T18:50:56.665Z",
+    "updatedAt": "2026-06-18T10:26:27.930Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1d47c92a5786f1781486b0",
+    "league": "6a17fd12d4704adc02fe99e0",
+    "date": "2026-06-01T00:00:00.000Z",
+    "time": "15:20",
+    "teamA": {
+      "name": "Champs",
+      "logo": "",
+      "score": null
+    },
+    "teamB": {
+      "name": "Challenger",
+      "logo": "/api/uploads/1780508473484-qxjos4.jpg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-01T08:50:17.695Z",
+    "updatedAt": "2026-06-18T10:26:27.969Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1d51d32a5786f178148735",
+    "league": "6a17fd12d4704adc02fe99e0",
+    "date": "2026-06-01T00:00:00.000Z",
+    "time": "15:03",
+    "teamA": {
+      "name": "Champs",
+      "logo": "",
+      "score": null
+    },
+    "teamB": {
+      "name": "Challenger",
+      "logo": "/api/uploads/1780508473484-qxjos4.jpg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-01T09:33:07.883Z",
+    "updatedAt": "2026-06-18T10:26:28.006Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1d53622a5786f1781487da",
+    "league": "6a17fd12d4704adc02fe99e0",
+    "date": "2026-06-01T00:00:00.000Z",
+    "time": "15:09",
+    "teamA": {
+      "name": "Champs",
+      "logo": "",
+      "score": null
+    },
+    "teamB": {
+      "name": "Challenger",
+      "logo": "/api/uploads/1780508473484-qxjos4.jpg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-01T09:39:46.026Z",
+    "updatedAt": "2026-06-18T10:26:28.044Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1d53f22a5786f178148863",
+    "league": "6a17fd12d4704adc02fe99e0",
+    "date": "2026-06-01T00:00:00.000Z",
+    "time": "15:12",
+    "teamA": {
+      "name": "Challenger",
+      "logo": "/api/uploads/1780508473484-qxjos4.jpg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Champs",
+      "logo": "",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-01T09:42:10.343Z",
+    "updatedAt": "2026-06-18T10:26:28.083Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1d59962a5786f178148906",
+    "league": "6a17fd12d4704adc02fe99e0",
+    "date": "2026-06-01T00:00:00.000Z",
+    "time": "15:36",
+    "teamA": {
+      "name": "Champs",
+      "logo": "",
+      "score": null
+    },
+    "teamB": {
+      "name": "Challenger",
+      "logo": "/api/uploads/1780508473484-qxjos4.jpg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-01T10:06:14.556Z",
+    "updatedAt": "2026-06-18T10:26:28.121Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1d92252a5786f178148ada",
+    "league": "6a17fd12d4704adc02fe99e0",
+    "date": "2026-06-01T00:00:00.000Z",
+    "time": "19:36",
+    "teamA": {
+      "name": "Champs",
+      "logo": "",
+      "score": null
+    },
+    "teamB": {
+      "name": "Challenger",
+      "logo": "/api/uploads/1780508473484-qxjos4.jpg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-01T14:07:33.800Z",
+    "updatedAt": "2026-06-18T10:26:28.159Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1dd1002a5786f178148d28",
+    "league": "6a17fd12d4704adc02fe99e0",
+    "date": "2026-06-02T00:00:00.000Z",
+    "time": "00:05",
+    "teamA": {
+      "name": "Champs",
+      "logo": "",
+      "score": null
+    },
+    "teamB": {
+      "name": "Challenger",
+      "logo": "/api/uploads/1780508473484-qxjos4.jpg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-01T18:35:44.972Z",
+    "updatedAt": "2026-06-18T10:26:28.197Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1e6d412a5786f178148de2",
+    "league": "6a17fd12d4704adc02fe99e0",
+    "date": "2026-06-11T00:00:00.000Z",
+    "time": "11:11",
+    "teamA": {
+      "name": "Champs",
+      "logo": "",
+      "score": null
+    },
+    "teamB": {
+      "name": "Challenger",
+      "logo": "/api/uploads/1780508473484-qxjos4.jpg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-02T05:42:25.384Z",
+    "updatedAt": "2026-06-18T10:26:28.324Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a1fb2732a5786f178149083",
+    "league": "6a17fd12d4704adc02fe99e0",
+    "date": "2026-06-04T00:00:00.000Z",
+    "time": "10:19",
+    "teamA": {
+      "name": "Champs",
+      "logo": "",
+      "score": 12
+    },
+    "teamB": {
+      "name": "Challenger",
+      "logo": "/api/uploads/1780508473484-qxjos4.jpg",
+      "score": 6
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-03T04:49:55.804Z",
+    "updatedAt": "2026-06-18T10:26:28.362Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2019992a5786f17814921c",
+    "league": "6a17fd12d4704adc02fe99e0",
+    "date": "2026-06-03T00:00:00.000Z",
+    "time": "17:39",
+    "teamA": {
+      "name": "Champs",
+      "logo": "",
+      "score": null
+    },
+    "teamB": {
+      "name": "Challenger",
+      "logo": "/api/uploads/1780508473484-qxjos4.jpg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "upcoming",
+    "gameType": "practice",
+    "createdAt": "2026-06-03T12:10:01.127Z",
+    "updatedAt": "2026-06-18T10:26:28.235Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2019e72a5786f178149238",
+    "league": "6a17fd12d4704adc02fe99e0",
+    "date": "2026-06-03T00:00:00.000Z",
+    "time": "17:40",
+    "teamA": {
+      "name": "Champs",
+      "logo": "",
+      "score": 3
+    },
+    "teamB": {
+      "name": "Challenger",
+      "logo": "/api/uploads/1780508473484-qxjos4.jpg",
+      "score": 2
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-03T12:11:19.180Z",
+    "updatedAt": "2026-06-18T10:26:28.273Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a297af25f5211d1bb47ec9c",
+    "league": "6a17fd12d4704adc02fe99e0",
+    "date": "2026-06-11T00:00:00.000Z",
+    "time": "08:24",
+    "teamA": {
+      "name": "Challenger",
+      "logo": "/api/uploads/1780508473484-qxjos4.jpg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Champs",
+      "logo": "",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-10T14:55:46.174Z",
+    "updatedAt": "2026-06-18T10:26:28.400Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2a59f25f5211d1bb47ee97",
+    "league": "6a17fd12d4704adc02fe99e0",
+    "date": "2026-06-12T00:00:00.000Z",
+    "time": "12:16",
+    "teamA": {
+      "name": "Challenger",
+      "logo": "/api/uploads/1780508473484-qxjos4.jpg",
+      "score": 7
+    },
+    "teamB": {
+      "name": "Champs",
+      "logo": "",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-11T06:47:14.670Z",
+    "updatedAt": "2026-06-18T10:26:28.438Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2a5bcb5f5211d1bb47ef43",
+    "league": "6a17fd12d4704adc02fe99e0",
+    "date": "2026-06-13T00:00:00.000Z",
+    "time": "12:24",
+    "teamA": {
+      "name": "Champs",
+      "logo": "",
+      "score": null
+    },
+    "teamB": {
+      "name": "Challenger",
+      "logo": "/api/uploads/1780508473484-qxjos4.jpg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "gameType": "practice",
+    "createdAt": "2026-06-11T06:55:07.482Z",
+    "updatedAt": "2026-06-18T10:26:28.474Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2a5c055f5211d1bb47ef5f",
+    "league": "6a17fd12d4704adc02fe99e0",
+    "date": "2026-06-13T00:00:00.000Z",
+    "time": "12:25",
+    "teamA": {
+      "name": "Champs",
+      "logo": "",
+      "score": null
+    },
+    "teamB": {
+      "name": "Challenger",
+      "logo": "/api/uploads/1780508473484-qxjos4.jpg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-11T06:56:05.453Z",
+    "updatedAt": "2026-06-18T10:26:28.513Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2a612f5f5211d1bb47f00f",
+    "league": "6a17fd12d4704adc02fe99e0",
+    "date": "2026-06-13T00:00:00.000Z",
+    "time": "13:47",
+    "teamA": {
+      "name": "Challenger",
+      "logo": "/api/uploads/1780508473484-qxjos4.jpg",
+      "score": 7
+    },
+    "teamB": {
+      "name": "Champs",
+      "logo": "",
+      "score": 8
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-11T07:18:07.104Z",
+    "updatedAt": "2026-06-18T10:26:28.564Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2a65df5f5211d1bb47f074",
+    "league": "6a17fd12d4704adc02fe99e0",
+    "date": "2026-06-13T00:00:00.000Z",
+    "time": "14:07",
+    "teamA": {
+      "name": "Champs",
+      "logo": "",
+      "score": 13
+    },
+    "teamB": {
+      "name": "Challenger",
+      "logo": "/api/uploads/1780508473484-qxjos4.jpg",
+      "score": 6
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-11T07:38:07.323Z",
+    "updatedAt": "2026-06-18T10:26:28.602Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2a68bd5f5211d1bb47f0e0",
+    "league": "6a17fd12d4704adc02fe99e0",
+    "date": "2026-06-13T00:00:00.000Z",
+    "time": "15:19",
+    "teamA": {
+      "name": "Champs",
+      "logo": "",
+      "score": 6
+    },
+    "teamB": {
+      "name": "Challenger",
+      "logo": "/api/uploads/1780508473484-qxjos4.jpg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 2",
+    "status": "cancelled",
+    "gameType": "main",
+    "createdAt": "2026-06-11T07:50:21.823Z",
+    "updatedAt": "2026-06-18T10:26:28.640Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2b6e355f5211d1bb4806cf",
+    "league": "6a23a71e5f5211d1bb47d0aa",
+    "date": "2026-06-13T00:00:00.000Z",
+    "time": "12:00",
+    "teamA": {
+      "name": "N&B",
+      "logo": "/api/uploads/1781222849443-ij63r4.jpeg",
+      "score": 54
+    },
+    "teamB": {
+      "name": "Pigskin Pirates",
+      "logo": "/api/uploads/1781223025180-rtm5se.jpeg",
+      "score": 35
+    },
+    "location": "North Park - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-12T02:25:57.536Z",
+    "updatedAt": "2026-06-24T08:51:08.166Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2b6e355f5211d1bb4806d1",
+    "league": "6a23a71e5f5211d1bb47d0aa",
+    "date": "2026-06-13T00:00:00.000Z",
+    "time": "12:50",
+    "teamA": {
+      "name": "N&B",
+      "logo": "/api/uploads/1781222849443-ij63r4.jpeg",
+      "score": 55
+    },
+    "teamB": {
+      "name": "Mambas",
+      "logo": "/api/uploads/1781222939074-lpq587.jpeg",
+      "score": 42
+    },
+    "location": "North Park - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-12T02:25:57.691Z",
+    "updatedAt": "2026-06-24T08:51:08.323Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2b6e355f5211d1bb4806d3",
+    "league": "6a23a71e5f5211d1bb47d0aa",
+    "date": "2026-06-13T00:00:00.000Z",
+    "time": "13:40",
+    "teamA": {
+      "name": "Scrubs",
+      "logo": "/api/uploads/1781231545140-hwvpuc.jpeg",
+      "score": 6
+    },
+    "teamB": {
+      "name": "SD Hounds",
+      "logo": "/api/uploads/1781222711154-zfgpve.jpeg",
+      "score": 42
+    },
+    "location": "North Park - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-12T02:25:57.843Z",
+    "updatedAt": "2026-06-24T08:51:08.472Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2b6e355f5211d1bb4806d5",
+    "league": "6a23a71e5f5211d1bb47d0aa",
+    "date": "2026-06-13T00:00:00.000Z",
+    "time": "14:30",
+    "teamA": {
+      "name": "Scrubs",
+      "logo": "/api/uploads/1781231545140-hwvpuc.jpeg",
+      "score": 24
+    },
+    "teamB": {
+      "name": "City Boyz",
+      "logo": "/api/uploads/1781223089098-oiga1v.jpeg",
+      "score": 32
+    },
+    "location": "North Park - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-12T02:25:57.996Z",
+    "updatedAt": "2026-06-24T08:51:08.621Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2b6e365f5211d1bb4806d7",
+    "league": "6a23a71e5f5211d1bb47d0aa",
+    "date": "2026-06-13T00:00:00.000Z",
+    "time": "12:00",
+    "teamA": {
+      "name": "Mambas",
+      "logo": "/api/uploads/1781222939074-lpq587.jpeg",
+      "score": 38
+    },
+    "teamB": {
+      "name": "ProJanky",
+      "logo": "/api/uploads/1781222983435-4lcf4t.jpeg",
+      "score": 41
+    },
+    "location": "North Park - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-12T02:25:58.149Z",
+    "updatedAt": "2026-06-24T08:51:08.771Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2b6e365f5211d1bb4806d9",
+    "league": "6a23a71e5f5211d1bb47d0aa",
+    "date": "2026-06-13T00:00:00.000Z",
+    "time": "12:50",
+    "teamA": {
+      "name": "Pigskin Pirates",
+      "logo": "/api/uploads/1781223025180-rtm5se.jpeg",
+      "score": 21
+    },
+    "teamB": {
+      "name": "ProJanky",
+      "logo": "/api/uploads/1781222983435-4lcf4t.jpeg",
+      "score": 51
+    },
+    "location": "North Park - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-12T02:25:58.311Z",
+    "updatedAt": "2026-06-24T08:51:08.924Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2b6e365f5211d1bb4806db",
+    "league": "6a23a71e5f5211d1bb47d0aa",
+    "date": "2026-06-13T00:00:00.000Z",
+    "time": "13:40",
+    "teamA": {
+      "name": "City Boyz",
+      "logo": "/api/uploads/1781223089098-oiga1v.jpeg",
+      "score": 20
+    },
+    "teamB": {
+      "name": "Hit N Run",
+      "logo": "/api/uploads/1781223134353-fx7dh5.png",
+      "score": 46
+    },
+    "location": "North Park - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-12T02:25:58.464Z",
+    "updatedAt": "2026-06-24T08:51:09.073Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2b6e365f5211d1bb4806dd",
+    "league": "6a23a71e5f5211d1bb47d0aa",
+    "date": "2026-06-13T00:00:00.000Z",
+    "time": "14:30",
+    "teamA": {
+      "name": "SD Hounds",
+      "logo": "/api/uploads/1781222711154-zfgpve.jpeg",
+      "score": 39
+    },
+    "teamB": {
+      "name": "Hit N Run",
+      "logo": "/api/uploads/1781223134353-fx7dh5.png",
+      "score": 45
+    },
+    "location": "North Park - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-12T02:25:58.626Z",
+    "updatedAt": "2026-06-24T08:51:09.223Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2b78405f5211d1bb480d61",
+    "league": "6a23a8655f5211d1bb47d13a",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "09:15",
+    "teamA": {
+      "name": "Rejects",
+      "logo": "/api/uploads/1781240206890-mywv0c.jpeg",
+      "score": 30
+    },
+    "teamB": {
+      "name": "All Gas No Brakes",
+      "logo": "/api/uploads/1781253038129-mcamqd.jpeg",
+      "score": 26
+    },
+    "location": "Irvine - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-12T03:08:48.574Z",
+    "updatedAt": "2026-06-21T03:47:17.576Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2b78405f5211d1bb480d65",
+    "league": "6a23a8655f5211d1bb47d13a",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "10:05",
+    "teamA": {
+      "name": "All Gas No Brakes",
+      "logo": "/api/uploads/1781253038129-mcamqd.jpeg",
+      "score": 44
+    },
+    "teamB": {
+      "name": "I Am Success",
+      "logo": "/api/uploads/1781239909145-j18cbj.jpeg",
+      "score": 14
+    },
+    "location": "Irvine - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-12T03:08:48.893Z",
+    "updatedAt": "2026-06-21T03:47:17.730Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2b78415f5211d1bb480d67",
+    "league": "6a23a8655f5211d1bb47d13a",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "10:05",
+    "teamA": {
+      "name": "OTC",
+      "logo": "/api/uploads/1781240147875-1oye5z.jpeg",
+      "score": 2
+    },
+    "teamB": {
+      "name": "Paper Boyz",
+      "logo": "/api/uploads/1781239790415-hxumn4.jpeg",
+      "score": 32
+    },
+    "location": "Irvine - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-12T03:08:49.047Z",
+    "updatedAt": "2026-06-21T03:47:17.877Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2b78415f5211d1bb480d6b",
+    "league": "6a23a8655f5211d1bb47d13a",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "10:55",
+    "teamA": {
+      "name": "Rejects",
+      "logo": "/api/uploads/1781240206890-mywv0c.jpeg",
+      "score": 12
+    },
+    "teamB": {
+      "name": "OTC",
+      "logo": "/api/uploads/1781240147875-1oye5z.jpeg",
+      "score": 24
+    },
+    "location": "Irvine - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-12T03:08:49.356Z",
+    "updatedAt": "2026-06-21T03:47:18.023Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2b78415f5211d1bb480d6d",
+    "league": "6a23a8655f5211d1bb47d13a",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "11:45",
+    "teamA": {
+      "name": "BringIt",
+      "logo": "/api/uploads/1781230838436-t00a2c.jpeg",
+      "score": 39
+    },
+    "teamB": {
+      "name": "Black Box",
+      "logo": "/api/uploads/1781240668221-oajy5v.jpeg",
+      "score": 38
+    },
+    "location": "Irvine - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-12T03:08:49.510Z",
+    "updatedAt": "2026-06-21T03:47:18.169Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2b78415f5211d1bb480d6f",
+    "league": "6a23a8655f5211d1bb47d13a",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "11:45",
+    "teamA": {
+      "name": "Mercury",
+      "logo": "/api/uploads/1781240080963-vdd8gk.jpeg",
+      "score": 24
+    },
+    "teamB": {
+      "name": "Ballerz",
+      "logo": "/api/uploads/1781239712545-ipc29e.jpeg",
+      "score": 27
+    },
+    "location": "Irvine - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-12T03:08:49.665Z",
+    "updatedAt": "2026-06-21T03:47:18.315Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2b78415f5211d1bb480d71",
+    "league": "6a23a8655f5211d1bb47d13a",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "12:35",
+    "teamA": {
+      "name": "Black Box",
+      "logo": "/api/uploads/1781240668221-oajy5v.jpeg",
+      "score": 35
+    },
+    "teamB": {
+      "name": "Mercury",
+      "logo": "/api/uploads/1781240080963-vdd8gk.jpeg",
+      "score": 12
+    },
+    "location": "Irvine - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-12T03:08:49.819Z",
+    "updatedAt": "2026-06-21T03:47:18.461Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2b78415f5211d1bb480d73",
+    "league": "6a23a8655f5211d1bb47d13a",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "12:35",
+    "teamA": {
+      "name": "BringIt",
+      "logo": "/api/uploads/1781230838436-t00a2c.jpeg",
+      "score": 36
+    },
+    "teamB": {
+      "name": "Ballerz",
+      "logo": "/api/uploads/1781239712545-ipc29e.jpeg",
+      "score": 43
+    },
+    "location": "Irvine - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-12T03:08:49.973Z",
+    "updatedAt": "2026-06-21T03:47:18.608Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d11935f5211d1bb484471",
+    "league": "6a2d06575f5211d1bb483f0b",
+    "date": "2026-06-19T00:00:00.000Z",
+    "time": "03:00",
+    "teamA": {
+      "name": "Blue Storm",
+      "logo": "/api/uploads/1781337055819-t7o84f.png",
+      "score": 7
+    },
+    "teamB": {
+      "name": "Red Hawks",
+      "logo": "/api/uploads/1781337014761-ilziwt.png",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-13T08:15:15.714Z",
+    "updatedAt": "2026-06-19T09:10:44.194Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d22795f5211d1bb484606",
+    "league": "6a2b4bc75f5211d1bb47f2b0",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "18:15",
+    "teamA": {
+      "name": "Knights",
+      "logo": "/api/uploads/1781330472094-24l025.jpeg",
+      "score": 20
+    },
+    "teamB": {
+      "name": "IE Raptors",
+      "logo": "",
+      "score": 38
+    },
+    "location": "Chino - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-13T09:27:21.718Z",
+    "updatedAt": "2026-06-15T02:48:22.433Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d227a5f5211d1bb48460c",
+    "league": "6a2b4bc75f5211d1bb47f2b0",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "19:05",
+    "teamA": {
+      "name": "Califas",
+      "logo": "/api/uploads/1781331276577-2du1fq.jpeg",
+      "score": 12
+    },
+    "teamB": {
+      "name": "Suspects",
+      "logo": "/api/uploads/1781331426475-5vzyhy.jpeg",
+      "score": 30
+    },
+    "location": "Chino - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-13T09:27:22.184Z",
+    "updatedAt": "2026-06-15T03:32:47.704Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d227a5f5211d1bb484610",
+    "league": "6a2b4bc75f5211d1bb47f2b0",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "19:05",
+    "teamA": {
+      "name": "2All Day",
+      "logo": "/api/uploads/1781331290484-jt3ch1.jpeg",
+      "score": 26
+    },
+    "teamB": {
+      "name": "Warfare",
+      "logo": "/api/uploads/1781331405240-nz67na.jpeg",
+      "score": 28
+    },
+    "location": "Chino - Field 3",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-13T09:27:22.487Z",
+    "updatedAt": "2026-06-15T03:35:30.036Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d227a5f5211d1bb484612",
+    "league": "6a2b4bc75f5211d1bb47f2b0",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "19:55",
+    "teamA": {
+      "name": "2 Legit 2 Quit",
+      "logo": "/api/uploads/1781331261453-0jqpe8.jpeg",
+      "score": 26
+    },
+    "teamB": {
+      "name": "Lets Go",
+      "logo": "/api/uploads/1781330489945-h5znx2.jpeg",
+      "score": 44
+    },
+    "location": "Chino - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-13T09:27:22.639Z",
+    "updatedAt": "2026-06-15T04:19:24.324Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d227a5f5211d1bb484614",
+    "league": "6a2b4bc75f5211d1bb47f2b0",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "19:55",
+    "teamA": {
+      "name": "MSD",
+      "logo": "/api/uploads/1781331344333-nf4ua2.jpeg",
+      "score": 18
+    },
+    "teamB": {
+      "name": "IE Raptors",
+      "logo": "",
+      "score": 16
+    },
+    "location": "Chino - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-13T09:27:22.790Z",
+    "updatedAt": "2026-06-15T03:32:48.953Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d227a5f5211d1bb484616",
+    "league": "6a2b4bc75f5211d1bb47f2b0",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "19:55",
+    "teamA": {
+      "name": "Warfare",
+      "logo": "/api/uploads/1781331405240-nz67na.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "2All Day",
+      "logo": "/api/uploads/1781331290484-jt3ch1.jpeg",
+      "score": null
+    },
+    "location": "Chino - Field 3",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-13T09:27:22.942Z",
+    "updatedAt": "2026-06-14T04:55:18.840Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d227b5f5211d1bb484618",
+    "league": "6a2b4bc75f5211d1bb47f2b0",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "20:45",
+    "teamA": {
+      "name": "2 Legit 2 Quit",
+      "logo": "/api/uploads/1781331261453-0jqpe8.jpeg",
+      "score": 22
+    },
+    "teamB": {
+      "name": "Califas",
+      "logo": "/api/uploads/1781331276577-2du1fq.jpeg",
+      "score": 33
+    },
+    "location": "Chino - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-13T09:27:23.094Z",
+    "updatedAt": "2026-06-15T05:05:20.537Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d227b5f5211d1bb48461a",
+    "league": "6a2b4bc75f5211d1bb47f2b0",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "20:45",
+    "teamA": {
+      "name": "Suspects",
+      "logo": "/api/uploads/1781331426475-5vzyhy.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Lets Go",
+      "logo": "/api/uploads/1781330489945-h5znx2.jpeg",
+      "score": null
+    },
+    "location": "Chino - Field 2",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-13T09:27:23.245Z",
+    "updatedAt": "2026-06-14T04:55:19.145Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d26455f5211d1bb4846a3",
+    "league": "6a23a7b35f5211d1bb47d0da",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "09:30",
+    "teamA": {
+      "name": "Mud Dogs",
+      "logo": "/api/uploads/1781239560144-2izrda.jpeg",
+      "score": 40
+    },
+    "teamB": {
+      "name": "The Boys",
+      "logo": "/api/uploads/1781229994481-p6q69u.jpeg",
+      "score": 26
+    },
+    "location": "Oceanside - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-13T09:43:33.557Z",
+    "updatedAt": "2026-06-24T08:39:41.045Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d26455f5211d1bb4846a5",
+    "league": "6a23a7b35f5211d1bb47d0da",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "09:30",
+    "teamA": {
+      "name": "SoCal Bolts",
+      "logo": "/api/uploads/1781239475528-fib9gp.jpeg",
+      "score": 72
+    },
+    "teamB": {
+      "name": "Mobb",
+      "logo": "/api/uploads/1781239111597-z9y691.jpeg",
+      "score": 34
+    },
+    "location": "Oceanside - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-13T09:43:33.718Z",
+    "updatedAt": "2026-06-24T08:39:41.202Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d26455f5211d1bb4846a7",
+    "league": "6a23a7b35f5211d1bb47d0da",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "10:20",
+    "teamA": {
+      "name": "Mud Dogs",
+      "logo": "/api/uploads/1781239560144-2izrda.jpeg",
+      "score": 20
+    },
+    "teamB": {
+      "name": "Go Getters",
+      "logo": "/api/uploads/1781239173924-cuxe5u.jpeg",
+      "score": 38
+    },
+    "location": "Oceanside - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-13T09:43:33.869Z",
+    "updatedAt": "2026-06-24T08:39:41.351Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d26465f5211d1bb4846a9",
+    "league": "6a23a7b35f5211d1bb47d0da",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "10:20",
+    "teamA": {
+      "name": "SoCal Bolts",
+      "logo": "/api/uploads/1781239475528-fib9gp.jpeg",
+      "score": 85
+    },
+    "teamB": {
+      "name": "Griffins",
+      "logo": "/api/uploads/1781239511542-oup1i8.jpeg",
+      "score": 70
+    },
+    "location": "Oceanside - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-13T09:43:34.020Z",
+    "updatedAt": "2026-06-24T08:39:41.500Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d26465f5211d1bb4846ab",
+    "league": "6a23a7b35f5211d1bb47d0da",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "11:10",
+    "teamA": {
+      "name": "Go Getters",
+      "logo": "/api/uploads/1781239173924-cuxe5u.jpeg",
+      "score": 52
+    },
+    "teamB": {
+      "name": "The Boys",
+      "logo": "/api/uploads/1781229994481-p6q69u.jpeg",
+      "score": 20
+    },
+    "location": "Oceanside - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-13T09:43:34.170Z",
+    "updatedAt": "2026-06-24T08:39:41.649Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d26465f5211d1bb4846ad",
+    "league": "6a23a7b35f5211d1bb47d0da",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "11:10",
+    "teamA": {
+      "name": "Mobb",
+      "logo": "/api/uploads/1781239111597-z9y691.jpeg",
+      "score": 24
+    },
+    "teamB": {
+      "name": "Griffins",
+      "logo": "/api/uploads/1781239511542-oup1i8.jpeg",
+      "score": 44
+    },
+    "location": "Oceanside - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-13T09:43:34.322Z",
+    "updatedAt": "2026-06-24T08:39:41.805Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d28065f5211d1bb484706",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "16:10",
+    "teamA": {
+      "name": "YME",
+      "logo": "/api/uploads/1781245773463-q42r3g.jpeg",
+      "score": 34
+    },
+    "teamB": {
+      "name": "Members Only",
+      "logo": "/api/uploads/1781245803788-kuhxeu.jpeg",
+      "score": 32
+    },
+    "location": "Poway - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-13T09:51:02.927Z",
+    "updatedAt": "2026-06-24T09:10:08.380Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d28075f5211d1bb484708",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "16:10",
+    "teamA": {
+      "name": "Rugrats",
+      "logo": "/api/uploads/1781223047627-ubgm25.jpeg",
+      "score": 50
+    },
+    "teamB": {
+      "name": "Snow Bears",
+      "logo": "/api/uploads/1781245844847-o8prkp.jpeg",
+      "score": 26
+    },
+    "location": "Poway - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-13T09:51:03.086Z",
+    "updatedAt": "2026-06-24T09:10:08.538Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d28075f5211d1bb48470a",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "17:00",
+    "teamA": {
+      "name": "YME",
+      "logo": "/api/uploads/1781245773463-q42r3g.jpeg",
+      "score": 22
+    },
+    "teamB": {
+      "name": "Rugrats",
+      "logo": "/api/uploads/1781223047627-ubgm25.jpeg",
+      "score": 31
+    },
+    "location": "Poway - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-13T09:51:03.237Z",
+    "updatedAt": "2026-06-24T09:10:08.688Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d28075f5211d1bb48470c",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "17:00",
+    "teamA": {
+      "name": "Members Only",
+      "logo": "/api/uploads/1781245803788-kuhxeu.jpeg",
+      "score": 46
+    },
+    "teamB": {
+      "name": "Snow Bears",
+      "logo": "/api/uploads/1781245844847-o8prkp.jpeg",
+      "score": 49
+    },
+    "location": "Poway - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-13T09:51:03.388Z",
+    "updatedAt": "2026-06-24T09:10:08.838Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d28075f5211d1bb48470e",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "17:50",
+    "teamA": {
+      "name": "DARKSIDE",
+      "logo": "/api/uploads/1781222587299-sngk9x.jpeg",
+      "score": 42
+    },
+    "teamB": {
+      "name": "Chozen 1nez",
+      "logo": "/api/uploads/1781245876052-tvgxmo.jpeg",
+      "score": 32
+    },
+    "location": "Poway - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-13T09:51:03.539Z",
+    "updatedAt": "2026-06-24T09:10:08.988Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d28075f5211d1bb484712",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "18:40",
+    "teamA": {
+      "name": "DARKSIDE",
+      "logo": "/api/uploads/1781222587299-sngk9x.jpeg",
+      "score": 60
+    },
+    "teamB": {
+      "name": "Death Watch",
+      "logo": "/api/uploads/1781245907458-s218jn.jpeg",
+      "score": 39
+    },
+    "location": "Poway - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-13T09:51:03.841Z",
+    "updatedAt": "2026-06-24T09:10:09.139Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d28075f5211d1bb484714",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "18:40",
+    "teamA": {
+      "name": "DILFF",
+      "logo": "/api/uploads/1781245716471-v7vgkg.jpeg",
+      "score": 40
+    },
+    "teamB": {
+      "name": "Mambas (Sun)",
+      "logo": "/api/uploads/1781391780781-9czbjy.jpeg",
+      "score": 42
+    },
+    "location": "Poway - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-13T09:51:03.992Z",
+    "updatedAt": "2026-06-24T09:10:09.289Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d28085f5211d1bb484716",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "19:30",
+    "teamA": {
+      "name": "Chozen 1nez",
+      "logo": "/api/uploads/1781245876052-tvgxmo.jpeg",
+      "score": 50
+    },
+    "teamB": {
+      "name": "DILFF",
+      "logo": "/api/uploads/1781245716471-v7vgkg.jpeg",
+      "score": 50
+    },
+    "location": "Poway - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-13T09:51:04.144Z",
+    "updatedAt": "2026-06-24T09:10:09.439Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2e3702de3d1385a49d9812",
+    "league": "6a23a8105f5211d1bb47d10a",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "16:00",
+    "teamA": {
+      "name": "Next Up",
+      "logo": "/api/uploads/1781234560992-44emqz.png",
+      "score": 62
+    },
+    "teamB": {
+      "name": "Looney Goonz",
+      "logo": "/api/uploads/1781234872294-vqzzty.png",
+      "score": 44
+    },
+    "location": "Riverside - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-14T05:07:14.366Z",
+    "updatedAt": "2026-06-21T22:11:34.760Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2e9f61de3d1385a49dc13e",
+    "league": "6a17fd12d4704adc02fe99e0",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "19:01",
+    "teamA": {
+      "name": "Blue Storm",
+      "logo": "/api/uploads/1781337055819-t7o84f.png",
+      "score": null
+    },
+    "teamB": {
+      "name": "Red Hawks",
+      "logo": "/api/uploads/1781337014761-ilziwt.png",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "in_progress",
+    "gameType": "main",
+    "createdAt": "2026-06-14T12:32:33.276Z",
+    "updatedAt": "2026-06-18T10:26:28.678Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2f72e8e91ac941c72314ce",
+    "league": "6a2b4bc75f5211d1bb47f2b0",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "20:35",
+    "teamA": {
+      "name": "Knights",
+      "logo": "/api/uploads/1781330472094-24l025.jpeg",
+      "score": 20
+    },
+    "teamB": {
+      "name": "Phantoms",
+      "logo": "/api/uploads/1781331373744-kfqoee.jpeg",
+      "score": 40
+    },
+    "location": "Chino - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-15T03:35:04.043Z",
+    "updatedAt": "2026-06-15T04:13:54.455Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2f7bdfe91ac941c7232738",
+    "league": "6a2b4bc75f5211d1bb47f2b0",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "21:10",
+    "teamA": {
+      "name": "2All Day",
+      "logo": "/api/uploads/1781331290484-jt3ch1.jpeg",
+      "score": 34
+    },
+    "teamB": {
+      "name": "MSD",
+      "logo": "/api/uploads/1781331344333-nf4ua2.jpeg",
+      "score": 47
+    },
+    "location": "Chino - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-15T04:13:19.325Z",
+    "updatedAt": "2026-06-15T05:07:18.502Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a30143a52d09a897c3c8f27",
+    "league": "6a30130d52d09a897c3c8e00",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "09:00",
+    "teamA": {
+      "name": "Trojans",
+      "logo": "/api/uploads/1777776242198-xqifr5.jpeg",
+      "score": 40
+    },
+    "teamB": {
+      "name": "Crusaders",
+      "logo": "/api/uploads/1777776264034-op8uwo.jpeg",
+      "score": 6
+    },
+    "location": "Beverly Field",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-15T15:03:22.668Z",
+    "updatedAt": "2026-06-19T20:01:45.260Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a30146352d09a897c3c8f3a",
+    "league": "6a30130d52d09a897c3c8e00",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "10:00",
+    "teamA": {
+      "name": "Trojans",
+      "logo": "/api/uploads/1777776242198-xqifr5.jpeg",
+      "score": 13
+    },
+    "teamB": {
+      "name": "Dragons",
+      "logo": "/api/uploads/1777776213958-3zcy1x.jpeg",
+      "score": 22
+    },
+    "location": "Beverly Field",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-15T15:04:03.799Z",
+    "updatedAt": "2026-06-16T03:08:11.102Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3346c014c2bc0d4d6152d6",
+    "league": "6a23a6ea5f5211d1bb47d092",
+    "date": "2026-06-18T00:00:00.000Z",
+    "time": "19:10",
+    "teamA": {
+      "name": "Blue Grass",
+      "logo": "/api/uploads/1781740278226-e9ebxo.png",
+      "score": 37
+    },
+    "teamB": {
+      "name": "HMYG (Thu)",
+      "logo": "/api/uploads/1781818606944-6z8e0c.jpeg",
+      "score": 47
+    },
+    "location": "Mira Mesa - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-18T01:15:44.599Z",
+    "updatedAt": "2026-06-23T23:09:56.753Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3346c014c2bc0d4d6152d8",
+    "league": "6a23a6ea5f5211d1bb47d092",
+    "date": "2026-06-18T00:00:00.000Z",
+    "time": "20:00",
+    "teamA": {
+      "name": "GOAT",
+      "logo": "/api/uploads/1781739829032-6s04nl.jpeg",
+      "score": 74
+    },
+    "teamB": {
+      "name": "Mira Mesa Free Agents",
+      "logo": "/api/uploads/1781746604588-fqifpc.jpeg",
+      "score": 32
+    },
+    "location": "Mira Mesa - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-18T01:15:44.759Z",
+    "updatedAt": "2026-06-23T23:09:56.911Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3346c014c2bc0d4d6152da",
+    "league": "6a23a6ea5f5211d1bb47d092",
+    "date": "2026-06-18T00:00:00.000Z",
+    "time": "20:50",
+    "teamA": {
+      "name": "GOAT",
+      "logo": "/api/uploads/1781739829032-6s04nl.jpeg",
+      "score": 50
+    },
+    "teamB": {
+      "name": "Blue Grass",
+      "logo": "/api/uploads/1781740278226-e9ebxo.png",
+      "score": 68
+    },
+    "location": "Mira Mesa - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-18T01:15:44.908Z",
+    "updatedAt": "2026-06-23T23:09:57.059Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3346c114c2bc0d4d6152dc",
+    "league": "6a23a6ea5f5211d1bb47d092",
+    "date": "2026-06-18T00:00:00.000Z",
+    "time": "19:10",
+    "teamA": {
+      "name": "Mira Mesa Free Agents",
+      "logo": "/api/uploads/1781746604588-fqifpc.jpeg",
+      "score": 6
+    },
+    "teamB": {
+      "name": "Street Smart",
+      "logo": "/api/uploads/1781740221061-40hso0.jpeg",
+      "score": 40
+    },
+    "location": "Mira Mesa - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-18T01:15:45.058Z",
+    "updatedAt": "2026-06-23T23:09:57.208Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3346c114c2bc0d4d6152de",
+    "league": "6a23a6ea5f5211d1bb47d092",
+    "date": "2026-06-18T00:00:00.000Z",
+    "time": "20:00",
+    "teamA": {
+      "name": "Chozen 1nez (Thu)",
+      "logo": "/api/uploads/1781740103625-au7v0q.png",
+      "score": 38
+    },
+    "teamB": {
+      "name": "Street Smart",
+      "logo": "/api/uploads/1781740221061-40hso0.jpeg",
+      "score": 29
+    },
+    "location": "Mira Mesa - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-18T01:15:45.208Z",
+    "updatedAt": "2026-06-23T23:09:57.357Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a33d51173257ee61a673700",
+    "league": "6a23a71e5f5211d1bb47d0aa",
+    "date": "2026-06-20T00:00:00.000Z",
+    "time": "11:50",
+    "teamA": {
+      "name": "ProJanky",
+      "logo": "/api/uploads/1781222983435-4lcf4t.jpeg",
+      "score": 29
+    },
+    "teamB": {
+      "name": "SD Hounds",
+      "logo": "/api/uploads/1781222711154-zfgpve.jpeg",
+      "score": 28
+    },
+    "location": "North Park - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-18T11:22:57.348Z",
+    "updatedAt": "2026-06-24T08:51:09.373Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a33d51173257ee61a673702",
+    "league": "6a23a71e5f5211d1bb47d0aa",
+    "date": "2026-06-20T00:00:00.000Z",
+    "time": "12:40",
+    "teamA": {
+      "name": "ProJanky",
+      "logo": "/api/uploads/1781222983435-4lcf4t.jpeg",
+      "score": 62
+    },
+    "teamB": {
+      "name": "Hit N Run",
+      "logo": "/api/uploads/1781223134353-fx7dh5.png",
+      "score": 54
+    },
+    "location": "North Park - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-18T11:22:57.498Z",
+    "updatedAt": "2026-06-24T08:51:09.522Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a33d51173257ee61a673704",
+    "league": "6a23a71e5f5211d1bb47d0aa",
+    "date": "2026-06-20T00:00:00.000Z",
+    "time": "11:50",
+    "teamA": {
+      "name": "Hit N Run",
+      "logo": "/api/uploads/1781223134353-fx7dh5.png",
+      "score": 47
+    },
+    "teamB": {
+      "name": "Pigskin Pirates",
+      "logo": "/api/uploads/1781223025180-rtm5se.jpeg",
+      "score": 26
+    },
+    "location": "North Park - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-18T11:22:57.647Z",
+    "updatedAt": "2026-06-24T08:51:09.672Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a33d51173257ee61a673706",
+    "league": "6a23a71e5f5211d1bb47d0aa",
+    "date": "2026-06-20T00:00:00.000Z",
+    "time": "12:40",
+    "teamA": {
+      "name": "SD Hounds",
+      "logo": "/api/uploads/1781222711154-zfgpve.jpeg",
+      "score": 31
+    },
+    "teamB": {
+      "name": "Pigskin Pirates",
+      "logo": "/api/uploads/1781223025180-rtm5se.jpeg",
+      "score": 27
+    },
+    "location": "North Park - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-18T11:22:57.795Z",
+    "updatedAt": "2026-06-24T08:51:09.821Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a33d51173257ee61a673708",
+    "league": "6a23a71e5f5211d1bb47d0aa",
+    "date": "2026-06-20T00:00:00.000Z",
+    "time": "13:30",
+    "teamA": {
+      "name": "Mambas",
+      "logo": "/api/uploads/1781222939074-lpq587.jpeg",
+      "score": 38
+    },
+    "teamB": {
+      "name": "Scrubs",
+      "logo": "/api/uploads/1781231545140-hwvpuc.jpeg",
+      "score": 18
+    },
+    "location": "North Park - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-18T11:22:57.944Z",
+    "updatedAt": "2026-06-24T08:51:09.971Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a33d51273257ee61a67370a",
+    "league": "6a23a71e5f5211d1bb47d0aa",
+    "date": "2026-06-20T00:00:00.000Z",
+    "time": "14:20",
+    "teamA": {
+      "name": "Mambas",
+      "logo": "/api/uploads/1781222939074-lpq587.jpeg",
+      "score": 42
+    },
+    "teamB": {
+      "name": "City Boyz",
+      "logo": "/api/uploads/1781223089098-oiga1v.jpeg",
+      "score": 46
+    },
+    "location": "North Park - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-18T11:22:58.105Z",
+    "updatedAt": "2026-06-24T08:51:10.120Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a33d51273257ee61a67370c",
+    "league": "6a23a71e5f5211d1bb47d0aa",
+    "date": "2026-06-20T00:00:00.000Z",
+    "time": "13:30",
+    "teamA": {
+      "name": "City Boyz",
+      "logo": "/api/uploads/1781223089098-oiga1v.jpeg",
+      "score": 18
+    },
+    "teamB": {
+      "name": "N&B",
+      "logo": "/api/uploads/1781222849443-ij63r4.jpeg",
+      "score": 76
+    },
+    "location": "North Park - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-18T11:22:58.253Z",
+    "updatedAt": "2026-06-24T08:51:10.270Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a33d51273257ee61a67370e",
+    "league": "6a23a71e5f5211d1bb47d0aa",
+    "date": "2026-06-20T00:00:00.000Z",
+    "time": "14:20",
+    "teamA": {
+      "name": "Scrubs",
+      "logo": "/api/uploads/1781231545140-hwvpuc.jpeg",
+      "score": 40
+    },
+    "teamB": {
+      "name": "N&B",
+      "logo": "/api/uploads/1781222849443-ij63r4.jpeg",
+      "score": 64
+    },
+    "location": "North Park - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-18T11:22:58.400Z",
+    "updatedAt": "2026-06-24T08:51:10.420Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3466b373257ee61a67930a",
+    "league": "6a23a6ea5f5211d1bb47d092",
+    "date": "2026-06-18T00:00:00.000Z",
+    "time": "20:50",
+    "teamA": {
+      "name": "HMYG (Thu)",
+      "logo": "/api/uploads/1781818606944-6z8e0c.jpeg",
+      "score": 51
+    },
+    "teamB": {
+      "name": "Chozen 1nez (Thu)",
+      "logo": "/api/uploads/1781740103625-au7v0q.png",
+      "score": 42
+    },
+    "location": "Mira Mesa - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-18T21:44:19.796Z",
+    "updatedAt": "2026-06-23T23:09:57.506Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a350727c4ae21c60b8afd0a",
+    "league": "6a2d06575f5211d1bb483f0b",
+    "date": "2026-06-19T00:00:00.000Z",
+    "time": "03:30",
+    "teamA": {
+      "name": "Challenger",
+      "logo": "/api/uploads/1780508473484-qxjos4.jpg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Champs",
+      "logo": "",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-19T09:08:55.056Z",
+    "updatedAt": "2026-06-19T09:10:44.345Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a350727c4ae21c60b8afd0c",
+    "league": "6a2d06575f5211d1bb483f0b",
+    "date": "2026-03-19T00:00:00.000Z",
+    "time": "15:00",
+    "teamA": {
+      "name": "Blue Storm",
+      "logo": "/api/uploads/1781337055819-t7o84f.png",
+      "score": null
+    },
+    "teamB": {
+      "name": "Champs",
+      "logo": "",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-19T09:08:55.206Z",
+    "updatedAt": "2026-06-19T09:10:44.494Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a350869c4ae21c60b8afe7c",
+    "league": "6a3507f9c4ae21c60b8afe05",
+    "date": "2026-06-19T00:00:00.000Z",
+    "time": "03:00",
+    "teamA": {
+      "name": "Blue Storm",
+      "logo": "/api/uploads/1781337055819-t7o84f.png",
+      "score": null
+    },
+    "teamB": {
+      "name": "Challenger",
+      "logo": "/api/uploads/1780508473484-qxjos4.jpg",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-19T09:14:17.167Z",
+    "updatedAt": "2026-06-19T09:16:38.136Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a350869c4ae21c60b8afe7e",
+    "league": "6a3507f9c4ae21c60b8afe05",
+    "date": "2026-06-19T00:00:00.000Z",
+    "time": "03:30",
+    "teamA": {
+      "name": "Blue Storm",
+      "logo": "/api/uploads/1781337055819-t7o84f.png",
+      "score": null
+    },
+    "teamB": {
+      "name": "Champs",
+      "logo": "",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-19T09:14:17.317Z",
+    "updatedAt": "2026-06-19T09:16:38.293Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a350869c4ae21c60b8afe80",
+    "league": "6a3507f9c4ae21c60b8afe05",
+    "date": "2026-06-19T00:00:00.000Z",
+    "time": "15:00",
+    "teamA": {
+      "name": "Challenger",
+      "logo": "/api/uploads/1780508473484-qxjos4.jpg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Champs",
+      "logo": "",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-19T09:14:17.466Z",
+    "updatedAt": "2026-06-19T09:16:38.442Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3508f6c4ae21c60b8aff1d",
+    "league": "6a3507f9c4ae21c60b8afe05",
+    "date": "2026-06-19T00:00:00.000Z",
+    "time": "19:30",
+    "teamA": {
+      "name": "Champs",
+      "logo": "",
+      "score": null
+    },
+    "teamB": {
+      "name": "Red Hawks",
+      "logo": "/api/uploads/1781337014761-ilziwt.png",
+      "score": null
+    },
+    "location": "Cottonwood Kids Park - 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-19T09:16:38.591Z",
+    "updatedAt": "2026-06-19T09:16:38.591Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3563c2c4ae21c60b8b2ce8",
+    "league": "6a23a7b35f5211d1bb47d0da",
+    "date": "2026-06-21T00:00:00.000Z",
+    "time": "09:30",
+    "teamA": {
+      "name": "SoCal Bolts",
+      "logo": "/api/uploads/1781239475528-fib9gp.jpeg",
+      "score": 62
+    },
+    "teamB": {
+      "name": "The Boys",
+      "logo": "/api/uploads/1781229994481-p6q69u.jpeg",
+      "score": 40
+    },
+    "location": "Oceanside - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-19T15:44:02.358Z",
+    "updatedAt": "2026-06-24T08:39:41.954Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3563c2c4ae21c60b8b2cec",
+    "league": "6a23a7b35f5211d1bb47d0da",
+    "date": "2026-06-21T00:00:00.000Z",
+    "time": "10:20",
+    "teamA": {
+      "name": "SoCal Bolts",
+      "logo": "/api/uploads/1781239475528-fib9gp.jpeg",
+      "score": 64
+    },
+    "teamB": {
+      "name": "Go Getters",
+      "logo": "/api/uploads/1781239173924-cuxe5u.jpeg",
+      "score": 65
+    },
+    "location": "Oceanside - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-19T15:44:02.652Z",
+    "updatedAt": "2026-06-24T08:39:42.103Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3563c2c4ae21c60b8b2cf0",
+    "league": "6a23a7b35f5211d1bb47d0da",
+    "date": "2026-06-21T00:00:00.000Z",
+    "time": "10:20",
+    "teamA": {
+      "name": "Mobb",
+      "logo": "/api/uploads/1781239111597-z9y691.jpeg",
+      "score": 22
+    },
+    "teamB": {
+      "name": "Mud Dogs",
+      "logo": "/api/uploads/1781239560144-2izrda.jpeg",
+      "score": 27
+    },
+    "location": "Oceanside - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-19T15:44:02.945Z",
+    "updatedAt": "2026-06-24T08:39:42.251Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3563c3c4ae21c60b8b2cf2",
+    "league": "6a23a7b35f5211d1bb47d0da",
+    "date": "2026-06-21T00:00:00.000Z",
+    "time": "11:10",
+    "teamA": {
+      "name": "The Boys",
+      "logo": "/api/uploads/1781229994481-p6q69u.jpeg",
+      "score": 36
+    },
+    "teamB": {
+      "name": "Mobb",
+      "logo": "/api/uploads/1781239111597-z9y691.jpeg",
+      "score": 42
+    },
+    "location": "Oceanside - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-19T15:44:03.093Z",
+    "updatedAt": "2026-06-24T08:39:42.400Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a357255c4ae21c60b8b34cd",
+    "league": "6a23a7b35f5211d1bb47d0da",
+    "date": "2026-06-21T00:00:00.000Z",
+    "time": "09:30",
+    "teamA": {
+      "name": "Go Getters",
+      "logo": "/api/uploads/1781239173924-cuxe5u.jpeg",
+      "score": 54
+    },
+    "teamB": {
+      "name": "Mud Dogs",
+      "logo": "/api/uploads/1781239560144-2izrda.jpeg",
+      "score": 28
+    },
+    "location": "Oceanside - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-19T16:46:13.349Z",
+    "updatedAt": "2026-06-24T08:39:42.548Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a359bdb414a9d467c6db553",
+    "league": "6a35979c414a9d467c6db0ad",
+    "date": "2026-06-19T00:00:00.000Z",
+    "time": "15:00",
+    "teamA": {
+      "name": "Gators",
+      "logo": "",
+      "score": null
+    },
+    "teamB": {
+      "name": "Goat",
+      "logo": "",
+      "score": null
+    },
+    "location": "Bradford - Field 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-19T19:43:23.419Z",
+    "updatedAt": "2026-06-19T19:50:25.683Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a359bdb414a9d467c6db555",
+    "league": "6a35979c414a9d467c6db0ad",
+    "date": "2026-06-19T00:00:00.000Z",
+    "time": "15:00",
+    "teamA": {
+      "name": "Red Dogs",
+      "logo": "",
+      "score": null
+    },
+    "teamB": {
+      "name": "Gators",
+      "logo": "",
+      "score": null
+    },
+    "location": "Bradford - Field 2",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-19T19:43:23.575Z",
+    "updatedAt": "2026-06-19T19:50:25.841Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a359bdb414a9d467c6db557",
+    "league": "6a35979c414a9d467c6db0ad",
+    "date": "2026-06-19T00:00:00.000Z",
+    "time": "15:50",
+    "teamA": {
+      "name": "Red Dogs",
+      "logo": "",
+      "score": null
+    },
+    "teamB": {
+      "name": "Goat",
+      "logo": "",
+      "score": null
+    },
+    "location": "Bradford - Field 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-19T19:43:23.723Z",
+    "updatedAt": "2026-06-19T19:50:25.990Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a359bdb414a9d467c6db559",
+    "league": "6a35979c414a9d467c6db0ad",
+    "date": "2026-06-19T00:00:00.000Z",
+    "time": "15:50",
+    "teamA": {
+      "name": "Gators",
+      "logo": "",
+      "score": null
+    },
+    "teamB": {
+      "name": "Red Dogs",
+      "logo": "",
+      "score": null
+    },
+    "location": "Bradford - Field 2",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-19T19:43:23.870Z",
+    "updatedAt": "2026-06-19T19:50:26.138Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a359bdc414a9d467c6db55b",
+    "league": "6a35979c414a9d467c6db0ad",
+    "date": "2026-06-26T00:00:00.000Z",
+    "time": "14:40",
+    "teamA": {
+      "name": "Gators",
+      "logo": "",
+      "score": null
+    },
+    "teamB": {
+      "name": "Goat",
+      "logo": "",
+      "score": null
+    },
+    "location": "Bradford - Field 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-19T19:43:24.017Z",
+    "updatedAt": "2026-06-20T10:54:26.471Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a359bdc414a9d467c6db55d",
+    "league": "6a35979c414a9d467c6db0ad",
+    "date": "2026-06-26T00:00:00.000Z",
+    "time": "14:40",
+    "teamA": {
+      "name": "Goat",
+      "logo": "",
+      "score": null
+    },
+    "teamB": {
+      "name": "Red Dogs",
+      "logo": "",
+      "score": null
+    },
+    "location": "Bradford - Field 2",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-19T19:43:24.164Z",
+    "updatedAt": "2026-06-19T19:50:26.436Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a359bdc414a9d467c6db55f",
+    "league": "6a35979c414a9d467c6db0ad",
+    "date": "2026-06-26T00:00:00.000Z",
+    "time": "15:50",
+    "teamA": {
+      "name": "Goat",
+      "logo": "",
+      "score": null
+    },
+    "teamB": {
+      "name": "Red Dogs",
+      "logo": "",
+      "score": null
+    },
+    "location": "Bradford - Field 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-19T19:43:24.312Z",
+    "updatedAt": "2026-06-19T19:50:26.585Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a359bdc414a9d467c6db561",
+    "league": "6a35979c414a9d467c6db0ad",
+    "date": "2026-06-26T00:00:00.000Z",
+    "time": "15:50",
+    "teamA": {
+      "name": "Red Dogs",
+      "logo": "",
+      "score": 8
+    },
+    "teamB": {
+      "name": "Gators",
+      "logo": "",
+      "score": null
+    },
+    "location": "Bradford - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-19T19:43:24.459Z",
+    "updatedAt": "2026-06-20T12:09:19.248Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a35ae4d414a9d467c6dc021",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-21T00:00:00.000Z",
+    "time": "16:10",
+    "teamA": {
+      "name": "Snow Bears",
+      "logo": "/api/uploads/1781245844847-o8prkp.jpeg",
+      "score": 6
+    },
+    "teamB": {
+      "name": "YME",
+      "logo": "/api/uploads/1781245773463-q42r3g.jpeg",
+      "score": null
+    },
+    "location": "Poway - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-19T21:02:05.502Z",
+    "updatedAt": "2026-06-24T09:10:09.589Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a35ae4d414a9d467c6dc023",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-21T00:00:00.000Z",
+    "time": "17:00",
+    "teamA": {
+      "name": "Snow Bears",
+      "logo": "/api/uploads/1781245844847-o8prkp.jpeg",
+      "score": 34
+    },
+    "teamB": {
+      "name": "Death Watch",
+      "logo": "/api/uploads/1781245907458-s218jn.jpeg",
+      "score": 35
+    },
+    "location": "Poway - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-19T21:02:05.652Z",
+    "updatedAt": "2026-06-24T09:10:09.740Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a35ae4d414a9d467c6dc025",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-21T00:00:00.000Z",
+    "time": "17:50",
+    "teamA": {
+      "name": "DARKSIDE",
+      "logo": "/api/uploads/1781222587299-sngk9x.jpeg",
+      "score": 46
+    },
+    "teamB": {
+      "name": "Rugrats",
+      "logo": "/api/uploads/1781223047627-ubgm25.jpeg",
+      "score": 32
+    },
+    "location": "Poway - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-19T21:02:05.802Z",
+    "updatedAt": "2026-06-24T09:10:09.891Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a35ae4e414a9d467c6dc029",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-21T00:00:00.000Z",
+    "time": "16:10",
+    "teamA": {
+      "name": "Death Watch",
+      "logo": "/api/uploads/1781245907458-s218jn.jpeg",
+      "score": 41
+    },
+    "teamB": {
+      "name": "Members Only",
+      "logo": "/api/uploads/1781245803788-kuhxeu.jpeg",
+      "score": 28
+    },
+    "location": "Poway - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-19T21:02:06.101Z",
+    "updatedAt": "2026-06-24T09:10:10.042Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a35ae4e414a9d467c6dc02b",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-21T00:00:00.000Z",
+    "time": "17:00",
+    "teamA": {
+      "name": "YME",
+      "logo": "/api/uploads/1781245773463-q42r3g.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Members Only",
+      "logo": "/api/uploads/1781245803788-kuhxeu.jpeg",
+      "score": 6
+    },
+    "location": "Poway - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-19T21:02:06.251Z",
+    "updatedAt": "2026-06-24T09:10:10.192Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a36126b414a9d467c6defeb",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-21T00:00:00.000Z",
+    "time": "18:40",
+    "teamA": {
+      "name": "Rugrats",
+      "logo": "/api/uploads/1781223047627-ubgm25.jpeg",
+      "score": 58
+    },
+    "teamB": {
+      "name": "Chozen 1nez",
+      "logo": "/api/uploads/1781245876052-tvgxmo.jpeg",
+      "score": 42
+    },
+    "location": "Poway - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-20T04:09:15.955Z",
+    "updatedAt": "2026-06-24T09:10:10.343Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a362aeb414a9d467c6df922",
+    "league": "6a23a8105f5211d1bb47d10a",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "16:50",
+    "teamA": {
+      "name": "Crown Town Kings",
+      "logo": "/api/uploads/1781234722295-wzifj2.jpg",
+      "score": 32
+    },
+    "teamB": {
+      "name": "X Men",
+      "logo": "/api/uploads/1781234795085-evm9nh.jpg",
+      "score": 42
+    },
+    "location": "Riverside - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-20T05:53:47.389Z",
+    "updatedAt": "2026-06-22T01:28:19.373Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a362aeb414a9d467c6df924",
+    "league": "6a23a8105f5211d1bb47d10a",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "16:50",
+    "teamA": {
+      "name": "Next Up",
+      "logo": "/api/uploads/1781234560992-44emqz.png",
+      "score": 50
+    },
+    "teamB": {
+      "name": "RawDawgs",
+      "logo": "/api/uploads/1781234376264-hbc03o.jpeg",
+      "score": 36
+    },
+    "location": "Riverside - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-20T05:53:47.537Z",
+    "updatedAt": "2026-06-21T23:16:09.050Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a362aeb414a9d467c6df926",
+    "league": "6a23a8105f5211d1bb47d10a",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "17:40",
+    "teamA": {
+      "name": "Looney Goonz",
+      "logo": "/api/uploads/1781234872294-vqzzty.png",
+      "score": 33
+    },
+    "teamB": {
+      "name": "X Men",
+      "logo": "/api/uploads/1781234795085-evm9nh.jpg",
+      "score": 25
+    },
+    "location": "Riverside - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-20T05:53:47.685Z",
+    "updatedAt": "2026-06-22T03:51:11.930Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a362aeb414a9d467c6df928",
+    "league": "6a23a8105f5211d1bb47d10a",
+    "date": "2026-06-14T00:00:00.000Z",
+    "time": "17:40",
+    "teamA": {
+      "name": "Crown Town Kings",
+      "logo": "/api/uploads/1781234722295-wzifj2.jpg",
+      "score": 42
+    },
+    "teamB": {
+      "name": "RawDawgs",
+      "logo": "/api/uploads/1781234376264-hbc03o.jpeg",
+      "score": 44
+    },
+    "location": "Riverside - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-20T05:53:47.833Z",
+    "updatedAt": "2026-06-22T02:33:09.782Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a375ec61a2216ba5b6531d1",
+    "league": "6a23a8655f5211d1bb47d13a",
+    "date": "2026-06-21T00:00:00.000Z",
+    "time": "09:15",
+    "teamA": {
+      "name": "Paper Boyz",
+      "logo": "/api/uploads/1781239790415-hxumn4.jpeg",
+      "score": 42
+    },
+    "teamB": {
+      "name": "Ballerz",
+      "logo": "/api/uploads/1781239712545-ipc29e.jpeg",
+      "score": 32
+    },
+    "location": "Irvine - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-21T03:47:18.757Z",
+    "updatedAt": "2026-06-21T17:05:58.329Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a375ec61a2216ba5b6531d3",
+    "league": "6a23a8655f5211d1bb47d13a",
+    "date": "2026-06-21T00:00:00.000Z",
+    "time": "10:05",
+    "teamA": {
+      "name": "Paper Boyz",
+      "logo": "/api/uploads/1781239790415-hxumn4.jpeg",
+      "score": 34
+    },
+    "teamB": {
+      "name": "I Am Success",
+      "logo": "/api/uploads/1781239909145-j18cbj.jpeg",
+      "score": 6
+    },
+    "location": "Irvine - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-21T03:47:18.904Z",
+    "updatedAt": "2026-06-21T17:55:03.742Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a375ec71a2216ba5b6531d5",
+    "league": "6a23a8655f5211d1bb47d13a",
+    "date": "2026-06-21T00:00:00.000Z",
+    "time": "10:55",
+    "teamA": {
+      "name": "Rejects",
+      "logo": "/api/uploads/1781240206890-mywv0c.jpeg",
+      "score": 28
+    },
+    "teamB": {
+      "name": "OTC",
+      "logo": "/api/uploads/1781240147875-1oye5z.jpeg",
+      "score": 50
+    },
+    "location": "Irvine - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-21T03:47:19.051Z",
+    "updatedAt": "2026-06-21T18:45:41.106Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a375ec71a2216ba5b6531d7",
+    "league": "6a23a8655f5211d1bb47d13a",
+    "date": "2026-06-21T00:00:00.000Z",
+    "time": "11:45",
+    "teamA": {
+      "name": "Rejects",
+      "logo": "/api/uploads/1781240206890-mywv0c.jpeg",
+      "score": 30
+    },
+    "teamB": {
+      "name": "The Shield",
+      "logo": "/api/uploads/1781240828131-noq4l1.jpeg",
+      "score": 32
+    },
+    "location": "Irvine - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-21T03:47:19.197Z",
+    "updatedAt": "2026-06-21T19:53:33.974Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a375ec71a2216ba5b6531d9",
+    "league": "6a23a8655f5211d1bb47d13a",
+    "date": "2026-06-21T00:00:00.000Z",
+    "time": "09:15",
+    "teamA": {
+      "name": "OTC",
+      "logo": "/api/uploads/1781240147875-1oye5z.jpeg",
+      "score": 30
+    },
+    "teamB": {
+      "name": "Black Box",
+      "logo": "/api/uploads/1781240668221-oajy5v.jpeg",
+      "score": 36
+    },
+    "location": "Irvine - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-21T03:47:19.345Z",
+    "updatedAt": "2026-06-21T17:06:55.358Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a375ec71a2216ba5b6531db",
+    "league": "6a23a8655f5211d1bb47d13a",
+    "date": "2026-06-21T00:00:00.000Z",
+    "time": "10:05",
+    "teamA": {
+      "name": "Ballerz",
+      "logo": "/api/uploads/1781239712545-ipc29e.jpeg",
+      "score": 50
+    },
+    "teamB": {
+      "name": "The Shield",
+      "logo": "/api/uploads/1781240828131-noq4l1.jpeg",
+      "score": 12
+    },
+    "location": "Irvine - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-21T03:47:19.492Z",
+    "updatedAt": "2026-06-21T17:55:39.792Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a375ec71a2216ba5b6531dd",
+    "league": "6a23a8655f5211d1bb47d13a",
+    "date": "2026-06-21T00:00:00.000Z",
+    "time": "10:55",
+    "teamA": {
+      "name": "I Am Success",
+      "logo": "/api/uploads/1781239909145-j18cbj.jpeg",
+      "score": 28
+    },
+    "teamB": {
+      "name": "Black Box",
+      "logo": "/api/uploads/1781240668221-oajy5v.jpeg",
+      "score": 36
+    },
+    "location": "Irvine - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-21T03:47:19.639Z",
+    "updatedAt": "2026-06-21T18:50:18.496Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a385a691a2216ba5b65e23e",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-21T00:00:00.000Z",
+    "time": "16:10",
+    "teamA": {
+      "name": "Chozen STATS",
+      "logo": "",
+      "score": 27
+    },
+    "teamB": {
+      "name": "Snow Bears STATS",
+      "logo": "",
+      "score": 26
+    },
+    "location": "Poway - Field 3",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-21T21:40:57.714Z",
+    "updatedAt": "2026-06-24T09:10:10.493Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a385a691a2216ba5b65e240",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-21T00:00:00.000Z",
+    "time": "17:00",
+    "teamA": {
+      "name": "Darkside STATS",
+      "logo": "",
+      "score": 58
+    },
+    "teamB": {
+      "name": "Members Only STATS",
+      "logo": "",
+      "score": 31
+    },
+    "location": "Poway - Field 3",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-21T21:40:57.864Z",
+    "updatedAt": "2026-06-24T09:10:10.643Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a38cf181a2216ba5b666a64",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-21T00:00:00.000Z",
+    "time": "17:50",
+    "teamA": {
+      "name": "Mambas (Sun)",
+      "logo": "/api/uploads/1781391780781-9czbjy.jpeg",
+      "score": 56
+    },
+    "teamB": {
+      "name": "Chozen 1nez",
+      "logo": "/api/uploads/1781245876052-tvgxmo.jpeg",
+      "score": 57
+    },
+    "location": "Poway - Field 2",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-22T05:58:48.434Z",
+    "updatedAt": "2026-06-24T09:10:10.794Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a38cf181a2216ba5b666a66",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-21T00:00:00.000Z",
+    "time": "18:40",
+    "teamA": {
+      "name": "DARKSIDE",
+      "logo": "/api/uploads/1781222587299-sngk9x.jpeg",
+      "score": 54
+    },
+    "teamB": {
+      "name": "Mambas (Sun)",
+      "logo": "/api/uploads/1781391780781-9czbjy.jpeg",
+      "score": 50
+    },
+    "location": "Poway - Field 1",
+    "status": "completed",
+    "gameType": "main",
+    "createdAt": "2026-06-22T05:58:48.583Z",
+    "updatedAt": "2026-06-24T09:10:10.944Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b12451a2216ba5b679dba",
+    "league": "6a23a6ea5f5211d1bb47d092",
+    "date": "2026-06-25T00:00:00.000Z",
+    "time": "19:10",
+    "teamA": {
+      "name": "HMYG (Thu)",
+      "logo": "/api/uploads/1781818606944-6z8e0c.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Street Smart",
+      "logo": "/api/uploads/1781740221061-40hso0.jpeg",
+      "score": null
+    },
+    "location": "Mira Mesa - Field 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-23T23:09:57.655Z",
+    "updatedAt": "2026-06-23T23:09:57.655Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b12451a2216ba5b679dbc",
+    "league": "6a23a6ea5f5211d1bb47d092",
+    "date": "2026-06-25T00:00:00.000Z",
+    "time": "20:00",
+    "teamA": {
+      "name": "GOAT",
+      "logo": "/api/uploads/1781739829032-6s04nl.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "HMYG (Thu)",
+      "logo": "/api/uploads/1781818606944-6z8e0c.jpeg",
+      "score": null
+    },
+    "location": "Mira Mesa - Field 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-23T23:09:57.805Z",
+    "updatedAt": "2026-06-23T23:09:57.805Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b12451a2216ba5b679dbe",
+    "league": "6a23a6ea5f5211d1bb47d092",
+    "date": "2026-06-25T00:00:00.000Z",
+    "time": "20:50",
+    "teamA": {
+      "name": "GOAT",
+      "logo": "/api/uploads/1781739829032-6s04nl.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Street Smart",
+      "logo": "/api/uploads/1781740221061-40hso0.jpeg",
+      "score": null
+    },
+    "location": "Mira Mesa - Field 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-23T23:09:57.955Z",
+    "updatedAt": "2026-06-23T23:09:57.955Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b12461a2216ba5b679dc0",
+    "league": "6a23a6ea5f5211d1bb47d092",
+    "date": "2026-06-25T00:00:00.000Z",
+    "time": "19:10",
+    "teamA": {
+      "name": "Mira Mesa Free Agents",
+      "logo": "/api/uploads/1781746604588-fqifpc.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Chozen 1nez (Thu)",
+      "logo": "/api/uploads/1781740103625-au7v0q.png",
+      "score": null
+    },
+    "location": "Mira Mesa - Field 2",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-23T23:09:58.103Z",
+    "updatedAt": "2026-06-23T23:09:58.103Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b12461a2216ba5b679dc2",
+    "league": "6a23a6ea5f5211d1bb47d092",
+    "date": "2026-06-25T00:00:00.000Z",
+    "time": "20:00",
+    "teamA": {
+      "name": "Blue Grass",
+      "logo": "/api/uploads/1781740278226-e9ebxo.png",
+      "score": null
+    },
+    "teamB": {
+      "name": "Chozen 1nez (Thu)",
+      "logo": "/api/uploads/1781740103625-au7v0q.png",
+      "score": null
+    },
+    "location": "Mira Mesa - Field 2",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-23T23:09:58.252Z",
+    "updatedAt": "2026-06-23T23:09:58.252Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b12461a2216ba5b679dc4",
+    "league": "6a23a6ea5f5211d1bb47d092",
+    "date": "2026-06-25T00:00:00.000Z",
+    "time": "20:50",
+    "teamA": {
+      "name": "Blue Grass",
+      "logo": "/api/uploads/1781740278226-e9ebxo.png",
+      "score": null
+    },
+    "teamB": {
+      "name": "Mira Mesa Free Agents",
+      "logo": "/api/uploads/1781746604588-fqifpc.jpeg",
+      "score": null
+    },
+    "location": "Mira Mesa - Field 2",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-23T23:09:58.401Z",
+    "updatedAt": "2026-06-23T23:09:58.401Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b34301a2216ba5b67c388",
+    "league": "6a23a83d5f5211d1bb47d122",
+    "date": "2026-06-24T00:00:00.000Z",
+    "time": "19:20",
+    "teamA": {
+      "name": "Bandits",
+      "logo": "/api/uploads/1781419522896-99a7oz.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Raw Talent",
+      "logo": "/api/uploads/1781236294943-jwrp7c.jpg",
+      "score": null
+    },
+    "location": "Temecula - Field 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T01:34:40.228Z",
+    "updatedAt": "2026-06-24T01:34:40.228Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b34301a2216ba5b67c38a",
+    "league": "6a23a83d5f5211d1bb47d122",
+    "date": "2026-06-24T00:00:00.000Z",
+    "time": "20:10",
+    "teamA": {
+      "name": "Bandits",
+      "logo": "/api/uploads/1781419522896-99a7oz.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Warriors",
+      "logo": "",
+      "score": null
+    },
+    "location": "Temecula - Field 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T01:34:40.389Z",
+    "updatedAt": "2026-06-24T01:34:40.389Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b34301a2216ba5b67c38c",
+    "league": "6a23a83d5f5211d1bb47d122",
+    "date": "2026-06-24T00:00:00.000Z",
+    "time": "20:10",
+    "teamA": {
+      "name": "Dope",
+      "logo": "/api/uploads/1782165989587-iwlcep.jpg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Seven Sins",
+      "logo": "/api/uploads/1781236455634-tibpp8.jpg",
+      "score": null
+    },
+    "location": "Temecula - Field 2",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T01:34:40.541Z",
+    "updatedAt": "2026-06-24T01:34:40.541Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b34301a2216ba5b67c38e",
+    "league": "6a23a83d5f5211d1bb47d122",
+    "date": "2026-06-24T00:00:00.000Z",
+    "time": "21:00",
+    "teamA": {
+      "name": "Warriors",
+      "logo": "",
+      "score": null
+    },
+    "teamB": {
+      "name": "Seven Sins",
+      "logo": "/api/uploads/1781236455634-tibpp8.jpg",
+      "score": null
+    },
+    "location": "Temecula - Field 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T01:34:40.695Z",
+    "updatedAt": "2026-06-24T01:34:40.695Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b34301a2216ba5b67c390",
+    "league": "6a23a83d5f5211d1bb47d122",
+    "date": "2026-06-24T00:00:00.000Z",
+    "time": "21:00",
+    "teamA": {
+      "name": "Dope",
+      "logo": "/api/uploads/1782165989587-iwlcep.jpg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Raw Talent",
+      "logo": "/api/uploads/1781236294943-jwrp7c.jpg",
+      "score": null
+    },
+    "location": "Temecula - Field 2",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T01:34:40.847Z",
+    "updatedAt": "2026-06-24T01:34:40.847Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b97ce1a2216ba5b67f642",
+    "league": "6a23a7b35f5211d1bb47d0da",
+    "date": "2026-06-28T00:00:00.000Z",
+    "time": "09:30",
+    "teamA": {
+      "name": "Griffins",
+      "logo": "/api/uploads/1781239511542-oup1i8.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Go Getters",
+      "logo": "/api/uploads/1781239173924-cuxe5u.jpeg",
+      "score": null
+    },
+    "location": "Oceanside - Field 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T08:39:42.698Z",
+    "updatedAt": "2026-06-24T08:39:42.698Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b97ce1a2216ba5b67f644",
+    "league": "6a23a7b35f5211d1bb47d0da",
+    "date": "2026-06-28T00:00:00.000Z",
+    "time": "10:20",
+    "teamA": {
+      "name": "Griffins",
+      "logo": "/api/uploads/1781239511542-oup1i8.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "The Boys",
+      "logo": "/api/uploads/1781229994481-p6q69u.jpeg",
+      "score": null
+    },
+    "location": "Oceanside - Field 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T08:39:42.847Z",
+    "updatedAt": "2026-06-24T08:39:42.847Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b97ce1a2216ba5b67f646",
+    "league": "6a23a7b35f5211d1bb47d0da",
+    "date": "2026-06-28T00:00:00.000Z",
+    "time": "11:10",
+    "teamA": {
+      "name": "Go Getters",
+      "logo": "/api/uploads/1781239173924-cuxe5u.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Mobb",
+      "logo": "/api/uploads/1781239111597-z9y691.jpeg",
+      "score": null
+    },
+    "location": "Oceanside - Field 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T08:39:42.996Z",
+    "updatedAt": "2026-06-24T08:39:42.996Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b97cf1a2216ba5b67f648",
+    "league": "6a23a7b35f5211d1bb47d0da",
+    "date": "2026-06-28T00:00:00.000Z",
+    "time": "09:30",
+    "teamA": {
+      "name": "Mud Dogs",
+      "logo": "/api/uploads/1781239560144-2izrda.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "SoCal Bolts",
+      "logo": "/api/uploads/1781239475528-fib9gp.jpeg",
+      "score": null
+    },
+    "location": "Oceanside - Field 2",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T08:39:43.145Z",
+    "updatedAt": "2026-06-24T08:39:43.145Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b97cf1a2216ba5b67f64a",
+    "league": "6a23a7b35f5211d1bb47d0da",
+    "date": "2026-06-28T00:00:00.000Z",
+    "time": "10:20",
+    "teamA": {
+      "name": "Mobb",
+      "logo": "/api/uploads/1781239111597-z9y691.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "SoCal Bolts",
+      "logo": "/api/uploads/1781239475528-fib9gp.jpeg",
+      "score": null
+    },
+    "location": "Oceanside - Field 2",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T08:39:43.294Z",
+    "updatedAt": "2026-06-24T08:39:43.294Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b97cf1a2216ba5b67f64c",
+    "league": "6a23a7b35f5211d1bb47d0da",
+    "date": "2026-06-28T00:00:00.000Z",
+    "time": "11:10",
+    "teamA": {
+      "name": "The Boys",
+      "logo": "/api/uploads/1781229994481-p6q69u.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Mud Dogs",
+      "logo": "/api/uploads/1781239560144-2izrda.jpeg",
+      "score": null
+    },
+    "location": "Oceanside - Field 2",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T08:39:43.443Z",
+    "updatedAt": "2026-06-24T08:39:43.443Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b9a7e1a2216ba5b67f7fd",
+    "league": "6a23a71e5f5211d1bb47d0aa",
+    "date": "2026-06-27T00:00:00.000Z",
+    "time": "11:50",
+    "teamA": {
+      "name": "N&B",
+      "logo": "/api/uploads/1781222849443-ij63r4.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "ProJanky",
+      "logo": "/api/uploads/1781222983435-4lcf4t.jpeg",
+      "score": null
+    },
+    "location": "North Park - Field 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T08:51:10.570Z",
+    "updatedAt": "2026-06-24T08:51:10.570Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b9a7e1a2216ba5b67f7ff",
+    "league": "6a23a71e5f5211d1bb47d0aa",
+    "date": "2026-06-27T00:00:00.000Z",
+    "time": "12:40",
+    "teamA": {
+      "name": "N&B",
+      "logo": "/api/uploads/1781222849443-ij63r4.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "SD Hounds",
+      "logo": "/api/uploads/1781222711154-zfgpve.jpeg",
+      "score": null
+    },
+    "location": "North Park - Field 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T08:51:10.720Z",
+    "updatedAt": "2026-06-24T08:51:10.720Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b9a7e1a2216ba5b67f801",
+    "league": "6a23a71e5f5211d1bb47d0aa",
+    "date": "2026-06-27T00:00:00.000Z",
+    "time": "11:50",
+    "teamA": {
+      "name": "SD Hounds",
+      "logo": "/api/uploads/1781222711154-zfgpve.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "City Boyz",
+      "logo": "/api/uploads/1781223089098-oiga1v.jpeg",
+      "score": null
+    },
+    "location": "North Park - Field 2",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T08:51:10.870Z",
+    "updatedAt": "2026-06-24T08:51:10.870Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b9a7f1a2216ba5b67f803",
+    "league": "6a23a71e5f5211d1bb47d0aa",
+    "date": "2026-06-27T00:00:00.000Z",
+    "time": "12:40",
+    "teamA": {
+      "name": "ProJanky",
+      "logo": "/api/uploads/1781222983435-4lcf4t.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "City Boyz",
+      "logo": "/api/uploads/1781223089098-oiga1v.jpeg",
+      "score": null
+    },
+    "location": "North Park - Field 2",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T08:51:11.020Z",
+    "updatedAt": "2026-06-24T08:51:11.020Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b9a7f1a2216ba5b67f805",
+    "league": "6a23a71e5f5211d1bb47d0aa",
+    "date": "2026-06-27T00:00:00.000Z",
+    "time": "13:30",
+    "teamA": {
+      "name": "Mambas",
+      "logo": "/api/uploads/1781222939074-lpq587.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Hit N Run",
+      "logo": "/api/uploads/1781223134353-fx7dh5.png",
+      "score": null
+    },
+    "location": "North Park - Field 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T08:51:11.170Z",
+    "updatedAt": "2026-06-24T08:51:11.170Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b9a7f1a2216ba5b67f807",
+    "league": "6a23a71e5f5211d1bb47d0aa",
+    "date": "2026-06-27T00:00:00.000Z",
+    "time": "14:20",
+    "teamA": {
+      "name": "Mambas",
+      "logo": "/api/uploads/1781222939074-lpq587.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Pigskin Pirates",
+      "logo": "/api/uploads/1781223025180-rtm5se.jpeg",
+      "score": null
+    },
+    "location": "North Park - Field 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T08:51:11.320Z",
+    "updatedAt": "2026-06-24T08:51:11.320Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b9a7f1a2216ba5b67f809",
+    "league": "6a23a71e5f5211d1bb47d0aa",
+    "date": "2026-06-27T00:00:00.000Z",
+    "time": "13:30",
+    "teamA": {
+      "name": "Pigskin Pirates",
+      "logo": "/api/uploads/1781223025180-rtm5se.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Scrubs",
+      "logo": "/api/uploads/1781231545140-hwvpuc.jpeg",
+      "score": null
+    },
+    "location": "North Park - Field 2",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T08:51:11.470Z",
+    "updatedAt": "2026-06-24T08:51:11.470Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b9a7f1a2216ba5b67f80b",
+    "league": "6a23a71e5f5211d1bb47d0aa",
+    "date": "2026-06-27T00:00:00.000Z",
+    "time": "14:20",
+    "teamA": {
+      "name": "Hit N Run",
+      "logo": "/api/uploads/1781223134353-fx7dh5.png",
+      "score": null
+    },
+    "teamB": {
+      "name": "Scrubs",
+      "logo": "/api/uploads/1781231545140-hwvpuc.jpeg",
+      "score": null
+    },
+    "location": "North Park - Field 2",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T08:51:11.619Z",
+    "updatedAt": "2026-06-24T08:51:11.619Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b9ef31a2216ba5b68049b",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-28T00:00:00.000Z",
+    "time": "16:10",
+    "teamA": {
+      "name": "YME",
+      "logo": "/api/uploads/1781245773463-q42r3g.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Death Watch",
+      "logo": "/api/uploads/1781245907458-s218jn.jpeg",
+      "score": null
+    },
+    "location": "Poway - Field 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T09:10:11.097Z",
+    "updatedAt": "2026-06-24T09:10:11.097Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b9ef31a2216ba5b68049d",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-28T00:00:00.000Z",
+    "time": "17:00",
+    "teamA": {
+      "name": "Rugrats",
+      "logo": "/api/uploads/1781223047627-ubgm25.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Mambas",
+      "logo": "/api/uploads/1781222939074-lpq587.jpeg",
+      "score": null
+    },
+    "location": "Poway - Field 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T09:10:11.248Z",
+    "updatedAt": "2026-06-24T09:10:11.248Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b9ef31a2216ba5b68049f",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-28T00:00:00.000Z",
+    "time": "17:50",
+    "teamA": {
+      "name": "YME",
+      "logo": "/api/uploads/1781245773463-q42r3g.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Snow Bears",
+      "logo": "/api/uploads/1781245844847-o8prkp.jpeg",
+      "score": null
+    },
+    "location": "Poway - Field 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T09:10:11.399Z",
+    "updatedAt": "2026-06-24T09:10:11.399Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b9ef31a2216ba5b6804a1",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-28T00:00:00.000Z",
+    "time": "18:40",
+    "teamA": {
+      "name": "DARKSIDE",
+      "logo": "/api/uploads/1781222587299-sngk9x.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Snow Bears",
+      "logo": "/api/uploads/1781245844847-o8prkp.jpeg",
+      "score": null
+    },
+    "location": "Poway - Field 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T09:10:11.549Z",
+    "updatedAt": "2026-06-24T09:10:11.549Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b9ef31a2216ba5b6804a3",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-28T00:00:00.000Z",
+    "time": "19:30",
+    "teamA": {
+      "name": "DARKSIDE",
+      "logo": "/api/uploads/1781222587299-sngk9x.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "DILFF",
+      "logo": "/api/uploads/1781245716471-v7vgkg.jpeg",
+      "score": null
+    },
+    "location": "Poway - Field 1",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T09:10:11.700Z",
+    "updatedAt": "2026-06-24T09:10:11.700Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b9ef31a2216ba5b6804a5",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-28T00:00:00.000Z",
+    "time": "16:10",
+    "teamA": {
+      "name": "Mambas",
+      "logo": "/api/uploads/1781222939074-lpq587.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Members Only",
+      "logo": "/api/uploads/1781245803788-kuhxeu.jpeg",
+      "score": null
+    },
+    "location": "Poway - Field 2",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T09:10:11.851Z",
+    "updatedAt": "2026-06-24T09:10:11.851Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b9ef41a2216ba5b6804a7",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-28T00:00:00.000Z",
+    "time": "17:00",
+    "teamA": {
+      "name": "Chozen 1nez",
+      "logo": "/api/uploads/1781245876052-tvgxmo.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Members Only",
+      "logo": "/api/uploads/1781245803788-kuhxeu.jpeg",
+      "score": null
+    },
+    "location": "Poway - Field 2",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T09:10:12.001Z",
+    "updatedAt": "2026-06-24T09:10:12.001Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b9ef41a2216ba5b6804a9",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-28T00:00:00.000Z",
+    "time": "17:50",
+    "teamA": {
+      "name": "Death Watch",
+      "logo": "/api/uploads/1781245907458-s218jn.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Chozen 1nez",
+      "logo": "/api/uploads/1781245876052-tvgxmo.jpeg",
+      "score": null
+    },
+    "location": "Poway - Field 2",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T09:10:12.152Z",
+    "updatedAt": "2026-06-24T09:10:12.152Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3b9ef41a2216ba5b6804ab",
+    "league": "6a23a7e75f5211d1bb47d0f2",
+    "date": "2026-06-28T00:00:00.000Z",
+    "time": "18:40",
+    "teamA": {
+      "name": "DILFF",
+      "logo": "/api/uploads/1781245716471-v7vgkg.jpeg",
+      "score": null
+    },
+    "teamB": {
+      "name": "Rugrats",
+      "logo": "/api/uploads/1781223047627-ubgm25.jpeg",
+      "score": null
+    },
+    "location": "Poway - Field 2",
+    "status": "upcoming",
+    "gameType": "main",
+    "createdAt": "2026-06-24T09:10:12.304Z",
+    "updatedAt": "2026-06-24T09:10:12.304Z",
+    "__v": 0
+  }
+]

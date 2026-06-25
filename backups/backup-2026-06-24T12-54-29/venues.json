@@ -1,0 +1,464 @@
+[
+  {
+    "_id": "69cf345c268fc7ba310d28fb",
+    "county": "69cf345b268fc7ba310d28f9",
+    "name": "Cottonwood Kids Park",
+    "slug": "cottonwood-kids-park",
+    "address": "350 S 12th St, Cottonwood, AZ 86326, United States",
+    "managerName": "",
+    "managerPhone": "",
+    "cityName": "Cottonwood",
+    "fields": [
+      {
+        "name": "1",
+        "mapEmbed": "<iframe src=\"https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3278.885152402414!2d-112.01760902425416!3d34.73328917290811!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x872d0f8eff000001%3A0x569ac3cb25839a1c!2sCottonwood%20Kids%20Park!5e0!3m2!1sen!2sin!4v1775187026404!5m2!1sen!2sin\" width=\"600\" height=\"450\" style=\"border:0;\" allowfullscreen=\"\" loading=\"lazy\" referrerpolicy=\"no-referrer-when-downgrade\"></iframe>",
+        "amenities": [
+          "Pet Friendly",
+          "Wheelchair Accessible Entrance",
+          "Toilets"
+        ],
+        "images": [],
+        "_id": "69cf3470268fc7ba310d2901"
+      },
+      {
+        "name": "2",
+        "mapEmbed": "<iframe src=\"https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3278.885152402414!2d-112.01760902425416!3d34.73328917290811!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x872d0f8eff000001%3A0x569ac3cb25839a1c!2sCottonwood%20Kids%20Park!5e0!3m2!1sen!2sin!4v1775187026404!5m2!1sen!2sin\" width=\"600\" height=\"450\" style=\"border:0;\" allowfullscreen=\"\" loading=\"lazy\" referrerpolicy=\"no-referrer-when-downgrade\"></iframe>",
+        "amenities": [
+          "Toilets",
+          "Pet Friendly",
+          "Wheelchair Accessible Entrance"
+        ],
+        "images": [],
+        "_id": "69cf3470268fc7ba310d2902"
+      }
+    ],
+    "createdAt": "2026-04-03T03:30:36.084Z",
+    "updatedAt": "2026-04-03T03:30:56.911Z",
+    "__v": 0
+  },
+  {
+    "_id": "69f59c12e7729de622496847",
+    "county": "69f59c12e7729de622496845",
+    "name": "Beverly Field",
+    "slug": "beverly-field",
+    "address": "",
+    "managerName": "",
+    "managerPhone": "",
+    "cityName": "Beverly",
+    "fields": [],
+    "createdAt": "2026-05-02T06:39:14.401Z",
+    "updatedAt": "2026-05-02T06:39:14.401Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a23a3b25f5211d1bb47cfba",
+    "county": "6a23a3b25f5211d1bb47cfb8",
+    "name": "North Park",
+    "slug": "north-park",
+    "address": "",
+    "managerName": "",
+    "managerPhone": "",
+    "cityName": "San Diego",
+    "fields": [
+      {
+        "name": "Field 1",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a23a3b25f5211d1bb47cfbb"
+      },
+      {
+        "name": "Field 2",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a23a3b25f5211d1bb47cfbc"
+      }
+    ],
+    "createdAt": "2026-06-06T04:36:02.221Z",
+    "updatedAt": "2026-06-06T04:36:02.221Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a23a42b5f5211d1bb47cfc3",
+    "county": "6a23a3b25f5211d1bb47cfb8",
+    "name": "Mira Mesa",
+    "slug": "mira-mesa",
+    "address": "",
+    "managerName": "",
+    "managerPhone": "",
+    "cityName": "San Diego",
+    "fields": [
+      {
+        "name": "Field 1",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a23a42b5f5211d1bb47cfc4"
+      },
+      {
+        "name": "Field 2",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a23a42b5f5211d1bb47cfc5"
+      },
+      {
+        "name": "Field 3",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a23a42b5f5211d1bb47cfc6"
+      }
+    ],
+    "createdAt": "2026-06-06T04:38:03.329Z",
+    "updatedAt": "2026-06-06T04:38:03.329Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a23a46b5f5211d1bb47cfcf",
+    "county": "6a23a46b5f5211d1bb47cfcd",
+    "name": "Temecula",
+    "slug": "temecula",
+    "address": "",
+    "managerName": "",
+    "managerPhone": "",
+    "cityName": "Temecula",
+    "fields": [
+      {
+        "name": "Field 1",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a23a46b5f5211d1bb47cfd0"
+      },
+      {
+        "name": "Field 2",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a23a46b5f5211d1bb47cfd1"
+      },
+      {
+        "name": "Field 3",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a23a46b5f5211d1bb47cfd2"
+      }
+    ],
+    "createdAt": "2026-06-06T04:39:07.947Z",
+    "updatedAt": "2026-06-06T04:39:07.947Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a23a4e25f5211d1bb47cfee",
+    "county": "6a23a46b5f5211d1bb47cfcd",
+    "name": "Riverside",
+    "slug": "riverside",
+    "address": "",
+    "managerName": "",
+    "managerPhone": "",
+    "cityName": "Riverside",
+    "fields": [
+      {
+        "name": "Field 1",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a23a4e25f5211d1bb47cfef"
+      },
+      {
+        "name": "Field 2",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a23a4e25f5211d1bb47cff0"
+      },
+      {
+        "name": "Field 3",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a23a4e25f5211d1bb47cff1"
+      }
+    ],
+    "createdAt": "2026-06-06T04:41:06.387Z",
+    "updatedAt": "2026-06-06T04:41:06.387Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a23a5355f5211d1bb47cff8",
+    "county": "6a23a3b25f5211d1bb47cfb8",
+    "name": "Oceanside",
+    "slug": "oceanside",
+    "address": "",
+    "managerName": "",
+    "managerPhone": "",
+    "cityName": "Oceanside",
+    "fields": [
+      {
+        "name": "Field 1",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a23a5355f5211d1bb47cff9"
+      },
+      {
+        "name": "Field 2",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a23a5355f5211d1bb47cffa"
+      },
+      {
+        "name": "Field 3",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a23a5355f5211d1bb47cffb"
+      }
+    ],
+    "createdAt": "2026-06-06T04:42:29.954Z",
+    "updatedAt": "2026-06-06T04:42:29.954Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a23a5625f5211d1bb47d002",
+    "county": "6a23a3b25f5211d1bb47cfb8",
+    "name": "Poway",
+    "slug": "poway",
+    "address": "",
+    "managerName": "",
+    "managerPhone": "",
+    "cityName": "Poway",
+    "fields": [
+      {
+        "name": "Field 1",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a3852fb1a2216ba5b65cd7b"
+      },
+      {
+        "name": "Field 2",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a3852fb1a2216ba5b65cd7c"
+      },
+      {
+        "name": "Field 3",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a3852fb1a2216ba5b65cd7d"
+      }
+    ],
+    "createdAt": "2026-06-06T04:43:14.703Z",
+    "updatedAt": "2026-06-21T21:09:15.532Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a23a5805f5211d1bb47d00d",
+    "county": "6a23a5805f5211d1bb47d00b",
+    "name": "Irvine",
+    "slug": "irvine",
+    "address": "",
+    "managerName": "",
+    "managerPhone": "",
+    "cityName": "Irvine",
+    "fields": [
+      {
+        "name": "Field 1",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a23a5805f5211d1bb47d00e"
+      },
+      {
+        "name": "Field 2",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a23a5805f5211d1bb47d00f"
+      }
+    ],
+    "createdAt": "2026-06-06T04:43:44.989Z",
+    "updatedAt": "2026-06-06T04:43:44.989Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a23a5a45f5211d1bb47d018",
+    "county": "6a23a5a45f5211d1bb47d016",
+    "name": "Chino",
+    "slug": "chino",
+    "address": "",
+    "managerName": "",
+    "managerPhone": "",
+    "cityName": "Chino",
+    "fields": [
+      {
+        "name": "Field 1",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a23a5a45f5211d1bb47d019"
+      },
+      {
+        "name": "Field 2",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a23a5a45f5211d1bb47d01a"
+      },
+      {
+        "name": "Field 3",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a23a5a45f5211d1bb47d01b"
+      },
+      {
+        "name": "Field 4",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a23a5a45f5211d1bb47d01c"
+      }
+    ],
+    "createdAt": "2026-06-06T04:44:20.735Z",
+    "updatedAt": "2026-06-06T04:44:20.735Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a23a5ca5f5211d1bb47d025",
+    "county": "6a23a5ca5f5211d1bb47d023",
+    "name": "Pomona",
+    "slug": "pomona",
+    "address": "",
+    "managerName": "",
+    "managerPhone": "",
+    "cityName": "Pomona",
+    "fields": [
+      {
+        "name": "Field 1",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a23a5ca5f5211d1bb47d026"
+      },
+      {
+        "name": "Field 2",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a23a5ca5f5211d1bb47d027"
+      },
+      {
+        "name": "Field 3",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a23a5ca5f5211d1bb47d028"
+      },
+      {
+        "name": "Field 4",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a23a5ca5f5211d1bb47d029"
+      }
+    ],
+    "createdAt": "2026-06-06T04:44:58.616Z",
+    "updatedAt": "2026-06-06T04:44:58.616Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a359401414a9d467c6dad00",
+    "county": "69cf345b268fc7ba310d28f9",
+    "name": "Phoenix",
+    "slug": "phoenix",
+    "address": "",
+    "managerName": "",
+    "managerPhone": "",
+    "cityName": "Cottonwood",
+    "fields": [
+      {
+        "name": "Field 1",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a359533414a9d467c6dae52"
+      },
+      {
+        "name": "Field 2",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a359533414a9d467c6dae53"
+      }
+    ],
+    "createdAt": "2026-06-19T19:09:53.761Z",
+    "updatedAt": "2026-06-19T19:14:59.579Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a359484414a9d467c6dadbc",
+    "county": "6a359484414a9d467c6dadba",
+    "name": "El Dorado",
+    "slug": "el-dorado",
+    "address": "",
+    "managerName": "",
+    "managerPhone": "",
+    "cityName": "El Dorado Hills",
+    "fields": [
+      {
+        "name": "Field 1",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a35951a414a9d467c6dae25"
+      },
+      {
+        "name": "Field 2",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a35951a414a9d467c6dae26"
+      }
+    ],
+    "createdAt": "2026-06-19T19:12:04.471Z",
+    "updatedAt": "2026-06-19T19:14:34.056Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3594ab414a9d467c6dadc7",
+    "county": "6a3594aa414a9d467c6dadc5",
+    "name": "Bradford",
+    "slug": "bradford",
+    "address": "",
+    "managerName": "",
+    "managerPhone": "",
+    "cityName": "",
+    "fields": [
+      {
+        "name": "Field 1",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a3594ed414a9d467c6dadd1"
+      },
+      {
+        "name": "Field 2",
+        "mapEmbed": "",
+        "amenities": [],
+        "images": [],
+        "_id": "6a3594ed414a9d467c6dadd2"
+      }
+    ],
+    "createdAt": "2026-06-19T19:12:43.027Z",
+    "updatedAt": "2026-06-19T19:13:49.523Z",
+    "__v": 0
+  }
+]

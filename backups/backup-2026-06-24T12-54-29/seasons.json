@@ -1,0 +1,57 @@
+[
+  {
+    "_id": "69cf34cf268fc7ba310d2921",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "name": "Spring 2026",
+    "slug": "spring-2026",
+    "type": "active",
+    "isDefault": true,
+    "createdAt": "2026-04-03T03:32:31.165Z",
+    "updatedAt": "2026-04-03T03:32:31.165Z",
+    "__v": 0
+  },
+  {
+    "_id": "69f58100e7729de622495f8a",
+    "organization": "69f580a6e7729de622495f7a",
+    "name": "Spring 2026",
+    "slug": "spring-2026",
+    "type": "active",
+    "isDefault": false,
+    "createdAt": "2026-05-02T04:43:44.143Z",
+    "updatedAt": "2026-06-14T18:50:50.734Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a17fc92d4704adc02fe99c9",
+    "organization": "6a17fb3bd4704adc02fe994e",
+    "name": "Summer 2026",
+    "slug": "summer-2026",
+    "type": "active",
+    "isDefault": false,
+    "createdAt": "2026-05-28T08:28:02.047Z",
+    "updatedAt": "2026-06-19T19:08:40.433Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a23a6465f5211d1bb47d06d",
+    "organization": "69f580a6e7729de622495f7a",
+    "name": "Summer 2026",
+    "slug": "summer-2026",
+    "type": "active",
+    "isDefault": true,
+    "createdAt": "2026-06-06T04:47:02.414Z",
+    "updatedAt": "2026-06-14T18:50:50.794Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3593b8414a9d467c6dace9",
+    "organization": "6a17fb3bd4704adc02fe994e",
+    "name": "Spring 2026",
+    "slug": "spring-2026",
+    "type": "active",
+    "isDefault": true,
+    "createdAt": "2026-06-19T19:08:40.599Z",
+    "updatedAt": "2026-06-19T19:08:40.599Z",
+    "__v": 0
+  }
+]

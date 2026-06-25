@@ -1,0 +1,38 @@
+[
+  {
+    "_id": "69cf345b268fc7ba310d28f6",
+    "name": "Arizona",
+    "slug": "arizona",
+    "abbreviation": "AZ",
+    "createdAt": "2026-04-03T03:30:35.584Z",
+    "updatedAt": "2026-04-03T03:30:35.584Z",
+    "__v": 0
+  },
+  {
+    "_id": "69f59c11e7729de622496842",
+    "name": "Massachusetts",
+    "slug": "massachusetts",
+    "abbreviation": "MA",
+    "createdAt": "2026-05-02T06:39:13.942Z",
+    "updatedAt": "2026-05-02T06:39:13.942Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a23a3b15f5211d1bb47cfb5",
+    "name": "California",
+    "slug": "california",
+    "abbreviation": "CA",
+    "createdAt": "2026-06-06T04:36:01.723Z",
+    "updatedAt": "2026-06-06T04:36:01.723Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3594aa414a9d467c6dadc2",
+    "name": "Florida",
+    "slug": "florida",
+    "abbreviation": "FL",
+    "createdAt": "2026-06-19T19:12:42.576Z",
+    "updatedAt": "2026-06-19T19:12:42.576Z",
+    "__v": 0
+  }
+]

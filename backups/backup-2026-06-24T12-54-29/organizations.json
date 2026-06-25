@@ -1,0 +1,284 @@
+[
+  {
+    "_id": "69ce785e268fc7ba310d26ff",
+    "name": "Showtime Sportz",
+    "slug": "showtime-sportz",
+    "logo": "/api/uploads/1775185938477-tqab32.jpg",
+    "bannerImage": "/api/uploads/1775185784117-k5m60c.jpg",
+    "rating": 0,
+    "memberCount": 0,
+    "foundedYear": 2018,
+    "description": "Youth flag football, basketball, volleyball leagues, tournaments, camps, and more!",
+    "locationsDescription": "",
+    "categories": [
+      "Youth"
+    ],
+    "locations": [
+      {
+        "state": null,
+        "county": null,
+        "location": null,
+        "stateName": "Arizona",
+        "stateAbbr": "AZ",
+        "countyName": "Yavapai",
+        "cityName": "Cottonwood",
+        "locationName": "Cottonwood, Yavapai (AZ)",
+        "_id": "69ce785e268fc7ba310d2700"
+      }
+    ],
+    "location": "Cottonwood, Yavapai (AZ)",
+    "scheduleDays": [
+      "SAT",
+      "SUN",
+      "MON",
+      "TUE",
+      "WED",
+      "THU",
+      "FRI"
+    ],
+    "sport": "Flag Football",
+    "contactInfo": {
+      "phone": "928-254-8869",
+      "email": "bruce@showtimesportz.com",
+      "website": "https://www.showtimesportz.com/"
+    },
+    "socialLinks": {
+      "facebook": "https://www.facebook.com/showtimesportz/",
+      "twitter": "",
+      "instagram": "https://www.instagram.com/showtime_sportz/"
+    },
+    "galleryImages": [],
+    "venues": [],
+    "testimonials": [],
+    "createdAt": "2026-04-02T14:08:30.204Z",
+    "updatedAt": "2026-04-03T07:20:52.334Z",
+    "__v": 0
+  },
+  {
+    "_id": "69f580a6e7729de622495f7a",
+    "name": "XFlagFootball",
+    "slug": "xflagfootball",
+    "logo": "/api/uploads/1777696820418-84q9lh.png",
+    "bannerImage": "/api/uploads/1777696874960-n81hr4.jpg",
+    "rating": 0,
+    "memberCount": 0,
+    "foundedYear": 2007,
+    "description": "",
+    "locationsDescription": "",
+    "categories": [
+      "Women",
+      "Men",
+      "Youth",
+      "Coed"
+    ],
+    "locations": [
+      {
+        "state": null,
+        "county": null,
+        "location": null,
+        "stateName": "Massachusetts",
+        "stateAbbr": "MA",
+        "countyName": "Essex",
+        "cityName": "Beverly",
+        "locationName": "Beverly, Essex (MA)",
+        "_id": "69f59b7ae7729de62249679e"
+      },
+      {
+        "state": null,
+        "county": null,
+        "location": null,
+        "stateName": "California",
+        "stateAbbr": "CA",
+        "countyName": "Los Angeles",
+        "cityName": "Pomona",
+        "locationName": "Pomona, Los Angeles (CA)",
+        "_id": "6a23a2a55f5211d1bb47cf6b"
+      },
+      {
+        "state": null,
+        "county": null,
+        "location": null,
+        "stateName": "California",
+        "stateAbbr": "CA",
+        "countyName": "San Bernardino",
+        "cityName": "Chino",
+        "locationName": "Chino, San Bernardino (CA)",
+        "_id": "6a23a2a55f5211d1bb47cf6c"
+      },
+      {
+        "state": null,
+        "county": null,
+        "location": null,
+        "stateName": "California",
+        "stateAbbr": "CA",
+        "countyName": "Riverside",
+        "cityName": "Riverside",
+        "locationName": "Riverside, Riverside (CA)",
+        "_id": "6a23a2a55f5211d1bb47cf6d"
+      },
+      {
+        "state": null,
+        "county": null,
+        "location": null,
+        "stateName": "California",
+        "stateAbbr": "CA",
+        "countyName": "Riverside",
+        "cityName": "Temecula",
+        "locationName": "Temecula, Riverside (CA)",
+        "_id": "6a23a2a55f5211d1bb47cf6e"
+      },
+      {
+        "state": null,
+        "county": null,
+        "location": null,
+        "stateName": "California",
+        "stateAbbr": "CA",
+        "countyName": "San Diego",
+        "cityName": "Poway",
+        "locationName": "Poway, San Diego (CA)",
+        "_id": "6a23a2a55f5211d1bb47cf6f"
+      },
+      {
+        "state": null,
+        "county": null,
+        "location": null,
+        "stateName": "California",
+        "stateAbbr": "CA",
+        "countyName": "San Diego",
+        "cityName": "San Diego",
+        "locationName": "San Diego, San Diego (CA)",
+        "_id": "6a23a2a55f5211d1bb47cf70"
+      },
+      {
+        "state": null,
+        "county": null,
+        "location": null,
+        "stateName": "California",
+        "stateAbbr": "CA",
+        "countyName": "San Diego",
+        "cityName": "Oceanside",
+        "locationName": "Oceanside, San Diego (CA)",
+        "_id": "6a23a2a55f5211d1bb47cf71"
+      },
+      {
+        "state": null,
+        "county": null,
+        "location": null,
+        "stateName": "California",
+        "stateAbbr": "CA",
+        "countyName": "Orange",
+        "cityName": "Irvine",
+        "locationName": "Irvine, Orange (CA)",
+        "_id": "6a23a2a55f5211d1bb47cf72"
+      }
+    ],
+    "location": "Beverly, Essex (MA), Pomona, Los Angeles (CA), Chino, San Bernardino (CA), Riverside, Riverside (CA), Temecula, Riverside (CA), Poway, San Diego (CA), San Diego, San Diego (CA), Oceanside, San Diego (CA), Irvine, Orange (CA)",
+    "scheduleDays": [
+      "MON",
+      "TUE",
+      "WED",
+      "FRI",
+      "SAT",
+      "THU",
+      "SUN"
+    ],
+    "sport": "Flag Football",
+    "contactInfo": {
+      "phone": "855 – 3524 – 411",
+      "email": "mzimmerman@xflagfootball.com",
+      "website": "https://xflagfootball.com/"
+    },
+    "socialLinks": {
+      "facebook": "",
+      "twitter": "",
+      "instagram": ""
+    },
+    "galleryImages": [],
+    "venues": [],
+    "testimonials": [],
+    "createdAt": "2026-05-02T04:42:14.031Z",
+    "updatedAt": "2026-06-15T10:17:17.070Z",
+    "__v": 0,
+    "timezone": "America/Los_Angeles"
+  },
+  {
+    "_id": "6a17fb3bd4704adc02fe994e",
+    "name": "Denstar",
+    "slug": "denstar",
+    "logo": "/api/uploads/1781335969488-9e4vjp.jpg",
+    "bannerImage": "/api/uploads/1781336057441-3vtzve.jpg",
+    "rating": 0,
+    "memberCount": 0,
+    "foundedYear": 2026,
+    "description": "",
+    "locationsDescription": "",
+    "categories": [
+      "Men",
+      "Youth",
+      "Women",
+      "Coed"
+    ],
+    "locations": [
+      {
+        "state": null,
+        "county": null,
+        "location": null,
+        "stateName": "Arizona",
+        "stateAbbr": "AZ",
+        "countyName": "Yavapai",
+        "cityName": "Cottonwood",
+        "locationName": "Cottonwood, Yavapai (AZ)",
+        "_id": "6a17fb3bd4704adc02fe994f"
+      },
+      {
+        "state": null,
+        "county": null,
+        "location": null,
+        "stateName": "California",
+        "stateAbbr": "CA",
+        "countyName": "El Dorado",
+        "cityName": "El Dorado Hills",
+        "locationName": "El Dorado Hills, El Dorado (CA)",
+        "_id": "6a359457414a9d467c6dad9f"
+      },
+      {
+        "state": null,
+        "county": null,
+        "location": null,
+        "stateName": "Florida",
+        "stateAbbr": "FL",
+        "countyName": "Bradford",
+        "cityName": "",
+        "locationName": "Bradford (FL)",
+        "_id": "6a359457414a9d467c6dada0"
+      }
+    ],
+    "location": "Cottonwood, Yavapai (AZ), El Dorado Hills, El Dorado (CA), Bradford (FL)",
+    "scheduleDays": [
+      "MON",
+      "TUE",
+      "WED",
+      "THU",
+      "FRI",
+      "SAT",
+      "SUN"
+    ],
+    "sport": "Flag Football",
+    "contactInfo": {
+      "phone": "",
+      "email": "",
+      "website": ""
+    },
+    "socialLinks": {
+      "facebook": "",
+      "twitter": "",
+      "instagram": ""
+    },
+    "galleryImages": [],
+    "venues": [],
+    "testimonials": [],
+    "createdAt": "2026-05-28T08:22:19.849Z",
+    "updatedAt": "2026-06-19T19:11:19.641Z",
+    "__v": 0
+  }
+]

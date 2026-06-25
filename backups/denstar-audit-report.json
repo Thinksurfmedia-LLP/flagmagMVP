@@ -1,0 +1,1050 @@
+{
+  "organization": {
+    "count": 1,
+    "docs": [
+      {
+        "_id": "6a17fb3bd4704adc02fe994e",
+        "name": "Denstar"
+      }
+    ]
+  },
+  "leagues": {
+    "count": 4,
+    "docs": [
+      {
+        "_id": "6a17fd12d4704adc02fe99e0",
+        "name": "Arizona League"
+      },
+      {
+        "_id": "6a2d06575f5211d1bb483f0b",
+        "name": "Cottonwood Summer League 2026"
+      },
+      {
+        "_id": "6a35979c414a9d467c6db0ad",
+        "name": "Florida Spring 2026"
+      },
+      {
+        "_id": "6a3507f9c4ae21c60b8afe05",
+        "name": "Phoenix League"
+      }
+    ]
+  },
+  "seasons": {
+    "count": 2,
+    "docs": [
+      {
+        "_id": "6a17fc92d4704adc02fe99c9",
+        "name": "Summer 2026"
+      },
+      {
+        "_id": "6a3593b8414a9d467c6dace9",
+        "name": "Spring 2026"
+      }
+    ]
+  },
+  "teams": {
+    "count": 7,
+    "docs": [
+      {
+        "_id": "6a17fd56d4704adc02fe99f7",
+        "name": "Champs",
+        "league": "6a17fd12d4704adc02fe99e0"
+      },
+      {
+        "_id": "6a17fd6dd4704adc02fe9a0d",
+        "name": "Challenger",
+        "league": "6a17fd12d4704adc02fe99e0"
+      },
+      {
+        "_id": "6a2d0bc65f5211d1bb48402d",
+        "name": "Red Hawks",
+        "league": "6a2d06575f5211d1bb483f0b"
+      },
+      {
+        "_id": "6a2d0be25f5211d1bb484049",
+        "name": "Blue Storm",
+        "league": "6a2d06575f5211d1bb483f0b"
+      },
+      {
+        "_id": "6a3597bc414a9d467c6db0cd",
+        "name": "Goat",
+        "league": "6a35979c414a9d467c6db0ad"
+      },
+      {
+        "_id": "6a3597cc414a9d467c6db0e9",
+        "name": "Red Dogs",
+        "league": "6a35979c414a9d467c6db0ad"
+      },
+      {
+        "_id": "6a3597e3414a9d467c6db105",
+        "name": "Gators",
+        "league": "6a35979c414a9d467c6db0ad"
+      }
+    ]
+  },
+  "games": {
+    "count": 38,
+    "docs": [
+      {
+        "_id": "6a17fe7dd4704adc02fe9ad0",
+        "league": "6a17fd12d4704adc02fe99e0"
+      },
+      {
+        "_id": "6a17fec3d4704adc02fe9b1c",
+        "league": "6a17fd12d4704adc02fe99e0"
+      },
+      {
+        "_id": "6a1990ec2a5786f17814801c",
+        "league": "6a17fd12d4704adc02fe99e0"
+      },
+      {
+        "_id": "6a19e0102a5786f17814828c",
+        "league": "6a17fd12d4704adc02fe99e0"
+      },
+      {
+        "_id": "6a1d47c92a5786f1781486b0",
+        "league": "6a17fd12d4704adc02fe99e0"
+      },
+      {
+        "_id": "6a1d51d32a5786f178148735",
+        "league": "6a17fd12d4704adc02fe99e0"
+      },
+      {
+        "_id": "6a1d53622a5786f1781487da",
+        "league": "6a17fd12d4704adc02fe99e0"
+      },
+      {
+        "_id": "6a1d53f22a5786f178148863",
+        "league": "6a17fd12d4704adc02fe99e0"
+      },
+      {
+        "_id": "6a1d59962a5786f178148906",
+        "league": "6a17fd12d4704adc02fe99e0"
+      },
+      {
+        "_id": "6a1d92252a5786f178148ada",
+        "league": "6a17fd12d4704adc02fe99e0"
+      },
+      {
+        "_id": "6a1dd1002a5786f178148d28",
+        "league": "6a17fd12d4704adc02fe99e0"
+      },
+      {
+        "_id": "6a2019992a5786f17814921c",
+        "league": "6a17fd12d4704adc02fe99e0"
+      },
+      {
+        "_id": "6a2019e72a5786f178149238",
+        "league": "6a17fd12d4704adc02fe99e0"
+      },
+      {
+        "_id": "6a1fb2732a5786f178149083",
+        "league": "6a17fd12d4704adc02fe99e0"
+      },
+      {
+        "_id": "6a1e6d412a5786f178148de2",
+        "league": "6a17fd12d4704adc02fe99e0"
+      },
+      {
+        "_id": "6a297af25f5211d1bb47ec9c",
+        "league": "6a17fd12d4704adc02fe99e0"
+      },
+      {
+        "_id": "6a2a59f25f5211d1bb47ee97",
+        "league": "6a17fd12d4704adc02fe99e0"
+      },
+      {
+        "_id": "6a2a5bcb5f5211d1bb47ef43",
+        "league": "6a17fd12d4704adc02fe99e0"
+      },
+      {
+        "_id": "6a2a5c055f5211d1bb47ef5f",
+        "league": "6a17fd12d4704adc02fe99e0"
+      },
+      {
+        "_id": "6a2a612f5f5211d1bb47f00f",
+        "league": "6a17fd12d4704adc02fe99e0"
+      },
+      {
+        "_id": "6a2a65df5f5211d1bb47f074",
+        "league": "6a17fd12d4704adc02fe99e0"
+      },
+      {
+        "_id": "6a2a68bd5f5211d1bb47f0e0",
+        "league": "6a17fd12d4704adc02fe99e0"
+      },
+      {
+        "_id": "6a2e9f61de3d1385a49dc13e",
+        "league": "6a17fd12d4704adc02fe99e0"
+      },
+      {
+        "_id": "6a350727c4ae21c60b8afd0c",
+        "league": "6a2d06575f5211d1bb483f0b"
+      },
+      {
+        "_id": "6a2d11935f5211d1bb484471",
+        "league": "6a2d06575f5211d1bb483f0b"
+      },
+      {
+        "_id": "6a350727c4ae21c60b8afd0a",
+        "league": "6a2d06575f5211d1bb483f0b"
+      },
+      {
+        "_id": "6a350869c4ae21c60b8afe7c",
+        "league": "6a3507f9c4ae21c60b8afe05"
+      },
+      {
+        "_id": "6a350869c4ae21c60b8afe7e",
+        "league": "6a3507f9c4ae21c60b8afe05"
+      },
+      {
+        "_id": "6a350869c4ae21c60b8afe80",
+        "league": "6a3507f9c4ae21c60b8afe05"
+      },
+      {
+        "_id": "6a3508f6c4ae21c60b8aff1d",
+        "league": "6a3507f9c4ae21c60b8afe05"
+      },
+      {
+        "_id": "6a359bdb414a9d467c6db553",
+        "league": "6a35979c414a9d467c6db0ad"
+      },
+      {
+        "_id": "6a359bdb414a9d467c6db555",
+        "league": "6a35979c414a9d467c6db0ad"
+      },
+      {
+        "_id": "6a359bdb414a9d467c6db557",
+        "league": "6a35979c414a9d467c6db0ad"
+      },
+      {
+        "_id": "6a359bdb414a9d467c6db559",
+        "league": "6a35979c414a9d467c6db0ad"
+      },
+      {
+        "_id": "6a359bdc414a9d467c6db55b",
+        "league": "6a35979c414a9d467c6db0ad"
+      },
+      {
+        "_id": "6a359bdc414a9d467c6db55d",
+        "league": "6a35979c414a9d467c6db0ad"
+      },
+      {
+        "_id": "6a359bdc414a9d467c6db55f",
+        "league": "6a35979c414a9d467c6db0ad"
+      },
+      {
+        "_id": "6a359bdc414a9d467c6db561",
+        "league": "6a35979c414a9d467c6db0ad"
+      }
+    ]
+  },
+  "plays": {
+    "count": 145,
+    "docs": [
+      {
+        "_id": "6a199b892a5786f178148205",
+        "game": "6a1990ec2a5786f17814801c"
+      },
+      {
+        "_id": "6a19e0922a5786f1781482bb",
+        "game": "6a19e0102a5786f17814828c"
+      },
+      {
+        "_id": "6a19e0952a5786f1781482c1",
+        "game": "6a19e0102a5786f17814828c"
+      },
+      {
+        "_id": "6a19e0982a5786f1781482c7",
+        "game": "6a19e0102a5786f17814828c"
+      },
+      {
+        "_id": "6a19e0bf2a5786f1781482cb",
+        "game": "6a19e0102a5786f17814828c"
+      },
+      {
+        "_id": "6a1d48c22a5786f1781486dc",
+        "game": "6a1d47c92a5786f1781486b0"
+      },
+      {
+        "_id": "6a1d48c52a5786f1781486e2",
+        "game": "6a1d47c92a5786f1781486b0"
+      },
+      {
+        "_id": "6a1d48c72a5786f1781486ef",
+        "game": "6a1d47c92a5786f1781486b0"
+      },
+      {
+        "_id": "6a1d52632a5786f178148760",
+        "game": "6a1d51d32a5786f178148735"
+      },
+      {
+        "_id": "6a1d52642a5786f17814876a",
+        "game": "6a1d51d32a5786f178148735"
+      },
+      {
+        "_id": "6a1d52652a5786f178148770",
+        "game": "6a1d51d32a5786f178148735"
+      },
+      {
+        "_id": "6a1d52662a5786f178148779",
+        "game": "6a1d51d32a5786f178148735"
+      },
+      {
+        "_id": "6a1d52672a5786f17814877c",
+        "game": "6a1d51d32a5786f178148735"
+      },
+      {
+        "_id": "6a1d52682a5786f178148784",
+        "game": "6a1d51d32a5786f178148735"
+      },
+      {
+        "_id": "6a1d52692a5786f178148788",
+        "game": "6a1d51d32a5786f178148735"
+      },
+      {
+        "_id": "6a1d526b2a5786f178148790",
+        "game": "6a1d51d32a5786f178148735"
+      },
+      {
+        "_id": "6a1d53b12a5786f17814880d",
+        "game": "6a1d53622a5786f1781487da"
+      },
+      {
+        "_id": "6a1d53b22a5786f17814881a",
+        "game": "6a1d53622a5786f1781487da"
+      },
+      {
+        "_id": "6a1d57082a5786f1781488ae",
+        "game": "6a1d53f22a5786f178148863"
+      },
+      {
+        "_id": "6a1d570a2a5786f1781488b8",
+        "game": "6a1d53f22a5786f178148863"
+      },
+      {
+        "_id": "6a1d570b2a5786f1781488bd",
+        "game": "6a1d53f22a5786f178148863"
+      },
+      {
+        "_id": "6a1d570c2a5786f1781488c6",
+        "game": "6a1d53f22a5786f178148863"
+      },
+      {
+        "_id": "6a1d570d2a5786f1781488cb",
+        "game": "6a1d53f22a5786f178148863"
+      },
+      {
+        "_id": "6a1d570e2a5786f1781488d1",
+        "game": "6a1d53f22a5786f178148863"
+      },
+      {
+        "_id": "6a1d5d982a5786f1781489cc",
+        "game": "6a1d59962a5786f178148906"
+      },
+      {
+        "_id": "6a1d5d9a2a5786f1781489d8",
+        "game": "6a1d59962a5786f178148906"
+      },
+      {
+        "_id": "6a1da73e2a5786f178148b7e",
+        "game": "6a1d92252a5786f178148ada"
+      },
+      {
+        "_id": "6a1da7502a5786f178148b84",
+        "game": "6a1d92252a5786f178148ada"
+      },
+      {
+        "_id": "6a1dcd2d2a5786f178148c9e",
+        "game": "6a1d92252a5786f178148ada"
+      },
+      {
+        "_id": "6a1dcd322a5786f178148cac",
+        "game": "6a1d92252a5786f178148ada"
+      },
+      {
+        "_id": "6a1dcd332a5786f178148cae",
+        "game": "6a1d92252a5786f178148ada"
+      },
+      {
+        "_id": "6a1dcd352a5786f178148cb8",
+        "game": "6a1d92252a5786f178148ada"
+      },
+      {
+        "_id": "6a1dd1a52a5786f178148d5c",
+        "game": "6a1dd1002a5786f178148d28"
+      },
+      {
+        "_id": "6a1dd1a72a5786f178148d68",
+        "game": "6a1dd1002a5786f178148d28"
+      },
+      {
+        "_id": "6a1dd1a82a5786f178148d6a",
+        "game": "6a1dd1002a5786f178148d28"
+      },
+      {
+        "_id": "6a1dd1a92a5786f178148d73",
+        "game": "6a1dd1002a5786f178148d28"
+      },
+      {
+        "_id": "6a1dd1ab2a5786f178148d77",
+        "game": "6a1dd1002a5786f178148d28"
+      },
+      {
+        "_id": "6a1dd1ac2a5786f178148d7c",
+        "game": "6a1dd1002a5786f178148d28"
+      },
+      {
+        "_id": "6a1dd1ac2a5786f178148d7e",
+        "game": "6a1dd1002a5786f178148d28"
+      },
+      {
+        "_id": "6a1dd1ae2a5786f178148d80",
+        "game": "6a1dd1002a5786f178148d28"
+      },
+      {
+        "_id": "6a1e6db82a5786f178148e46",
+        "game": "6a1e6d412a5786f178148de2"
+      },
+      {
+        "_id": "6a1e6e2c2a5786f178148e62",
+        "game": "6a1e6d412a5786f178148de2"
+      },
+      {
+        "_id": "6a1e6e2d2a5786f178148e6f",
+        "game": "6a1e6d412a5786f178148de2"
+      },
+      {
+        "_id": "6a1e6e2e2a5786f178148e78",
+        "game": "6a1e6d412a5786f178148de2"
+      },
+      {
+        "_id": "6a1e6e2e2a5786f178148e7a",
+        "game": "6a1e6d412a5786f178148de2"
+      },
+      {
+        "_id": "6a1e6e2f2a5786f178148e80",
+        "game": "6a1e6d412a5786f178148de2"
+      },
+      {
+        "_id": "6a1e6e302a5786f178148e84",
+        "game": "6a1e6d412a5786f178148de2"
+      },
+      {
+        "_id": "6a1fb36f2a5786f1781490e6",
+        "game": "6a1fb2732a5786f178149083"
+      },
+      {
+        "_id": "6a1fb36f2a5786f1781490e8",
+        "game": "6a1fb2732a5786f178149083"
+      },
+      {
+        "_id": "6a1fb3702a5786f1781490f2",
+        "game": "6a1fb2732a5786f178149083"
+      },
+      {
+        "_id": "6a1fb3702a5786f1781490f4",
+        "game": "6a1fb2732a5786f178149083"
+      },
+      {
+        "_id": "6a1fb3712a5786f1781490f6",
+        "game": "6a1fb2732a5786f178149083"
+      },
+      {
+        "_id": "6a1fb3712a5786f1781490f8",
+        "game": "6a1fb2732a5786f178149083"
+      },
+      {
+        "_id": "6a1fb3722a5786f178149102",
+        "game": "6a1fb2732a5786f178149083"
+      },
+      {
+        "_id": "6a1fb3722a5786f178149104",
+        "game": "6a1fb2732a5786f178149083"
+      },
+      {
+        "_id": "6a201a8c2a5786f178149284",
+        "game": "6a2019e72a5786f178149238"
+      },
+      {
+        "_id": "6a201a982a5786f17814928a",
+        "game": "6a2019e72a5786f178149238"
+      },
+      {
+        "_id": "6a201aa12a5786f17814928f",
+        "game": "6a2019e72a5786f178149238"
+      },
+      {
+        "_id": "6a201abd2a5786f178149291",
+        "game": "6a2019e72a5786f178149238"
+      },
+      {
+        "_id": "6a297c045f5211d1bb47ecb7",
+        "game": "6a297af25f5211d1bb47ec9c"
+      },
+      {
+        "_id": "6a297c045f5211d1bb47ecb9",
+        "game": "6a297af25f5211d1bb47ec9c"
+      },
+      {
+        "_id": "6a297c045f5211d1bb47ecbb",
+        "game": "6a297af25f5211d1bb47ec9c"
+      },
+      {
+        "_id": "6a297c045f5211d1bb47ecbd",
+        "game": "6a297af25f5211d1bb47ec9c"
+      },
+      {
+        "_id": "6a297c055f5211d1bb47ecbf",
+        "game": "6a297af25f5211d1bb47ec9c"
+      },
+      {
+        "_id": "6a297c055f5211d1bb47ecc1",
+        "game": "6a297af25f5211d1bb47ec9c"
+      },
+      {
+        "_id": "6a297c055f5211d1bb47ecc3",
+        "game": "6a297af25f5211d1bb47ec9c"
+      },
+      {
+        "_id": "6a297c055f5211d1bb47ecc5",
+        "game": "6a297af25f5211d1bb47ec9c"
+      },
+      {
+        "_id": "6a297c055f5211d1bb47ecc7",
+        "game": "6a297af25f5211d1bb47ec9c"
+      },
+      {
+        "_id": "6a297c055f5211d1bb47ecc9",
+        "game": "6a297af25f5211d1bb47ec9c"
+      },
+      {
+        "_id": "6a297c065f5211d1bb47eccb",
+        "game": "6a297af25f5211d1bb47ec9c"
+      },
+      {
+        "_id": "6a297c065f5211d1bb47eccd",
+        "game": "6a297af25f5211d1bb47ec9c"
+      },
+      {
+        "_id": "6a297c065f5211d1bb47eccf",
+        "game": "6a297af25f5211d1bb47ec9c"
+      },
+      {
+        "_id": "6a297c065f5211d1bb47ecd1",
+        "game": "6a297af25f5211d1bb47ec9c"
+      },
+      {
+        "_id": "6a297c065f5211d1bb47ecd3",
+        "game": "6a297af25f5211d1bb47ec9c"
+      },
+      {
+        "_id": "6a297d025f5211d1bb47ecdf",
+        "game": "6a297af25f5211d1bb47ec9c"
+      },
+      {
+        "_id": "6a297d025f5211d1bb47ece1",
+        "game": "6a297af25f5211d1bb47ec9c"
+      },
+      {
+        "_id": "6a297d025f5211d1bb47ece3",
+        "game": "6a297af25f5211d1bb47ec9c"
+      },
+      {
+        "_id": "6a297d025f5211d1bb47ece5",
+        "game": "6a297af25f5211d1bb47ec9c"
+      },
+      {
+        "_id": "6a297d025f5211d1bb47ece8",
+        "game": "6a297af25f5211d1bb47ec9c"
+      },
+      {
+        "_id": "6a297d025f5211d1bb47ecea",
+        "game": "6a297af25f5211d1bb47ec9c"
+      },
+      {
+        "_id": "6a2a577e5f5211d1bb47ee4b",
+        "game": "6a297af25f5211d1bb47ec9c"
+      },
+      {
+        "_id": "6a2a577f5f5211d1bb47ee4d",
+        "game": "6a297af25f5211d1bb47ec9c"
+      },
+      {
+        "_id": "6a2a577f5f5211d1bb47ee4f",
+        "game": "6a297af25f5211d1bb47ec9c"
+      },
+      {
+        "_id": "6a2a57815f5211d1bb47ee51",
+        "game": "6a297af25f5211d1bb47ec9c"
+      },
+      {
+        "_id": "6a2a5a905f5211d1bb47eeb2",
+        "game": "6a2a59f25f5211d1bb47ee97"
+      },
+      {
+        "_id": "6a2a5a915f5211d1bb47eeb4",
+        "game": "6a2a59f25f5211d1bb47ee97"
+      },
+      {
+        "_id": "6a2a5a915f5211d1bb47eeba",
+        "game": "6a2a59f25f5211d1bb47ee97"
+      },
+      {
+        "_id": "6a2a5a915f5211d1bb47eeb6",
+        "game": "6a2a59f25f5211d1bb47ee97"
+      },
+      {
+        "_id": "6a2a5a915f5211d1bb47eeb8",
+        "game": "6a2a59f25f5211d1bb47ee97"
+      },
+      {
+        "_id": "6a2a5a915f5211d1bb47eec0",
+        "game": "6a2a59f25f5211d1bb47ee97"
+      },
+      {
+        "_id": "6a2a5a915f5211d1bb47eebc",
+        "game": "6a2a59f25f5211d1bb47ee97"
+      },
+      {
+        "_id": "6a2a5a915f5211d1bb47eebe",
+        "game": "6a2a59f25f5211d1bb47ee97"
+      },
+      {
+        "_id": "6a2a5a925f5211d1bb47eec6",
+        "game": "6a2a59f25f5211d1bb47ee97"
+      },
+      {
+        "_id": "6a2a5a925f5211d1bb47eec2",
+        "game": "6a2a59f25f5211d1bb47ee97"
+      },
+      {
+        "_id": "6a2a5a925f5211d1bb47eec4",
+        "game": "6a2a59f25f5211d1bb47ee97"
+      },
+      {
+        "_id": "6a2a5a925f5211d1bb47eec8",
+        "game": "6a2a59f25f5211d1bb47ee97"
+      },
+      {
+        "_id": "6a2a5a925f5211d1bb47eeca",
+        "game": "6a2a59f25f5211d1bb47ee97"
+      },
+      {
+        "_id": "6a2a5a925f5211d1bb47eecc",
+        "game": "6a2a59f25f5211d1bb47ee97"
+      },
+      {
+        "_id": "6a2a5a925f5211d1bb47eecf",
+        "game": "6a2a59f25f5211d1bb47ee97"
+      },
+      {
+        "_id": "6a2a5a925f5211d1bb47eed5",
+        "game": "6a2a59f25f5211d1bb47ee97"
+      },
+      {
+        "_id": "6a2a5cd95f5211d1bb47ef7a",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cda5f5211d1bb47ef7c",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cda5f5211d1bb47ef7e",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cda5f5211d1bb47ef82",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cda5f5211d1bb47ef80",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cda5f5211d1bb47ef84",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cda5f5211d1bb47ef86",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cda5f5211d1bb47ef8a",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cda5f5211d1bb47ef88",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cda5f5211d1bb47ef8e",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cda5f5211d1bb47ef8c",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cda5f5211d1bb47ef90",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cda5f5211d1bb47ef92",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cdb5f5211d1bb47ef94",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cdb5f5211d1bb47ef96",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cdb5f5211d1bb47ef98",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cdb5f5211d1bb47ef9a",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cdb5f5211d1bb47ef9c",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cdb5f5211d1bb47ef9e",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cdb5f5211d1bb47efa2",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cdb5f5211d1bb47efa0",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cdb5f5211d1bb47efa4",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cdb5f5211d1bb47efa6",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cdb5f5211d1bb47efa8",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cdb5f5211d1bb47efaa",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cdb5f5211d1bb47efac",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cdb5f5211d1bb47efae",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a5cdb5f5211d1bb47efb0",
+        "game": "6a2a5c055f5211d1bb47ef5f"
+      },
+      {
+        "_id": "6a2a61ad5f5211d1bb47f02a",
+        "game": "6a2a612f5f5211d1bb47f00f"
+      },
+      {
+        "_id": "6a2a61ad5f5211d1bb47f02c",
+        "game": "6a2a612f5f5211d1bb47f00f"
+      },
+      {
+        "_id": "6a2a61ae5f5211d1bb47f036",
+        "game": "6a2a612f5f5211d1bb47f00f"
+      },
+      {
+        "_id": "6a2a61ae5f5211d1bb47f038",
+        "game": "6a2a612f5f5211d1bb47f00f"
+      },
+      {
+        "_id": "6a2a667b5f5211d1bb47f08d",
+        "game": "6a2a65df5f5211d1bb47f074"
+      },
+      {
+        "_id": "6a2a667b5f5211d1bb47f08f",
+        "game": "6a2a65df5f5211d1bb47f074"
+      },
+      {
+        "_id": "6a2a667c5f5211d1bb47f093",
+        "game": "6a2a65df5f5211d1bb47f074"
+      },
+      {
+        "_id": "6a2a667c5f5211d1bb47f09b",
+        "game": "6a2a65df5f5211d1bb47f074"
+      },
+      {
+        "_id": "6a2eb2bdb9c2742f4080b239",
+        "game": "6a2a68bd5f5211d1bb47f0e0"
+      },
+      {
+        "_id": "6a2e2368de3d1385a49d9524",
+        "game": "6a2d11935f5211d1bb484471"
+      },
+      {
+        "_id": "6a2e2373de3d1385a49d9526",
+        "game": "6a2d11935f5211d1bb484471"
+      },
+      {
+        "_id": "6a2e23acde3d1385a49d952b",
+        "game": "6a2d11935f5211d1bb484471"
+      },
+      {
+        "_id": "6a2e2451de3d1385a49d9535",
+        "game": "6a2d11935f5211d1bb484471"
+      },
+      {
+        "_id": "6a2e2469de3d1385a49d953c",
+        "game": "6a2d11935f5211d1bb484471"
+      },
+      {
+        "_id": "6a3682b59850600c661ab192",
+        "game": "6a359bdc414a9d467c6db561"
+      },
+      {
+        "_id": "6a3682c49850600c661ab1a2",
+        "game": "6a359bdc414a9d467c6db561"
+      },
+      {
+        "_id": "6a3682d89850600c661ab1ab",
+        "game": "6a359bdc414a9d467c6db561"
+      }
+    ]
+  },
+  "gamestats": {
+    "count": 0
+  },
+  "schedules": {
+    "count": 4
+  },
+  "players": {
+    "count": 0,
+    "docs": []
+  },
+  "users": {
+    "count": 41,
+    "docs": [
+      {
+        "_id": "6a17fdbdd4704adc02fe9a30",
+        "email": "sayantansaha@test.com",
+        "name": ""
+      },
+      {
+        "_id": "6a17fdffd4704adc02fe9a5e",
+        "email": "db@test.com",
+        "name": ""
+      },
+      {
+        "_id": "6a199b372a5786f1781481bb",
+        "email": "abir@test.com",
+        "name": ""
+      },
+      {
+        "_id": "6a1ffd0b9b00549c2a0110d4",
+        "email": "rishikalpa@thinksurfmedia.info",
+        "name": ""
+      },
+      {
+        "_id": "6a1ffeab9b00549c2a01115c",
+        "email": "rio@flagmag.com",
+        "name": ""
+      },
+      {
+        "_id": "6a2d0c1a5f5211d1bb484077",
+        "email": "eathancarter@denstar.com",
+        "name": ""
+      },
+      {
+        "_id": "6a2d0c765f5211d1bb48408d",
+        "email": "liam.brooks@denstar.com",
+        "name": ""
+      },
+      {
+        "_id": "6a2d0e025f5211d1bb4840d5",
+        "email": "ethan.carter@denstar.com",
+        "name": ""
+      },
+      {
+        "_id": "6a2d0e025f5211d1bb4840d7",
+        "email": "noah.bennett@denstar.com",
+        "name": ""
+      },
+      {
+        "_id": "6a2d0e035f5211d1bb4840d9",
+        "email": "mason.reed@denstar.com",
+        "name": ""
+      },
+      {
+        "_id": "6a2d0e035f5211d1bb4840db",
+        "email": "caleb.turner@denstar.com",
+        "name": ""
+      },
+      {
+        "_id": "6a2d0e035f5211d1bb4840dd",
+        "email": "jacob.foster@denstar.com",
+        "name": ""
+      },
+      {
+        "_id": "6a2d0e035f5211d1bb4840df",
+        "email": "ryan.mitchell@denstar.com",
+        "name": ""
+      },
+      {
+        "_id": "6a2d0e045f5211d1bb4840e1",
+        "email": "aiden.cooper@denstar.com",
+        "name": ""
+      },
+      {
+        "_id": "6a2d0e045f5211d1bb4840e3",
+        "email": "owen.parker@denstar.com",
+        "name": ""
+      },
+      {
+        "_id": "6a2d0e045f5211d1bb4840e5",
+        "email": "lucas.hayes@denstar.com",
+        "name": ""
+      },
+      {
+        "_id": "6a2d0e045f5211d1bb4840e7",
+        "email": "daniel.walker@denstar.com",
+        "name": ""
+      },
+      {
+        "_id": "6a2d0e045f5211d1bb4840e9",
+        "email": "logan.murphy@denstar.com",
+        "name": ""
+      },
+      {
+        "_id": "6a2d0e055f5211d1bb4840eb",
+        "email": "benjamin.scott@denstar.com",
+        "name": ""
+      },
+      {
+        "_id": "6a2d0e055f5211d1bb4840ed",
+        "email": "tyler.evans@denstar.com",
+        "name": ""
+      },
+      {
+        "_id": "6a2d0e055f5211d1bb4840ef",
+        "email": "nathan.hill@denstar.com",
+        "name": ""
+      },
+      {
+        "_id": "6a2d0e055f5211d1bb4840f1",
+        "email": "dylan.price@denstar.com",
+        "name": ""
+      },
+      {
+        "_id": "6a2d0e065f5211d1bb4840f3",
+        "email": "connor.lewis@denstar.com",
+        "name": ""
+      },
+      {
+        "_id": "6a2d0e065f5211d1bb4840f5",
+        "email": "zachary.king@denstar.com",
+        "name": ""
+      },
+      {
+        "_id": "6a2d0e065f5211d1bb4840f7",
+        "email": "gavin.wood@denstar.com",
+        "name": ""
+      },
+      {
+        "_id": "6a2d0e065f5211d1bb4840f9",
+        "email": "hunter.collins@denstar.com",
+        "name": ""
+      },
+      {
+        "_id": "6a3595c1414a9d467c6dae8b",
+        "email": "steve@gmail.com",
+        "name": ""
+      },
+      {
+        "_id": "6a3595d7414a9d467c6daeb3",
+        "email": "john@gmail.com",
+        "name": ""
+      },
+      {
+        "_id": "6a3595ec414a9d467c6daf0b",
+        "email": "doe@gmail.com",
+        "name": ""
+      },
+      {
+        "_id": "6a359602414a9d467c6daf21",
+        "email": "jane@gmail.com",
+        "name": ""
+      },
+      {
+        "_id": "6a359615414a9d467c6daf7a",
+        "email": "miked@gmail.com",
+        "name": ""
+      },
+      {
+        "_id": "6a359627414a9d467c6daf90",
+        "email": "brian@gmail.com",
+        "name": ""
+      },
+      {
+        "_id": "6a35963e414a9d467c6dafa6",
+        "email": "tib@gmail.com",
+        "name": ""
+      },
+      {
+        "_id": "6a359657414a9d467c6dafbc",
+        "email": "kalel@gmail.com",
+        "name": ""
+      },
+      {
+        "_id": "6a359674414a9d467c6dafd2",
+        "email": "quen@gmail.com",
+        "name": ""
+      },
+      {
+        "_id": "6a3596da414a9d467c6dafe8",
+        "email": "lisab@gmail.com",
+        "name": ""
+      },
+      {
+        "_id": "6a359707414a9d467c6daffe",
+        "email": "zim@gmail.com",
+        "name": ""
+      },
+      {
+        "_id": "6a35971a414a9d467c6db014",
+        "email": "nicole@gmail.com",
+        "name": ""
+      },
+      {
+        "_id": "6a35972d414a9d467c6db02a",
+        "email": "glynn@gmail.com",
+        "name": ""
+      },
+      {
+        "_id": "6a359744414a9d467c6db049",
+        "email": "mickey@gmail.com",
+        "name": ""
+      },
+      {
+        "_id": "6a35975c414a9d467c6db05f",
+        "email": "tray@gmail.com",
+        "name": ""
+      }
+    ]
+  },
+  "activities": {
+    "count": 20
+  }
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "_id": "69cf3227268fc7ba310d28bf",
+    "name": "Pet Friendly",
+    "icon": "/api/uploads/1775186468643-92votz.png",
+    "createdAt": "2026-04-03T03:21:11.638Z",
+    "updatedAt": "2026-04-03T03:21:11.638Z",
+    "__v": 0
+  },
+  {
+    "_id": "69cf32f4268fc7ba310d28c2",
+    "name": "Toilets",
+    "icon": "/api/uploads/1775186675869-b6da4j.png",
+    "createdAt": "2026-04-03T03:24:36.303Z",
+    "updatedAt": "2026-04-03T03:24:36.303Z",
+    "__v": 0
+  },
+  {
+    "_id": "69cf3321268fc7ba310d28c5",
+    "name": "Wheelchair Accessible Entrance",
+    "icon": "/api/uploads/1775186719815-7l01wd.png",
+    "createdAt": "2026-04-03T03:25:21.267Z",
+    "updatedAt": "2026-04-03T03:25:21.267Z",
+    "__v": 0
+  }
+]

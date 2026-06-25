@@ -1,0 +1,3252 @@
+[
+  {
+    "_id": "6a181dd9f3d59617a177eaa6",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "scheduleLabel": "8u Spring Flag Football '26",
+    "leagueId": "69cf3539268fc7ba310d2936",
+    "locationName": "Cottonwood Kids Park",
+    "locationId": "69cf345c268fc7ba310d28fb",
+    "status": "Active",
+    "weeks": [
+      {
+        "name": "Week 1",
+        "games": [
+          {
+            "team1": "69cfb4c756bab89431e144fa",
+            "team2": "69cfb47856bab89431e144bb",
+            "field": "1",
+            "date": "2026-04-04",
+            "time": "09:00",
+            "gameType": "main",
+            "gameRef": "69d0bd9b80313eff138f781e",
+            "_id": "6a182322492a438445ff7bf2"
+          },
+          {
+            "team1": "69cfb47956bab89431e144bf",
+            "team2": "69cfb47956bab89431e144c3",
+            "field": "1",
+            "date": "2026-04-04",
+            "time": "10:00",
+            "gameType": "main",
+            "gameRef": "69d0bd9c80313eff138f7824",
+            "_id": "6a182322492a438445ff7bf3"
+          },
+          {
+            "team1": "69cfb47956bab89431e144bd",
+            "team2": "69cfb47956bab89431e144c3",
+            "field": "1",
+            "date": "2026-04-04",
+            "time": "11:00",
+            "gameType": "main",
+            "gameRef": "69d0bd9d80313eff138f782a",
+            "_id": "6a182322492a438445ff7bf4"
+          },
+          {
+            "team1": "69cfb47956bab89431e144bd",
+            "team2": "69cfb47956bab89431e144c1",
+            "field": "1",
+            "date": "2026-04-04",
+            "time": "12:00",
+            "gameType": "main",
+            "gameRef": "69d0bd9d80313eff138f7830",
+            "_id": "6a182322492a438445ff7bf5"
+          }
+        ],
+        "_id": "6a182322492a438445ff7bf1"
+      },
+      {
+        "name": "Week 2",
+        "games": [
+          {
+            "team1": "69cfb47956bab89431e144c3",
+            "team2": "69cfb47956bab89431e144c1",
+            "field": "1",
+            "date": "2026-04-11",
+            "time": "09:00",
+            "gameType": "main",
+            "gameRef": "69d0bda080313eff138f784b",
+            "_id": "6a182322492a438445ff7bf7"
+          },
+          {
+            "team1": "69cfb4c756bab89431e144fa",
+            "team2": "69cfb47956bab89431e144bf",
+            "field": "1",
+            "date": "2026-04-11",
+            "time": "10:00",
+            "gameType": "main",
+            "gameRef": "69d0bda080313eff138f7851",
+            "_id": "6a182322492a438445ff7bf8"
+          },
+          {
+            "team1": "69cfb47856bab89431e144bb",
+            "team2": "69cfb47956bab89431e144bf",
+            "field": "1",
+            "date": "2026-04-11",
+            "time": "11:00",
+            "gameType": "main",
+            "gameRef": "69d0bda180313eff138f7857",
+            "_id": "6a182322492a438445ff7bf9"
+          },
+          {
+            "team1": "69cfb47856bab89431e144bb",
+            "team2": "69cfb47956bab89431e144bd",
+            "field": "1",
+            "date": "2026-04-11",
+            "time": "12:00",
+            "gameType": "main",
+            "gameRef": "69d0bda280313eff138f785d",
+            "_id": "6a182322492a438445ff7bfa"
+          }
+        ],
+        "_id": "6a182322492a438445ff7bf6"
+      },
+      {
+        "name": "Week 3",
+        "games": [
+          {
+            "team1": "69cfb47956bab89431e144c3",
+            "team2": "69cfb47956bab89431e144bd",
+            "field": "1",
+            "date": "2026-04-18",
+            "time": "09:00",
+            "gameType": "main",
+            "gameRef": "69d0bda380313eff138f786c",
+            "_id": "6a182322492a438445ff7bfc"
+          },
+          {
+            "team1": "69cfb47856bab89431e144bb",
+            "team2": "69cfb47956bab89431e144bd",
+            "field": "1",
+            "date": "2026-04-18",
+            "time": "10:00",
+            "gameType": "main",
+            "gameRef": "69d0bda480313eff138f7872",
+            "_id": "6a182322492a438445ff7bfd"
+          },
+          {
+            "team1": "69cfb47856bab89431e144bb",
+            "team2": "69cfb47956bab89431e144bf",
+            "field": "1",
+            "date": "2026-04-18",
+            "time": "11:00",
+            "gameType": "main",
+            "gameRef": "69d0bda480313eff138f7878",
+            "_id": "6a182322492a438445ff7bfe"
+          },
+          {
+            "team1": "69cfb47956bab89431e144c1",
+            "team2": "69cfb4c756bab89431e144fa",
+            "field": "1",
+            "date": "2026-04-18",
+            "time": "12:00",
+            "gameType": "main",
+            "gameRef": "69d0bda580313eff138f787e",
+            "_id": "6a182322492a438445ff7bff"
+          }
+        ],
+        "_id": "6a182322492a438445ff7bfb"
+      },
+      {
+        "name": "Week 4",
+        "games": [
+          {
+            "team1": "69cfb47956bab89431e144bf",
+            "team2": "69cfb47956bab89431e144bd",
+            "field": "1",
+            "date": "2026-04-25",
+            "time": "09:00",
+            "gameType": "main",
+            "gameRef": "69d0bda780313eff138f7899",
+            "_id": "6a182322492a438445ff7c01"
+          },
+          {
+            "team1": "69cfb47956bab89431e144c1",
+            "team2": "69cfb47856bab89431e144bb",
+            "field": "1",
+            "date": "2026-04-25",
+            "time": "10:00",
+            "gameType": "main",
+            "gameRef": "69d0bda880313eff138f789f",
+            "_id": "6a182322492a438445ff7c02"
+          },
+          {
+            "team1": "69cfb47956bab89431e144c1",
+            "team2": "69cfb4c756bab89431e144fa",
+            "field": "1",
+            "date": "2026-04-25",
+            "time": "11:00",
+            "gameType": "main",
+            "gameRef": "69d0bda980313eff138f78a5",
+            "_id": "6a182322492a438445ff7c03"
+          },
+          {
+            "team1": "69cfb47956bab89431e144c3",
+            "team2": "69cfb4c756bab89431e144fa",
+            "field": "1",
+            "date": "2026-04-25",
+            "time": "12:00",
+            "gameType": "main",
+            "gameRef": "69d0bda980313eff138f78ab",
+            "_id": "6a182322492a438445ff7c04"
+          }
+        ],
+        "_id": "6a182322492a438445ff7c00"
+      },
+      {
+        "name": "Week 5",
+        "games": [
+          {
+            "team1": "69cfb47956bab89431e144bd",
+            "team2": "69cfb4c756bab89431e144fa",
+            "field": "1",
+            "date": "2026-05-02",
+            "time": "09:00",
+            "gameType": "main",
+            "gameRef": "69de17f3b2b80b2f1f375f56",
+            "_id": "6a182322492a438445ff7c06"
+          },
+          {
+            "team1": "69cfb47956bab89431e144bf",
+            "team2": "69cfb47956bab89431e144c1",
+            "field": "1",
+            "date": "2026-05-02",
+            "time": "10:00",
+            "gameType": "main",
+            "gameRef": "69de17f4b2b80b2f1f375f5c",
+            "_id": "6a182322492a438445ff7c07"
+          },
+          {
+            "team1": "69cfb47956bab89431e144c3",
+            "team2": "69cfb47956bab89431e144c1",
+            "field": "1",
+            "date": "2026-05-02",
+            "time": "11:00",
+            "gameType": "main",
+            "gameRef": "69de17f4b2b80b2f1f375f62",
+            "_id": "6a182322492a438445ff7c08"
+          },
+          {
+            "team1": "69cfb47956bab89431e144c3",
+            "team2": "69cfb47856bab89431e144bb",
+            "field": "1",
+            "date": "2026-05-02",
+            "time": "12:00",
+            "gameType": "main",
+            "gameRef": "69de17f5b2b80b2f1f375f68",
+            "_id": "6a182322492a438445ff7c09"
+          }
+        ],
+        "_id": "6a182322492a438445ff7c05"
+      },
+      {
+        "name": "Week 6",
+        "games": [
+          {
+            "team1": "69cfb47956bab89431e144c1",
+            "team2": "69cfb47956bab89431e144bd",
+            "field": "1",
+            "date": "2026-05-09",
+            "time": "09:00",
+            "gameType": "main",
+            "gameRef": "69de1c28b2b80b2f1f375f89",
+            "_id": "6a182322492a438445ff7c0b"
+          },
+          {
+            "team1": "69cfb4c756bab89431e144fa",
+            "team2": "69cfb47856bab89431e144bb",
+            "field": "1",
+            "date": "2026-05-09",
+            "time": "10:00",
+            "gameType": "main",
+            "gameRef": "69de1c28b2b80b2f1f375f8f",
+            "_id": "6a182322492a438445ff7c0c"
+          },
+          {
+            "team1": "69cfb4c756bab89431e144fa",
+            "team2": "69cfb47956bab89431e144bf",
+            "field": "1",
+            "date": "2026-05-09",
+            "time": "11:00",
+            "gameType": "main",
+            "gameRef": "69de1c29b2b80b2f1f375f95",
+            "_id": "6a182322492a438445ff7c0d"
+          },
+          {
+            "team1": "69cfb47956bab89431e144c3",
+            "team2": "69cfb47956bab89431e144bf",
+            "field": "1",
+            "date": "2026-05-09",
+            "time": "12:00",
+            "gameType": "main",
+            "gameRef": "69de1c29b2b80b2f1f375f9b",
+            "_id": "6a182322492a438445ff7c0e"
+          }
+        ],
+        "_id": "6a182322492a438445ff7c0a"
+      },
+      {
+        "name": "Week 7",
+        "games": [
+          {
+            "team1": "69cfb47956bab89431e144c1",
+            "team2": "69cfb47956bab89431e144bd",
+            "field": "1",
+            "date": "2026-05-16",
+            "time": "09:00",
+            "gameType": "main",
+            "gameRef": "6a086ad9d4704adc02fe23cd",
+            "_id": "6a182322492a438445ff7c10"
+          },
+          {
+            "team1": "69cfb47956bab89431e144bf",
+            "team2": "69cfb47856bab89431e144bb",
+            "field": "1",
+            "date": "2026-05-16",
+            "time": "10:00",
+            "gameType": "main",
+            "gameRef": "6a086f13d4704adc02fe2493",
+            "_id": "6a182322492a438445ff7c11"
+          }
+        ],
+        "_id": "6a182322492a438445ff7c0f"
+      }
+    ],
+    "createdAt": "2026-05-28T10:50:01.454Z",
+    "updatedAt": "2026-05-28T11:12:34.853Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a181dd9f3d59617a177eacb",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "scheduleLabel": "12u Spring Flag Football '26",
+    "leagueId": "69cf3578268fc7ba310d2956",
+    "locationName": "Cottonwood Kids Park",
+    "locationId": "69cf345c268fc7ba310d28fb",
+    "status": "Active",
+    "weeks": [
+      {
+        "name": "Week 1",
+        "games": [
+          {
+            "team1": "69cfb47a56bab89431e144d1",
+            "team2": "69cfb47a56bab89431e144d3",
+            "field": "2",
+            "date": "2026-04-04",
+            "time": "09:00",
+            "gameType": "main",
+            "gameRef": "69d0bd9c80313eff138f7821",
+            "_id": "6a18233d492a438445ff7c7b"
+          },
+          {
+            "team1": "69cfb47b56bab89431e144d9",
+            "team2": "69cfb47a56bab89431e144d5",
+            "field": "2",
+            "date": "2026-04-04",
+            "time": "10:00",
+            "gameType": "main",
+            "gameRef": "69d0bd9c80313eff138f7827",
+            "_id": "6a18233d492a438445ff7c7c"
+          },
+          {
+            "team1": "69cfb47b56bab89431e144d9",
+            "team2": "69cfb47a56bab89431e144cf",
+            "field": "2",
+            "date": "2026-04-04",
+            "time": "11:00",
+            "gameType": "main",
+            "gameRef": "69d0bd9d80313eff138f782d",
+            "_id": "6a18233d492a438445ff7c7d"
+          },
+          {
+            "team1": "69cfb47a56bab89431e144d7",
+            "team2": "69cfb47a56bab89431e144cf",
+            "field": "2",
+            "date": "2026-04-04",
+            "time": "12:00",
+            "gameType": "main",
+            "gameRef": "69d0bd9d80313eff138f7833",
+            "_id": "6a18233d492a438445ff7c7e"
+          }
+        ],
+        "_id": "6a18233d492a438445ff7c7a"
+      },
+      {
+        "name": "Week 2",
+        "games": [
+          {
+            "team1": "69cfb47a56bab89431e144cf",
+            "team2": "69cfb47b56bab89431e144d9",
+            "field": "2",
+            "date": "2026-04-11",
+            "time": "09:00",
+            "gameType": "main",
+            "gameRef": "69d0bda080313eff138f784e",
+            "_id": "6a18233d492a438445ff7c80"
+          },
+          {
+            "team1": "69cfb47a56bab89431e144d3",
+            "team2": "69cfb47b56bab89431e144d9",
+            "field": "2",
+            "date": "2026-04-11",
+            "time": "10:00",
+            "gameType": "main",
+            "gameRef": "69d0bda180313eff138f7854",
+            "_id": "6a18233d492a438445ff7c81"
+          },
+          {
+            "team1": "69cfb47a56bab89431e144d3",
+            "team2": "69cfb47a56bab89431e144d5",
+            "field": "2",
+            "date": "2026-04-11",
+            "time": "11:00",
+            "gameType": "main",
+            "gameRef": "69d0bda180313eff138f785a",
+            "_id": "6a18233d492a438445ff7c82"
+          }
+        ],
+        "_id": "6a18233d492a438445ff7c7f"
+      },
+      {
+        "name": "Week 3",
+        "games": [
+          {
+            "team1": "69cfb47b56bab89431e144d9",
+            "team2": "69cfb47a56bab89431e144d3",
+            "field": "2",
+            "date": "2026-04-18",
+            "time": "09:00",
+            "gameType": "main",
+            "gameRef": "69d0bda380313eff138f786f",
+            "_id": "6a18233d492a438445ff7c84"
+          },
+          {
+            "team1": "69cfb47a56bab89431e144d5",
+            "team2": "69cfb47a56bab89431e144d3",
+            "field": "2",
+            "date": "2026-04-18",
+            "time": "10:00",
+            "gameType": "main",
+            "gameRef": "69d0bda480313eff138f7875",
+            "_id": "6a18233d492a438445ff7c85"
+          },
+          {
+            "team1": "69cfb47a56bab89431e144d5",
+            "team2": "69cfb47a56bab89431e144d7",
+            "field": "2",
+            "date": "2026-04-18",
+            "time": "11:00",
+            "gameType": "main",
+            "gameRef": "69d0bda580313eff138f787b",
+            "_id": "6a18233d492a438445ff7c86"
+          },
+          {
+            "team1": "69cfb47a56bab89431e144d1",
+            "team2": "69cfb47a56bab89431e144d7",
+            "field": "2",
+            "date": "2026-04-18",
+            "time": "12:00",
+            "gameType": "main",
+            "gameRef": "69d0bda580313eff138f7881",
+            "_id": "6a18233d492a438445ff7c87"
+          },
+          {
+            "team1": "69cfb47a56bab89431e144d1",
+            "team2": "69cfb47a56bab89431e144cf",
+            "field": "2",
+            "date": "2026-04-18",
+            "time": "13:00",
+            "gameType": "main",
+            "gameRef": "69d0bda680313eff138f7887",
+            "_id": "6a18233d492a438445ff7c88"
+          }
+        ],
+        "_id": "6a18233d492a438445ff7c83"
+      },
+      {
+        "name": "Week 4",
+        "games": [
+          {
+            "team1": "69cfb47a56bab89431e144d7",
+            "team2": "69cfb47a56bab89431e144d3",
+            "field": "2",
+            "date": "2026-04-25",
+            "time": "09:00",
+            "gameType": "main",
+            "gameRef": "69d0bda880313eff138f789c",
+            "_id": "6a18233d492a438445ff7c8a"
+          },
+          {
+            "team1": "69cfb47a56bab89431e144d5",
+            "team2": "69cfb47a56bab89431e144cf",
+            "field": "2",
+            "date": "2026-04-25",
+            "time": "10:00",
+            "gameType": "main",
+            "gameRef": "69d0bda880313eff138f78a2",
+            "_id": "6a18233d492a438445ff7c8b"
+          },
+          {
+            "team1": "69cfb47a56bab89431e144d1",
+            "team2": "69cfb47a56bab89431e144cf",
+            "field": "2",
+            "date": "2026-04-25",
+            "time": "11:00",
+            "gameType": "main",
+            "gameRef": "69d0bda980313eff138f78a8",
+            "_id": "6a18233d492a438445ff7c8c"
+          },
+          {
+            "team1": "69cfb47a56bab89431e144d1",
+            "team2": "69cfb47b56bab89431e144d9",
+            "field": "2",
+            "date": "2026-04-25",
+            "time": "12:00",
+            "gameType": "main",
+            "gameRef": "69d0bdaa80313eff138f78ae",
+            "_id": "6a18233d492a438445ff7c8d"
+          }
+        ],
+        "_id": "6a18233d492a438445ff7c89"
+      },
+      {
+        "name": "Week 5",
+        "games": [
+          {
+            "team1": "69cfb47a56bab89431e144d3",
+            "team2": "69cfb47a56bab89431e144cf",
+            "field": "2",
+            "date": "2026-05-02",
+            "time": "09:00",
+            "gameType": "main",
+            "gameRef": "69de17f3b2b80b2f1f375f59",
+            "_id": "6a18233d492a438445ff7c8f"
+          },
+          {
+            "team1": "69cfb47a56bab89431e144d1",
+            "team2": "69cfb47a56bab89431e144d5",
+            "field": "2",
+            "date": "2026-05-02",
+            "time": "10:00",
+            "gameType": "main",
+            "gameRef": "69de17f4b2b80b2f1f375f5f",
+            "_id": "6a18233d492a438445ff7c90"
+          },
+          {
+            "team1": "69cfb47a56bab89431e144d1",
+            "team2": "69cfb47a56bab89431e144d7",
+            "field": "2",
+            "date": "2026-05-02",
+            "time": "11:00",
+            "gameType": "main",
+            "gameRef": "69de17f5b2b80b2f1f375f65",
+            "_id": "6a18233d492a438445ff7c91"
+          },
+          {
+            "team1": "69cfb47b56bab89431e144d9",
+            "team2": "69cfb47a56bab89431e144d7",
+            "field": "2",
+            "date": "2026-05-02",
+            "time": "12:00",
+            "gameType": "main",
+            "gameRef": "69de17f5b2b80b2f1f375f6b",
+            "_id": "6a18233d492a438445ff7c92"
+          }
+        ],
+        "_id": "6a18233d492a438445ff7c8e"
+      },
+      {
+        "name": "Week 6",
+        "games": [
+          {
+            "team1": "69cfb47a56bab89431e144cf",
+            "team2": "69cfb47a56bab89431e144d7",
+            "field": "2",
+            "date": "2026-05-09",
+            "time": "09:00",
+            "gameType": "main",
+            "gameRef": "69de1c28b2b80b2f1f375f8c",
+            "_id": "6a18233d492a438445ff7c94"
+          },
+          {
+            "team1": "69cfb47a56bab89431e144d5",
+            "team2": "69cfb47a56bab89431e144d7",
+            "field": "2",
+            "date": "2026-05-09",
+            "time": "10:00",
+            "gameType": "main",
+            "gameRef": "69de1c28b2b80b2f1f375f92",
+            "_id": "6a18233d492a438445ff7c95"
+          },
+          {
+            "team1": "69cfb47a56bab89431e144d5",
+            "team2": "69cfb47b56bab89431e144d9",
+            "field": "2",
+            "date": "2026-05-09",
+            "time": "11:00",
+            "gameType": "main",
+            "gameRef": "69de1c29b2b80b2f1f375f98",
+            "_id": "6a18233d492a438445ff7c96"
+          },
+          {
+            "team1": "69cfb47a56bab89431e144d3",
+            "team2": "69cfb47a56bab89431e144d1",
+            "field": "2",
+            "date": "2026-05-09",
+            "time": "12:00",
+            "gameType": "main",
+            "gameRef": "69de1c2ab2b80b2f1f375f9e",
+            "_id": "6a18233d492a438445ff7c97"
+          }
+        ],
+        "_id": "6a18233d492a438445ff7c93"
+      },
+      {
+        "name": "Week 7",
+        "games": [
+          {
+            "team1": "69cfb47b56bab89431e144d9",
+            "team2": "69cfb47a56bab89431e144d1",
+            "field": "2",
+            "date": "2026-05-16",
+            "time": "09:00",
+            "gameType": "main",
+            "gameRef": "6a086e9ed4704adc02fe2479",
+            "_id": "6a18233d492a438445ff7c99"
+          },
+          {
+            "team1": "69cfb47a56bab89431e144d3",
+            "team2": "69cfb47a56bab89431e144d7",
+            "field": "2",
+            "date": "2026-05-16",
+            "time": "10:00",
+            "gameType": "main",
+            "gameRef": "6a086f4ad4704adc02fe24ad",
+            "_id": "6a18233d492a438445ff7c9a"
+          }
+        ],
+        "_id": "6a18233d492a438445ff7c98"
+      }
+    ],
+    "createdAt": "2026-05-28T10:50:01.908Z",
+    "updatedAt": "2026-05-28T11:13:01.212Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a181ddaf3d59617a177eaf0",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "scheduleLabel": "10u Spring Flag Football '26",
+    "leagueId": "69cf355a268fc7ba310d2946",
+    "locationName": "Cottonwood Kids Park",
+    "locationId": "69cf345c268fc7ba310d28fb",
+    "status": "Active",
+    "weeks": [
+      {
+        "name": "Week 1",
+        "games": [
+          {
+            "team1": "69cfb47956bab89431e144c5",
+            "team2": "69cfb47a56bab89431e144cb",
+            "field": "1",
+            "date": "2026-04-04",
+            "time": "13:00",
+            "gameType": "main",
+            "gameRef": "69d0bd9e80313eff138f7836",
+            "_id": "6a182354492a438445ff7d01"
+          },
+          {
+            "team1": "69cfb47a56bab89431e144cd",
+            "team2": "69cfb47956bab89431e144c7",
+            "field": "1",
+            "date": "2026-04-04",
+            "time": "14:00",
+            "gameType": "main",
+            "gameRef": "69d0bd9e80313eff138f783c",
+            "_id": "6a182354492a438445ff7d02"
+          },
+          {
+            "team1": "69cfb47956bab89431e144c9",
+            "team2": "69cfb47a56bab89431e144cb",
+            "field": "1",
+            "date": "2026-04-04",
+            "time": "15:00",
+            "gameType": "main",
+            "gameRef": "69d0bd9f80313eff138f7842",
+            "_id": "6a182354492a438445ff7d03"
+          },
+          {
+            "team1": "69cfb47956bab89431e144c9",
+            "team2": "69cfb47a56bab89431e144cd",
+            "field": "1",
+            "date": "2026-04-04",
+            "time": "16:00",
+            "gameType": "main",
+            "gameRef": "69d0bd9f80313eff138f7848",
+            "_id": "6a182354492a438445ff7d04"
+          }
+        ],
+        "_id": "6a182354492a438445ff7d00"
+      },
+      {
+        "name": "Week 2",
+        "games": [
+          {
+            "team1": "69cfb47956bab89431e144c7",
+            "team2": "69cfb47956bab89431e144c5",
+            "field": "1",
+            "date": "2026-04-11",
+            "time": "13:00",
+            "gameType": "main",
+            "gameRef": "69d0bda280313eff138f7860",
+            "_id": "6a182354492a438445ff7d06"
+          },
+          {
+            "team1": "69cfb47956bab89431e144c7",
+            "team2": "69cfb47a56bab89431e144cb",
+            "field": "1",
+            "date": "2026-04-11",
+            "time": "14:00",
+            "gameType": "main",
+            "gameRef": "69d0bda280313eff138f7863",
+            "_id": "6a182354492a438445ff7d07"
+          },
+          {
+            "team1": "69cfb47956bab89431e144c9",
+            "team2": "69cfb47a56bab89431e144cb",
+            "field": "1",
+            "date": "2026-04-11",
+            "time": "15:00",
+            "gameType": "main",
+            "gameRef": "69d0bda280313eff138f7866",
+            "_id": "6a182354492a438445ff7d08"
+          }
+        ],
+        "_id": "6a182354492a438445ff7d05"
+      },
+      {
+        "name": "Week 3",
+        "games": [
+          {
+            "team1": "69cfb47a56bab89431e144cb",
+            "team2": "69cfb47956bab89431e144c7",
+            "field": "1",
+            "date": "2026-04-18",
+            "time": "13:00",
+            "gameType": "main",
+            "gameRef": "69d0bda580313eff138f7884",
+            "_id": "6a182354492a438445ff7d0a"
+          },
+          {
+            "team1": "69cfb47956bab89431e144c5",
+            "team2": "69cfb47956bab89431e144c7",
+            "field": "1",
+            "date": "2026-04-18",
+            "time": "14:00",
+            "gameType": "main",
+            "gameRef": "69d0bda680313eff138f788a",
+            "_id": "6a182354492a438445ff7d0b"
+          },
+          {
+            "team1": "69cfb47956bab89431e144c5",
+            "team2": "69cfb47a56bab89431e144cd",
+            "field": "1",
+            "date": "2026-04-18",
+            "time": "15:00",
+            "gameType": "main",
+            "gameRef": "69d0bda780313eff138f7890",
+            "_id": "6a182354492a438445ff7d0c"
+          }
+        ],
+        "_id": "6a182354492a438445ff7d09"
+      },
+      {
+        "name": "Week 4",
+        "games": [
+          {
+            "team1": "69cfb47956bab89431e144c9",
+            "team2": "69cfb47956bab89431e144c7",
+            "field": "1",
+            "date": "2026-04-25",
+            "time": "13:00",
+            "gameType": "main",
+            "gameRef": "69d0bdaa80313eff138f78b1",
+            "_id": "6a182354492a438445ff7d0e"
+          },
+          {
+            "team1": "69cfb47956bab89431e144c9",
+            "team2": "69cfb47956bab89431e144c5",
+            "field": "1",
+            "date": "2026-04-25",
+            "time": "14:00",
+            "gameType": "main",
+            "gameRef": "69d0bdaa80313eff138f78b7",
+            "_id": "6a182354492a438445ff7d0f"
+          },
+          {
+            "team1": "69cfb47a56bab89431e144cd",
+            "team2": "69cfb47956bab89431e144c5",
+            "field": "1",
+            "date": "2026-04-25",
+            "time": "15:00",
+            "gameType": "main",
+            "gameRef": "69d0bdab80313eff138f78bd",
+            "_id": "6a182354492a438445ff7d10"
+          },
+          {
+            "team1": "69cfb47a56bab89431e144cd",
+            "team2": "69cfb47a56bab89431e144cb",
+            "field": "1",
+            "date": "2026-04-25",
+            "time": "16:00",
+            "gameType": "main",
+            "gameRef": "69d0bdac80313eff138f78c3",
+            "_id": "6a182354492a438445ff7d11"
+          }
+        ],
+        "_id": "6a182354492a438445ff7d0d"
+      },
+      {
+        "name": "Week 5",
+        "games": [
+          {
+            "team1": "69cfb47956bab89431e144c7",
+            "team2": "69cfb47a56bab89431e144cd",
+            "field": "1",
+            "date": "2026-05-02",
+            "time": "13:00",
+            "gameType": "main",
+            "gameRef": "69de17f5b2b80b2f1f375f6e",
+            "_id": "6a182354492a438445ff7d13"
+          },
+          {
+            "team1": "69cfb47a56bab89431e144cb",
+            "team2": "69cfb47a56bab89431e144cd",
+            "field": "1",
+            "date": "2026-05-02",
+            "time": "14:00",
+            "gameType": "main",
+            "gameRef": "69de17f6b2b80b2f1f375f74",
+            "_id": "6a182354492a438445ff7d14"
+          },
+          {
+            "team1": "69cfb47956bab89431e144c9",
+            "team2": "69cfb47956bab89431e144c5",
+            "field": "1",
+            "date": "2026-05-02",
+            "time": "15:00",
+            "gameType": "main",
+            "gameRef": "69de17f7b2b80b2f1f375f7a",
+            "_id": "6a182354492a438445ff7d15"
+          }
+        ],
+        "_id": "6a182354492a438445ff7d12"
+      },
+      {
+        "name": "Week 6",
+        "games": [
+          {
+            "team1": "69cfb47a56bab89431e144cb",
+            "team2": "69cfb47956bab89431e144c5",
+            "field": "1",
+            "date": "2026-05-09",
+            "time": "13:00",
+            "gameType": "main",
+            "gameRef": "69de1c2ab2b80b2f1f375fa1",
+            "_id": "6a182354492a438445ff7d17"
+          },
+          {
+            "team1": "69cfb47956bab89431e144c9",
+            "team2": "69cfb47956bab89431e144c7",
+            "field": "1",
+            "date": "2026-05-09",
+            "time": "14:00",
+            "gameType": "main",
+            "gameRef": "69de1c2ab2b80b2f1f375fa7",
+            "_id": "6a182354492a438445ff7d18"
+          },
+          {
+            "team1": "69cfb47956bab89431e144c9",
+            "team2": "69cfb47a56bab89431e144cd",
+            "field": "1",
+            "date": "2026-05-09",
+            "time": "15:00",
+            "gameType": "main",
+            "gameRef": "69de1c2bb2b80b2f1f375fad",
+            "_id": "6a182354492a438445ff7d19"
+          },
+          {
+            "team1": "69cfb47956bab89431e144c5",
+            "team2": "69cfb47a56bab89431e144cd",
+            "field": "1",
+            "date": "2026-05-09",
+            "time": "12:03",
+            "gameType": "main",
+            "gameRef": "69f64ab7e7729de62249715e",
+            "_id": "6a182354492a438445ff7d1a"
+          }
+        ],
+        "_id": "6a182354492a438445ff7d16"
+      },
+      {
+        "name": "Week 7",
+        "games": [
+          {
+            "team1": "69cfb47a56bab89431e144cd",
+            "team2": "69cfb47a56bab89431e144cb",
+            "field": "1",
+            "date": "2026-05-16",
+            "time": "13:00",
+            "gameType": "main",
+            "gameRef": "6a087256d4704adc02fe24d4",
+            "_id": "6a182354492a438445ff7d1c"
+          },
+          {
+            "team1": "69cfb47956bab89431e144c5",
+            "team2": "69cfb47956bab89431e144c9",
+            "field": "1",
+            "date": "2026-05-16",
+            "time": "15:00",
+            "gameType": "main",
+            "gameRef": "6a0872cbd4704adc02fe2521",
+            "_id": "6a182354492a438445ff7d1d"
+          }
+        ],
+        "_id": "6a182354492a438445ff7d1b"
+      }
+    ],
+    "createdAt": "2026-05-28T10:50:02.358Z",
+    "updatedAt": "2026-05-28T11:13:24.143Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a181ddaf3d59617a177eb12",
+    "organization": "69ce785e268fc7ba310d26ff",
+    "scheduleLabel": "14u Spring Flag Football '26",
+    "leagueId": "69cf359b268fc7ba310d2966",
+    "locationName": "Cottonwood Kids Park",
+    "locationId": "69cf345c268fc7ba310d28fb",
+    "status": "Active",
+    "weeks": [
+      {
+        "name": "Week 1",
+        "games": [
+          {
+            "team1": "69cfb47b56bab89431e144db",
+            "team2": "69cfb47b56bab89431e144e1",
+            "field": "2",
+            "date": "2026-04-04",
+            "time": "13:00",
+            "gameType": "main",
+            "gameRef": "69d0bd9e80313eff138f7839",
+            "_id": "6a18236b492a438445ff7d7e"
+          },
+          {
+            "team1": "69cfb47b56bab89431e144db",
+            "team2": "69cfb47b56bab89431e144dd",
+            "field": "2",
+            "date": "2026-04-04",
+            "time": "14:00",
+            "gameType": "main",
+            "gameRef": "69d0bd9f80313eff138f783f",
+            "_id": "6a18236b492a438445ff7d7f"
+          },
+          {
+            "team1": "69cfb47b56bab89431e144df",
+            "team2": "69cfb47b56bab89431e144dd",
+            "field": "2",
+            "date": "2026-04-04",
+            "time": "15:00",
+            "gameType": "main",
+            "gameRef": "69d0bd9f80313eff138f7845",
+            "_id": "6a18236b492a438445ff7d80"
+          }
+        ],
+        "_id": "6a18236b492a438445ff7d7d"
+      },
+      {
+        "name": "Week 2",
+        "games": [
+          {
+            "team1": "69cfb47b56bab89431e144dd",
+            "team2": "69cfb47b56bab89431e144df",
+            "field": "1",
+            "date": "2026-04-11",
+            "time": "16:00",
+            "gameType": "main",
+            "gameRef": "69d0bda380313eff138f7869",
+            "_id": "6a18236b492a438445ff7d82"
+          }
+        ],
+        "_id": "6a18236b492a438445ff7d81"
+      },
+      {
+        "name": "Week 3",
+        "games": [
+          {
+            "team1": "69cfb47b56bab89431e144db",
+            "team2": "69cfb47b56bab89431e144df",
+            "field": "2",
+            "date": "2026-04-18",
+            "time": "14:00",
+            "gameType": "main",
+            "gameRef": "69d0bda680313eff138f788d",
+            "_id": "6a18236b492a438445ff7d84"
+          },
+          {
+            "team1": "69cfb47b56bab89431e144dd",
+            "team2": "69cfb47b56bab89431e144e1",
+            "field": "2",
+            "date": "2026-04-18",
+            "time": "15:00",
+            "gameType": "main",
+            "gameRef": "69d0bda780313eff138f7893",
+            "_id": "6a18236b492a438445ff7d85"
+          },
+          {
+            "team1": "69cfb47b56bab89431e144df",
+            "team2": "69cfb47b56bab89431e144e1",
+            "field": "2",
+            "date": "2026-04-18",
+            "time": "16:00",
+            "gameType": "main",
+            "gameRef": "69d0bda780313eff138f7896",
+            "_id": "6a18236b492a438445ff7d86"
+          }
+        ],
+        "_id": "6a18236b492a438445ff7d83"
+      },
+      {
+        "name": "Week 4",
+        "games": [
+          {
+            "team1": "69cfb47b56bab89431e144dd",
+            "team2": "69cfb47b56bab89431e144df",
+            "field": "2",
+            "date": "2026-04-25",
+            "time": "13:00",
+            "gameType": "main",
+            "gameRef": "69d0bdab80313eff138f78c0",
+            "_id": "6a18236b492a438445ff7d88"
+          }
+        ],
+        "_id": "6a18236b492a438445ff7d87"
+      },
+      {
+        "name": "Week 5",
+        "games": [
+          {
+            "team1": "69cfb47b56bab89431e144db",
+            "team2": "69cfb47b56bab89431e144dd",
+            "field": "2",
+            "date": "2026-05-02",
+            "time": "13:00",
+            "gameType": "main",
+            "gameRef": "69de17f6b2b80b2f1f375f71",
+            "_id": "6a18236b492a438445ff7d8a"
+          },
+          {
+            "team1": "69cfb47b56bab89431e144db",
+            "team2": "69cfb47b56bab89431e144e1",
+            "field": "2",
+            "date": "2026-05-02",
+            "time": "14:00",
+            "gameType": "main",
+            "gameRef": "69de17f6b2b80b2f1f375f77",
+            "_id": "6a18236b492a438445ff7d8b"
+          },
+          {
+            "team1": "69cfb47b56bab89431e144df",
+            "team2": "69cfb47b56bab89431e144e1",
+            "field": "2",
+            "date": "2026-05-02",
+            "time": "15:00",
+            "gameType": "main",
+            "gameRef": "69de17f7b2b80b2f1f375f7d",
+            "_id": "6a18236b492a438445ff7d8c"
+          }
+        ],
+        "_id": "6a18236b492a438445ff7d89"
+      },
+      {
+        "name": "Week 6",
+        "games": [
+          {
+            "team1": "69cfb47b56bab89431e144e1",
+            "team2": "69cfb47b56bab89431e144db",
+            "field": "2",
+            "date": "2026-05-08",
+            "time": "17:00",
+            "gameType": "main",
+            "gameRef": "69d0bdaa80313eff138f78b4",
+            "_id": "6a18236b492a438445ff7d8e"
+          },
+          {
+            "team1": "69cfb47b56bab89431e144e1",
+            "team2": "69cfb47b56bab89431e144df",
+            "field": "2",
+            "date": "2026-05-08",
+            "time": "18:00",
+            "gameType": "main",
+            "gameRef": "69d0bdab80313eff138f78ba",
+            "_id": "6a18236b492a438445ff7d8f"
+          },
+          {
+            "team1": "69cfb47b56bab89431e144e1",
+            "team2": "69cfb47b56bab89431e144df",
+            "field": "1",
+            "date": "2026-05-08",
+            "time": "18:00",
+            "gameType": "main",
+            "gameRef": "69fe861e0817e06c03656823",
+            "_id": "6a18236b492a438445ff7d90"
+          }
+        ],
+        "_id": "6a18236b492a438445ff7d8d"
+      },
+      {
+        "name": "Week 7",
+        "games": [
+          {
+            "team1": "69cfb47b56bab89431e144df",
+            "team2": "69cfb47b56bab89431e144db",
+            "field": "1",
+            "date": "2026-05-09",
+            "time": "16:00",
+            "gameType": "main",
+            "gameRef": "69de1c2ab2b80b2f1f375fa4",
+            "_id": "6a18236b492a438445ff7d92"
+          },
+          {
+            "team1": "69cfb47b56bab89431e144dd",
+            "team2": "69cfb47b56bab89431e144db",
+            "field": "1",
+            "date": "2026-05-09",
+            "time": "17:00",
+            "gameType": "main",
+            "gameRef": "69de1c2bb2b80b2f1f375faa",
+            "_id": "6a18236b492a438445ff7d93"
+          },
+          {
+            "team1": "69cfb47b56bab89431e144e1",
+            "team2": "69cfb47b56bab89431e144df",
+            "field": "1",
+            "date": "2026-05-09",
+            "time": "08:00",
+            "gameType": "main",
+            "gameRef": "69fe868e0817e06c03656869",
+            "_id": "6a18236b492a438445ff7d94"
+          }
+        ],
+        "_id": "6a18236b492a438445ff7d91"
+      },
+      {
+        "name": "Week 8",
+        "games": [
+          {
+            "team1": "69cfb47b56bab89431e144dd",
+            "team2": "69cfb47b56bab89431e144e1",
+            "field": "1",
+            "date": "2026-05-10",
+            "time": "09:00",
+            "gameType": "main",
+            "gameRef": "69de1c2bb2b80b2f1f375fb0",
+            "_id": "6a18236b492a438445ff7d96"
+          }
+        ],
+        "_id": "6a18236b492a438445ff7d95"
+      },
+      {
+        "name": "Week 9",
+        "games": [
+          {
+            "team1": "69cfb47b56bab89431e144db",
+            "team2": "69cfb47b56bab89431e144df",
+            "field": "2",
+            "date": "2026-05-16",
+            "time": "13:00",
+            "gameType": "main",
+            "gameRef": "6a08727cd4704adc02fe24ee",
+            "_id": "6a18236b492a438445ff7d98"
+          },
+          {
+            "team1": "69cfb47b56bab89431e144dd",
+            "team2": "69cfb47b56bab89431e144e1",
+            "field": "2",
+            "date": "2026-05-16",
+            "time": "14:00",
+            "gameType": "main",
+            "gameRef": "6a0872a8d4704adc02fe2508",
+            "_id": "6a18236b492a438445ff7d99"
+          }
+        ],
+        "_id": "6a18236b492a438445ff7d97"
+      }
+    ],
+    "createdAt": "2026-05-28T10:50:02.810Z",
+    "updatedAt": "2026-05-28T11:13:47.281Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a181ddbf3d59617a177eb33",
+    "organization": "69f580a6e7729de622495f7a",
+    "scheduleLabel": "Beverly Spring 2026",
+    "leagueId": "69f581e3e7729de622495fd9",
+    "locationName": "Beverly Field",
+    "locationId": null,
+    "status": "Active",
+    "weeks": [
+      {
+        "name": "Week of 2026-05-03",
+        "games": [
+          {
+            "team1": "69f5820be7729de622495ff8",
+            "team2": "69f5821ce7729de622496010",
+            "field": "",
+            "date": "2026-05-03",
+            "time": "09:40",
+            "gameType": "main",
+            "gameRef": "69f5af6de7729de62249692d",
+            "_id": "6a181ddbf3d59617a177eb35"
+          },
+          {
+            "team1": "69f5820be7729de622495ff8",
+            "team2": "69f5822fe7729de622496028",
+            "field": "",
+            "date": "2026-05-03",
+            "time": "10:25",
+            "gameType": "main",
+            "gameRef": "69f5af6ee7729de622496930",
+            "_id": "6a181ddbf3d59617a177eb36"
+          }
+        ],
+        "_id": "6a181ddbf3d59617a177eb34"
+      },
+      {
+        "name": "Week of 2026-05-10",
+        "games": [
+          {
+            "team1": "69f5821ce7729de622496010",
+            "team2": "69f5822fe7729de622496028",
+            "field": "",
+            "date": "2026-05-10",
+            "time": "09:40",
+            "gameType": "main",
+            "gameRef": "6a052f600817e06c03660d8d",
+            "_id": "6a181ddbf3d59617a177eb38"
+          },
+          {
+            "team1": "69f5821ce7729de622496010",
+            "team2": "69f5820be7729de622495ff8",
+            "field": "",
+            "date": "2026-05-10",
+            "time": "10:25",
+            "gameType": "main",
+            "gameRef": "6a052f870817e06c03660d94",
+            "_id": "6a181ddbf3d59617a177eb39"
+          }
+        ],
+        "_id": "6a181ddbf3d59617a177eb37"
+      },
+      {
+        "name": "Week of 2026-05-17",
+        "games": [
+          {
+            "team1": "69f5822fe7729de622496028",
+            "team2": "69f5820be7729de622495ff8",
+            "field": "",
+            "date": "2026-05-17",
+            "time": "09:40",
+            "gameType": "main",
+            "gameRef": "69f5af6fe7729de622496939",
+            "_id": "6a181ddbf3d59617a177eb3b"
+          },
+          {
+            "team1": "69f5822fe7729de622496028",
+            "team2": "69f5821ce7729de622496010",
+            "field": "",
+            "date": "2026-05-17",
+            "time": "10:25",
+            "gameType": "main",
+            "gameRef": "69f5af6fe7729de62249693c",
+            "_id": "6a181ddbf3d59617a177eb3c"
+          }
+        ],
+        "_id": "6a181ddbf3d59617a177eb3a"
+      },
+      {
+        "name": "Week of 2026-05-24",
+        "games": [
+          {
+            "team1": "69f5820be7729de622495ff8",
+            "team2": "69f5821ce7729de622496010",
+            "field": "",
+            "date": "2026-05-24",
+            "time": "09:40",
+            "gameType": "main",
+            "gameRef": "69f5af6fe7729de62249693f",
+            "_id": "6a181ddbf3d59617a177eb3e"
+          },
+          {
+            "team1": "69f5820be7729de622495ff8",
+            "team2": "69f5822fe7729de622496028",
+            "field": "",
+            "date": "2026-05-24",
+            "time": "10:25",
+            "gameType": "main",
+            "gameRef": "69f5af70e7729de622496942",
+            "_id": "6a181ddbf3d59617a177eb3f"
+          }
+        ],
+        "_id": "6a181ddbf3d59617a177eb3d"
+      },
+      {
+        "name": "Week of 2026-05-31",
+        "games": [
+          {
+            "team1": "69f5821ce7729de622496010",
+            "team2": "69f5822fe7729de622496028",
+            "field": "",
+            "date": "2026-05-31",
+            "time": "09:40",
+            "gameType": "main",
+            "gameRef": "69f5af70e7729de622496945",
+            "_id": "6a181ddbf3d59617a177eb41"
+          },
+          {
+            "team1": "69f5821ce7729de622496010",
+            "team2": "69f5820be7729de622495ff8",
+            "field": "",
+            "date": "2026-05-31",
+            "time": "10:25",
+            "gameType": "main",
+            "gameRef": "69f5af70e7729de622496948",
+            "_id": "6a181ddbf3d59617a177eb42"
+          }
+        ],
+        "_id": "6a181ddbf3d59617a177eb40"
+      },
+      {
+        "name": "Week of 2026-06-07",
+        "games": [
+          {
+            "team1": "69f5822fe7729de622496028",
+            "team2": "69f5820be7729de622495ff8",
+            "field": "",
+            "date": "2026-06-07",
+            "time": "09:40",
+            "gameType": "main",
+            "gameRef": "69f5af70e7729de62249694b",
+            "_id": "6a181ddbf3d59617a177eb44"
+          },
+          {
+            "team1": "69f5822fe7729de622496028",
+            "team2": "69f5821ce7729de622496010",
+            "field": "",
+            "date": "2026-06-07",
+            "time": "10:25",
+            "gameType": "main",
+            "gameRef": "69f5af71e7729de62249694e",
+            "_id": "6a181ddbf3d59617a177eb45"
+          }
+        ],
+        "_id": "6a181ddbf3d59617a177eb43"
+      }
+    ],
+    "createdAt": "2026-05-28T10:50:03.257Z",
+    "updatedAt": "2026-06-07T15:11:23.021Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a181ddbf3d59617a177eb49",
+    "organization": "6a17fb3bd4704adc02fe994e",
+    "scheduleLabel": "Arizona League",
+    "leagueId": "6a17fd12d4704adc02fe99e0",
+    "locationName": "Cottonwood Kids Park",
+    "locationId": "69cf345c268fc7ba310d28fb",
+    "status": "Active",
+    "weeks": [
+      {
+        "name": "Week of 2026-05-28",
+        "games": [
+          {
+            "team1": "6a17fd56d4704adc02fe99f7",
+            "team2": "6a17fd6dd4704adc02fe9a0d",
+            "field": "1",
+            "date": "2026-05-28",
+            "time": "17:10",
+            "gameType": "main",
+            "gameRef": "6a17fe7dd4704adc02fe9ad0",
+            "_id": "6a33c7d40a1e2851aa4bf87f"
+          }
+        ],
+        "_id": "6a33c7d40a1e2851aa4bf87e"
+      },
+      {
+        "name": "Week of 2026-05-29",
+        "games": [
+          {
+            "team1": "6a17fd56d4704adc02fe99f7",
+            "team2": "6a17fd6dd4704adc02fe9a0d",
+            "field": "1",
+            "date": "2026-05-29",
+            "time": "16:10",
+            "gameType": "main",
+            "gameRef": "6a17fec3d4704adc02fe9b1c",
+            "_id": "6a33c7d40a1e2851aa4bf881"
+          }
+        ],
+        "_id": "6a33c7d40a1e2851aa4bf880"
+      },
+      {
+        "name": "Week of May 24, 2026",
+        "games": [
+          {
+            "team1": "6a17fd56d4704adc02fe99f7",
+            "team2": "6a17fd6dd4704adc02fe9a0d",
+            "field": "1",
+            "date": "2026-05-29",
+            "time": "19:00",
+            "gameType": "main",
+            "gameRef": "6a1990ec2a5786f17814801c",
+            "_id": "6a33c7d40a1e2851aa4bf883"
+          },
+          {
+            "team1": "6a17fd56d4704adc02fe99f7",
+            "team2": "6a17fd6dd4704adc02fe9a0d",
+            "field": "2",
+            "date": "2026-05-30",
+            "time": "00:20",
+            "gameType": "main",
+            "gameRef": "6a19e0102a5786f17814828c",
+            "_id": "6a33c7d40a1e2851aa4bf884"
+          }
+        ],
+        "_id": "6a33c7d40a1e2851aa4bf882"
+      },
+      {
+        "name": "Week of May 31, 2026",
+        "games": [
+          {
+            "team1": "6a17fd56d4704adc02fe99f7",
+            "team2": "6a17fd6dd4704adc02fe9a0d",
+            "field": "1",
+            "date": "2026-06-01",
+            "time": "15:20",
+            "gameType": "main",
+            "gameRef": "6a1d47c92a5786f1781486b0",
+            "_id": "6a33c7d40a1e2851aa4bf886"
+          },
+          {
+            "team1": "6a17fd56d4704adc02fe99f7",
+            "team2": "6a17fd6dd4704adc02fe9a0d",
+            "field": "2",
+            "date": "2026-06-01",
+            "time": "15:03",
+            "gameType": "main",
+            "gameRef": "6a1d51d32a5786f178148735",
+            "_id": "6a33c7d40a1e2851aa4bf887"
+          },
+          {
+            "team1": "6a17fd56d4704adc02fe99f7",
+            "team2": "6a17fd6dd4704adc02fe9a0d",
+            "field": "1",
+            "date": "2026-06-01",
+            "time": "15:09",
+            "gameType": "main",
+            "gameRef": "6a1d53622a5786f1781487da",
+            "_id": "6a33c7d40a1e2851aa4bf888"
+          },
+          {
+            "team1": "6a17fd6dd4704adc02fe9a0d",
+            "team2": "6a17fd56d4704adc02fe99f7",
+            "field": "1",
+            "date": "2026-06-01",
+            "time": "15:12",
+            "gameType": "main",
+            "gameRef": "6a1d53f22a5786f178148863",
+            "_id": "6a33c7d40a1e2851aa4bf889"
+          },
+          {
+            "team1": "6a17fd56d4704adc02fe99f7",
+            "team2": "6a17fd6dd4704adc02fe9a0d",
+            "field": "1",
+            "date": "2026-06-01",
+            "time": "15:36",
+            "gameType": "main",
+            "gameRef": "6a1d59962a5786f178148906",
+            "_id": "6a33c7d40a1e2851aa4bf88a"
+          },
+          {
+            "team1": "6a17fd56d4704adc02fe99f7",
+            "team2": "6a17fd6dd4704adc02fe9a0d",
+            "field": "2",
+            "date": "2026-06-01",
+            "time": "19:36",
+            "gameType": "main",
+            "gameRef": "6a1d92252a5786f178148ada",
+            "_id": "6a33c7d40a1e2851aa4bf88b"
+          },
+          {
+            "team1": "6a17fd56d4704adc02fe99f7",
+            "team2": "6a17fd6dd4704adc02fe9a0d",
+            "field": "1",
+            "date": "2026-06-02",
+            "time": "00:05",
+            "gameType": "main",
+            "gameRef": "6a1dd1002a5786f178148d28",
+            "_id": "6a33c7d40a1e2851aa4bf88c"
+          },
+          {
+            "team1": "6a17fd56d4704adc02fe99f7",
+            "team2": "6a17fd6dd4704adc02fe9a0d",
+            "field": "2",
+            "date": "2026-06-03",
+            "time": "17:39",
+            "gameType": "practice",
+            "gameRef": "6a2019992a5786f17814921c",
+            "_id": "6a33c7d40a1e2851aa4bf88d"
+          },
+          {
+            "team1": "6a17fd56d4704adc02fe99f7",
+            "team2": "6a17fd6dd4704adc02fe9a0d",
+            "field": "1",
+            "date": "2026-06-03",
+            "time": "17:40",
+            "gameType": "main",
+            "gameRef": "6a2019e72a5786f178149238",
+            "_id": "6a33c7d40a1e2851aa4bf88e"
+          }
+        ],
+        "_id": "6a33c7d40a1e2851aa4bf885"
+      },
+      {
+        "name": "Week of Jun 7, 2026",
+        "games": [
+          {
+            "team1": "6a17fd56d4704adc02fe99f7",
+            "team2": "6a17fd6dd4704adc02fe9a0d",
+            "field": "2",
+            "date": "2026-06-11",
+            "time": "11:11",
+            "gameType": "main",
+            "gameRef": "6a1e6d412a5786f178148de2",
+            "_id": "6a33c7d40a1e2851aa4bf890"
+          },
+          {
+            "team1": "6a17fd56d4704adc02fe99f7",
+            "team2": "6a17fd6dd4704adc02fe9a0d",
+            "field": "1",
+            "date": "2026-06-04",
+            "time": "10:19",
+            "gameType": "main",
+            "gameRef": "6a1fb2732a5786f178149083",
+            "_id": "6a33c7d40a1e2851aa4bf891"
+          },
+          {
+            "team1": "6a17fd6dd4704adc02fe9a0d",
+            "team2": "6a17fd56d4704adc02fe99f7",
+            "field": "1",
+            "date": "2026-06-11",
+            "time": "08:24",
+            "gameType": "main",
+            "gameRef": "6a297af25f5211d1bb47ec9c",
+            "_id": "6a33c7d40a1e2851aa4bf892"
+          },
+          {
+            "team1": "6a17fd6dd4704adc02fe9a0d",
+            "team2": "6a17fd56d4704adc02fe99f7",
+            "field": "1",
+            "date": "2026-06-12",
+            "time": "12:16",
+            "gameType": "main",
+            "gameRef": "6a2a59f25f5211d1bb47ee97",
+            "_id": "6a33c7d40a1e2851aa4bf893"
+          },
+          {
+            "team1": "6a17fd56d4704adc02fe99f7",
+            "team2": "6a17fd6dd4704adc02fe9a0d",
+            "field": "1",
+            "date": "2026-06-13",
+            "time": "12:24",
+            "gameType": "practice",
+            "gameRef": "6a2a5bcb5f5211d1bb47ef43",
+            "_id": "6a33c7d40a1e2851aa4bf894"
+          },
+          {
+            "team1": "6a17fd56d4704adc02fe99f7",
+            "team2": "6a17fd6dd4704adc02fe9a0d",
+            "field": "1",
+            "date": "2026-06-13",
+            "time": "12:25",
+            "gameType": "main",
+            "gameRef": "6a2a5c055f5211d1bb47ef5f",
+            "_id": "6a33c7d40a1e2851aa4bf895"
+          },
+          {
+            "team1": "6a17fd6dd4704adc02fe9a0d",
+            "team2": "6a17fd56d4704adc02fe99f7",
+            "field": "1",
+            "date": "2026-06-13",
+            "time": "13:47",
+            "gameType": "main",
+            "gameRef": "6a2a612f5f5211d1bb47f00f",
+            "_id": "6a33c7d40a1e2851aa4bf896"
+          },
+          {
+            "team1": "6a17fd56d4704adc02fe99f7",
+            "team2": "6a17fd6dd4704adc02fe9a0d",
+            "field": "1",
+            "date": "2026-06-13",
+            "time": "14:07",
+            "gameType": "main",
+            "gameRef": "6a2a65df5f5211d1bb47f074",
+            "_id": "6a33c7d40a1e2851aa4bf897"
+          },
+          {
+            "team1": "6a17fd56d4704adc02fe99f7",
+            "team2": "6a17fd6dd4704adc02fe9a0d",
+            "field": "2",
+            "date": "2026-06-13",
+            "time": "15:19",
+            "gameType": "main",
+            "gameRef": "6a2a68bd5f5211d1bb47f0e0",
+            "_id": "6a33c7d40a1e2851aa4bf898"
+          },
+          {
+            "team1": "6a2d0be25f5211d1bb484049",
+            "team2": "6a2d0bc65f5211d1bb48402d",
+            "field": "1",
+            "date": "2026-06-14",
+            "time": "19:01",
+            "gameType": "main",
+            "gameRef": "6a2e9f61de3d1385a49dc13e",
+            "_id": "6a33c7d40a1e2851aa4bf899"
+          }
+        ],
+        "_id": "6a33c7d40a1e2851aa4bf88f"
+      }
+    ],
+    "createdAt": "2026-05-28T10:50:03.703Z",
+    "updatedAt": "2026-06-18T10:26:28.759Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2b6e365f5211d1bb4806df",
+    "organization": "69f580a6e7729de622495f7a",
+    "scheduleLabel": "North Park",
+    "leagueId": "6a23a71e5f5211d1bb47d0aa",
+    "locationName": "North Park",
+    "locationId": "6a23a3b25f5211d1bb47cfba",
+    "status": "Active",
+    "weeks": [
+      {
+        "name": "Week 1",
+        "games": [
+          {
+            "team1": "6a2b4dc65f5211d1bb47f393",
+            "team2": "6a2b4e735f5211d1bb47f3e7",
+            "field": "Field 1",
+            "date": "2026-06-13",
+            "time": "12:00",
+            "gameType": "main",
+            "gameRef": "6a2b6e355f5211d1bb4806cf",
+            "_id": "6a3b9a7f1a2216ba5b67f80e"
+          },
+          {
+            "team1": "6a2b4dc65f5211d1bb47f393",
+            "team2": "6a2b4e1f5f5211d1bb47f3af",
+            "field": "Field 1",
+            "date": "2026-06-13",
+            "time": "12:50",
+            "gameType": "main",
+            "gameRef": "6a2b6e355f5211d1bb4806d1",
+            "_id": "6a3b9a7f1a2216ba5b67f80f"
+          },
+          {
+            "team1": "6a2b4efc5f5211d1bb47f457",
+            "team2": "6a2b4d3d5f5211d1bb47f35b",
+            "field": "Field 1",
+            "date": "2026-06-13",
+            "time": "13:40",
+            "gameType": "main",
+            "gameRef": "6a2b6e355f5211d1bb4806d3",
+            "_id": "6a3b9a7f1a2216ba5b67f810"
+          },
+          {
+            "team1": "6a2b4efc5f5211d1bb47f457",
+            "team2": "6a2b4eb45f5211d1bb47f41f",
+            "field": "Field 1",
+            "date": "2026-06-13",
+            "time": "14:30",
+            "gameType": "main",
+            "gameRef": "6a2b6e355f5211d1bb4806d5",
+            "_id": "6a3b9a7f1a2216ba5b67f811"
+          },
+          {
+            "team1": "6a2b4e1f5f5211d1bb47f3af",
+            "team2": "6a2b4e4b5f5211d1bb47f3cb",
+            "field": "Field 2",
+            "date": "2026-06-13",
+            "time": "12:00",
+            "gameType": "main",
+            "gameRef": "6a2b6e365f5211d1bb4806d7",
+            "_id": "6a3b9a7f1a2216ba5b67f812"
+          },
+          {
+            "team1": "6a2b4e735f5211d1bb47f3e7",
+            "team2": "6a2b4e4b5f5211d1bb47f3cb",
+            "field": "Field 2",
+            "date": "2026-06-13",
+            "time": "12:50",
+            "gameType": "main",
+            "gameRef": "6a2b6e365f5211d1bb4806d9",
+            "_id": "6a3b9a7f1a2216ba5b67f813"
+          },
+          {
+            "team1": "6a2b4eb45f5211d1bb47f41f",
+            "team2": "6a2b4ee25f5211d1bb47f43b",
+            "field": "Field 2",
+            "date": "2026-06-13",
+            "time": "13:40",
+            "gameType": "main",
+            "gameRef": "6a2b6e365f5211d1bb4806db",
+            "_id": "6a3b9a7f1a2216ba5b67f814"
+          },
+          {
+            "team1": "6a2b4d3d5f5211d1bb47f35b",
+            "team2": "6a2b4ee25f5211d1bb47f43b",
+            "field": "Field 2",
+            "date": "2026-06-13",
+            "time": "14:30",
+            "gameType": "main",
+            "gameRef": "6a2b6e365f5211d1bb4806dd",
+            "_id": "6a3b9a7f1a2216ba5b67f815"
+          }
+        ],
+        "_id": "6a3b9a7f1a2216ba5b67f80d"
+      },
+      {
+        "name": "Week 2",
+        "games": [
+          {
+            "team1": "6a2b4e4b5f5211d1bb47f3cb",
+            "team2": "6a2b4d3d5f5211d1bb47f35b",
+            "field": "Field 1",
+            "date": "2026-06-20",
+            "time": "11:50",
+            "gameType": "main",
+            "gameRef": "6a33d51173257ee61a673700",
+            "_id": "6a3b9a7f1a2216ba5b67f817"
+          },
+          {
+            "team1": "6a2b4e4b5f5211d1bb47f3cb",
+            "team2": "6a2b4ee25f5211d1bb47f43b",
+            "field": "Field 1",
+            "date": "2026-06-20",
+            "time": "12:40",
+            "gameType": "main",
+            "gameRef": "6a33d51173257ee61a673702",
+            "_id": "6a3b9a7f1a2216ba5b67f818"
+          },
+          {
+            "team1": "6a2b4ee25f5211d1bb47f43b",
+            "team2": "6a2b4e735f5211d1bb47f3e7",
+            "field": "Field 2",
+            "date": "2026-06-20",
+            "time": "11:50",
+            "gameType": "main",
+            "gameRef": "6a33d51173257ee61a673704",
+            "_id": "6a3b9a7f1a2216ba5b67f819"
+          },
+          {
+            "team1": "6a2b4d3d5f5211d1bb47f35b",
+            "team2": "6a2b4e735f5211d1bb47f3e7",
+            "field": "Field 2",
+            "date": "2026-06-20",
+            "time": "12:40",
+            "gameType": "main",
+            "gameRef": "6a33d51173257ee61a673706",
+            "_id": "6a3b9a7f1a2216ba5b67f81a"
+          },
+          {
+            "team1": "6a2b4e1f5f5211d1bb47f3af",
+            "team2": "6a2b4efc5f5211d1bb47f457",
+            "field": "Field 1",
+            "date": "2026-06-20",
+            "time": "13:30",
+            "gameType": "main",
+            "gameRef": "6a33d51173257ee61a673708",
+            "_id": "6a3b9a7f1a2216ba5b67f81b"
+          },
+          {
+            "team1": "6a2b4e1f5f5211d1bb47f3af",
+            "team2": "6a2b4eb45f5211d1bb47f41f",
+            "field": "Field 1",
+            "date": "2026-06-20",
+            "time": "14:20",
+            "gameType": "main",
+            "gameRef": "6a33d51273257ee61a67370a",
+            "_id": "6a3b9a7f1a2216ba5b67f81c"
+          },
+          {
+            "team1": "6a2b4eb45f5211d1bb47f41f",
+            "team2": "6a2b4dc65f5211d1bb47f393",
+            "field": "Field 2",
+            "date": "2026-06-20",
+            "time": "13:30",
+            "gameType": "main",
+            "gameRef": "6a33d51273257ee61a67370c",
+            "_id": "6a3b9a7f1a2216ba5b67f81d"
+          },
+          {
+            "team1": "6a2b4efc5f5211d1bb47f457",
+            "team2": "6a2b4dc65f5211d1bb47f393",
+            "field": "Field 2",
+            "date": "2026-06-20",
+            "time": "14:20",
+            "gameType": "main",
+            "gameRef": "6a33d51273257ee61a67370e",
+            "_id": "6a3b9a7f1a2216ba5b67f81e"
+          }
+        ],
+        "_id": "6a3b9a7f1a2216ba5b67f816"
+      },
+      {
+        "name": "Week 3",
+        "games": [
+          {
+            "team1": "6a2b4dc65f5211d1bb47f393",
+            "team2": "6a2b4e4b5f5211d1bb47f3cb",
+            "field": "Field 1",
+            "date": "2026-06-27",
+            "time": "11:50",
+            "gameType": "main",
+            "gameRef": "6a3b9a7e1a2216ba5b67f7fd",
+            "_id": "6a3b9a7f1a2216ba5b67f820"
+          },
+          {
+            "team1": "6a2b4dc65f5211d1bb47f393",
+            "team2": "6a2b4d3d5f5211d1bb47f35b",
+            "field": "Field 1",
+            "date": "2026-06-27",
+            "time": "12:40",
+            "gameType": "main",
+            "gameRef": "6a3b9a7e1a2216ba5b67f7ff",
+            "_id": "6a3b9a7f1a2216ba5b67f821"
+          },
+          {
+            "team1": "6a2b4d3d5f5211d1bb47f35b",
+            "team2": "6a2b4eb45f5211d1bb47f41f",
+            "field": "Field 2",
+            "date": "2026-06-27",
+            "time": "11:50",
+            "gameType": "main",
+            "gameRef": "6a3b9a7e1a2216ba5b67f801",
+            "_id": "6a3b9a7f1a2216ba5b67f822"
+          },
+          {
+            "team1": "6a2b4e4b5f5211d1bb47f3cb",
+            "team2": "6a2b4eb45f5211d1bb47f41f",
+            "field": "Field 2",
+            "date": "2026-06-27",
+            "time": "12:40",
+            "gameType": "main",
+            "gameRef": "6a3b9a7f1a2216ba5b67f803",
+            "_id": "6a3b9a7f1a2216ba5b67f823"
+          },
+          {
+            "team1": "6a2b4e1f5f5211d1bb47f3af",
+            "team2": "6a2b4ee25f5211d1bb47f43b",
+            "field": "Field 1",
+            "date": "2026-06-27",
+            "time": "13:30",
+            "gameType": "main",
+            "gameRef": "6a3b9a7f1a2216ba5b67f805",
+            "_id": "6a3b9a7f1a2216ba5b67f824"
+          },
+          {
+            "team1": "6a2b4e1f5f5211d1bb47f3af",
+            "team2": "6a2b4e735f5211d1bb47f3e7",
+            "field": "Field 1",
+            "date": "2026-06-27",
+            "time": "14:20",
+            "gameType": "main",
+            "gameRef": "6a3b9a7f1a2216ba5b67f807",
+            "_id": "6a3b9a7f1a2216ba5b67f825"
+          },
+          {
+            "team1": "6a2b4e735f5211d1bb47f3e7",
+            "team2": "6a2b4efc5f5211d1bb47f457",
+            "field": "Field 2",
+            "date": "2026-06-27",
+            "time": "13:30",
+            "gameType": "main",
+            "gameRef": "6a3b9a7f1a2216ba5b67f809",
+            "_id": "6a3b9a7f1a2216ba5b67f826"
+          },
+          {
+            "team1": "6a2b4ee25f5211d1bb47f43b",
+            "team2": "6a2b4efc5f5211d1bb47f457",
+            "field": "Field 2",
+            "date": "2026-06-27",
+            "time": "14:20",
+            "gameType": "main",
+            "gameRef": "6a3b9a7f1a2216ba5b67f80b",
+            "_id": "6a3b9a7f1a2216ba5b67f827"
+          }
+        ],
+        "_id": "6a3b9a7f1a2216ba5b67f81f"
+      }
+    ],
+    "createdAt": "2026-06-12T02:25:58.780Z",
+    "updatedAt": "2026-06-24T08:51:11.769Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2b74a75f5211d1bb480a5f",
+    "organization": "69f580a6e7729de622495f7a",
+    "scheduleLabel": "Irvine",
+    "leagueId": "6a23a8655f5211d1bb47d13a",
+    "locationName": "Irvine",
+    "locationId": "6a23a5805f5211d1bb47d00d",
+    "status": "Active",
+    "weeks": [
+      {
+        "name": "Week 1 - 6/14/26",
+        "games": [
+          {
+            "team1": "6a2b75565f5211d1bb480af2",
+            "team2": "6a2b757b5f5211d1bb480b1f",
+            "field": "Field 1",
+            "date": "2026-06-14",
+            "time": "09:15",
+            "gameType": "main",
+            "gameRef": "6a2b78405f5211d1bb480d61",
+            "_id": "6a375ec71a2216ba5b6531e1"
+          },
+          {
+            "team1": "6a2b757b5f5211d1bb480b1f",
+            "team2": "6a2b75975f5211d1bb480b3b",
+            "field": "Field 1",
+            "date": "2026-06-14",
+            "time": "10:05",
+            "gameType": "main",
+            "gameRef": "6a2b78405f5211d1bb480d65",
+            "_id": "6a375ec71a2216ba5b6531e2"
+          },
+          {
+            "team1": "6a2b76495f5211d1bb480be1",
+            "team2": "6a2b76be5f5211d1bb480c22",
+            "field": "Field 2",
+            "date": "2026-06-14",
+            "time": "10:05",
+            "gameType": "main",
+            "gameRef": "6a2b78415f5211d1bb480d67",
+            "_id": "6a375ec71a2216ba5b6531e3"
+          },
+          {
+            "team1": "6a2b75565f5211d1bb480af2",
+            "team2": "6a2b76495f5211d1bb480be1",
+            "field": "Field 2",
+            "date": "2026-06-14",
+            "time": "10:55",
+            "gameType": "main",
+            "gameRef": "6a2b78415f5211d1bb480d6b",
+            "_id": "6a375ec71a2216ba5b6531e4"
+          },
+          {
+            "team1": "6a2b6d005f5211d1bb480649",
+            "team2": "6a2b76d85f5211d1bb480c3e",
+            "field": "Field 1",
+            "date": "2026-06-14",
+            "time": "11:45",
+            "gameType": "main",
+            "gameRef": "6a2b78415f5211d1bb480d6d",
+            "_id": "6a375ec71a2216ba5b6531e5"
+          },
+          {
+            "team1": "6a2b76eb5f5211d1bb480c70",
+            "team2": "6a2b76fe5f5211d1bb480c8c",
+            "field": "Field 2",
+            "date": "2026-06-14",
+            "time": "11:45",
+            "gameType": "main",
+            "gameRef": "6a2b78415f5211d1bb480d6f",
+            "_id": "6a375ec71a2216ba5b6531e6"
+          },
+          {
+            "team1": "6a2b76d85f5211d1bb480c3e",
+            "team2": "6a2b76eb5f5211d1bb480c70",
+            "field": "Field 1",
+            "date": "2026-06-14",
+            "time": "12:35",
+            "gameType": "main",
+            "gameRef": "6a2b78415f5211d1bb480d71",
+            "_id": "6a375ec71a2216ba5b6531e7"
+          },
+          {
+            "team1": "6a2b6d005f5211d1bb480649",
+            "team2": "6a2b76fe5f5211d1bb480c8c",
+            "field": "Field 2",
+            "date": "2026-06-14",
+            "time": "12:35",
+            "gameType": "main",
+            "gameRef": "6a2b78415f5211d1bb480d73",
+            "_id": "6a375ec71a2216ba5b6531e8"
+          }
+        ],
+        "_id": "6a375ec71a2216ba5b6531e0"
+      },
+      {
+        "name": "Week 2",
+        "games": [
+          {
+            "team1": "6a2b76be5f5211d1bb480c22",
+            "team2": "6a2b76fe5f5211d1bb480c8c",
+            "field": "Field 1",
+            "date": "2026-06-21",
+            "time": "09:15",
+            "gameType": "main",
+            "gameRef": "6a375ec61a2216ba5b6531d1",
+            "_id": "6a375ec71a2216ba5b6531ea"
+          },
+          {
+            "team1": "6a2b76be5f5211d1bb480c22",
+            "team2": "6a2b75975f5211d1bb480b3b",
+            "field": "Field 1",
+            "date": "2026-06-21",
+            "time": "10:05",
+            "gameType": "main",
+            "gameRef": "6a375ec61a2216ba5b6531d3",
+            "_id": "6a375ec71a2216ba5b6531eb"
+          },
+          {
+            "team1": "6a2b75565f5211d1bb480af2",
+            "team2": "6a2b76495f5211d1bb480be1",
+            "field": "Field 1",
+            "date": "2026-06-21",
+            "time": "10:55",
+            "gameType": "main",
+            "gameRef": "6a375ec71a2216ba5b6531d5",
+            "_id": "6a375ec71a2216ba5b6531ec"
+          },
+          {
+            "team1": "6a2b75565f5211d1bb480af2",
+            "team2": "6a2b75d25f5211d1bb480b83",
+            "field": "Field 1",
+            "date": "2026-06-21",
+            "time": "11:45",
+            "gameType": "main",
+            "gameRef": "6a375ec71a2216ba5b6531d7",
+            "_id": "6a375ec71a2216ba5b6531ed"
+          },
+          {
+            "team1": "6a2b76495f5211d1bb480be1",
+            "team2": "6a2b76d85f5211d1bb480c3e",
+            "field": "Field 2",
+            "date": "2026-06-21",
+            "time": "09:15",
+            "gameType": "main",
+            "gameRef": "6a375ec71a2216ba5b6531d9",
+            "_id": "6a375ec71a2216ba5b6531ee"
+          },
+          {
+            "team1": "6a2b76fe5f5211d1bb480c8c",
+            "team2": "6a2b75d25f5211d1bb480b83",
+            "field": "Field 2",
+            "date": "2026-06-21",
+            "time": "10:05",
+            "gameType": "main",
+            "gameRef": "6a375ec71a2216ba5b6531db",
+            "_id": "6a375ec71a2216ba5b6531ef"
+          },
+          {
+            "team1": "6a2b75975f5211d1bb480b3b",
+            "team2": "6a2b76d85f5211d1bb480c3e",
+            "field": "Field 2",
+            "date": "2026-06-21",
+            "time": "10:55",
+            "gameType": "main",
+            "gameRef": "6a375ec71a2216ba5b6531dd",
+            "_id": "6a375ec71a2216ba5b6531f0"
+          }
+        ],
+        "_id": "6a375ec71a2216ba5b6531e9"
+      }
+    ],
+    "createdAt": "2026-06-12T02:53:27.268Z",
+    "updatedAt": "2026-06-21T19:53:34.437Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2b74c85f5211d1bb480a92",
+    "organization": "69f580a6e7729de622495f7a",
+    "scheduleLabel": "Temecula",
+    "leagueId": "6a23a83d5f5211d1bb47d122",
+    "locationName": "Temecula",
+    "locationId": "6a23a46b5f5211d1bb47cfcf",
+    "status": "Active",
+    "weeks": [
+      {
+        "name": "Week 1 - 6/24/26",
+        "games": [
+          {
+            "team1": "6a2e4e05de3d1385a49db66d",
+            "team2": "6a2b824e5f5211d1bb480f40",
+            "field": "Field 1",
+            "date": "2026-06-24",
+            "time": "19:20",
+            "gameType": "main",
+            "gameRef": "6a3b34301a2216ba5b67c388",
+            "_id": "6a3b34301a2216ba5b67c393"
+          },
+          {
+            "team1": "6a2e4e05de3d1385a49db66d",
+            "team2": "6a2d7d11de3d1385a49d5da8",
+            "field": "Field 1",
+            "date": "2026-06-24",
+            "time": "20:10",
+            "gameType": "main",
+            "gameRef": "6a3b34301a2216ba5b67c38a",
+            "_id": "6a3b34311a2216ba5b67c394"
+          },
+          {
+            "team1": "6a39b1ed1a2216ba5b67111a",
+            "team2": "6a2b82eb5f5211d1bb480f5c",
+            "field": "Field 2",
+            "date": "2026-06-24",
+            "time": "20:10",
+            "gameType": "main",
+            "gameRef": "6a3b34301a2216ba5b67c38c",
+            "_id": "6a3b34311a2216ba5b67c395"
+          },
+          {
+            "team1": "6a2d7d11de3d1385a49d5da8",
+            "team2": "6a2b82eb5f5211d1bb480f5c",
+            "field": "Field 1",
+            "date": "2026-06-24",
+            "time": "21:00",
+            "gameType": "main",
+            "gameRef": "6a3b34301a2216ba5b67c38e",
+            "_id": "6a3b34311a2216ba5b67c396"
+          },
+          {
+            "team1": "6a39b1ed1a2216ba5b67111a",
+            "team2": "6a2b824e5f5211d1bb480f40",
+            "field": "Field 2",
+            "date": "2026-06-24",
+            "time": "21:00",
+            "gameType": "main",
+            "gameRef": "6a3b34301a2216ba5b67c390",
+            "_id": "6a3b34311a2216ba5b67c397"
+          }
+        ],
+        "_id": "6a3b34301a2216ba5b67c392"
+      }
+    ],
+    "createdAt": "2026-06-12T02:54:00.803Z",
+    "updatedAt": "2026-06-24T01:34:40.999Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2b74e45f5211d1bb480ac5",
+    "organization": "69f580a6e7729de622495f7a",
+    "scheduleLabel": "Riverside",
+    "leagueId": "6a23a8105f5211d1bb47d10a",
+    "locationName": "Riverside",
+    "locationId": "6a23a4e25f5211d1bb47cfee",
+    "status": "Active",
+    "weeks": [
+      {
+        "name": "Week 1 - 6/14/26",
+        "games": [
+          {
+            "team1": "6a2b7b865f5211d1bb480e8f",
+            "team2": "6a2b7cbb5f5211d1bb480ee3",
+            "field": "Field 1",
+            "date": "2026-06-14",
+            "time": "16:00",
+            "gameType": "main",
+            "gameRef": "6a2e3702de3d1385a49d9812",
+            "_id": "6a362aec414a9d467c6df92c"
+          },
+          {
+            "team1": "6a2b7c235f5211d1bb480eab",
+            "team2": "6a2b7c6d5f5211d1bb480ec7",
+            "field": "Field 2",
+            "date": "2026-06-14",
+            "time": "16:50",
+            "gameType": "main",
+            "gameRef": "6a362aeb414a9d467c6df922",
+            "_id": "6a362aec414a9d467c6df92d"
+          },
+          {
+            "team1": "6a2b7b865f5211d1bb480e8f",
+            "team2": "6a2b7ad15f5211d1bb480e56",
+            "field": "Field 1",
+            "date": "2026-06-14",
+            "time": "16:50",
+            "gameType": "main",
+            "gameRef": "6a362aeb414a9d467c6df924",
+            "_id": "6a362aec414a9d467c6df92e"
+          },
+          {
+            "team1": "6a2b7cbb5f5211d1bb480ee3",
+            "team2": "6a2b7c6d5f5211d1bb480ec7",
+            "field": "Field 2",
+            "date": "2026-06-14",
+            "time": "17:40",
+            "gameType": "main",
+            "gameRef": "6a362aeb414a9d467c6df926",
+            "_id": "6a362aec414a9d467c6df92f"
+          },
+          {
+            "team1": "6a2b7c235f5211d1bb480eab",
+            "team2": "6a2b7ad15f5211d1bb480e56",
+            "field": "Field 1",
+            "date": "2026-06-14",
+            "time": "17:40",
+            "gameType": "main",
+            "gameRef": "6a362aeb414a9d467c6df928",
+            "_id": "6a362aec414a9d467c6df930"
+          }
+        ],
+        "_id": "6a362aec414a9d467c6df92b"
+      }
+    ],
+    "createdAt": "2026-06-12T02:54:28.058Z",
+    "updatedAt": "2026-06-22T03:51:12.363Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d11945f5211d1bb484479",
+    "organization": "6a17fb3bd4704adc02fe994e",
+    "scheduleLabel": "Cottonwood Summer League 2026",
+    "leagueId": "6a2d06575f5211d1bb483f0b",
+    "locationName": "Cottonwood Kids Park",
+    "locationId": "69cf345c268fc7ba310d28fb",
+    "status": "Active",
+    "weeks": [
+      {
+        "name": "Week 1",
+        "games": [
+          {
+            "team1": "6a2d0be25f5211d1bb484049",
+            "team2": "6a2d0bc65f5211d1bb48402d",
+            "field": "1",
+            "date": "2026-06-19",
+            "time": "03:00",
+            "gameType": "main",
+            "gameRef": "6a2d11935f5211d1bb484471",
+            "_id": "6a350794c4ae21c60b8afd73"
+          },
+          {
+            "team1": "6a17fd6dd4704adc02fe9a0d",
+            "team2": "6a17fd56d4704adc02fe99f7",
+            "field": "1",
+            "date": "2026-06-19",
+            "time": "03:30",
+            "gameType": "main",
+            "gameRef": "6a350727c4ae21c60b8afd0a",
+            "_id": "6a350794c4ae21c60b8afd74"
+          },
+          {
+            "team1": "6a2d0be25f5211d1bb484049",
+            "team2": "6a17fd56d4704adc02fe99f7",
+            "field": "1",
+            "date": "2026-03-19",
+            "time": "15:00",
+            "gameType": "main",
+            "gameRef": "6a350727c4ae21c60b8afd0c",
+            "_id": "6a350794c4ae21c60b8afd75"
+          }
+        ],
+        "_id": "6a350794c4ae21c60b8afd72"
+      }
+    ],
+    "createdAt": "2026-06-13T08:15:16.333Z",
+    "updatedAt": "2026-06-19T09:10:44.644Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d227b5f5211d1bb48461c",
+    "organization": "69f580a6e7729de622495f7a",
+    "scheduleLabel": "Chino",
+    "leagueId": "6a2b4bc75f5211d1bb47f2b0",
+    "locationName": "Chino",
+    "locationId": "6a23a5a45f5211d1bb47d018",
+    "status": "Active",
+    "weeks": [
+      {
+        "name": "Week 1",
+        "games": [
+          {
+            "team1": "6a2cf1415f5211d1bb483c5a",
+            "team2": "6a2c60cf5f5211d1bb481d8b",
+            "field": "Field 1",
+            "date": "2026-06-14",
+            "time": "18:15",
+            "gameType": "main",
+            "gameRef": "6a2d22795f5211d1bb484606",
+            "_id": "6a2e3437de3d1385a49d9778"
+          },
+          {
+            "team1": "6a2cf1a25f5211d1bb483cae",
+            "team2": "6a2c6f515f5211d1bb4824d7",
+            "field": "Field 1",
+            "date": "2026-06-14",
+            "time": "19:05",
+            "gameType": "main",
+            "gameRef": "6a2d227a5f5211d1bb48460c",
+            "_id": "6a2e3437de3d1385a49d977a"
+          },
+          {
+            "team1": "6a2c94635f5211d1bb483234",
+            "team2": "6a2cf1905f5211d1bb483c92",
+            "field": "Field 3",
+            "date": "2026-06-14",
+            "time": "19:05",
+            "gameType": "main",
+            "gameRef": "6a2d227a5f5211d1bb484610",
+            "_id": "6a2e3437de3d1385a49d977c"
+          },
+          {
+            "team1": "6a2c94535f5211d1bb483218",
+            "team2": "6a2cf1d35f5211d1bb483cca",
+            "field": "Field 1",
+            "date": "2026-06-14",
+            "time": "19:55",
+            "gameType": "main",
+            "gameRef": "6a2d227a5f5211d1bb484612",
+            "_id": "6a2e3437de3d1385a49d977d"
+          },
+          {
+            "team1": "6a2cc9b05f5211d1bb48365c",
+            "team2": "6a2c60cf5f5211d1bb481d8b",
+            "field": "Field 2",
+            "date": "2026-06-14",
+            "time": "19:55",
+            "gameType": "main",
+            "gameRef": "6a2d227a5f5211d1bb484614",
+            "_id": "6a2e3437de3d1385a49d977e"
+          },
+          {
+            "team1": "6a2cf1905f5211d1bb483c92",
+            "team2": "6a2c94635f5211d1bb483234",
+            "field": "Field 3",
+            "date": "2026-06-14",
+            "time": "19:55",
+            "gameType": "main",
+            "gameRef": "6a2d227a5f5211d1bb484616",
+            "_id": "6a2e3437de3d1385a49d977f"
+          },
+          {
+            "team1": "6a2c94535f5211d1bb483218",
+            "team2": "6a2cf1a25f5211d1bb483cae",
+            "field": "Field 1",
+            "date": "2026-06-14",
+            "time": "20:45",
+            "gameType": "main",
+            "gameRef": "6a2d227b5f5211d1bb484618",
+            "_id": "6a2e3437de3d1385a49d9780"
+          },
+          {
+            "team1": "6a2c6f515f5211d1bb4824d7",
+            "team2": "6a2cf1d35f5211d1bb483cca",
+            "field": "Field 2",
+            "date": "2026-06-14",
+            "time": "20:45",
+            "gameType": "main",
+            "gameRef": "6a2d227b5f5211d1bb48461a",
+            "_id": "6a2e3437de3d1385a49d9781"
+          }
+        ],
+        "_id": "6a2e3437de3d1385a49d9777"
+      },
+      {
+        "name": "Week of Jun 14, 2026",
+        "games": [
+          {
+            "team1": "6a2cf1415f5211d1bb483c5a",
+            "team2": "6a2c60bd5f5211d1bb481d6f",
+            "field": "Field 2",
+            "date": "2026-06-14",
+            "time": "20:35",
+            "gameType": "main",
+            "gameRef": "6a2f72e8e91ac941c72314ce",
+            "_id": "6a2f72e8e91ac941c72314d3"
+          },
+          {
+            "team1": "6a2c94635f5211d1bb483234",
+            "team2": "6a2cc9b05f5211d1bb48365c",
+            "field": "Field 1",
+            "date": "2026-06-14",
+            "time": "21:10",
+            "gameType": "main",
+            "gameRef": "6a2f7bdfe91ac941c7232738",
+            "_id": "6a2f7bdfe91ac941c723273d"
+          }
+        ],
+        "_id": "6a2f5aa3e91ac941c722e807"
+      }
+    ],
+    "createdAt": "2026-06-13T09:27:23.401Z",
+    "updatedAt": "2026-06-19T09:30:01.441Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d26465f5211d1bb4846af",
+    "organization": "69f580a6e7729de622495f7a",
+    "scheduleLabel": "Oceanside",
+    "leagueId": "6a23a7b35f5211d1bb47d0da",
+    "locationName": "Oceanside",
+    "locationId": "6a23a5355f5211d1bb47cff8",
+    "status": "Active",
+    "weeks": [
+      {
+        "name": "Week 1",
+        "games": [
+          {
+            "team1": "6a2b8f0c5f5211d1bb48103a",
+            "team2": "6a2b69b45f5211d1bb48059d",
+            "field": "Field 1",
+            "date": "2026-06-14",
+            "time": "09:30",
+            "gameType": "main",
+            "gameRef": "6a2d26455f5211d1bb4846a3",
+            "_id": "6a3b97cf1a2216ba5b67f64f"
+          },
+          {
+            "team1": "6a2b8eb85f5211d1bb481002",
+            "team2": "6a2b8d4f5f5211d1bb480f95",
+            "field": "Field 2",
+            "date": "2026-06-14",
+            "time": "09:30",
+            "gameType": "main",
+            "gameRef": "6a2d26455f5211d1bb4846a5",
+            "_id": "6a3b97cf1a2216ba5b67f650"
+          },
+          {
+            "team1": "6a2b8f0c5f5211d1bb48103a",
+            "team2": "6a2b8d8f5f5211d1bb480fb1",
+            "field": "Field 1",
+            "date": "2026-06-14",
+            "time": "10:20",
+            "gameType": "main",
+            "gameRef": "6a2d26455f5211d1bb4846a7",
+            "_id": "6a3b97cf1a2216ba5b67f651"
+          },
+          {
+            "team1": "6a2b8eb85f5211d1bb481002",
+            "team2": "6a2b8edb5f5211d1bb48101e",
+            "field": "Field 2",
+            "date": "2026-06-14",
+            "time": "10:20",
+            "gameType": "main",
+            "gameRef": "6a2d26465f5211d1bb4846a9",
+            "_id": "6a3b97cf1a2216ba5b67f652"
+          },
+          {
+            "team1": "6a2b8d8f5f5211d1bb480fb1",
+            "team2": "6a2b69b45f5211d1bb48059d",
+            "field": "Field 1",
+            "date": "2026-06-14",
+            "time": "11:10",
+            "gameType": "main",
+            "gameRef": "6a2d26465f5211d1bb4846ab",
+            "_id": "6a3b97cf1a2216ba5b67f653"
+          },
+          {
+            "team1": "6a2b8d4f5f5211d1bb480f95",
+            "team2": "6a2b8edb5f5211d1bb48101e",
+            "field": "Field 2",
+            "date": "2026-06-14",
+            "time": "11:10",
+            "gameType": "main",
+            "gameRef": "6a2d26465f5211d1bb4846ad",
+            "_id": "6a3b97cf1a2216ba5b67f654"
+          }
+        ],
+        "_id": "6a3b97cf1a2216ba5b67f64e"
+      },
+      {
+        "name": "Week 2",
+        "games": [
+          {
+            "team1": "6a2b8eb85f5211d1bb481002",
+            "team2": "6a2b69b45f5211d1bb48059d",
+            "field": "Field 1",
+            "date": "2026-06-21",
+            "time": "09:30",
+            "gameType": "main",
+            "gameRef": "6a3563c2c4ae21c60b8b2ce8",
+            "_id": "6a3b97cf1a2216ba5b67f656"
+          },
+          {
+            "team1": "6a2b8eb85f5211d1bb481002",
+            "team2": "6a2b8d8f5f5211d1bb480fb1",
+            "field": "Field 1",
+            "date": "2026-06-21",
+            "time": "10:20",
+            "gameType": "main",
+            "gameRef": "6a3563c2c4ae21c60b8b2cec",
+            "_id": "6a3b97cf1a2216ba5b67f657"
+          },
+          {
+            "team1": "6a2b8d4f5f5211d1bb480f95",
+            "team2": "6a2b8f0c5f5211d1bb48103a",
+            "field": "Field 2",
+            "date": "2026-06-21",
+            "time": "10:20",
+            "gameType": "main",
+            "gameRef": "6a3563c2c4ae21c60b8b2cf0",
+            "_id": "6a3b97cf1a2216ba5b67f658"
+          },
+          {
+            "team1": "6a2b69b45f5211d1bb48059d",
+            "team2": "6a2b8d4f5f5211d1bb480f95",
+            "field": "Field 1",
+            "date": "2026-06-21",
+            "time": "11:10",
+            "gameType": "main",
+            "gameRef": "6a3563c3c4ae21c60b8b2cf2",
+            "_id": "6a3b97cf1a2216ba5b67f659"
+          },
+          {
+            "team1": "6a2b8d8f5f5211d1bb480fb1",
+            "team2": "6a2b8f0c5f5211d1bb48103a",
+            "field": "Field 2",
+            "date": "2026-06-21",
+            "time": "09:30",
+            "gameType": "main",
+            "gameRef": "6a357255c4ae21c60b8b34cd",
+            "_id": "6a3b97cf1a2216ba5b67f65a"
+          }
+        ],
+        "_id": "6a3b97cf1a2216ba5b67f655"
+      },
+      {
+        "name": "Week 3",
+        "games": [
+          {
+            "team1": "6a2b8edb5f5211d1bb48101e",
+            "team2": "6a2b8d8f5f5211d1bb480fb1",
+            "field": "Field 1",
+            "date": "2026-06-28",
+            "time": "09:30",
+            "gameType": "main",
+            "gameRef": "6a3b97ce1a2216ba5b67f642",
+            "_id": "6a3b97cf1a2216ba5b67f65c"
+          },
+          {
+            "team1": "6a2b8edb5f5211d1bb48101e",
+            "team2": "6a2b69b45f5211d1bb48059d",
+            "field": "Field 1",
+            "date": "2026-06-28",
+            "time": "10:20",
+            "gameType": "main",
+            "gameRef": "6a3b97ce1a2216ba5b67f644",
+            "_id": "6a3b97cf1a2216ba5b67f65d"
+          },
+          {
+            "team1": "6a2b8d8f5f5211d1bb480fb1",
+            "team2": "6a2b8d4f5f5211d1bb480f95",
+            "field": "Field 1",
+            "date": "2026-06-28",
+            "time": "11:10",
+            "gameType": "main",
+            "gameRef": "6a3b97ce1a2216ba5b67f646",
+            "_id": "6a3b97cf1a2216ba5b67f65e"
+          },
+          {
+            "team1": "6a2b8f0c5f5211d1bb48103a",
+            "team2": "6a2b8eb85f5211d1bb481002",
+            "field": "Field 2",
+            "date": "2026-06-28",
+            "time": "09:30",
+            "gameType": "main",
+            "gameRef": "6a3b97cf1a2216ba5b67f648",
+            "_id": "6a3b97cf1a2216ba5b67f65f"
+          },
+          {
+            "team1": "6a2b8d4f5f5211d1bb480f95",
+            "team2": "6a2b8eb85f5211d1bb481002",
+            "field": "Field 2",
+            "date": "2026-06-28",
+            "time": "10:20",
+            "gameType": "main",
+            "gameRef": "6a3b97cf1a2216ba5b67f64a",
+            "_id": "6a3b97cf1a2216ba5b67f660"
+          },
+          {
+            "team1": "6a2b69b45f5211d1bb48059d",
+            "team2": "6a2b8f0c5f5211d1bb48103a",
+            "field": "Field 2",
+            "date": "2026-06-28",
+            "time": "11:10",
+            "gameType": "main",
+            "gameRef": "6a3b97cf1a2216ba5b67f64c",
+            "_id": "6a3b97cf1a2216ba5b67f661"
+          }
+        ],
+        "_id": "6a3b97cf1a2216ba5b67f65b"
+      }
+    ],
+    "createdAt": "2026-06-13T09:43:34.475Z",
+    "updatedAt": "2026-06-24T08:39:43.592Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a2d28085f5211d1bb484718",
+    "organization": "69f580a6e7729de622495f7a",
+    "scheduleLabel": "4S Poway",
+    "leagueId": "6a23a7e75f5211d1bb47d0f2",
+    "locationName": "Poway",
+    "locationId": "6a23a5625f5211d1bb47d002",
+    "status": "Active",
+    "weeks": [
+      {
+        "name": "Week 1",
+        "games": [
+          {
+            "team1": "6a2ba74f5f5211d1bb481418",
+            "team2": "6a2ba76e5f5211d1bb481434",
+            "field": "Field 1",
+            "date": "2026-06-14",
+            "time": "16:10",
+            "gameType": "main",
+            "gameRef": "6a2d28065f5211d1bb484706",
+            "_id": "6a3b9ef41a2216ba5b6804ae"
+          },
+          {
+            "team1": "6a2b4e8b5f5211d1bb47f403",
+            "team2": "6a2ba7995f5211d1bb481451",
+            "field": "Field 2",
+            "date": "2026-06-14",
+            "time": "16:10",
+            "gameType": "main",
+            "gameRef": "6a2d28075f5211d1bb484708",
+            "_id": "6a3b9ef41a2216ba5b6804af"
+          },
+          {
+            "team1": "6a2ba74f5f5211d1bb481418",
+            "team2": "6a2b4e8b5f5211d1bb47f403",
+            "field": "Field 1",
+            "date": "2026-06-14",
+            "time": "17:00",
+            "gameType": "main",
+            "gameRef": "6a2d28075f5211d1bb48470a",
+            "_id": "6a3b9ef41a2216ba5b6804b0"
+          },
+          {
+            "team1": "6a2ba76e5f5211d1bb481434",
+            "team2": "6a2ba7995f5211d1bb481451",
+            "field": "Field 2",
+            "date": "2026-06-14",
+            "time": "17:00",
+            "gameType": "main",
+            "gameRef": "6a2d28075f5211d1bb48470c",
+            "_id": "6a3b9ef41a2216ba5b6804b1"
+          },
+          {
+            "team1": "6a0c115cd4704adc02fe7440",
+            "team2": "6a2ba7b75f5211d1bb48146e",
+            "field": "Field 1",
+            "date": "2026-06-14",
+            "time": "17:50",
+            "gameType": "main",
+            "gameRef": "6a2d28075f5211d1bb48470e",
+            "_id": "6a3b9ef41a2216ba5b6804b2"
+          },
+          {
+            "team1": "6a0c115cd4704adc02fe7440",
+            "team2": "6a2ba7d65f5211d1bb48148a",
+            "field": "Field 1",
+            "date": "2026-06-14",
+            "time": "18:40",
+            "gameType": "main",
+            "gameRef": "6a2d28075f5211d1bb484712",
+            "_id": "6a3b9ef41a2216ba5b6804b3"
+          },
+          {
+            "team1": "6a2ba71a5f5211d1bb4813fb",
+            "team2": "6a2d9798de3d1385a49d604a",
+            "field": "Field 2",
+            "date": "2026-06-14",
+            "time": "18:40",
+            "gameType": "main",
+            "gameRef": "6a2d28075f5211d1bb484714",
+            "_id": "6a3b9ef41a2216ba5b6804b4"
+          },
+          {
+            "team1": "6a2ba7b75f5211d1bb48146e",
+            "team2": "6a2ba71a5f5211d1bb4813fb",
+            "field": "Field 1",
+            "date": "2026-06-14",
+            "time": "19:30",
+            "gameType": "main",
+            "gameRef": "6a2d28085f5211d1bb484716",
+            "_id": "6a3b9ef41a2216ba5b6804b5"
+          }
+        ],
+        "_id": "6a3b9ef41a2216ba5b6804ad"
+      },
+      {
+        "name": "Week 2",
+        "games": [
+          {
+            "team1": "6a2ba7995f5211d1bb481451",
+            "team2": "6a2ba74f5f5211d1bb481418",
+            "field": "Field 1",
+            "date": "2026-06-21",
+            "time": "16:10",
+            "gameType": "main",
+            "gameRef": "6a35ae4d414a9d467c6dc021",
+            "_id": "6a3b9ef41a2216ba5b6804b7"
+          },
+          {
+            "team1": "6a2ba7995f5211d1bb481451",
+            "team2": "6a2ba7d65f5211d1bb48148a",
+            "field": "Field 1",
+            "date": "2026-06-21",
+            "time": "17:00",
+            "gameType": "main",
+            "gameRef": "6a35ae4d414a9d467c6dc023",
+            "_id": "6a3b9ef41a2216ba5b6804b8"
+          },
+          {
+            "team1": "6a0c115cd4704adc02fe7440",
+            "team2": "6a2b4e8b5f5211d1bb47f403",
+            "field": "Field 1",
+            "date": "2026-06-21",
+            "time": "17:50",
+            "gameType": "main",
+            "gameRef": "6a35ae4d414a9d467c6dc025",
+            "_id": "6a3b9ef41a2216ba5b6804b9"
+          },
+          {
+            "team1": "6a2ba7d65f5211d1bb48148a",
+            "team2": "6a2ba76e5f5211d1bb481434",
+            "field": "Field 2",
+            "date": "2026-06-21",
+            "time": "16:10",
+            "gameType": "main",
+            "gameRef": "6a35ae4e414a9d467c6dc029",
+            "_id": "6a3b9ef41a2216ba5b6804ba"
+          },
+          {
+            "team1": "6a2ba74f5f5211d1bb481418",
+            "team2": "6a2ba76e5f5211d1bb481434",
+            "field": "Field 2",
+            "date": "2026-06-21",
+            "time": "17:00",
+            "gameType": "main",
+            "gameRef": "6a35ae4e414a9d467c6dc02b",
+            "_id": "6a3b9ef41a2216ba5b6804bb"
+          },
+          {
+            "team1": "6a2b4e8b5f5211d1bb47f403",
+            "team2": "6a2ba7b75f5211d1bb48146e",
+            "field": "Field 2",
+            "date": "2026-06-21",
+            "time": "18:40",
+            "gameType": "main",
+            "gameRef": "6a36126b414a9d467c6defeb",
+            "_id": "6a3b9ef41a2216ba5b6804bc"
+          },
+          {
+            "team1": "6a38548b1a2216ba5b65cff7",
+            "team2": "6a3854b31a2216ba5b65d013",
+            "field": "Field 3",
+            "date": "2026-06-21",
+            "time": "16:10",
+            "gameType": "main",
+            "gameRef": "6a385a691a2216ba5b65e23e",
+            "_id": "6a3b9ef41a2216ba5b6804bd"
+          },
+          {
+            "team1": "6a3854d51a2216ba5b65d036",
+            "team2": "6a3854f01a2216ba5b65d052",
+            "field": "Field 3",
+            "date": "2026-06-21",
+            "time": "17:00",
+            "gameType": "main",
+            "gameRef": "6a385a691a2216ba5b65e240",
+            "_id": "6a3b9ef41a2216ba5b6804be"
+          },
+          {
+            "team1": "6a2d9798de3d1385a49d604a",
+            "team2": "6a2ba7b75f5211d1bb48146e",
+            "field": "Field 2",
+            "date": "2026-06-21",
+            "time": "17:50",
+            "gameType": "main",
+            "gameRef": "6a38cf181a2216ba5b666a64",
+            "_id": "6a3b9ef41a2216ba5b6804bf"
+          },
+          {
+            "team1": "6a0c115cd4704adc02fe7440",
+            "team2": "6a2d9798de3d1385a49d604a",
+            "field": "Field 1",
+            "date": "2026-06-21",
+            "time": "18:40",
+            "gameType": "main",
+            "gameRef": "6a38cf181a2216ba5b666a66",
+            "_id": "6a3b9ef41a2216ba5b6804c0"
+          }
+        ],
+        "_id": "6a3b9ef41a2216ba5b6804b6"
+      },
+      {
+        "name": "Week 3",
+        "games": [
+          {
+            "team1": "6a2ba74f5f5211d1bb481418",
+            "team2": "6a2ba7d65f5211d1bb48148a",
+            "field": "Field 1",
+            "date": "2026-06-28",
+            "time": "16:10",
+            "gameType": "main",
+            "gameRef": "6a3b9ef31a2216ba5b68049b",
+            "_id": "6a3b9ef41a2216ba5b6804c2"
+          },
+          {
+            "team1": "6a2b4e8b5f5211d1bb47f403",
+            "team2": "6a2b4e1f5f5211d1bb47f3af",
+            "field": "Field 1",
+            "date": "2026-06-28",
+            "time": "17:00",
+            "gameType": "main",
+            "gameRef": "6a3b9ef31a2216ba5b68049d",
+            "_id": "6a3b9ef41a2216ba5b6804c3"
+          },
+          {
+            "team1": "6a2ba74f5f5211d1bb481418",
+            "team2": "6a2ba7995f5211d1bb481451",
+            "field": "Field 1",
+            "date": "2026-06-28",
+            "time": "17:50",
+            "gameType": "main",
+            "gameRef": "6a3b9ef31a2216ba5b68049f",
+            "_id": "6a3b9ef41a2216ba5b6804c4"
+          },
+          {
+            "team1": "6a0c115cd4704adc02fe7440",
+            "team2": "6a2ba7995f5211d1bb481451",
+            "field": "Field 1",
+            "date": "2026-06-28",
+            "time": "18:40",
+            "gameType": "main",
+            "gameRef": "6a3b9ef31a2216ba5b6804a1",
+            "_id": "6a3b9ef41a2216ba5b6804c5"
+          },
+          {
+            "team1": "6a0c115cd4704adc02fe7440",
+            "team2": "6a2ba71a5f5211d1bb4813fb",
+            "field": "Field 1",
+            "date": "2026-06-28",
+            "time": "19:30",
+            "gameType": "main",
+            "gameRef": "6a3b9ef31a2216ba5b6804a3",
+            "_id": "6a3b9ef41a2216ba5b6804c6"
+          },
+          {
+            "team1": "6a2b4e1f5f5211d1bb47f3af",
+            "team2": "6a2ba76e5f5211d1bb481434",
+            "field": "Field 2",
+            "date": "2026-06-28",
+            "time": "16:10",
+            "gameType": "main",
+            "gameRef": "6a3b9ef31a2216ba5b6804a5",
+            "_id": "6a3b9ef41a2216ba5b6804c7"
+          },
+          {
+            "team1": "6a2ba7b75f5211d1bb48146e",
+            "team2": "6a2ba76e5f5211d1bb481434",
+            "field": "Field 2",
+            "date": "2026-06-28",
+            "time": "17:00",
+            "gameType": "main",
+            "gameRef": "6a3b9ef41a2216ba5b6804a7",
+            "_id": "6a3b9ef41a2216ba5b6804c8"
+          },
+          {
+            "team1": "6a2ba7d65f5211d1bb48148a",
+            "team2": "6a2ba7b75f5211d1bb48146e",
+            "field": "Field 2",
+            "date": "2026-06-28",
+            "time": "17:50",
+            "gameType": "main",
+            "gameRef": "6a3b9ef41a2216ba5b6804a9",
+            "_id": "6a3b9ef41a2216ba5b6804c9"
+          },
+          {
+            "team1": "6a2ba71a5f5211d1bb4813fb",
+            "team2": "6a2b4e8b5f5211d1bb47f403",
+            "field": "Field 2",
+            "date": "2026-06-28",
+            "time": "18:40",
+            "gameType": "main",
+            "gameRef": "6a3b9ef41a2216ba5b6804ab",
+            "_id": "6a3b9ef41a2216ba5b6804ca"
+          }
+        ],
+        "_id": "6a3b9ef41a2216ba5b6804c1"
+      }
+    ],
+    "createdAt": "2026-06-13T09:51:04.297Z",
+    "updatedAt": "2026-06-24T09:10:12.454Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a30143b52d09a897c3c8f2c",
+    "organization": "69f580a6e7729de622495f7a",
+    "scheduleLabel": "Beverly Playoff Spring 2026",
+    "leagueId": "6a30130d52d09a897c3c8e00",
+    "locationName": "Beverly Field",
+    "locationId": null,
+    "status": "Active",
+    "weeks": [
+      {
+        "name": "Week of Jun 14, 2026",
+        "games": [
+          {
+            "team1": "69f5820be7729de622495ff8",
+            "team2": "69f5822fe7729de622496028",
+            "field": "",
+            "date": "2026-06-14",
+            "time": "09:00",
+            "gameType": "main",
+            "gameRef": "6a30143a52d09a897c3c8f27",
+            "_id": "6a30143b52d09a897c3c8f2e"
+          },
+          {
+            "team1": "69f5820be7729de622495ff8",
+            "team2": "69f5821ce7729de622496010",
+            "field": "",
+            "date": "2026-06-14",
+            "time": "10:00",
+            "gameType": "main",
+            "gameRef": "6a30146352d09a897c3c8f3a",
+            "_id": "6a30146452d09a897c3c8f3f"
+          }
+        ],
+        "_id": "6a30143b52d09a897c3c8f2d"
+      }
+    ],
+    "createdAt": "2026-06-15T15:03:23.263Z",
+    "updatedAt": "2026-06-19T20:01:45.702Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3346c114c2bc0d4d6152e0",
+    "organization": "69f580a6e7729de622495f7a",
+    "scheduleLabel": "SD Thu",
+    "leagueId": "6a23a6ea5f5211d1bb47d092",
+    "locationName": "Mira Mesa",
+    "locationId": "6a23a42b5f5211d1bb47cfc3",
+    "status": "Active",
+    "weeks": [
+      {
+        "name": "Week 1",
+        "games": [
+          {
+            "team1": "6a33331914c2bc0d4d60dc83",
+            "team2": "6a3464f473257ee61a679204",
+            "field": "Field 1",
+            "date": "2026-06-18",
+            "time": "19:10",
+            "gameType": "main",
+            "gameRef": "6a3346c014c2bc0d4d6152d6",
+            "_id": "6a3b12461a2216ba5b679dc7"
+          },
+          {
+            "team1": "6a23a9135f5211d1bb47d1c2",
+            "team2": "6a3344a614c2bc0d4d615160",
+            "field": "Field 1",
+            "date": "2026-06-18",
+            "time": "20:00",
+            "gameType": "main",
+            "gameRef": "6a3346c014c2bc0d4d6152d8",
+            "_id": "6a3b12461a2216ba5b679dc8"
+          },
+          {
+            "team1": "6a23a9135f5211d1bb47d1c2",
+            "team2": "6a33331914c2bc0d4d60dc83",
+            "field": "Field 1",
+            "date": "2026-06-18",
+            "time": "20:50",
+            "gameType": "main",
+            "gameRef": "6a3346c014c2bc0d4d6152da",
+            "_id": "6a3b12461a2216ba5b679dc9"
+          },
+          {
+            "team1": "6a3344a614c2bc0d4d615160",
+            "team2": "6a0c1182d4704adc02fe7459",
+            "field": "Field 2",
+            "date": "2026-06-18",
+            "time": "19:10",
+            "gameType": "main",
+            "gameRef": "6a3346c114c2bc0d4d6152dc",
+            "_id": "6a3b12461a2216ba5b679dca"
+          },
+          {
+            "team1": "6a33326514c2bc0d4d60dbf8",
+            "team2": "6a0c1182d4704adc02fe7459",
+            "field": "Field 2",
+            "date": "2026-06-18",
+            "time": "20:00",
+            "gameType": "main",
+            "gameRef": "6a3346c114c2bc0d4d6152de",
+            "_id": "6a3b12461a2216ba5b679dcb"
+          },
+          {
+            "team1": "6a3464f473257ee61a679204",
+            "team2": "6a33326514c2bc0d4d60dbf8",
+            "field": "Field 2",
+            "date": "2026-06-18",
+            "time": "20:50",
+            "gameType": "main",
+            "gameRef": "6a3466b373257ee61a67930a",
+            "_id": "6a3b12461a2216ba5b679dcc"
+          }
+        ],
+        "_id": "6a3b12461a2216ba5b679dc6"
+      },
+      {
+        "name": "Week 2",
+        "games": [
+          {
+            "team1": "6a3464f473257ee61a679204",
+            "team2": "6a0c1182d4704adc02fe7459",
+            "field": "Field 1",
+            "date": "2026-06-25",
+            "time": "19:10",
+            "gameType": "main",
+            "gameRef": "6a3b12451a2216ba5b679dba",
+            "_id": "6a3b12461a2216ba5b679dce"
+          },
+          {
+            "team1": "6a23a9135f5211d1bb47d1c2",
+            "team2": "6a3464f473257ee61a679204",
+            "field": "Field 1",
+            "date": "2026-06-25",
+            "time": "20:00",
+            "gameType": "main",
+            "gameRef": "6a3b12451a2216ba5b679dbc",
+            "_id": "6a3b12461a2216ba5b679dcf"
+          },
+          {
+            "team1": "6a23a9135f5211d1bb47d1c2",
+            "team2": "6a0c1182d4704adc02fe7459",
+            "field": "Field 1",
+            "date": "2026-06-25",
+            "time": "20:50",
+            "gameType": "main",
+            "gameRef": "6a3b12451a2216ba5b679dbe",
+            "_id": "6a3b12461a2216ba5b679dd0"
+          },
+          {
+            "team1": "6a3344a614c2bc0d4d615160",
+            "team2": "6a33326514c2bc0d4d60dbf8",
+            "field": "Field 2",
+            "date": "2026-06-25",
+            "time": "19:10",
+            "gameType": "main",
+            "gameRef": "6a3b12461a2216ba5b679dc0",
+            "_id": "6a3b12461a2216ba5b679dd1"
+          },
+          {
+            "team1": "6a33331914c2bc0d4d60dc83",
+            "team2": "6a33326514c2bc0d4d60dbf8",
+            "field": "Field 2",
+            "date": "2026-06-25",
+            "time": "20:00",
+            "gameType": "main",
+            "gameRef": "6a3b12461a2216ba5b679dc2",
+            "_id": "6a3b12461a2216ba5b679dd2"
+          },
+          {
+            "team1": "6a33331914c2bc0d4d60dc83",
+            "team2": "6a3344a614c2bc0d4d615160",
+            "field": "Field 2",
+            "date": "2026-06-25",
+            "time": "20:50",
+            "gameType": "main",
+            "gameRef": "6a3b12461a2216ba5b679dc4",
+            "_id": "6a3b12461a2216ba5b679dd3"
+          }
+        ],
+        "_id": "6a3b12461a2216ba5b679dcd"
+      }
+    ],
+    "createdAt": "2026-06-18T01:15:45.361Z",
+    "updatedAt": "2026-06-23T23:09:58.550Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a350869c4ae21c60b8afe82",
+    "organization": "6a17fb3bd4704adc02fe994e",
+    "scheduleLabel": "Phoenix League",
+    "leagueId": "6a3507f9c4ae21c60b8afe05",
+    "locationName": "Cottonwood Kids Park",
+    "locationId": "69cf345c268fc7ba310d28fb",
+    "status": "Active",
+    "weeks": [
+      {
+        "name": "Week 1",
+        "games": [
+          {
+            "team1": "6a2d0be25f5211d1bb484049",
+            "team2": "6a17fd6dd4704adc02fe9a0d",
+            "field": "1",
+            "date": "2026-06-19",
+            "time": "03:00",
+            "gameType": "main",
+            "gameRef": "6a350869c4ae21c60b8afe7c",
+            "_id": "6a3508f6c4ae21c60b8aff20"
+          },
+          {
+            "team1": "6a2d0be25f5211d1bb484049",
+            "team2": "6a17fd56d4704adc02fe99f7",
+            "field": "1",
+            "date": "2026-06-19",
+            "time": "03:30",
+            "gameType": "main",
+            "gameRef": "6a350869c4ae21c60b8afe7e",
+            "_id": "6a3508f6c4ae21c60b8aff21"
+          },
+          {
+            "team1": "6a17fd6dd4704adc02fe9a0d",
+            "team2": "6a17fd56d4704adc02fe99f7",
+            "field": "1",
+            "date": "2026-06-19",
+            "time": "15:00",
+            "gameType": "main",
+            "gameRef": "6a350869c4ae21c60b8afe80",
+            "_id": "6a3508f6c4ae21c60b8aff22"
+          },
+          {
+            "team1": "6a17fd56d4704adc02fe99f7",
+            "team2": "6a2d0bc65f5211d1bb48402d",
+            "field": "1",
+            "date": "2026-06-19",
+            "time": "19:30",
+            "gameType": "main",
+            "gameRef": "6a3508f6c4ae21c60b8aff1d",
+            "_id": "6a3508f6c4ae21c60b8aff23"
+          }
+        ],
+        "_id": "6a3508f6c4ae21c60b8aff1f"
+      }
+    ],
+    "createdAt": "2026-06-19T09:14:17.618Z",
+    "updatedAt": "2026-06-19T09:16:38.740Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a359bdc414a9d467c6db563",
+    "organization": "6a17fb3bd4704adc02fe994e",
+    "scheduleLabel": "Florida Spring 2026",
+    "leagueId": "6a35979c414a9d467c6db0ad",
+    "locationName": "Bradford",
+    "locationId": "6a3594ab414a9d467c6dadc7",
+    "status": "Active",
+    "weeks": [
+      {
+        "name": "Week 1",
+        "games": [
+          {
+            "team1": "6a3597e3414a9d467c6db105",
+            "team2": "6a3597bc414a9d467c6db0cd",
+            "field": "Field 1",
+            "date": "2026-06-19",
+            "time": "15:00",
+            "gameType": "main",
+            "gameRef": "6a359bdb414a9d467c6db553",
+            "_id": "6a359d82414a9d467c6db708"
+          },
+          {
+            "team1": "6a3597cc414a9d467c6db0e9",
+            "team2": "6a3597e3414a9d467c6db105",
+            "field": "Field 2",
+            "date": "2026-06-19",
+            "time": "15:00",
+            "gameType": "main",
+            "gameRef": "6a359bdb414a9d467c6db555",
+            "_id": "6a359d82414a9d467c6db709"
+          },
+          {
+            "team1": "6a3597cc414a9d467c6db0e9",
+            "team2": "6a3597bc414a9d467c6db0cd",
+            "field": "Field 1",
+            "date": "2026-06-19",
+            "time": "15:50",
+            "gameType": "main",
+            "gameRef": "6a359bdb414a9d467c6db557",
+            "_id": "6a359d82414a9d467c6db70a"
+          },
+          {
+            "team1": "6a3597e3414a9d467c6db105",
+            "team2": "6a3597cc414a9d467c6db0e9",
+            "field": "Field 2",
+            "date": "2026-06-19",
+            "time": "15:50",
+            "gameType": "main",
+            "gameRef": "6a359bdb414a9d467c6db559",
+            "_id": "6a359d82414a9d467c6db70b"
+          }
+        ],
+        "_id": "6a359d82414a9d467c6db707"
+      },
+      {
+        "name": "Week 2",
+        "games": [
+          {
+            "team1": "6a3597e3414a9d467c6db105",
+            "team2": "6a3597bc414a9d467c6db0cd",
+            "field": "Field 1",
+            "date": "2026-06-26",
+            "time": "14:40",
+            "gameType": "main",
+            "gameRef": "6a359bdc414a9d467c6db55b",
+            "_id": "6a359d82414a9d467c6db70d"
+          },
+          {
+            "team1": "6a3597bc414a9d467c6db0cd",
+            "team2": "6a3597cc414a9d467c6db0e9",
+            "field": "Field 2",
+            "date": "2026-06-26",
+            "time": "14:40",
+            "gameType": "main",
+            "gameRef": "6a359bdc414a9d467c6db55d",
+            "_id": "6a359d82414a9d467c6db70e"
+          },
+          {
+            "team1": "6a3597bc414a9d467c6db0cd",
+            "team2": "6a3597cc414a9d467c6db0e9",
+            "field": "Field 1",
+            "date": "2026-06-26",
+            "time": "15:50",
+            "gameType": "main",
+            "gameRef": "6a359bdc414a9d467c6db55f",
+            "_id": "6a359d82414a9d467c6db70f"
+          },
+          {
+            "team1": "6a3597cc414a9d467c6db0e9",
+            "team2": "6a3597e3414a9d467c6db105",
+            "field": "Field 2",
+            "date": "2026-06-26",
+            "time": "15:50",
+            "gameType": "main",
+            "gameRef": "6a359bdc414a9d467c6db561",
+            "_id": "6a359d82414a9d467c6db710"
+          }
+        ],
+        "_id": "6a359d82414a9d467c6db70c"
+      }
+    ],
+    "createdAt": "2026-06-19T19:43:24.611Z",
+    "updatedAt": "2026-06-20T12:09:19.691Z",
+    "__v": 0
+  }
+]

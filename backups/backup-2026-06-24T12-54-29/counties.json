@@ -1,0 +1,83 @@
+[
+  {
+    "_id": "69cf345b268fc7ba310d28f9",
+    "state": "69cf345b268fc7ba310d28f6",
+    "name": "Yavapai",
+    "slug": "yavapai",
+    "createdAt": "2026-04-03T03:30:35.908Z",
+    "updatedAt": "2026-04-03T03:30:35.908Z",
+    "__v": 0
+  },
+  {
+    "_id": "69f59c12e7729de622496845",
+    "state": "69f59c11e7729de622496842",
+    "name": "Essex",
+    "slug": "essex",
+    "createdAt": "2026-05-02T06:39:14.246Z",
+    "updatedAt": "2026-05-02T06:39:14.246Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a23a3b25f5211d1bb47cfb8",
+    "state": "6a23a3b15f5211d1bb47cfb5",
+    "name": "San Diego",
+    "slug": "san-diego",
+    "createdAt": "2026-06-06T04:36:02.058Z",
+    "updatedAt": "2026-06-06T04:36:02.058Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a23a46b5f5211d1bb47cfcd",
+    "state": "6a23a3b15f5211d1bb47cfb5",
+    "name": "Riverside",
+    "slug": "riverside",
+    "createdAt": "2026-06-06T04:39:07.794Z",
+    "updatedAt": "2026-06-06T04:39:07.794Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a23a5805f5211d1bb47d00b",
+    "state": "6a23a3b15f5211d1bb47cfb5",
+    "name": "Orange",
+    "slug": "orange",
+    "createdAt": "2026-06-06T04:43:44.839Z",
+    "updatedAt": "2026-06-06T04:43:44.839Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a23a5a45f5211d1bb47d016",
+    "state": "6a23a3b15f5211d1bb47cfb5",
+    "name": "San Bernardino",
+    "slug": "san-bernardino",
+    "createdAt": "2026-06-06T04:44:20.585Z",
+    "updatedAt": "2026-06-06T04:44:20.585Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a23a5ca5f5211d1bb47d023",
+    "state": "6a23a3b15f5211d1bb47cfb5",
+    "name": "Los Angeles",
+    "slug": "los-angeles",
+    "createdAt": "2026-06-06T04:44:58.466Z",
+    "updatedAt": "2026-06-06T04:44:58.466Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a359484414a9d467c6dadba",
+    "state": "6a23a3b15f5211d1bb47cfb5",
+    "name": "El Dorado",
+    "slug": "el-dorado",
+    "createdAt": "2026-06-19T19:12:04.319Z",
+    "updatedAt": "2026-06-19T19:12:04.319Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3594aa414a9d467c6dadc5",
+    "state": "6a3594aa414a9d467c6dadc2",
+    "name": "Bradford",
+    "slug": "bradford",
+    "createdAt": "2026-06-19T19:12:42.877Z",
+    "updatedAt": "2026-06-19T19:12:42.877Z",
+    "__v": 0
+  }
+]

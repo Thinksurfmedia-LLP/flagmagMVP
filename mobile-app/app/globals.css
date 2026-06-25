@@ -819,6 +819,12 @@ p {
     font-weight: 500;
 }
 
+.match-box .bottom .left ul li span.countdown-timer {
+    color: #ff6b35;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
 .match-box .bottom .right .btn {
     font-size: 12px;
     min-height: 38px;
