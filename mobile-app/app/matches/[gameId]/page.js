@@ -106,6 +106,9 @@ function LiveGameContent({ gameId }) {
             half: play.half || "1st",
             type: playTypeMap[play.type] || play.type,
             activeTeam: play.activeTeam || "A",
+            playId: play._id?.toString(),
+            ptsAdded: play.ptsAdded || 0,
+            targetTeam: play.targetTeam || play.activeTeam || "A",
             data: {
                 passer: play.passer || "",
                 receiver: play.receiver || "",
@@ -293,7 +296,7 @@ function LiveGameContent({ gameId }) {
     const persistPlay = async (playType, logEntry, playData) => {
         try {
             const teamName = logEntry.team;
-            await apiPost(`/api/games/${gameId}/plays`, {
+            const res = await apiPost(`/api/games/${gameId}/plays`, {
                 type: playType,
                 activeTeam: logEntry.activeTeam,
                 teamName,
@@ -309,8 +312,34 @@ function LiveGameContent({ gameId }) {
                 ptsAdded: logEntry.ptsAdded,
                 targetTeam: logEntry.targetTeam,
             });
+            return res.data?._id?.toString() || null;
         } catch (err) {
             console.error("Failed to persist play:", err);
+            return null;
+        }
+    };
+
+    const updatePlay = async (playId, playType, logEntry, playData) => {
+        if (!playId) return;
+        try {
+            await apiPut(`/api/games/${gameId}/plays?playId=${playId}`, {
+                type: playType,
+                activeTeam: logEntry.activeTeam,
+                teamName: logEntry.team,
+                half: logEntry.half,
+                passer: playData.passer || "",
+                receiver: playData.receiver || "",
+                rusher: playData.rusher || "",
+                defender: playData.defender || "",
+                flagPull: playData.flagPull || "",
+                yards: Number(playData.yards) || 0,
+                points: playData.points || "",
+                safety: Boolean(playData.safety),
+                ptsAdded: logEntry.ptsAdded,
+                targetTeam: logEntry.targetTeam,
+            });
+        } catch (err) {
+            console.error("Failed to update play:", err);
         }
     };
 
@@ -350,9 +379,9 @@ function LiveGameContent({ gameId }) {
 
                     const targetTeam = activeTeam;
                     let netDelta = ptsToAdd;
-                    
-                    if (editingLogIndex !== null) {
-                        const oldLog = actionLog[editingLogIndex];
+                    const oldLog = editingLogIndex !== null ? actionLog[editingLogIndex] : null;
+
+                    if (oldLog) {
                         if (oldLog.targetTeam === targetTeam) {
                             netDelta = ptsToAdd - oldLog.ptsAdded;
                         } else {
@@ -383,11 +412,19 @@ function LiveGameContent({ gameId }) {
                         const newLogs = [...actionLog];
                         newLogs[editingLogIndex] = { ...newLogs[editingLogIndex], ...logEntry };
                         setActionLog(newLogs);
+                        updatePlay(oldLog.playId, "completion", logEntry, data);
                         setEditingLogIndex(null);
                         showToast("Completion updated", "success");
                     } else {
                         setActionLog(prev => [logEntry, ...prev]);
-                        persistPlay("completion", logEntry, data);
+                        persistPlay("completion", logEntry, data).then(playId => {
+                            if (playId) setActionLog(prev => {
+                                const next = [...prev];
+                                const idx = next.findIndex(l => !l.playId && l.type === "Completion" && l.time === logEntry.time);
+                                if (idx !== -1) next[idx] = { ...next[idx], playId };
+                                return next;
+                            });
+                        });
                         showToast("Completion saved", "success");
                     }
                     setShowCompletionPage(false);
@@ -424,14 +461,23 @@ function LiveGameContent({ gameId }) {
                     };
                     
                     if (editingLogIndex !== null) {
+                        const oldLog = actionLog[editingLogIndex];
                         const newLogs = [...actionLog];
                         newLogs[editingLogIndex] = { ...newLogs[editingLogIndex], ...logEntry };
                         setActionLog(newLogs);
+                        updatePlay(oldLog.playId, "incomplete", logEntry, data);
                         setEditingLogIndex(null);
                         showToast("Incompletion updated", "success");
                     } else {
                         setActionLog(prev => [logEntry, ...prev]);
-                        persistPlay("incomplete", logEntry, data);
+                        persistPlay("incomplete", logEntry, data).then(playId => {
+                            if (playId) setActionLog(prev => {
+                                const next = [...prev];
+                                const idx = next.findIndex(l => !l.playId && l.type === "Incompletion" && l.time === logEntry.time);
+                                if (idx !== -1) next[idx] = { ...next[idx], playId };
+                                return next;
+                            });
+                        });
                         showToast("Incompletion saved", "success");
                     }
                     setShowIncompletePassPage(false);
@@ -463,9 +509,9 @@ function LiveGameContent({ gameId }) {
 
                     const targetTeam = activeTeam === "A" ? "B" : "A";
                     let netDelta = ptsToAdd;
+                    const oldLog = editingLogIndex !== null ? actionLog[editingLogIndex] : null;
 
-                    if (editingLogIndex !== null) {
-                        const oldLog = actionLog[editingLogIndex];
+                    if (oldLog) {
                         if (oldLog.targetTeam === targetTeam) {
                             netDelta = ptsToAdd - oldLog.ptsAdded;
                         } else {
@@ -491,16 +537,24 @@ function LiveGameContent({ gameId }) {
                         ptsAdded: ptsToAdd,
                         targetTeam
                     };
-                    
+
                     if (editingLogIndex !== null) {
                         const newLogs = [...actionLog];
                         newLogs[editingLogIndex] = { ...newLogs[editingLogIndex], ...logEntry };
                         setActionLog(newLogs);
+                        updatePlay(oldLog.playId, "fumble", logEntry, data);
                         setEditingLogIndex(null);
                         showToast("Fumble updated", "success");
                     } else {
                         setActionLog(prev => [logEntry, ...prev]);
-                        persistPlay("fumble", logEntry, data);
+                        persistPlay("fumble", logEntry, data).then(playId => {
+                            if (playId) setActionLog(prev => {
+                                const next = [...prev];
+                                const idx = next.findIndex(l => !l.playId && l.type === "Fumble" && l.time === logEntry.time);
+                                if (idx !== -1) next[idx] = { ...next[idx], playId };
+                                return next;
+                            });
+                        });
                         showToast("Fumble saved", "success");
                     }
                     setShowFumblePage(false);
@@ -532,9 +586,9 @@ function LiveGameContent({ gameId }) {
 
                     const targetTeam = activeTeam === "A" ? "B" : "A";
                     let netDelta = ptsToAdd;
+                    const oldLog = editingLogIndex !== null ? actionLog[editingLogIndex] : null;
 
-                    if (editingLogIndex !== null) {
-                        const oldLog = actionLog[editingLogIndex];
+                    if (oldLog) {
                         if (oldLog.targetTeam === targetTeam) {
                             netDelta = ptsToAdd - oldLog.ptsAdded;
                         } else {
@@ -560,16 +614,24 @@ function LiveGameContent({ gameId }) {
                         ptsAdded: ptsToAdd,
                         targetTeam
                     };
-                    
+
                     if (editingLogIndex !== null) {
                         const newLogs = [...actionLog];
                         newLogs[editingLogIndex] = { ...newLogs[editingLogIndex], ...logEntry };
                         setActionLog(newLogs);
+                        updatePlay(oldLog.playId, "interception", logEntry, data);
                         setEditingLogIndex(null);
                         showToast("Interception updated", "success");
                     } else {
                         setActionLog(prev => [logEntry, ...prev]);
-                        persistPlay("interception", logEntry, data);
+                        persistPlay("interception", logEntry, data).then(playId => {
+                            if (playId) setActionLog(prev => {
+                                const next = [...prev];
+                                const idx = next.findIndex(l => !l.playId && l.type === "Interception" && l.time === logEntry.time);
+                                if (idx !== -1) next[idx] = { ...next[idx], playId };
+                                return next;
+                            });
+                        });
                         showToast("Interception saved", "success");
                     }
                     setShowInterceptionPage(false);
@@ -596,9 +658,9 @@ function LiveGameContent({ gameId }) {
 
                     const targetTeam = activeTeam === "A" ? "B" : "A";
                     let netDelta = ptsToAdd;
+                    const oldLog = editingLogIndex !== null ? actionLog[editingLogIndex] : null;
 
-                    if (editingLogIndex !== null) {
-                        const oldLog = actionLog[editingLogIndex];
+                    if (oldLog) {
                         if (oldLog.targetTeam === targetTeam) {
                             netDelta = ptsToAdd - oldLog.ptsAdded;
                         } else {
@@ -624,16 +686,24 @@ function LiveGameContent({ gameId }) {
                         ptsAdded: ptsToAdd,
                         targetTeam
                     };
-                    
+
                     if (editingLogIndex !== null) {
                         const newLogs = [...actionLog];
                         newLogs[editingLogIndex] = { ...newLogs[editingLogIndex], ...logEntry };
                         setActionLog(newLogs);
+                        updatePlay(oldLog.playId, "sack", logEntry, data);
                         setEditingLogIndex(null);
                         showToast("Sack updated", "success");
                     } else {
                         setActionLog(prev => [logEntry, ...prev]);
-                        persistPlay("sack", logEntry, data);
+                        persistPlay("sack", logEntry, data).then(playId => {
+                            if (playId) setActionLog(prev => {
+                                const next = [...prev];
+                                const idx = next.findIndex(l => !l.playId && l.type === "Sack" && l.time === logEntry.time);
+                                if (idx !== -1) next[idx] = { ...next[idx], playId };
+                                return next;
+                            });
+                        });
                         showToast("Sack saved", "success");
                     }
                     setShowSackPage(false);
@@ -666,9 +736,9 @@ function LiveGameContent({ gameId }) {
 
                     const targetTeam = activeTeam;
                     let netDelta = ptsToAdd;
+                    const oldLog = editingLogIndex !== null ? actionLog[editingLogIndex] : null;
 
-                    if (editingLogIndex !== null) {
-                        const oldLog = actionLog[editingLogIndex];
+                    if (oldLog) {
                         if (oldLog.targetTeam === targetTeam) {
                             netDelta = ptsToAdd - oldLog.ptsAdded;
                         } else {
@@ -694,16 +764,24 @@ function LiveGameContent({ gameId }) {
                         ptsAdded: ptsToAdd,
                         targetTeam
                     };
-                    
+
                     if (editingLogIndex !== null) {
                         const newLogs = [...actionLog];
                         newLogs[editingLogIndex] = { ...newLogs[editingLogIndex], ...logEntry };
                         setActionLog(newLogs);
+                        updatePlay(oldLog.playId, "run", logEntry, data);
                         setEditingLogIndex(null);
                         showToast("Run updated", "success");
                     } else {
                         setActionLog(prev => [logEntry, ...prev]);
-                        persistPlay("run", logEntry, data);
+                        persistPlay("run", logEntry, data).then(playId => {
+                            if (playId) setActionLog(prev => {
+                                const next = [...prev];
+                                const idx = next.findIndex(l => !l.playId && l.type === "Run" && l.time === logEntry.time);
+                                if (idx !== -1) next[idx] = { ...next[idx], playId };
+                                return next;
+                            });
+                        });
                         showToast("Run saved", "success");
                     }
                     setShowRunPage(false);
