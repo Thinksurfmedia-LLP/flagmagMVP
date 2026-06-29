@@ -33,6 +33,15 @@ export default function AddSchedulePage() {
 
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
+    const [collapsedWeeks, setCollapsedWeeks] = useState(new Set());
+
+    const toggleWeek = (index) => {
+        setCollapsedWeeks(prev => {
+            const next = new Set(prev);
+            if (next.has(index)) next.delete(index); else next.add(index);
+            return next;
+        });
+    };
 
     const effectiveRole = activeRole || user?.role;
     const canCreate = hasAnyAccess(user, ["manage_schedules", "schedule_create"]);
@@ -109,8 +118,20 @@ export default function AddSchedulePage() {
     };
 
     const handleRemoveWeek = (weekIndex) => {
+        if (!window.confirm("Remove this week and all its games?")) return;
         const newWeeks = [...weeks];
         newWeeks.splice(weekIndex, 1);
+        setWeeks(newWeeks);
+    };
+
+    const handleDuplicateWeek = (weekIndex) => {
+        const source = weeks[weekIndex];
+        const copy = {
+            name: "",
+            games: source.games.map(g => ({ ...g }))
+        };
+        const newWeeks = [...weeks];
+        newWeeks.splice(weekIndex + 1, 0, copy);
         setWeeks(newWeeks);
     };
 
@@ -121,8 +142,23 @@ export default function AddSchedulePage() {
     };
 
     const handleRemoveGame = (weekIndex, gameIndex) => {
+        if (!window.confirm("Remove this game?")) return;
         const newWeeks = [...weeks];
         newWeeks[weekIndex].games.splice(gameIndex, 1);
+        setWeeks(newWeeks);
+    };
+
+    const handleDuplicateGame = (weekIndex, gameIndex) => {
+        const newWeeks = [...weeks];
+        const copy = { ...newWeeks[weekIndex].games[gameIndex] };
+        newWeeks[weekIndex].games.splice(gameIndex + 1, 0, copy);
+        setWeeks(newWeeks);
+    };
+
+    const handleSwapTeams = (weekIndex, gameIndex) => {
+        const newWeeks = [...weeks];
+        const game = newWeeks[weekIndex].games[gameIndex];
+        newWeeks[weekIndex].games[gameIndex] = { ...game, team1: game.team2, team2: game.team1 };
         setWeeks(newWeeks);
     };
 
@@ -175,6 +211,13 @@ export default function AddSchedulePage() {
         }
 
         setErrors({});
+
+        if (locationFields.length > 0) {
+            const missingField = weeks.some(w =>
+                w.games.some(g => (g.team1 || g.team2 || g.date || g.time) && !g.field)
+            );
+            if (missingField && !window.confirm("Some games have no field selected even though fields are available for this location. Save anyway?")) return;
+        }
 
         const selectedLeague = leagues.find(l => l._id === leagueId);
         const selectedLoc = locations.find(l => l._id === locationId);
@@ -314,24 +357,44 @@ export default function AddSchedulePage() {
                     </div>
                 </div>
 
-                <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                     {weeks.map((week, wIndex) => (
-                        <div key={wIndex} style={{ border: "1px solid #e5e7ef", borderRadius: 8, padding: 24, position: "relative" }}>
-                            <div style={{ position: "absolute", top: -14, left: 24, background: "#fff", padding: "0 8px" }}>
-                                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 600, color: "#1e293b" }}>Week {wIndex + 1}</h3>
+                        <div key={wIndex} style={{ border: "1px solid #e5e7ef", borderRadius: 8 }}>
+                            {/* Accordion header */}
+                            <div
+                                onClick={() => toggleWeek(wIndex)}
+                                style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 20px", background: collapsedWeeks.has(wIndex) ? "#f8fafc" : "#fff", cursor: "pointer", userSelect: "none", borderBottom: collapsedWeeks.has(wIndex) ? "none" : "1px solid #e5e7ef" }}
+                            >
+                                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                    <span style={{ fontSize: 10, color: "#8b90a0", transform: collapsedWeeks.has(wIndex) ? "rotate(-90deg)" : "rotate(0deg)", transition: "transform 0.2s", display: "inline-block" }}>▼</span>
+                                    <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: "#1e293b" }}>
+                                        {week.name.trim() || `Week ${wIndex + 1}`}
+                                        <span style={{ fontSize: 13, fontWeight: 400, color: "#8b90a0", marginLeft: 8 }}>({week.games.length} {week.games.length === 1 ? "game" : "games"})</span>
+                                    </h3>
+                                </div>
+                                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); handleDuplicateWeek(wIndex); }}
+                                        style={{ background: "none", border: "none", color: "#6b7280", cursor: "pointer", fontSize: 14, padding: "0 6px" }}
+                                        title="Duplicate Week"
+                                    >
+                                        <i className="fa-regular fa-copy"></i>
+                                    </button>
+                                    {weeks.length > 1 && (
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); handleRemoveWeek(wIndex); }}
+                                            style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", fontSize: 16, padding: "0 4px" }}
+                                            title="Remove Week"
+                                        >
+                                            <i className="fa-solid fa-times"></i>
+                                        </button>
+                                    )}
+                                </div>
                             </div>
-                            
-                            {weeks.length > 1 && (
-                                <button 
-                                    onClick={() => handleRemoveWeek(wIndex)}
-                                    style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", color: "#ef4444", cursor: "pointer", fontSize: 18 }}
-                                    title="Remove Week"
-                                >
-                                    <i className="fa-solid fa-times"></i>
-                                </button>
-                            )}
 
-                            <div className="admin-form-group" style={{ marginBottom: 24, marginTop: 8 }}>
+                            {!collapsedWeeks.has(wIndex) && (
+                            <div style={{ padding: 24 }}>
+                            <div className="admin-form-group" style={{ marginBottom: 24, marginTop: 0 }}>
                                 <label className="admin-form-label" style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#8b90a0" }}>Name</label>
                                 <input 
                                     className="admin-form-input" 
@@ -345,12 +408,19 @@ export default function AddSchedulePage() {
                             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                                 {week.games.map((game, gIndex) => (
                                     <div key={gIndex} style={{ display: "flex", gap: 16, alignItems: "flex-end" }}>
+                                        <button
+                                            onClick={() => handleSwapTeams(wIndex, gIndex)}
+                                            style={{ background: "none", border: "1px solid #e5e7ef", borderRadius: 6, color: "#6b7280", cursor: "pointer", padding: "0 8px", height: 36, flexShrink: 0 }}
+                                            title="Swap Teams"
+                                        >
+                                            <i className="fa-solid fa-right-left"></i>
+                                        </button>
                                         <div className="admin-form-group" style={{ marginBottom: 0, flex: 1 }}>
                                             <label className="admin-form-label" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: errors[`${wIndex}_${gIndex}_team1`] ? "#FF1E00" : "#8b90a0" }}>Team 1 *</label>
                                             <SearchableSelect
                                                 value={game.team1}
                                                 onChange={(v) => updateGame(wIndex, gIndex, "team1", v)}
-                                                options={leagueTeams.map(t => ({ value: t._id, label: t.name }))}
+                                                options={leagueTeams.filter(t => t._id !== game.team2).map(t => ({ value: t._id, label: t.name }))}
                                                 placeholder="Select Team 1"
                                                 error={!!errors[`${wIndex}_${gIndex}_team1`]}
                                             />
@@ -360,7 +430,7 @@ export default function AddSchedulePage() {
                                             <SearchableSelect
                                                 value={game.team2}
                                                 onChange={(v) => updateGame(wIndex, gIndex, "team2", v)}
-                                                options={leagueTeams.map(t => ({ value: t._id, label: t.name }))}
+                                                options={leagueTeams.filter(t => t._id !== game.team1).map(t => ({ value: t._id, label: t.name }))}
                                                 placeholder="Select Team 2"
                                                 error={!!errors[`${wIndex}_${gIndex}_team2`]}
                                             />
@@ -410,8 +480,15 @@ export default function AddSchedulePage() {
                                                 <option value="practice">Practice</option>
                                             </select>
                                         </div>
+                                        <button
+                                            onClick={() => handleDuplicateGame(wIndex, gIndex)}
+                                            style={{ background: "none", border: "none", color: "#6b7280", cursor: "pointer", padding: "10px", height: 42 }}
+                                            title="Duplicate Game"
+                                        >
+                                            <i className="fa-regular fa-copy"></i>
+                                        </button>
                                         {week.games.length > 1 && (
-                                            <button 
+                                            <button
                                                 onClick={() => handleRemoveGame(wIndex, gIndex)}
                                                 style={{ background: "none", border: "none", color: "#FF1E00", cursor: "pointer", padding: "10px", height: 42 }}
                                                 title="Remove Game"
@@ -424,7 +501,7 @@ export default function AddSchedulePage() {
                             </div>
 
                             <div style={{ display: "flex", justifyContent: "center", marginTop: 24 }}>
-                                <button 
+                                <button
                                     className="admin-btn admin-btn-primary"
                                     style={{ padding: "8px 16px", borderRadius: 6, fontWeight: 600 }}
                                     onClick={() => handleAddGame(wIndex)}
@@ -432,6 +509,8 @@ export default function AddSchedulePage() {
                                     Add More Schedule
                                 </button>
                             </div>
+                            </div>
+                            )}
                         </div>
                     ))}
                 </div>
