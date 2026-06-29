@@ -1043,6 +1043,113 @@
     }
 }
 
+/* ── Schedule add/edit form responsive ── */
+
+/* Desktop: sgr-tl, sgr-fields, sgr-tr are all display:contents so they
+   flatten into the parent flex row in DOM order: drag|swap → fields → dup|del */
+.schedule-game-row {
+    display: flex;
+    gap: 16px;
+    align-items: flex-end;
+}
+.sgr-tl,
+.sgr-fields,
+.sgr-tr {
+    display: contents;
+}
+.sgr-drag {
+    color: #c0c4d0;
+    font-size: 18px;
+    padding-bottom: 8px;
+    flex-shrink: 0;
+    cursor: grab;
+    line-height: 1;
+}
+.sgr-f-team1,
+.sgr-f-team2,
+.sgr-f-field {
+    flex: 1;
+    min-width: 0;
+}
+
+@media (max-width: 768px) {
+    /* Header grid: 4-col → 2-col */
+    .schedule-header-grid,
+    .schedule-edit-top-grid {
+        grid-template-columns: 1fr 1fr !important;
+    }
+    .schedule-header-grid > :last-child,
+    .schedule-edit-top-grid > :last-child {
+        grid-column: 1 / -1;
+    }
+
+    /* Admin card padding */
+    .admin-card {
+        padding: 16px 12px !important;
+    }
+
+    /* Game row: flex-wrap so sgr-tl+sgr-tr share first row, sgr-fields fills second */
+    .schedule-game-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+    }
+
+    /* sgr-tl: real flex container, left side of topbar row, ordered first */
+    .sgr-tl {
+        display: flex !important;
+        align-items: center;
+        gap: 8px;
+        order: 1;
+        flex: 0 0 auto;
+    }
+
+    /* sgr-tr: real flex container, right side of topbar row, ordered second */
+    .sgr-tr {
+        display: flex !important;
+        align-items: center;
+        gap: 4px;
+        order: 2;
+        margin-left: auto;
+        flex: 0 0 auto;
+    }
+
+    /* sgr-fields: 2-col grid, spans full width, ordered below topbar */
+    .sgr-fields {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        order: 3;
+        width: 100%;
+    }
+
+    /* Team dropdowns span full width in the 2-col grid */
+    .sgr-f-team1,
+    .sgr-f-team2 {
+        grid-column: 1 / -1;
+        flex: unset;
+    }
+
+    .sgr-f-field,
+    .sgr-f-date,
+    .sgr-f-time,
+    .sgr-f-type {
+        flex: unset;
+        min-width: 0;
+    }
+
+    /* Drag handle padding on mobile */
+    .sgr-drag {
+        padding-bottom: 0;
+    }
+
+    /* Week padding reduction */
+    .schedule-game-row + * {
+        margin-top: 6px;
+    }
+}
+
 /* ── Players page responsive ── */
 .players-table-wrap { display: block; }
 .players-card-list  { display: none;  }

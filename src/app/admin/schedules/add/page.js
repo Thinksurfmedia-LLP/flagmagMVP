@@ -6,6 +6,21 @@ import AdminLayout, { hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 import SearchableSelect from "@/components/SearchableSelect";
+import RestrictedDatePicker from "@/components/RestrictedDatePicker";
+
+function getMondayOfWeek(dateStr) {
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dow = new Date(y, m - 1, d).getDay();
+    const daysToMon = (dow + 6) % 7;
+    const mon = new Date(y, m - 1, d - daysToMon);
+    return `${mon.getFullYear()}-${String(mon.getMonth() + 1).padStart(2, "0")}-${String(mon.getDate()).padStart(2, "0")}`;
+}
+
+function addDays(dateStr, n) {
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const result = new Date(y, m - 1, d + n);
+    return `${result.getFullYear()}-${String(result.getMonth() + 1).padStart(2, "0")}-${String(result.getDate()).padStart(2, "0")}`;
+}
 
 export default function AddSchedulePage() {
     const router = useRouter();
@@ -34,6 +49,9 @@ export default function AddSchedulePage() {
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
     const [collapsedWeeks, setCollapsedWeeks] = useState(new Set());
+    const [orgScheduleDays, setOrgScheduleDays] = useState([]);
+    const [dragging, setDragging] = useState(null);
+    const [dropTarget, setDropTarget] = useState(null);
 
     const toggleWeek = (index) => {
         setCollapsedWeeks(prev => {
@@ -51,6 +69,17 @@ export default function AddSchedulePage() {
             router.push("/admin/schedules");
         }
     }, [canCreate, user, router]);
+
+    // Fetch org schedule days
+    useEffect(() => {
+        const organizerOrg = user?.roleOrganizations?.[effectiveRole] || user?.organization;
+        const slug = organizerOrg?.slug;
+        if (!slug) return;
+        fetch(`/api/organizations/${slug}`)
+            .then(r => r.json())
+            .then(d => { if (d.success) setOrgScheduleDays(d.data.scheduleDays || []); })
+            .catch(() => {});
+    }, [user, effectiveRole]);
 
     // Fetch initial data
     useEffect(() => {
@@ -74,10 +103,22 @@ export default function AddSchedulePage() {
         : leagues;
 
     const selectedLeagueData = leagues.find(l => l._id === leagueId);
+    const leagueMinDate = selectedLeagueData?.startDate ? selectedLeagueData.startDate.slice(0, 10) : null;
+
+    const weekMinDates = (() => {
+        const result = [];
+        let currentMin = leagueMinDate;
+        for (let i = 0; i < weeks.length; i++) {
+            result[i] = currentMin;
+            const earliest = weeks[i].games.map(g => g.date).filter(Boolean).sort()[0];
+            if (earliest) currentMin = addDays(getMondayOfWeek(earliest), 7);
+        }
+        return result;
+    })();
 
     const leagueTeams = leagueId
-        ? teams.filter(t => (t.league?._id || t.league) === leagueId)
-        : teams;
+        ? teams.filter(t => String(t.league?._id || t.league || "") === leagueId)
+        : [];
 
     // Reset league when season changes
     useEffect(() => {
@@ -128,7 +169,7 @@ export default function AddSchedulePage() {
         const source = weeks[weekIndex];
         const copy = {
             name: "",
-            games: source.games.map(g => ({ ...g }))
+            games: source.games.map(g => ({ ...g, date: "", time: "" }))
         };
         const newWeeks = [...weeks];
         newWeeks.splice(weekIndex + 1, 0, copy);
@@ -146,6 +187,11 @@ export default function AddSchedulePage() {
         const newWeeks = [...weeks];
         newWeeks[weekIndex].games.splice(gameIndex, 1);
         setWeeks(newWeeks);
+        setErrors(prev => {
+            const next = { ...prev };
+            Object.keys(next).forEach(k => { if (k.endsWith("_row")) delete next[k]; });
+            return next;
+        });
     };
 
     const handleDuplicateGame = (weekIndex, gameIndex) => {
@@ -153,6 +199,23 @@ export default function AddSchedulePage() {
         const copy = { ...newWeeks[weekIndex].games[gameIndex] };
         newWeeks[weekIndex].games.splice(gameIndex + 1, 0, copy);
         setWeeks(newWeeks);
+    };
+
+    const handleDrop = (toWeek, toGame) => {
+        if (!dragging) return;
+        const { weekIndex: fromWeek, gameIndex: fromGame } = dragging;
+        if (fromWeek === toWeek && fromGame === toGame) { setDragging(null); setDropTarget(null); return; }
+        const targetMin = weekMinDates[toWeek];
+        const newWeeks = weeks.map(w => ({ ...w, games: [...w.games] }));
+        const game = { ...newWeeks[fromWeek].games[fromGame] };
+        if (game.date && targetMin && game.date < targetMin) { game.date = ""; game.time = ""; }
+        newWeeks[fromWeek].games.splice(fromGame, 1);
+        let insertAt = (fromWeek === toWeek && fromGame < toGame) ? toGame - 1 : toGame;
+        insertAt = Math.max(0, Math.min(insertAt, newWeeks[toWeek].games.length));
+        newWeeks[toWeek].games.splice(insertAt, 0, game);
+        setWeeks(newWeeks);
+        setDragging(null);
+        setDropTarget(null);
     };
 
     const handleSwapTeams = (weekIndex, gameIndex) => {
@@ -172,8 +235,12 @@ export default function AddSchedulePage() {
         const newWeeks = [...weeks];
         newWeeks[weekIndex].games[gameIndex][field] = value;
         setWeeks(newWeeks);
-        const key = `${weekIndex}_${gameIndex}_${field}`;
-        if (errors[key]) setErrors(prev => { const next = { ...prev }; delete next[key]; return next; });
+        setErrors(prev => {
+            const next = { ...prev };
+            delete next[`${weekIndex}_${gameIndex}_${field}`];
+            Object.keys(next).forEach(k => { if (k.endsWith("_row")) delete next[k]; });
+            return next;
+        });
     };
 
     const handleSave = async () => {
@@ -218,6 +285,41 @@ export default function AddSchedulePage() {
             );
             if (missingField && !window.confirm("Some games have no field selected even though fields are available for this location. Save anyway?")) return;
         }
+
+        // Duplicate game validation
+        const completeGames = [];
+        weeks.forEach((w, wIdx) => w.games.forEach((g, gIdx) => {
+            if (g.team1 && g.team2 && g.date && g.time) completeGames.push({ ...g, wIdx, gIdx });
+        }));
+
+        const duplicateRowKeys = new Set();
+        let sameDateTimeNoField = false;
+        for (let i = 0; i < completeGames.length; i++) {
+            for (let j = i + 1; j < completeGames.length; j++) {
+                const a = completeGames[i];
+                const b = completeGames[j];
+                if (a.date !== b.date || a.time !== b.time) continue;
+                const sameFixture =
+                    (a.team1 === b.team1 && a.team2 === b.team2) ||
+                    (a.team1 === b.team2 && a.team2 === b.team1);
+                if (sameFixture) {
+                    duplicateRowKeys.add(`${a.wIdx}_${a.gIdx}_row`);
+                    duplicateRowKeys.add(`${b.wIdx}_${b.gIdx}_row`);
+                } else if (locationFields.length > 0) {
+                    if (!a.field || !b.field || a.field === b.field) {
+                        duplicateRowKeys.add(`${a.wIdx}_${a.gIdx}_row`);
+                        duplicateRowKeys.add(`${b.wIdx}_${b.gIdx}_row`);
+                    }
+                } else {
+                    sameDateTimeNoField = true;
+                }
+            }
+        }
+        if (duplicateRowKeys.size > 0) {
+            setErrors(prev => { const next = { ...prev }; duplicateRowKeys.forEach(k => { next[k] = true; }); return next; });
+            return;
+        }
+        if (sameDateTimeNoField && !window.confirm("Some games share the same date and time. This location has no fields to differentiate them. Save anyway?")) return;
 
         const selectedLeague = leagues.find(l => l._id === leagueId);
         const selectedLoc = locations.find(l => l._id === locationId);
@@ -283,7 +385,7 @@ export default function AddSchedulePage() {
                     </button>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 24, marginBottom: 40 }}>
+                <div className="schedule-header-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 24, marginBottom: 40 }}>
                     <div className="admin-form-group" style={{ marginBottom: 0 }}>
                         <label className="admin-form-label" style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#8b90a0" }}>Season</label>
                         <select 
@@ -405,108 +507,137 @@ export default function AddSchedulePage() {
                                 />
                             </div>
 
-                            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                                {week.games.map((game, gIndex) => (
-                                    <div key={gIndex} style={{ display: "flex", gap: 16, alignItems: "flex-end" }}>
-                                        <button
-                                            onClick={() => handleSwapTeams(wIndex, gIndex)}
-                                            style={{ background: "none", border: "1px solid #e5e7ef", borderRadius: 6, color: "#6b7280", cursor: "pointer", padding: "0 8px", height: 36, flexShrink: 0 }}
-                                            title="Swap Teams"
-                                        >
-                                            <i className="fa-solid fa-right-left"></i>
-                                        </button>
-                                        <div className="admin-form-group" style={{ marginBottom: 0, flex: 1 }}>
-                                            <label className="admin-form-label" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: errors[`${wIndex}_${gIndex}_team1`] ? "#FF1E00" : "#8b90a0" }}>Team 1 *</label>
-                                            <SearchableSelect
-                                                value={game.team1}
-                                                onChange={(v) => updateGame(wIndex, gIndex, "team1", v)}
-                                                options={leagueTeams.filter(t => t._id !== game.team2).map(t => ({ value: t._id, label: t.name }))}
-                                                placeholder="Select Team 1"
-                                                error={!!errors[`${wIndex}_${gIndex}_team1`]}
-                                            />
-                                        </div>
-                                        <div className="admin-form-group" style={{ marginBottom: 0, flex: 1 }}>
-                                            <label className="admin-form-label" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: errors[`${wIndex}_${gIndex}_team2`] ? "#FF1E00" : "#8b90a0" }}>Team 2 *</label>
-                                            <SearchableSelect
-                                                value={game.team2}
-                                                onChange={(v) => updateGame(wIndex, gIndex, "team2", v)}
-                                                options={leagueTeams.filter(t => t._id !== game.team1).map(t => ({ value: t._id, label: t.name }))}
-                                                placeholder="Select Team 2"
-                                                error={!!errors[`${wIndex}_${gIndex}_team2`]}
-                                            />
-                                        </div>
-                                        <div className="admin-form-group" style={{ marginBottom: 0, flex: 1 }}>
-                                            <label className="admin-form-label" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#8b90a0" }}>Field</label>
-                                            <select
-                                                className="admin-form-select"
-                                                value={game.field}
-                                                onChange={(e) => updateGame(wIndex, gIndex, "field", e.target.value)}
+                            <div style={{ display: "flex", flexDirection: "column" }}>
+                                {week.games.map((game, gIndex) => {
+                                    const isDropHere = dropTarget?.weekIndex === wIndex && dropTarget?.gameIndex === gIndex;
+                                    const isDraggingThis = dragging?.weekIndex === wIndex && dragging?.gameIndex === gIndex;
+                                    const isDuplicateRow = !!errors[`${wIndex}_${gIndex}_row`];
+                                    return (
+                                    <div
+                                        key={gIndex}
+                                        onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setDropTarget({ weekIndex: wIndex, gameIndex: gIndex }); }}
+                                        onDrop={(e) => { e.preventDefault(); e.stopPropagation(); handleDrop(wIndex, gIndex); }}
+                                        style={{ borderTop: `2px solid ${isDropHere ? "#3b82f6" : "transparent"}`, paddingTop: isDropHere ? 6 : 0, marginBottom: 16, transition: "border-color 0.1s, padding-top 0.1s", background: isDuplicateRow ? "rgba(255,30,0,0.06)" : "transparent", borderRadius: isDuplicateRow ? 8 : 0, outline: isDuplicateRow ? "1.5px solid rgba(255,30,0,0.35)" : "none" }}
+                                    >
+                                    <div
+                                        draggable
+                                        onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; setDragging({ weekIndex: wIndex, gameIndex: gIndex }); }}
+                                        onDragEnd={() => { setDragging(null); setDropTarget(null); }}
+                                        className="schedule-game-row"
+                                        style={{ opacity: isDraggingThis ? 0.3 : 1, transition: "opacity 0.15s" }}
+                                    >
+                                        <div className="sgr-tl">
+                                            <div title="Drag to reorder" className="sgr-drag">⠿</div>
+                                            <button
+                                                onClick={() => handleSwapTeams(wIndex, gIndex)}
+                                                className="sgr-swap-btn"
+                                                style={{ background: "none", border: "1px solid #e5e7ef", borderRadius: 6, color: "#6b7280", cursor: "pointer", padding: "0 8px", height: 36 }}
+                                                title="Swap Teams"
                                             >
-                                                <option value="">Select Field</option>
-                                                {locationFields.map(f => (
-                                                    <option key={f._id} value={f.name}>{f.name}</option>
-                                                ))}
-                                            </select>
+                                                <i className="fa-solid fa-right-left"></i>
+                                            </button>
                                         </div>
-                                        <div className="admin-form-group" style={{ marginBottom: 0 }}>
-                                            <label className="admin-form-label" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: errors[`${wIndex}_${gIndex}_date`] ? "#FF1E00" : "#8b90a0" }}>Date *</label>
-                                            <input
-                                                type="date"
-                                                className="admin-form-input"
-                                                value={game.date}
-                                                onChange={(e) => updateGame(wIndex, gIndex, "date", e.target.value)}
-                                                style={{ width: 160, border: errors[`${wIndex}_${gIndex}_date`] ? "1px solid #FF1E00" : undefined, boxShadow: errors[`${wIndex}_${gIndex}_date`] ? "0 0 0 3px rgba(255,30,0,0.12)" : undefined }}
-                                            />
-                                        </div>
-                                        <div className="admin-form-group" style={{ marginBottom: 0 }}>
-                                            <label className="admin-form-label" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: errors[`${wIndex}_${gIndex}_time`] ? "#FF1E00" : "#8b90a0" }}>Time *</label>
+                                        <div className="sgr-fields">
+                                            <div className="admin-form-group sgr-f-team1" style={{ marginBottom: 0 }}>
+                                                <label className="admin-form-label" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: errors[`${wIndex}_${gIndex}_team1`] ? "#FF1E00" : "#8b90a0" }}>Team 1 *</label>
+                                                <SearchableSelect
+                                                    value={game.team1}
+                                                    onChange={(v) => updateGame(wIndex, gIndex, "team1", v)}
+                                                    options={leagueTeams.filter(t => String(t._id) !== game.team2).map(t => ({ value: String(t._id), label: t.name }))}
+                                                    placeholder="Select Team 1"
+                                                    error={!!errors[`${wIndex}_${gIndex}_team1`]}
+                                                />
+                                            </div>
+                                            <div className="admin-form-group sgr-f-team2" style={{ marginBottom: 0 }}>
+                                                <label className="admin-form-label" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: errors[`${wIndex}_${gIndex}_team2`] ? "#FF1E00" : "#8b90a0" }}>Team 2 *</label>
+                                                <SearchableSelect
+                                                    value={game.team2}
+                                                    onChange={(v) => updateGame(wIndex, gIndex, "team2", v)}
+                                                    options={leagueTeams.filter(t => String(t._id) !== game.team1).map(t => ({ value: String(t._id), label: t.name }))}
+                                                    placeholder="Select Team 2"
+                                                    error={!!errors[`${wIndex}_${gIndex}_team2`]}
+                                                />
+                                            </div>
+                                            <div className="admin-form-group sgr-f-field" style={{ marginBottom: 0 }}>
+                                                <label className="admin-form-label" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#8b90a0" }}>Field</label>
+                                                <select
+                                                    className="admin-form-select"
+                                                    value={game.field}
+                                                    onChange={(e) => updateGame(wIndex, gIndex, "field", e.target.value)}
+                                                >
+                                                    <option value="">Select Field</option>
+                                                    {locationFields.map(f => (
+                                                        <option key={f._id} value={f.name}>{f.name}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div className="admin-form-group sgr-f-date" style={{ marginBottom: 0 }}>
+                                                <label className="admin-form-label" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: errors[`${wIndex}_${gIndex}_date`] ? "#FF1E00" : "#8b90a0" }}>Date *</label>
+                                                <RestrictedDatePicker
+                                                    value={game.date}
+                                                    onChange={(v) => updateGame(wIndex, gIndex, "date", v)}
+                                                    scheduleDays={orgScheduleDays}
+                                                    minDate={weekMinDates[wIndex]}
+                                                    error={!!errors[`${wIndex}_${gIndex}_date`]}
+                                                />
+                                            </div>
+                                            <div className="admin-form-group sgr-f-time" style={{ marginBottom: 0 }}>
+                                                <label className="admin-form-label" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: errors[`${wIndex}_${gIndex}_time`] ? "#FF1E00" : "#8b90a0" }}>Time *</label>
                                                 <input
                                                     type="time"
                                                     className="admin-form-input"
                                                     value={game.time}
                                                     onChange={(e) => updateGame(wIndex, gIndex, "time", e.target.value)}
-                                                    style={{ width: 140, border: errors[`${wIndex}_${gIndex}_time`] ? "1px solid #FF1E00" : undefined, boxShadow: errors[`${wIndex}_${gIndex}_time`] ? "0 0 0 3px rgba(255,30,0,0.12)" : undefined }}
+                                                    style={{ border: errors[`${wIndex}_${gIndex}_time`] ? "1px solid #FF1E00" : undefined, boxShadow: errors[`${wIndex}_${gIndex}_time`] ? "0 0 0 3px rgba(255,30,0,0.12)" : undefined }}
                                                 />
+                                            </div>
+                                            <div className="admin-form-group sgr-f-type" style={{ marginBottom: 0 }}>
+                                                <label className="admin-form-label" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#8b90a0" }}>Type</label>
+                                                <select
+                                                    className="admin-form-select"
+                                                    value={game.gameType || "main"}
+                                                    onChange={(e) => updateGame(wIndex, gIndex, "gameType", e.target.value)}
+                                                >
+                                                    <option value="main">Main</option>
+                                                    <option value="practice">Practice</option>
+                                                </select>
+                                            </div>
                                         </div>
-                                        <div className="admin-form-group" style={{ marginBottom: 0 }}>
-                                            <label className="admin-form-label" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#8b90a0" }}>Type</label>
-                                            <select
-                                                className="admin-form-select"
-                                                value={game.gameType || "main"}
-                                                onChange={(e) => updateGame(wIndex, gIndex, "gameType", e.target.value)}
-                                                style={{ width: 130 }}
-                                            >
-                                                <option value="main">Main</option>
-                                                <option value="practice">Practice</option>
-                                            </select>
-                                        </div>
-                                        <button
-                                            onClick={() => handleDuplicateGame(wIndex, gIndex)}
-                                            style={{ background: "none", border: "none", color: "#6b7280", cursor: "pointer", padding: "10px", height: 42 }}
-                                            title="Duplicate Game"
-                                        >
-                                            <i className="fa-regular fa-copy"></i>
-                                        </button>
-                                        {week.games.length > 1 && (
+                                        <div className="sgr-tr">
                                             <button
-                                                onClick={() => handleRemoveGame(wIndex, gIndex)}
-                                                style={{ background: "none", border: "none", color: "#FF1E00", cursor: "pointer", padding: "10px", height: 42 }}
-                                                title="Remove Game"
+                                                onClick={() => handleDuplicateGame(wIndex, gIndex)}
+                                                style={{ background: "none", border: "none", color: "#6b7280", cursor: "pointer", padding: "8px", height: 36 }}
+                                                title="Duplicate Game"
                                             >
-                                                <i className="fa-solid fa-trash"></i>
+                                                <i className="fa-regular fa-copy"></i>
                                             </button>
-                                        )}
+                                            {week.games.length > 1 && (
+                                                <button
+                                                    onClick={() => handleRemoveGame(wIndex, gIndex)}
+                                                    style={{ background: "none", border: "none", color: "#FF1E00", cursor: "pointer", padding: "8px", height: 36 }}
+                                                    title="Remove Game"
+                                                >
+                                                    <i className="fa-solid fa-trash"></i>
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
-                                ))}
+                                    </div>
+                                );
+                                })}
+                                <div
+                                    onDragOver={(e) => { e.preventDefault(); setDropTarget({ weekIndex: wIndex, gameIndex: week.games.length }); }}
+                                    onDrop={(e) => { e.preventDefault(); handleDrop(wIndex, week.games.length); }}
+                                    style={{ height: dropTarget?.weekIndex === wIndex && dropTarget?.gameIndex === week.games.length ? 32 : 10, borderRadius: 4, background: dropTarget?.weekIndex === wIndex && dropTarget?.gameIndex === week.games.length ? "rgba(59,130,246,0.08)" : "transparent", border: `2px dashed ${dropTarget?.weekIndex === wIndex && dropTarget?.gameIndex === week.games.length ? "#3b82f6" : "transparent"}`, transition: "height 0.15s, background 0.15s" }}
+                                />
                             </div>
 
-                            <div style={{ display: "flex", justifyContent: "center", marginTop: 24 }}>
+                            <div style={{ display: "flex", justifyContent: "flex-start", marginTop: 20, paddingLeft: 4 }}>
                                 <button
-                                    className="admin-btn admin-btn-primary"
-                                    style={{ padding: "8px 16px", borderRadius: 6, fontWeight: 600 }}
+                                    style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 6, fontWeight: 600, fontSize: 13, background: "transparent", border: "1.5px dashed #d1d5db", color: "#374151", cursor: "pointer" }}
                                     onClick={() => handleAddGame(wIndex)}
                                 >
-                                    Add More Schedule
+                                    <span style={{ fontSize: 16, lineHeight: 1 }}>+</span> Add Game to This Week
                                 </button>
                             </div>
                             </div>
@@ -515,14 +646,16 @@ export default function AddSchedulePage() {
                     ))}
                 </div>
 
-                <div style={{ display: "flex", justifyContent: "center", marginTop: 32 }}>
-                    <button 
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 28, marginBottom: 4 }}>
+                    <div style={{ flex: 1, height: 1, background: "#e5e7ef" }} />
+                    <button
                         className="admin-btn admin-btn-primary"
-                        style={{ padding: "10px 20px", borderRadius: 6, fontWeight: 600 }}
+                        style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 22px", borderRadius: 6, fontWeight: 700, fontSize: 14, whiteSpace: "nowrap" }}
                         onClick={handleAddWeek}
                     >
-                        Add More Week
+                        <span style={{ fontSize: 18, lineHeight: 1 }}>+</span> Add New Week
                     </button>
+                    <div style={{ flex: 1, height: 1, background: "#e5e7ef" }} />
                 </div>
 
                 <div style={{ display: "flex", justifyContent: "center", gap: 16, marginTop: 40 }}>
