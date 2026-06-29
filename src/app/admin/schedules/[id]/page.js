@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import AdminLayout, { hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
+import SearchableSelect from "@/components/SearchableSelect";
 
 export default function EditSchedulePage({ params }) {
     const router = useRouter();
@@ -33,6 +34,7 @@ export default function EditSchedulePage({ params }) {
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [errors, setErrors] = useState({});
 
     const effectiveRole = activeRole || user?.role;
     const canUpdate = hasAnyAccess(user, ["manage_schedules", "schedule_update"]);
@@ -102,15 +104,17 @@ export default function EditSchedulePage({ params }) {
         });
     }, [id]);
 
-    const availableLeagues = seasonId 
+    const availableLeagues = seasonId
         ? leagues.filter(l => (l.season?._id || l.season) === seasonId)
         : leagues;
 
     const selectedLeagueData = leagues.find(l => l._id === leagueId);
 
+    const leagueTeams = leagueId
+        ? teams.filter(t => (t.league?._id || t.league) === leagueId)
+        : teams;
+
     // Reset league when season changes, but only if the user manually changed the season
-    // Since we fetch and set seasonId initially, we don't want to clear the leagueId then.
-    // A simple way is to check if leagueId's season matches seasonId
     useEffect(() => {
         if (leagueId && selectedLeagueData) {
             const leagueSeason = selectedLeagueData.season?._id || selectedLeagueData.season;
@@ -119,6 +123,15 @@ export default function EditSchedulePage({ params }) {
             }
         }
     }, [seasonId]);
+
+    // Reset game team selections when league changes (only after initial load)
+    useEffect(() => {
+        if (loading) return;
+        setWeeks(prev => prev.map(w => ({
+            ...w,
+            games: w.games.map(g => ({ ...g, team1: "", team2: "" }))
+        })));
+    }, [leagueId]);
     
     // Auto-select location based on league
     useEffect(() => {
@@ -170,6 +183,8 @@ export default function EditSchedulePage({ params }) {
         const newWeeks = [...weeks];
         newWeeks[weekIndex].games[gameIndex][field] = value;
         setWeeks(newWeeks);
+        const key = `${weekIndex}_${gameIndex}_${field}`;
+        if (errors[key]) setErrors(prev => { const next = { ...prev }; delete next[key]; return next; });
     };
 
     const handleSave = async () => {
@@ -182,6 +197,24 @@ export default function EditSchedulePage({ params }) {
             return;
         }
 
+        const newErrors = {};
+        weeks.forEach((w, wIdx) => {
+            w.games.forEach((g, gIdx) => {
+                const hasAny = g.team1 || g.team2 || g.date || g.time;
+                if (!hasAny) return;
+                if (!g.team1) newErrors[`${wIdx}_${gIdx}_team1`] = true;
+                if (!g.team2) newErrors[`${wIdx}_${gIdx}_team2`] = true;
+                if (!g.date)  newErrors[`${wIdx}_${gIdx}_date`]  = true;
+                if (!g.time)  newErrors[`${wIdx}_${gIdx}_time`]  = true;
+            });
+        });
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            showError("Some games have incomplete data — fill in or clear all fields");
+            return;
+        }
+        setErrors({});
+
         const selectedLeague = leagues.find(l => l._id === leagueId);
         const selectedLoc = locations.find(l => l._id === locationId);
 
@@ -191,18 +224,22 @@ export default function EditSchedulePage({ params }) {
             locationId: locationId,
             locationName: selectedLoc?.name || "Selected Location",
             status: status,
-            weeks: weeks.map((w, index) => ({
-                name: w.name.trim() ? w.name.trim() : `Week ${index + 1}`,
-                games: w.games.map(g => ({
-                    team1: g.team1 || null,
-                    team2: g.team2 || null,
-                    field: g.field,
-                    date: g.date,
-                    time: g.time,
-                    gameType: g.gameType || "main",
-                    gameRef: g.gameRef || null
+            weeks: weeks
+                .map((w, index) => ({
+                    name: w.name.trim() ? w.name.trim() : `Week ${index + 1}`,
+                    games: w.games
+                        .filter(g => g.team1 || g.team2 || g.date || g.time)
+                        .map(g => ({
+                            team1: g.team1 || null,
+                            team2: g.team2 || null,
+                            field: g.field,
+                            date: g.date,
+                            time: g.time,
+                            gameType: g.gameType || "main",
+                            gameRef: g.gameRef || null
+                        }))
                 }))
-            }))
+                .filter(w => w.games.length > 0)
         };
 
         setSaving(true);
@@ -256,33 +293,24 @@ export default function EditSchedulePage({ params }) {
                 <div className="schedule-edit-top-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 24, marginBottom: 40 }}>
                     <div className="admin-form-group" style={{ marginBottom: 0 }}>
                         <label className="admin-form-label" style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#8b90a0" }}>Season</label>
-                        <select 
-                            className="admin-form-select" 
-                            value={seasonId} 
-                            onChange={(e) => setSeasonId(e.target.value)}
-                            style={{ padding: "10px 14px", border: "1px solid #e5e7ef", borderRadius: 8 }}
-                        >
-                            <option value="">Select Season</option>
-                            {seasons.map(s => (
-                                <option key={s._id} value={s._id}>{s.name}</option>
-                            ))}
-                        </select>
+                        <input
+                            className="admin-form-input"
+                            value={seasons.find(s => s._id === seasonId)?.name || ""}
+                            readOnly
+                            disabled
+                            style={{ padding: "10px 14px", border: "1px solid #e5e7ef", borderRadius: 8, background: "#f3f4f6", color: "#6b7280", cursor: "not-allowed" }}
+                        />
                     </div>
 
                     <div className="admin-form-group" style={{ marginBottom: 0 }}>
                         <label className="admin-form-label" style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#8b90a0" }}>League</label>
-                        <select 
-                            className="admin-form-select" 
-                            value={leagueId} 
-                            onChange={(e) => setLeagueId(e.target.value)}
-                            disabled={!seasonId}
-                            style={{ padding: "10px 14px", border: "1px solid #e5e7ef", borderRadius: 8 }}
-                        >
-                            <option value="">Select League</option>
-                            {availableLeagues.map(l => (
-                                <option key={l._id} value={l._id}>{l.name}</option>
-                            ))}
-                        </select>
+                        <input
+                            className="admin-form-input"
+                            value={leagues.find(l => l._id === leagueId)?.name || ""}
+                            readOnly
+                            disabled
+                            style={{ padding: "10px 14px", border: "1px solid #e5e7ef", borderRadius: 8, background: "#f3f4f6", color: "#6b7280", cursor: "not-allowed" }}
+                        />
                     </div>
                     
                     <div className="admin-form-group" style={{ marginBottom: 0 }}>
@@ -359,35 +387,29 @@ export default function EditSchedulePage({ params }) {
                                 {week.games.map((game, gIndex) => (
                                     <div key={gIndex} className="schedule-edit-game-row" style={{ display: "flex", gap: 16, alignItems: "flex-end" }}>
                                         <div className="admin-form-group" style={{ marginBottom: 0, flex: 1 }}>
-                                            <label className="admin-form-label" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#8b90a0" }}>Team 1</label>
-                                            <select 
-                                                className="admin-form-select" 
+                                            <label className="admin-form-label" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: errors[`${wIndex}_${gIndex}_team1`] ? "#FF1E00" : "#8b90a0" }}>Team 1 *</label>
+                                            <SearchableSelect
                                                 value={game.team1}
-                                                onChange={(e) => updateGame(wIndex, gIndex, "team1", e.target.value)}
-                                            >
-                                                <option value="">Select Team 1</option>
-                                                {teams.map(t => (
-                                                    <option key={t._id} value={t._id}>{t.name}</option>
-                                                ))}
-                                            </select>
+                                                onChange={(v) => updateGame(wIndex, gIndex, "team1", v)}
+                                                options={leagueTeams.map(t => ({ value: t._id, label: t.name }))}
+                                                placeholder="Select Team 1"
+                                                error={!!errors[`${wIndex}_${gIndex}_team1`]}
+                                            />
                                         </div>
                                         <div className="admin-form-group" style={{ marginBottom: 0, flex: 1 }}>
-                                            <label className="admin-form-label" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#8b90a0" }}>Team 2</label>
-                                            <select 
-                                                className="admin-form-select" 
+                                            <label className="admin-form-label" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: errors[`${wIndex}_${gIndex}_team2`] ? "#FF1E00" : "#8b90a0" }}>Team 2 *</label>
+                                            <SearchableSelect
                                                 value={game.team2}
-                                                onChange={(e) => updateGame(wIndex, gIndex, "team2", e.target.value)}
-                                            >
-                                                <option value="">Select Team 2</option>
-                                                {teams.map(t => (
-                                                    <option key={t._id} value={t._id}>{t.name}</option>
-                                                ))}
-                                            </select>
+                                                onChange={(v) => updateGame(wIndex, gIndex, "team2", v)}
+                                                options={leagueTeams.map(t => ({ value: t._id, label: t.name }))}
+                                                placeholder="Select Team 2"
+                                                error={!!errors[`${wIndex}_${gIndex}_team2`]}
+                                            />
                                         </div>
                                         <div className="admin-form-group" style={{ marginBottom: 0, flex: 1 }}>
                                             <label className="admin-form-label" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#8b90a0" }}>Field</label>
-                                            <select 
-                                                className="admin-form-select" 
+                                            <select
+                                                className="admin-form-select"
                                                 value={game.field}
                                                 onChange={(e) => updateGame(wIndex, gIndex, "field", e.target.value)}
                                             >
@@ -398,23 +420,23 @@ export default function EditSchedulePage({ params }) {
                                             </select>
                                         </div>
                                         <div className="admin-form-group" style={{ marginBottom: 0 }}>
-                                            <label className="admin-form-label" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#8b90a0" }}>Date</label>
-                                            <input 
+                                            <label className="admin-form-label" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: errors[`${wIndex}_${gIndex}_date`] ? "#FF1E00" : "#8b90a0" }}>Date *</label>
+                                            <input
                                                 type="date"
-                                                className="admin-form-input" 
+                                                className="admin-form-input"
                                                 value={game.date}
                                                 onChange={(e) => updateGame(wIndex, gIndex, "date", e.target.value)}
-                                                style={{ width: 160 }}
+                                                style={{ width: 160, border: errors[`${wIndex}_${gIndex}_date`] ? "1px solid #FF1E00" : undefined, boxShadow: errors[`${wIndex}_${gIndex}_date`] ? "0 0 0 3px rgba(255,30,0,0.12)" : undefined }}
                                             />
                                         </div>
                                         <div className="admin-form-group" style={{ marginBottom: 0 }}>
-                                            <label className="admin-form-label" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#8b90a0" }}>Time</label>
-                                                <input 
+                                            <label className="admin-form-label" style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: errors[`${wIndex}_${gIndex}_time`] ? "#FF1E00" : "#8b90a0" }}>Time *</label>
+                                                <input
                                                     type="time"
-                                                    className="admin-form-input" 
+                                                    className="admin-form-input"
                                                     value={game.time}
                                                     onChange={(e) => updateGame(wIndex, gIndex, "time", e.target.value)}
-                                                    style={{ width: 140 }}
+                                                    style={{ width: 140, border: errors[`${wIndex}_${gIndex}_time`] ? "1px solid #FF1E00" : undefined, boxShadow: errors[`${wIndex}_${gIndex}_time`] ? "0 0 0 3px rgba(255,30,0,0.12)" : undefined }}
                                                 />
                                         </div>
                                         <div className="admin-form-group" style={{ marginBottom: 0 }}>
