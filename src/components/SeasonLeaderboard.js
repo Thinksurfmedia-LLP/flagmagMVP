@@ -143,7 +143,7 @@ export default function SeasonLeaderboard({ orgSlug, seasonsParam }) {
                     key: DEFAULT_SORT_KEY[type],
                     dir: "desc",
                 };
-                const players = getSorted(rawPlayers, sortKey, sortDir);
+                const players = getSorted(rawPlayers, sortKey, sortDir).slice(0, 50);
                 const totalCols = columns.length + 3;
 
                 const sortIcon = (key) =>

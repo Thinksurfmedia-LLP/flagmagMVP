@@ -1344,7 +1344,11 @@ export default function AdminGamesPage() {
                 const [seasonData, leagueData, teamData, venueData, orgData, gamesData] = await Promise.all([
                     seasonRes.json(), leagueRes.json(), teamRes.json(), venueRes.json(), orgRes.json(), gamesRes.json(),
                 ]);
-                if (seasonData.success) setSeasons(seasonData.data);
+                if (seasonData.success) {
+                    setSeasons(seasonData.data);
+                    const defaultSeason = seasonData.data.find(s => s.isDefault) || seasonData.data[0];
+                    if (defaultSeason) setFilterSeason(defaultSeason._id);
+                }
                 if (orgData.success) setScheduleDays(orgData.data?.scheduleDays || []);
                 if (leagueData.success) setLeagues(leagueData.data);
                 if (teamData.success) setTeams(teamData.data);
@@ -1527,50 +1531,38 @@ export default function AdminGamesPage() {
                         <div className="admin-card">
                             <div className="admin-card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
                                 <h3>Games ({filteredGames.length})</h3>
-                            {canCreate && (
-                                <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                                    <button className="admin-btn admin-btn-ghost" onClick={() => setImportModalOpen(true)}>
-                                        <i className="fa-solid fa-file-csv"></i> Import CSV
-                                    </button>
-                                    <button className="admin-btn admin-btn-primary" onClick={() => { setEditTarget(null); setShowModal(true); }}>
-                                        <i className="fa-solid fa-plus"></i> Schedule Game
-                                    </button>
+                            {geoStateOptions.length > 0 && (
+                                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
+                                    <select className="admin-form-select" value={filterState} onChange={(e) => handleGeoStateChange(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
+                                        <option value="">All States</option>
+                                        {geoStateOptions.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                    </select>
+                                    {filterState && (
+                                        <select className="admin-form-select" value={filterCounty} onChange={(e) => handleGeoCountyChange(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
+                                            <option value="">All Counties</option>
+                                            {geoCountyOptions.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                        </select>
+                                    )}
+                                    {filterState && (
+                                        <select className="admin-form-select" value={filterCity} onChange={(e) => { setFilterCity(e.target.value); setFilterVenue(""); }} style={{ width: 155, height: 34, fontSize: 13 }}>
+                                            <option value="">All Cities</option>
+                                            {geoCityOptions.map((c) => <option key={c} value={c}>{c}</option>)}
+                                        </select>
+                                    )}
+                                    {filterState && (
+                                        <select className="admin-form-select" value={filterVenue} onChange={(e) => setFilterVenue(e.target.value)} style={{ width: 175, height: 34, fontSize: 13 }}>
+                                            <option value="">All Locations</option>
+                                            {geoVenueOptions.map((v) => <option key={v._id} value={v.name}>{v.name}</option>)}
+                                        </select>
+                                    )}
+                                    {(filterState || filterCounty || filterCity || filterVenue) && (
+                                        <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setFilterState(""); setFilterCounty(""); setFilterCity(""); setFilterVenue(""); }} style={{ height: 34, whiteSpace: "nowrap" }}>
+                                            <i className="fa-solid fa-xmark"></i> Clear
+                                        </button>
+                                    )}
                                 </div>
                             )}
                         </div>
-
-                        {/* Geo Filter bar */}
-                        {geoStateOptions.length > 0 && (
-                            <div className="games-geo-filter-bar" style={{ display: "flex", justifyContent: "flex-end", flexWrap: "wrap", gap: 8, padding: "10px 16px 10px", borderBottom: "1px solid #e8eaf0", marginBottom: 4, alignItems: "center" }}>
-                                <select className="admin-form-select" value={filterState} onChange={(e) => handleGeoStateChange(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
-                                    <option value="">All States</option>
-                                    {geoStateOptions.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                                </select>
-                                {filterState && (
-                                    <select className="admin-form-select" value={filterCounty} onChange={(e) => handleGeoCountyChange(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
-                                        <option value="">All Counties</option>
-                                        {geoCountyOptions.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                    </select>
-                                )}
-                                {filterState && (
-                                    <select className="admin-form-select" value={filterCity} onChange={(e) => { setFilterCity(e.target.value); setFilterVenue(""); }} style={{ width: 155, height: 34, fontSize: 13 }}>
-                                        <option value="">All Cities</option>
-                                        {geoCityOptions.map((c) => <option key={c} value={c}>{c}</option>)}
-                                    </select>
-                                )}
-                                {filterState && (
-                                    <select className="admin-form-select" value={filterVenue} onChange={(e) => setFilterVenue(e.target.value)} style={{ width: 175, height: 34, fontSize: 13 }}>
-                                        <option value="">All Locations</option>
-                                        {geoVenueOptions.map((v) => <option key={v._id} value={v.name}>{v.name}</option>)}
-                                    </select>
-                                )}
-                                {(filterState || filterCounty || filterCity || filterVenue) && (
-                                    <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setFilterState(""); setFilterCounty(""); setFilterCity(""); setFilterVenue(""); }} style={{ height: 34, whiteSpace: "nowrap" }}>
-                                        <i className="fa-solid fa-xmark"></i> Clear
-                                    </button>
-                                )}
-                            </div>
-                        )}
 
                         {loading ? (
                             <div className="admin-loading">

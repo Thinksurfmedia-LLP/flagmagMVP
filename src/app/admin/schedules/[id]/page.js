@@ -8,19 +8,6 @@ import { useToast } from "@/components/AdminToast";
 import SearchableSelect from "@/components/SearchableSelect";
 import RestrictedDatePicker from "@/components/RestrictedDatePicker";
 
-function getMondayOfWeek(dateStr) {
-    const [y, m, d] = dateStr.split("-").map(Number);
-    const dow = new Date(y, m - 1, d).getDay();
-    const daysToMon = (dow + 6) % 7;
-    const mon = new Date(y, m - 1, d - daysToMon);
-    return `${mon.getFullYear()}-${String(mon.getMonth() + 1).padStart(2, "0")}-${String(mon.getDate()).padStart(2, "0")}`;
-}
-
-function addDays(dateStr, n) {
-    const [y, m, d] = dateStr.split("-").map(Number);
-    const result = new Date(y, m - 1, d + n);
-    return `${result.getFullYear()}-${String(result.getMonth() + 1).padStart(2, "0")}-${String(result.getDate()).padStart(2, "0")}`;
-}
 
 export default function EditSchedulePage({ params }) {
     const router = useRouter();
@@ -149,16 +136,6 @@ export default function EditSchedulePage({ params }) {
     const selectedLeagueData = leagues.find(l => l._id === leagueId);
     const leagueMinDate = selectedLeagueData?.startDate ? selectedLeagueData.startDate.slice(0, 10) : null;
 
-    const weekMinDates = (() => {
-        const result = [];
-        let currentMin = leagueMinDate;
-        for (let i = 0; i < weeks.length; i++) {
-            result[i] = currentMin;
-            const earliest = weeks[i].games.map(g => g.date).filter(Boolean).sort()[0];
-            if (earliest) currentMin = addDays(getMondayOfWeek(earliest), 7);
-        }
-        return result;
-    })();
 
     const leagueTeams = leagueId
         ? teams.filter(t => String(t.league?._id || t.league || "") === leagueId)
@@ -243,10 +220,8 @@ export default function EditSchedulePage({ params }) {
         if (!dragging) return;
         const { weekIndex: fromWeek, gameIndex: fromGame } = dragging;
         if (fromWeek === toWeek && fromGame === toGame) { setDragging(null); setDropTarget(null); return; }
-        const targetMin = weekMinDates[toWeek];
         const newWeeks = weeks.map(w => ({ ...w, games: [...w.games] }));
         const game = { ...newWeeks[fromWeek].games[fromGame] };
-        if (game.date && targetMin && game.date < targetMin) { game.date = ""; game.time = ""; }
         newWeeks[fromWeek].games.splice(fromGame, 1);
         let insertAt = (fromWeek === toWeek && fromGame < toGame) ? toGame - 1 : toGame;
         insertAt = Math.max(0, Math.min(insertAt, newWeeks[toWeek].games.length));
@@ -609,7 +584,7 @@ export default function EditSchedulePage({ params }) {
                                                     value={game.date}
                                                     onChange={(v) => updateGame(wIndex, gIndex, "date", v)}
                                                     scheduleDays={orgScheduleDays}
-                                                    minDate={weekMinDates[wIndex]}
+                                                    minDate={leagueMinDate}
                                                     error={!!errors[`${wIndex}_${gIndex}_date`]}
                                                 />
                                             </div>

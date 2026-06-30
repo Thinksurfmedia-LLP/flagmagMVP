@@ -16,10 +16,25 @@ export async function GET(request, { params }) {
         const date = searchParams.get("date");
 
         const weekStart = searchParams.get("weekStart");
+        const sectionName = searchParams.get("sectionName");
+        const gameIds = searchParams.get("gameIds");
 
         const filter = { league: id, gameType: { $ne: "practice" } };
         if (status) filter.status = status;
-        if (weekStart) {
+        if (gameIds !== null && gameIds) {
+            // gameRef-based filter (most reliable — from Schedule.weeks.games.gameRef)
+            const ids = gameIds.split(",").filter(Boolean);
+            filter._id = { $in: ids };
+            delete filter.league; // IDs are globally unique; skip league constraint
+        } else if (sectionName !== null) {
+            // Section-based filter (legacy)
+            if (sectionName) {
+                filter.sectionName = sectionName;
+            } else {
+                filter.$or = [{ sectionName: { $exists: false } }, { sectionName: "" }];
+            }
+        } else if (weekStart) {
+            // Legacy date-range filter
             const start = new Date(weekStart);
             const end = new Date(weekStart);
             end.setUTCDate(end.getUTCDate() + 7);

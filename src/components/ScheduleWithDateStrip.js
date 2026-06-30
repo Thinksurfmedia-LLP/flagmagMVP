@@ -66,46 +66,48 @@ function WeekLoadingSkeleton() {
     );
 }
 
-// weekMeta: [{ weekNum, weekStart, gameCount }]
-// weekNames: optional string[] of custom names from the Schedule document
-// initialGames: full game objects for initialWeekIdx
+// sectionMeta: [{ sectionNum, sectionName, gameCount }]
+// initialSectionIdx: index into sectionMeta for the first section to show
+// initialGames: full game objects for initialSectionIdx
 // leagueId: string MongoDB _id for the API
-export default function ScheduleWithDateStrip({ weekMeta, initialWeekIdx, initialGames, leagueId, orgSlug, seasonSlug, weekNames = [], orgTimezone = "America/Los_Angeles" }) {
-    const [selectedIdx, setSelectedIdx] = useState(initialWeekIdx);
-    const [gamesByWeek, setGamesByWeek] = useState(() => ({
-        [initialWeekIdx]: initialGames,
+export default function ScheduleWithDateStrip({ sectionMeta, initialSectionIdx, initialGames, leagueId, orgSlug, seasonSlug, orgTimezone = "America/Los_Angeles" }) {
+    const [selectedIdx, setSelectedIdx] = useState(initialSectionIdx);
+    const [gamesBySection, setGamesBySection] = useState(() => ({
+        [initialSectionIdx]: initialGames,
     }));
     const [loading, setLoading] = useState(false);
     const abortRef = useRef(null);
 
-    const navigateToWeek = useCallback(async (idx) => {
+    const navigateToSection = useCallback(async (idx) => {
         setSelectedIdx(idx);
 
-        // Already cached — no fetch needed
-        if (gamesByWeek[idx] !== undefined) return;
+        if (gamesBySection[idx] !== undefined) return;
 
-        // Cancel any in-flight request
+        const refs = sectionMeta[idx]?.gameRefs || [];
+        if (refs.length === 0) {
+            setGamesBySection((prev) => ({ ...prev, [idx]: [] }));
+            return;
+        }
+
         if (abortRef.current) abortRef.current.abort();
         abortRef.current = new AbortController();
 
         setLoading(true);
         try {
-            const weekStart = weekMeta[idx].weekStart;
-            const res = await fetch(`/api/seasons/${leagueId}/games?weekStart=${weekStart}`, {
-                signal: abortRef.current.signal,
-            });
+            const url = `/api/seasons/${leagueId}/games?gameIds=${refs.join(",")}`;
+            const res = await fetch(url, { signal: abortRef.current.signal });
             const json = await res.json();
             if (json.success) {
-                setGamesByWeek((prev) => ({ ...prev, [idx]: json.data }));
+                setGamesBySection((prev) => ({ ...prev, [idx]: json.data }));
             }
         } catch (e) {
-            if (e.name !== "AbortError") console.error("Failed to load week:", e);
+            if (e.name !== "AbortError") console.error("Failed to load section:", e);
         } finally {
             setLoading(false);
         }
-    }, [gamesByWeek, weekMeta, leagueId]);
+    }, [gamesBySection, sectionMeta, leagueId]);
 
-    if (!weekMeta || weekMeta.length === 0) {
+    if (!sectionMeta || sectionMeta.length === 0) {
         return (
             <div className="organization-teams-wrap row g-4 g-xxl-5">
                 <div className="col-12 text-center py-4"><p>No games scheduled yet.</p></div>
@@ -114,31 +116,31 @@ export default function ScheduleWithDateStrip({ weekMeta, initialWeekIdx, initia
     }
 
     const prevIdx = selectedIdx > 0 ? selectedIdx - 1 : null;
-    const nextIdx = selectedIdx < weekMeta.length - 1 ? selectedIdx + 1 : null;
-    const currentGames = gamesByWeek[selectedIdx];
+    const nextIdx = selectedIdx < sectionMeta.length - 1 ? selectedIdx + 1 : null;
+    const currentGames = gamesBySection[selectedIdx];
 
-    const getWeekLabel = (idx) => weekNames[idx] || `Week ${weekMeta[idx].weekNum}`;
+    const getSectionLabel = (idx) => sectionMeta[idx].sectionName || `Section ${sectionMeta[idx].sectionNum}`;
 
     return (
         <>
             <div className="organization-date-wrap">
                 <div
                     className="prev"
-                    onClick={() => prevIdx !== null && navigateToWeek(prevIdx)}
+                    onClick={() => prevIdx !== null && navigateToSection(prevIdx)}
                     style={{ cursor: prevIdx !== null ? "pointer" : "default", visibility: prevIdx !== null ? "visible" : "hidden" }}
                 >
                     <span>&lt;</span>
-                    <p>{prevIdx !== null ? getWeekLabel(prevIdx) : ""}</p>
+                    <p>{prevIdx !== null ? getSectionLabel(prevIdx) : ""}</p>
                 </div>
                 <div className="current">
-                    <p>{getWeekLabel(selectedIdx)}</p>
+                    <p>{getSectionLabel(selectedIdx)}</p>
                 </div>
                 <div
                     className="next"
-                    onClick={() => nextIdx !== null && navigateToWeek(nextIdx)}
+                    onClick={() => nextIdx !== null && navigateToSection(nextIdx)}
                     style={{ cursor: nextIdx !== null ? "pointer" : "default", visibility: nextIdx !== null ? "visible" : "hidden" }}
                 >
-                    <p>{nextIdx !== null ? getWeekLabel(nextIdx) : ""}</p>
+                    <p>{nextIdx !== null ? getSectionLabel(nextIdx) : ""}</p>
                     <span>&gt;</span>
                 </div>
             </div>
@@ -151,7 +153,7 @@ export default function ScheduleWithDateStrip({ weekMeta, initialWeekIdx, initia
                         <MatchCard key={game._id} game={game} orgSlug={orgSlug} seasonSlug={seasonSlug} orgTimezone={orgTimezone} />
                     ))
                 ) : (
-                    <div className="col-12 text-center py-4"><p>No games this week.</p></div>
+                    <div className="col-12 text-center py-4"><p>No games in this section.</p></div>
                 )}
             </div>
         </>

@@ -4,6 +4,7 @@ import Organization from "@/models/Organization";
 import League from "@/models/League";
 import Game from "@/models/Game";
 import Team from "@/models/Team";
+import Schedule from "@/models/Schedule";
 
 // GET /api/organizations/[slug]/games
 // Returns all games across every league for this org in a single round-trip.
@@ -21,11 +22,23 @@ export async function GET(request, { params }) {
             return NextResponse.json({ success: false, error: "Organization not found" }, { status: 404 });
         }
 
-        // Fetch leagues and teams in parallel
-        const [leagues, teams] = await Promise.all([
+        // Fetch leagues, teams, and schedules in parallel
+        const [leagues, teams, schedules] = await Promise.all([
             League.find({ organization: org._id }).select("_id name category").lean(),
             Team.find({ organization: org._id }).select("name logo").lean(),
+            Schedule.find({ organization: org._id }).select("weeks.name weeks.games.gameRef").lean(),
         ]);
+
+        // Build gameRef → sectionName map from Schedule weeks (source of truth)
+        const gameRefSectionMap = {};
+        schedules.forEach((schedule) => {
+            (schedule.weeks || []).forEach((week) => {
+                const sectionName = week.name || "";
+                (week.games || []).forEach((g) => {
+                    if (g.gameRef) gameRefSectionMap[String(g.gameRef)] = sectionName;
+                });
+            });
+        });
 
         if (!leagues.length) {
             return NextResponse.json({ success: true, count: 0, data: [] });
@@ -41,13 +54,15 @@ export async function GET(request, { params }) {
 
         const games = await Game.find(filter).sort({ date: 1, time: 1 }).lean();
 
-        // Enrich with league info and latest team logos in one pass
+        // Enrich with league info, latest team logos, and schedule-derived sectionName
         const data = games.map((game) => {
             const league = leagueMap[String(game.league)];
             const teamALogo = teamMap[game.teamA?.name]?.logo;
             const teamBLogo = teamMap[game.teamB?.name]?.logo;
+            const sectionName = gameRefSectionMap[String(game._id)] ?? game.sectionName ?? "";
             return {
                 ...game,
+                sectionName,
                 leagueName: league?.name || "",
                 leagueCategory: league?.category || "",
                 teamA: { ...game.teamA, logo: teamALogo || game.teamA?.logo || "" },

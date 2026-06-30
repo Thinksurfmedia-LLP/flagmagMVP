@@ -238,7 +238,7 @@ export default function SchedulesPage() {
                                 </select>
                                 entries
                             </div>
-                            <div className="schedules-toolbar-right" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: "#5a5f72" }}>
+                            <div className="schedules-toolbar-right" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: "#5a5f72", flexWrap: "wrap" }}>
                                 Search:
                                 <input
                                     type="text"
@@ -247,38 +247,34 @@ export default function SchedulesPage() {
                                     onChange={(e) => setSearchInput(e.target.value)}
                                     placeholder="Search..."
                                 />
+                                <select className="admin-form-select" value={filterState} onChange={(e) => handleGeoStateChange(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
+                                    <option value="">All States</option>
+                                    {geoStateOptions.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                </select>
+                                {filterState && (
+                                    <select className="admin-form-select" value={filterCounty} onChange={(e) => handleGeoCountyChange(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
+                                        <option value="">All Counties</option>
+                                        {geoCountyOptions.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                    </select>
+                                )}
+                                {filterState && (
+                                    <select className="admin-form-select" value={filterCity} onChange={(e) => { setFilterCity(e.target.value); setFilterLocation(""); }} style={{ width: 155, height: 34, fontSize: 13 }}>
+                                        <option value="">All Cities</option>
+                                        {geoCityOptions.map((c) => <option key={c} value={c}>{c}</option>)}
+                                    </select>
+                                )}
+                                {filterState && (
+                                    <select className="admin-form-select" value={filterLocation} onChange={(e) => setFilterLocation(e.target.value)} style={{ width: 175, height: 34, fontSize: 13 }}>
+                                        <option value="">All Locations</option>
+                                        {geoVenueOptions.map((v) => <option key={v._id} value={v.name}>{v.name}</option>)}
+                                    </select>
+                                )}
+                                {(filterState || filterCounty || filterCity || filterLocation) && (
+                                    <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setFilterState(""); setFilterCounty(""); setFilterCity(""); setFilterLocation(""); }} style={{ height: 34, whiteSpace: "nowrap" }}>
+                                        <i className="fa-solid fa-xmark"></i> Clear
+                                    </button>
+                                )}
                             </div>
-                        </div>
-
-                        {/* Geo Filter bar */}
-                        <div className="schedules-filter-bar" style={{ display: "flex", justifyContent: "flex-end", flexWrap: "wrap", gap: 8, padding: "10px 16px 10px", borderBottom: "1px solid #e8eaf0", marginBottom: 4, alignItems: "center" }}>
-                            <select className="admin-form-select" value={filterState} onChange={(e) => handleGeoStateChange(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
-                                <option value="">All States</option>
-                                {geoStateOptions.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                            </select>
-                            {filterState && (
-                                <select className="admin-form-select" value={filterCounty} onChange={(e) => handleGeoCountyChange(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
-                                    <option value="">All Counties</option>
-                                    {geoCountyOptions.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                </select>
-                            )}
-                            {filterState && (
-                                <select className="admin-form-select" value={filterCity} onChange={(e) => { setFilterCity(e.target.value); setFilterLocation(""); }} style={{ width: 155, height: 34, fontSize: 13 }}>
-                                    <option value="">All Cities</option>
-                                    {geoCityOptions.map((c) => <option key={c} value={c}>{c}</option>)}
-                                </select>
-                            )}
-                            {filterState && (
-                                <select className="admin-form-select" value={filterLocation} onChange={(e) => setFilterLocation(e.target.value)} style={{ width: 175, height: 34, fontSize: 13 }}>
-                                    <option value="">All Locations</option>
-                                    {geoVenueOptions.map((v) => <option key={v._id} value={v.name}>{v.name}</option>)}
-                                </select>
-                            )}
-                            {(filterState || filterCounty || filterCity || filterLocation) && (
-                                <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setFilterState(""); setFilterCounty(""); setFilterCity(""); setFilterLocation(""); }} style={{ height: 34, whiteSpace: "nowrap" }}>
-                                    <i className="fa-solid fa-xmark"></i> Clear
-                                </button>
-                            )}
                         </div>
 
                         {sortedSchedules.length === 0 ? (

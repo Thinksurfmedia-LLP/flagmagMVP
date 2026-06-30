@@ -153,7 +153,8 @@ export async function POST(request) {
                             teamB: { name: t2.name, logo: t2.logo || "", score: null },
                             location: composedLocation,
                             status: "upcoming",
-                            gameType: game.gameType || "main"
+                            gameType: game.gameType || "main",
+                            sectionName: week.name || ""
                         });
 
                         gamesData.push({

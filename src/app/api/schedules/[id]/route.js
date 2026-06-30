@@ -128,7 +128,7 @@ export async function PUT(request, { params }) {
 
                         if (gameRef && prevGameRefs.has(String(gameRef))) {
                             // Update existing game — preserve scores, only update structural fields
-                            await Game.findByIdAndUpdate(gameRef, {
+                            const updated = await Game.findByIdAndUpdate(gameRef, {
                                 league: lgId,
                                 date: new Date(game.date),
                                 time: game.time || "",
@@ -137,8 +137,24 @@ export async function PUT(request, { params }) {
                                 "teamB.name": t2.name,
                                 "teamB.logo": t2.logo || "",
                                 location: composedLocation,
-                                gameType: game.gameType || "main"
+                                gameType: game.gameType || "main",
+                                sectionName: week.name || ""
                             });
+                            if (!updated) {
+                                // Game doc was deleted externally; recreate it
+                                const newGame = await Game.create({
+                                    league: lgId,
+                                    date: new Date(game.date),
+                                    time: game.time || "",
+                                    teamA: { name: t1.name, logo: t1.logo || "", score: null },
+                                    teamB: { name: t2.name, logo: t2.logo || "", score: null },
+                                    location: composedLocation,
+                                    status: "upcoming",
+                                    gameType: game.gameType || "main",
+                                    sectionName: week.name || ""
+                                });
+                                gameRef = newGame._id;
+                            }
                         } else {
                             // Create new game
                             const newGame = await Game.create({
@@ -149,7 +165,8 @@ export async function PUT(request, { params }) {
                                 teamB: { name: t2.name, logo: t2.logo || "", score: null },
                                 location: composedLocation,
                                 status: "upcoming",
-                                gameType: game.gameType || "main"
+                                gameType: game.gameType || "main",
+                                sectionName: week.name || ""
                             });
                             gameRef = newGame._id;
                         }
