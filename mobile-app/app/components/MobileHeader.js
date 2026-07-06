@@ -4,11 +4,23 @@ import { useState, useRef } from "react";
 import Link from "next/link";
 import { useAuth } from "../lib/AuthContext";
 
-export default function MobileHeader({ showSearch, showFilter, onSearch, onFilter }) {
+export default function MobileHeader({ showSearch, showFilter, onSearch, onFilter, navLocked = false, onNavLockedAttempt }) {
     const { user, logout, refetch } = useAuth();
     const [navOpen, setNavOpen] = useState(false);
     const [uploadingProfile, setUploadingProfile] = useState(false);
     const fileInputRef = useRef(null);
+
+    // While a game is being recorded, block in-app navigation away from the
+    // live game page instead of silently following the link.
+    const handleNavClick = (e) => {
+        if (navLocked) {
+            e.preventDefault();
+            setNavOpen(false);
+            if (onNavLockedAttempt) onNavLockedAttempt();
+            return;
+        }
+        setNavOpen(false);
+    };
 
     const handleProfileUpload = async (e) => {
         const file = e.target.files[0];
@@ -125,17 +137,17 @@ export default function MobileHeader({ showSearch, showFilter, onSearch, onFilte
                 )}
                 <ul>
                     <li>
-                        <Link href="/matches" onClick={() => setNavOpen(false)}>
+                        <Link href="/matches" onClick={handleNavClick}>
                             Home
                         </Link>
                     </li>
                     <li>
-                        <Link href="/matches" onClick={() => setNavOpen(false)}>
+                        <Link href="/matches" onClick={handleNavClick}>
                             Games
                         </Link>
                     </li>
                     <li>
-                        <Link href="/matches/create" onClick={() => setNavOpen(false)}>
+                        <Link href="/matches/create" onClick={handleNavClick}>
                             Create Game
                         </Link>
                     </li>
@@ -143,6 +155,11 @@ export default function MobileHeader({ showSearch, showFilter, onSearch, onFilte
                         <li>
                             <button
                                 onClick={() => {
+                                    if (navLocked) {
+                                        setNavOpen(false);
+                                        if (onNavLockedAttempt) onNavLockedAttempt();
+                                        return;
+                                    }
                                     logout();
                                     setNavOpen(false);
                                 }}

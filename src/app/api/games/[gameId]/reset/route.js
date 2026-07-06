@@ -56,14 +56,22 @@ export async function POST(request, { params }) {
         }
 
         // Delete all plays and stats, reset scores and status
+        // NOTE: scores must be reset to 0, not null — the Game model's
+        // stripNullScores pre-hook silently strips any "score: null" update
+        // (it's a guard against accidental score wipes), so writing null here
+        // would silently no-op and leave the previous score in place.
         await Promise.all([
             Play.deleteMany({ game: gameId }),
             GameStat.deleteMany({ game: gameId }),
             Game.findByIdAndUpdate(gameId, {
                 $set: {
-                    "teamA.score": null,
-                    "teamB.score": null,
+                    "teamA.score": 0,
+                    "teamB.score": 0,
                     status: "upcoming",
+                    currentHalf: "1st",
+                    firstHalfCompleted: false,
+                    halfOneScoreA: 0,
+                    halfOneScoreB: 0,
                 },
             }),
         ]);

@@ -10,8 +10,9 @@ import MatchCard from "../components/MatchCard";
 
 const MATCH_TABS = [
     { key: "today", label: "Today" },
+    { key: "running", label: "Running" },
     { key: "upcoming", label: "Upcoming" },
-    { key: "incomplete", label: "Incomplete Games" },
+    { key: "incomplete", label: "Incomplete" },
     { key: "completed", label: "Completed" },
 ];
 
@@ -82,6 +83,8 @@ function MatchListContent() {
                 const d = new Date(g.date);
                 return d >= today && d < tomorrow;
             });
+        } else if (activeTab === "running") {
+            filtered = filtered.filter((g) => g.status === "in_progress");
         } else if (activeTab === "upcoming") {
             filtered = filtered.filter(
                 (g) => g.status === "upcoming" && new Date(g.date) >= tomorrow
@@ -249,6 +252,8 @@ function MatchListContent() {
                             <p>
                                 {activeTab === "today"
                                     ? "No games scheduled for today."
+                                    : activeTab === "running"
+                                    ? "No games currently running."
                                     : activeTab === "upcoming"
                                     ? "No upcoming games."
                                     : activeTab === "incomplete"

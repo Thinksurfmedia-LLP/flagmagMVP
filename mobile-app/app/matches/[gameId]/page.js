@@ -42,12 +42,72 @@ function LiveGameContent({ gameId }) {
     const [showForfeitConfirm, setShowForfeitConfirm] = useState(false);
     const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
+    const [showNavLockConfirm, setShowNavLockConfirm] = useState(false);
+
+    // A game being actively recorded must not be abandoned via refresh/back/nav.
+    // The statistician has to use Cancel Game / Forfeit / End Game instead.
+    const isLive = !!game && game.status === "in_progress";
 
     useEffect(() => {
         if (!authLoading && !user) {
             router.push("/login");
         }
     }, [authLoading, user, router]);
+
+    // Block browser refresh / tab close / typed-URL navigation while recording.
+    useEffect(() => {
+        if (!isLive) return undefined;
+        const handleBeforeUnload = (e) => {
+            e.preventDefault();
+            e.returnValue = "";
+            return "";
+        };
+        window.addEventListener("beforeunload", handleBeforeUnload);
+        return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    }, [isLive]);
+
+    // Block the browser/gesture back button while recording by trapping history.
+    useEffect(() => {
+        if (!isLive) return undefined;
+        window.history.pushState({ gameLock: true }, "", window.location.href);
+        const handlePopState = () => {
+            // Re-trap immediately so the back navigation never actually completes.
+            window.history.pushState({ gameLock: true }, "", window.location.href);
+            setShowNavLockConfirm(true);
+        };
+        window.addEventListener("popstate", handlePopState);
+        return () => window.removeEventListener("popstate", handlePopState);
+    }, [isLive]);
+
+    // Disable mobile pull-to-refresh while recording. Safari largely ignores
+    // beforeunload confirmations for the pull-down-to-reload gesture, so the
+    // CSS hint alone isn't enough there — actively swallow the touch gesture
+    // that triggers it before Safari's native reload UI ever kicks in.
+    useEffect(() => {
+        if (!isLive) return undefined;
+        const previousOverscroll = document.body.style.overscrollBehaviorY;
+        document.body.style.overscrollBehaviorY = "contain";
+
+        let touchStartY = 0;
+        const handleTouchStart = (e) => {
+            touchStartY = e.touches[0].clientY;
+        };
+        const handleTouchMove = (e) => {
+            const scrollTop = window.scrollY || document.documentElement.scrollTop;
+            const pullingDownFromTop = scrollTop <= 0 && e.touches[0].clientY > touchStartY;
+            if (pullingDownFromTop) {
+                e.preventDefault();
+            }
+        };
+        document.addEventListener("touchstart", handleTouchStart, { passive: true });
+        document.addEventListener("touchmove", handleTouchMove, { passive: false });
+
+        return () => {
+            document.body.style.overscrollBehaviorY = previousOverscroll;
+            document.removeEventListener("touchstart", handleTouchStart);
+            document.removeEventListener("touchmove", handleTouchMove);
+        };
+    }, [isLive]);
 
     // Fetch game data
     const fetchGame = useCallback(async () => {
@@ -799,7 +859,28 @@ function LiveGameContent({ gameId }) {
             <div className="main-section-wrapper" style={{ alignItems: "flex-start", paddingBottom: 80 }}>
                 {toast && <div className={`toast-message ${toast.type}`}>{toast.message}</div>}
 
-                <MobileHeader />
+                <MobileHeader
+                    navLocked={isLive}
+                    onNavLockedAttempt={() => setShowNavLockConfirm(true)}
+                />
+
+                {/* Navigation locked while recording a live game */}
+                {showNavLockConfirm && (
+                    <div className="confirm-overlay" onClick={() => setShowNavLockConfirm(false)}>
+                        <div className="confirm-box" onClick={(e) => e.stopPropagation()}>
+                            <h4>Game In Progress</h4>
+                            <p>You can&apos;t leave this page while recording a live game.</p>
+                            <p className="confirm-detail">
+                                Use Cancel Game, Forfeit, or End Game below to exit properly.
+                            </p>
+                            <div className="confirm-actions">
+                                <button className="btn btn-primary" onClick={() => setShowNavLockConfirm(false)}>
+                                    Got It
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Live match score */}
                 <div className="live-match-wrapper">

@@ -83,11 +83,13 @@ export default function RunPage({ game, activeTeam, roster, onSave, onCancel, on
                     </div>
                     <div className="form-group">
                         <input
-                            type="number"
+                            type="tel"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             className="form-control"
                             placeholder="Rushing Yard*"
                             value={yards}
-                            onChange={(e) => setYards(e.target.value)}
+                            onChange={(e) => setYards(e.target.value.replace(/\D/g, ""))}
                         />
                     </div>
                 </div>

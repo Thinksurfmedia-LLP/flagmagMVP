@@ -108,11 +108,13 @@ export default function CompletionPage({ game, activeTeam, roster, onSave, onCan
                     </div>
                     <div className="form-group">
                         <input
-                            type="number"
+                            type="tel"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             className="form-control"
                             placeholder="Yard"
                             value={yards}
-                            onChange={(e) => setYards(e.target.value)}
+                            onChange={(e) => setYards(e.target.value.replace(/\D/g, ""))}
                         />
                     </div>
                 </div>
