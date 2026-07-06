@@ -299,6 +299,8 @@ export default function EditSchedulePage({ params }) {
 
         const duplicateRowKeys = new Set();
         let sameDateTimeNoField = false;
+        let hasFixtureDuplicate = false;
+        let hasFieldConflict = false;
         for (let i = 0; i < completeGames.length; i++) {
             for (let j = i + 1; j < completeGames.length; j++) {
                 const a = completeGames[i];
@@ -310,10 +312,12 @@ export default function EditSchedulePage({ params }) {
                 if (sameFixture) {
                     duplicateRowKeys.add(`${a.wIdx}_${a.gIdx}_row`);
                     duplicateRowKeys.add(`${b.wIdx}_${b.gIdx}_row`);
+                    hasFixtureDuplicate = true;
                 } else if (locationFields.length > 0) {
                     if (!a.field || !b.field || a.field === b.field) {
                         duplicateRowKeys.add(`${a.wIdx}_${a.gIdx}_row`);
                         duplicateRowKeys.add(`${b.wIdx}_${b.gIdx}_row`);
+                        hasFieldConflict = true;
                     }
                 } else {
                     sameDateTimeNoField = true;
@@ -322,6 +326,10 @@ export default function EditSchedulePage({ params }) {
         }
         if (duplicateRowKeys.size > 0) {
             setErrors(prev => { const next = { ...prev }; duplicateRowKeys.forEach(k => { next[k] = true; }); return next; });
+            const reasons = [];
+            if (hasFixtureDuplicate) reasons.push("the same matchup is scheduled twice at the same date/time");
+            if (hasFieldConflict) reasons.push("two games are booked on the same field at the same date/time");
+            showError(`Duplicate games found - ${reasons.join(" and ")}. Check the highlighted rows below.`);
             return;
         }
         if (sameDateTimeNoField && !window.confirm("Some games share the same date and time. This location has no fields to differentiate them. Save anyway?")) return;
