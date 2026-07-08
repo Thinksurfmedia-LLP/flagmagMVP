@@ -59,11 +59,21 @@ export default function RestrictedDatePicker({
             const p = parseYMD(value);
             if (p) return { year: p.year, month: p.month };
         }
+        // Default to the current month, clamped within [minDate, maxDate] if needed.
+        let view = { year: today.getFullYear(), month: today.getMonth() };
         if (minDate) {
             const p = parseYMD(minDate);
-            if (p) return { year: p.year, month: p.month };
+            if (p && (view.year < p.year || (view.year === p.year && view.month < p.month))) {
+                view = { year: p.year, month: p.month };
+            }
         }
-        return { year: today.getFullYear(), month: today.getMonth() };
+        if (maxDate) {
+            const p = parseYMD(maxDate);
+            if (p && (view.year > p.year || (view.year === p.year && view.month > p.month))) {
+                view = { year: p.year, month: p.month };
+            }
+        }
+        return view;
     }
 
     const init = getInitialView();
