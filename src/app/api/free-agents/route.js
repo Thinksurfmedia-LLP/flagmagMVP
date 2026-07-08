@@ -4,6 +4,7 @@ import dbConnect from "@/lib/dbConnect";
 import Player from "@/models/Player";
 import User from "@/models/User";
 import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
+import { reconcilePlayerStatuses } from "@/lib/playerRosterSync";
 
 async function getOrgIdForOrganizer(authUser) {
     if (authUser.organization?.id) return authUser.organization.id;
@@ -84,6 +85,12 @@ export async function GET(request) {
                 await Player.bulkWrite(bulkOps, { ordered: false }).catch(() => {});
             }
         }
+
+        // Self-heal: correct any Player whose status/presentTeam has drifted
+        // out of sync with actual team roster membership (see teams route
+        // syncAssignedPlayers). Prevents a rostered player from also showing
+        // up here as an available free agent.
+        await reconcilePlayerStatuses();
 
         const filter = { status: "free_agent" };
 

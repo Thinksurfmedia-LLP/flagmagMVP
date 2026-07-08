@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Player from "@/models/Player";
 import { requireAdmin, requireAuth, hasRole } from "@/lib/apiAuth";
+import { reconcilePlayerStatuses } from "@/lib/playerRosterSync";
 
 // GET all players
 export async function GET(request) {
@@ -41,6 +42,12 @@ export async function GET(request) {
         const { searchParams } = new URL(request.url);
         const search = searchParams.get("search");
         const status = searchParams.get("status");
+
+        // Self-heal: Team.players (roster membership) and Player.status can
+        // drift apart if a write is interrupted or races with another edit.
+        // Reconcile before filtering so a rostered player is never hidden by
+        // a stale status field (and vice versa for stale "player" statuses).
+        await reconcilePlayerStatuses();
 
         const filter = {};
 

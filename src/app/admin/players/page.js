@@ -186,6 +186,9 @@ export default function AdminPlayersPage() {
                                                         return { teamId: String(t._id), teamName: t.name, jerseyNumber: tp.jerseyNumber };
                                                     });
                                                     const firstTeam = playerTeams[0];
+                                                    // When filtered to a specific team, show that team's jersey number
+                                                    // instead of whichever team happens to be first in the list.
+                                                    const displayTeam = (teamFilter !== "all" && playerTeams.find(t => t.teamName === teamFilter)) || firstTeam;
                                                     const additionalTeamsCount = playerTeams.length > 1 ? playerTeams.length - 1 : 0;
 
                                                     return (
@@ -193,9 +196,9 @@ export default function AdminPlayersPage() {
                                                         <td style={{ fontWeight: 600 }}>
                                                             <img src={p.photo || "/assets/images/player-placeholder.svg"} alt="" style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", marginRight: 12, verticalAlign: "middle" }} />
                                                             <span style={{ verticalAlign: "middle" }}>{p.name}</span>
-                                                            {firstTeam && firstTeam.jerseyNumber != null && (
+                                                            {displayTeam && displayTeam.jerseyNumber != null && (
                                                                 <span className={`admin-badge ${isInactive ? "secondary" : "player"}`} style={{ marginLeft: 8, verticalAlign: "middle", fontSize: 11 }}>
-                                                                    #{firstTeam.jerseyNumber}
+                                                                    #{displayTeam.jerseyNumber}
                                                                 </span>
                                                             )}
                                                             {additionalTeamsCount > 0 && (
@@ -205,9 +208,9 @@ export default function AdminPlayersPage() {
                                                             )}
                                                         </td>
                                                         <td>
-                                                            {firstTeam ? (
+                                                            {displayTeam ? (
                                                                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                                                    <span>{firstTeam.teamName}</span>
+                                                                    <span>{displayTeam.teamName}</span>
                                                                     {additionalTeamsCount > 0 && (
                                                                         <span style={{ fontSize: 10, background: "#e8eaef", color: "#5a5f72", padding: "2px 6px", borderRadius: 10, fontWeight: 600, border: "1px solid #d5d8e0" }}>
                                                                             +{additionalTeamsCount}
@@ -267,6 +270,9 @@ export default function AdminPlayersPage() {
                                             return { teamId: String(t._id), teamName: t.name, jerseyNumber: tp.jerseyNumber };
                                         });
                                         const firstTeam = playerTeams[0];
+                                        // When filtered to a specific team, show that team's jersey number
+                                        // instead of whichever team happens to be first in the list.
+                                        const displayTeam = (teamFilter !== "all" && playerTeams.find(t => t.teamName === teamFilter)) || firstTeam;
                                         const additionalTeamsCount = playerTeams.length > 1 ? playerTeams.length - 1 : 0;
 
                                         return (
@@ -275,18 +281,18 @@ export default function AdminPlayersPage() {
                                                     <img src={p.photo || "/assets/images/player-placeholder.svg"} alt="" style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
                                                     <div className="players-card-item-title">
                                                         {p.name}
-                                                        {firstTeam && firstTeam.jerseyNumber != null && (
+                                                        {displayTeam && displayTeam.jerseyNumber != null && (
                                                             <span className={`admin-badge ${isInactive ? "secondary" : "player"}`} style={{ marginLeft: 8, fontSize: 11 }}>
-                                                                #{firstTeam.jerseyNumber}
+                                                                #{displayTeam.jerseyNumber}
                                                             </span>
                                                         )}
                                                     </div>
                                                     <span style={{ fontSize: 13, color: "#8b90a0", flexShrink: 0 }}>⭐ {p.overallRating || p.rating || 0}</span>
                                                 </div>
                                                 <div className="players-card-item-meta">
-                                                    {firstTeam ? (
+                                                    {displayTeam ? (
                                                         <span>
-                                                            {firstTeam.teamName}
+                                                            {displayTeam.teamName}
                                                             {additionalTeamsCount > 0 && (
                                                                 <span style={{ marginLeft: 6, fontSize: 11, background: "#e8eaef", color: "#5a5f72", padding: "2px 6px", borderRadius: 10, fontWeight: 600 }}>
                                                                     +{additionalTeamsCount} more

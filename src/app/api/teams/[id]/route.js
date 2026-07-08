@@ -4,6 +4,7 @@ import Team from "@/models/Team";
 import Player from "@/models/Player";
 import User from "@/models/User";
 import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
+import { reconcilePlayerStatuses } from "@/lib/playerRosterSync";
 
 async function getOrgIdForOrganizer(authUser) {
     if (authUser.organization?.id) return authUser.organization.id;
@@ -217,6 +218,14 @@ export async function PUT(request, { params }) {
             nextPlayerIds,
             prevPlayerIds,
         });
+
+        // Defense-in-depth: re-check that every touched player's status
+        // agrees with actual roster membership, in case syncAssignedPlayers
+        // raced with a concurrent edit elsewhere.
+        const touchedPlayerIds = [...new Set([...nextPlayerIds, ...prevPlayerIds])];
+        if (touchedPlayerIds.length > 0) {
+            await reconcilePlayerStatuses(touchedPlayerIds);
+        }
 
         const updated = await Team.findById(team._id)
             .populate("organization", "name slug")

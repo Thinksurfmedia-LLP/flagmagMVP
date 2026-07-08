@@ -3,6 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import Player from "@/models/Player";
 import GameStat from "@/models/GameStat";
 import { requireAdmin } from "@/lib/apiAuth";
+import { reconcilePlayerStatuses } from "@/lib/playerRosterSync";
 
 // GET single player
 export async function GET(request, { params }) {
@@ -35,7 +36,7 @@ export async function PUT(request, { params }) {
         const body = await request.json();
 
         // Handle Team changes explicitly
-        const { teamName, jerseyNumber, ...playerUpdates } = body;
+        const { teamName, jerseyNumber, teams, ...playerUpdates } = body;
         let updateData = { ...playerUpdates };
 
         if (body.teams !== undefined) {
@@ -110,6 +111,12 @@ export async function PUT(request, { params }) {
         const player = await Player.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
         if (!player) {
             return NextResponse.json({ success: false, error: "Player not found" }, { status: 404 });
+        }
+
+        // Defense-in-depth: re-check this player's status against actual
+        // roster membership, in case a concurrent edit raced with this one.
+        if (body.teams !== undefined || teamName !== undefined || jerseyNumber !== undefined) {
+            await reconcilePlayerStatuses([id]);
         }
 
         // Keep associated User record in sync if name was updated

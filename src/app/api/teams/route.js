@@ -4,6 +4,7 @@ import Team from "@/models/Team";
 import Player from "@/models/Player";
 import User from "@/models/User";
 import { requireAnyPermission } from "@/lib/apiAuth";
+import { reconcilePlayerStatuses } from "@/lib/playerRosterSync";
 
 async function getOrgIdForOrganizer(authUser) {
     if (authUser.organization?.id) return authUser.organization.id;
@@ -236,6 +237,10 @@ export async function POST(request) {
             nextPlayerIds: playerIds,
             prevPlayerIds: [],
         });
+
+        if (playerIds.length > 0) {
+            await reconcilePlayerStatuses(playerIds);
+        }
 
         const created = await Team.findById(team._id)
             .populate("organization", "name slug")
