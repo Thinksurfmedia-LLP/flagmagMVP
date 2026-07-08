@@ -159,6 +159,7 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
                 const defender = resolvePlayer(play.defender, otherTeam, rosterMap);
                 if (defender) {
                     const ds = getOrInit(defensive, defender, otherTeam);
+                    inc(ds, "fumbles");
                     if (isTD) inc(ds, "fumbleTD");
                     if (is2pt) inc(ds, "fumblePAT");
                 }
@@ -314,6 +315,7 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
             dpat: (d.dpat || 0) + (d.fumblePAT || 0),
             dsacks: d.dsacks || 0,
             dsafety: d.dsafety || 0,
+            fumbles: d.fumbles || 0,
             flagPulls: d.flagPulls || 0,
         };
     });
@@ -403,7 +405,7 @@ export async function computeSeasonStats(leagueId, orgId) {
         mergeRows(mergedPassing, gameStats.passing, ["atts", "comp", "yards", "tds", "pat", "ints", "sacks", "safety"]);
         mergeRows(mergedReceiving, gameStats.receiving, ["receptions", "yards", "tds", "pat"]);
         mergeRows(mergedRushing, gameStats.rushing, ["atts", "yards", "tds", "pat"]);
-        mergeRows(mergedDefensive, gameStats.defensive, ["dint", "dintTD", "dtd", "dpat", "dsacks", "dsafety", "flagPulls"]);
+        mergeRows(mergedDefensive, gameStats.defensive, ["dint", "dintTD", "dtd", "dpat", "dsacks", "dsafety", "fumbles", "flagPulls"]);
     }
 
     // Recalculate derived fields
@@ -478,7 +480,7 @@ const RAW_FIELDS = {
     passing:   ["atts", "comp", "yards", "tds", "pat", "ints", "sacks", "safety"],
     receiving: ["receptions", "yards", "tds", "pat"],
     rushing:   ["atts", "yards", "tds", "pat", "gamesPlayed"],
-    defensive: ["dint", "dintTD", "dtd", "dpat", "dsacks", "dsafety", "flagPulls", "gamesPlayed"],
+    defensive: ["dint", "dintTD", "dtd", "dpat", "dsacks", "dsafety", "fumbles", "flagPulls", "gamesPlayed"],
 };
 
 function recalcDerivedFields(p, statType) {

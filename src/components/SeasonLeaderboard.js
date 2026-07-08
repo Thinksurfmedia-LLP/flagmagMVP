@@ -39,7 +39,7 @@ const statColumns = {
     ],
     defensive: [
         { key: "dint", label: "INT" },
-        { key: "dintTD", label: "INT TD" },
+        { key: "fumbles", label: "FMBL" },
         { key: "dtd", label: "DTD" },
         { key: "dpat", label: "DPAT" },
         { key: "dsacks", label: "SCK" },
