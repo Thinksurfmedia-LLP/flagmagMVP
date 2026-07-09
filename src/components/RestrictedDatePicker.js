@@ -16,7 +16,7 @@ const MONTH_NAMES = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December",
 ];
-const DAY_LABELS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+const DAY_LABELS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
 function parseDayIndices(scheduleDays) {
     if (!scheduleDays || scheduleDays.length === 0) return null;
@@ -146,7 +146,7 @@ export default function RestrictedDatePicker({
         return viewYear < p.year || (viewYear === p.year && viewMonth < p.month);
     })();
 
-    const firstDow = (new Date(viewYear, viewMonth, 1).getDay() + 6) % 7;
+    const firstDow = new Date(viewYear, viewMonth, 1).getDay();
     const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
 
     const navBtnBase = {
