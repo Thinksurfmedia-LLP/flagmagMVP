@@ -14,7 +14,6 @@ export default function SearchableSelect({
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState("");
     const containerRef = useRef(null);
-    const clearTimerRef = useRef(null);
 
     const selectedOption = options.find(o => o.value === value);
 
@@ -32,13 +31,6 @@ export default function SearchableSelect({
         document.addEventListener("mousedown", onClickOutside);
         return () => document.removeEventListener("mousedown", onClickOutside);
     }, []);
-
-    // Auto-clear typed query after 1.2s of inactivity
-    useEffect(() => {
-        if (!query) return;
-        clearTimerRef.current = setTimeout(() => setQuery(""), 1200);
-        return () => clearTimeout(clearTimerRef.current);
-    }, [query]);
 
     const handleKeyDown = useCallback((e) => {
         if (!open) return;
