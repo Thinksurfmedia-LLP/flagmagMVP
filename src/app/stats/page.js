@@ -6,7 +6,7 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ScrollToContent from "@/components/ScrollToContent";
-import ScheduleWithDateStrip from "@/components/ScheduleWithDateStrip";
+import ScheduleWeekTables from "@/components/ScheduleWeekTables";
 import LeagueLeaderboard from "@/components/LeagueLeaderboard";
 import SeasonLeaderboard from "@/components/SeasonLeaderboard";
 
@@ -79,7 +79,7 @@ function StandingsView({ orgSlug, leagueSlug }) {
 }
 
 // ── League schedule (week selector + game cards) ──────────────────────────────
-function LeagueSchedule({ orgSlug, leagueSlug, orgTimezone }) {
+function LeagueSchedule({ orgSlug, leagueSlug }) {
     const [scheduleData, setScheduleData] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -95,18 +95,7 @@ function LeagueSchedule({ orgSlug, leagueSlug, orgTimezone }) {
     if (loading) return <div style={{ textAlign: "center", padding: "40px 0", color: "rgba(255,255,255,0.45)" }}>Loading schedule…</div>;
     if (!scheduleData || scheduleData.weekMeta.length === 0) return <div style={{ textAlign: "center", padding: "24px 0", color: "rgba(255,255,255,0.45)" }}>No games scheduled.</div>;
 
-    return (
-        <ScheduleWithDateStrip
-            key={`${orgSlug}-${leagueSlug}`}
-            weekMeta={scheduleData.weekMeta}
-            initialWeekIdx={scheduleData.initialWeekIdx}
-            initialGames={scheduleData.initialGames}
-            leagueId={scheduleData.leagueId}
-            orgSlug={orgSlug}
-            seasonSlug={leagueSlug}
-            orgTimezone={orgTimezone}
-        />
-    );
+    return <ScheduleWeekTables key={`${orgSlug}-${leagueSlug}`} weeks={scheduleData.weeks} orgSlug={orgSlug} seasonSlug={leagueSlug} />;
 }
 
 // ── Org card — same visual as leagues-card on the org detail page ────────────
@@ -224,6 +213,10 @@ function StatsPageContent() {
             const lList = lData.data || [];
             lList.sort((a, b) => a.name.localeCompare(b.name));
             setLeagues(lList);
+
+            if (sList.length > 0) {
+                setSelectedSeasons([String(sList[0]._id)]);
+            }
         }).catch(() => {})
           .finally(() => { setLoadingSeasons(false); setLoadingLeagues(false); });
     }, [orgSlug]);
@@ -501,7 +494,6 @@ function StatsPageContent() {
                                         key={`sched-${orgSlug}-${leagueSlug}`}
                                         orgSlug={orgSlug}
                                         leagueSlug={leagueSlug}
-                                        orgTimezone={selectedOrg?.timezone || "America/Los_Angeles"}
                                     />
                                 </>
                             )}

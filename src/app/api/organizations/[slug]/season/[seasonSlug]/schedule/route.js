@@ -26,56 +26,53 @@ export async function GET(request, { params }) {
 
         const leagueId = String(league._id);
 
-        // Build week metadata from all game dates (exclude practice games)
-        const gameDates = await Game.find({ league: league._id, gameType: { $ne: "practice" } }).select("date").sort({ date: 1 }).lean();
-
-        const weekMap = new Map();
-        for (const { date } of gameDates) {
-            const ws = getWeekStart(date);
-            weekMap.set(ws, (weekMap.get(ws) || 0) + 1);
-        }
-        const weekMeta = Array.from(weekMap.entries())
-            .sort((a, b) => a[0].localeCompare(b[0]))
-            .map(([weekStart, gameCount], idx) => ({ weekNum: idx + 1, weekStart, gameCount }));
-
-        if (weekMeta.length === 0) {
-            return NextResponse.json({ success: true, leagueId, weekMeta: [], initialWeekIdx: 0, initialGames: [] });
-        }
-
-        // Determine best initial week
-        const todayWeekStart = getWeekStart(new Date());
-        let initialWeekIdx = weekMeta.findIndex((w) => w.weekStart >= todayWeekStart);
-        if (initialWeekIdx === -1) initialWeekIdx = Math.max(0, weekMeta.length - 1);
-
-        // Fetch full game data for the initial week
-        const ws = weekMeta[initialWeekIdx].weekStart;
-        const weekEnd = new Date(ws);
-        weekEnd.setUTCDate(weekEnd.getUTCDate() + 7);
-        const initialGames = await Game.find({
-            league: league._id,
-            date: { $gte: new Date(ws), $lt: weekEnd },
-            gameType: { $ne: "practice" },
-        })
+        // Fetch all non-practice games for the league up front, sorted by date/time
+        const allGames = await Game.find({ league: league._id, gameType: { $ne: "practice" } })
             .sort({ date: 1, time: 1 })
             .lean();
+
+        if (allGames.length === 0) {
+            return NextResponse.json({ success: true, leagueId, weekMeta: [], initialWeekIdx: 0, weeks: [] });
+        }
 
         // Enrich with latest team logos
         const teams = await Team.find({ organization: org._id }).select("name logo").lean();
         const teamLogoMap = {};
         teams.forEach((t) => { teamLogoMap[t.name] = t.logo || ""; });
-        initialGames.forEach((game) => {
+        allGames.forEach((game) => {
             if (teamLogoMap[game.teamA?.name] !== undefined)
                 game.teamA.logo = teamLogoMap[game.teamA.name] || game.teamA.logo;
             if (teamLogoMap[game.teamB?.name] !== undefined)
                 game.teamB.logo = teamLogoMap[game.teamB.name] || game.teamB.logo;
         });
 
+        // Group games into weeks by week-start
+        const weekMap = new Map();
+        for (const game of allGames) {
+            const ws = getWeekStart(game.date);
+            if (!weekMap.has(ws)) weekMap.set(ws, []);
+            weekMap.get(ws).push(game);
+        }
+        const sortedWeekStarts = Array.from(weekMap.keys()).sort((a, b) => a.localeCompare(b));
+        const weeks = sortedWeekStarts.map((weekStart, idx) => ({
+            weekNum: idx + 1,
+            weekStart,
+            gameCount: weekMap.get(weekStart).length,
+            games: weekMap.get(weekStart),
+        }));
+        const weekMeta = weeks.map(({ weekNum, weekStart, gameCount }) => ({ weekNum, weekStart, gameCount }));
+
+        // Determine best initial week (first week with an upcoming/today game, else last)
+        const todayWeekStart = getWeekStart(new Date());
+        let initialWeekIdx = weekMeta.findIndex((w) => w.weekStart >= todayWeekStart);
+        if (initialWeekIdx === -1) initialWeekIdx = Math.max(0, weekMeta.length - 1);
+
         return NextResponse.json({
             success: true,
             leagueId,
             weekMeta,
             initialWeekIdx,
-            initialGames: JSON.parse(JSON.stringify(initialGames)),
+            weeks: JSON.parse(JSON.stringify(weeks)),
         });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });

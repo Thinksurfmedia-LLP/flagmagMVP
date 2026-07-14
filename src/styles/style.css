@@ -1995,6 +1995,10 @@ header.for-homepage {
   vertical-align: middle;
 }
 
+.table tbody tr.clickable-row:hover {
+  background-color: rgba(255, 30, 0, 0.08);
+}
+
 .players-stats {
   overflow: hidden;
   border-radius: 10px;
