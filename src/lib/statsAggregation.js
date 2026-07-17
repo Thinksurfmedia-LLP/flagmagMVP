@@ -348,11 +348,16 @@ export async function computeGameStats(gameId) {
     };
 }
 
-/**
- * Compute aggregated stats across all games in a league/season.
- * Returns per-player stats accumulated over all games.
- */
-export async function computeSeasonStats(leagueId, orgId) {
+// The leaderboard route calls computeSeasonStats once per stat type
+// (passing/receiving/rushing/defensive), all four arriving concurrently for
+// the same leagueId — computeSeasonStats always returns all four categories
+// anyway, so without coalescing that's 4x redundant DB work per request.
+// This cache shares the in-flight promise across those calls and keeps the
+// result around briefly for the next page load.
+const seasonStatsCache = new Map();
+const SEASON_STATS_TTL_MS = 10_000;
+
+async function computeSeasonStatsUncached(leagueId, orgId) {
     const games = await Game.find({ league: leagueId, gameType: { $ne: "practice" } }).lean();
     if (!games.length) return { passing: [], receiving: [], rushing: [], defensive: [] };
 
@@ -369,6 +374,36 @@ export async function computeSeasonStats(leagueId, orgId) {
         playsByGame[gid].push(play);
     }
 
+    // Fetch every team roster referenced by this league's games in ONE query,
+    // instead of one Team.find().populate() round-trip per game — the same
+    // two teams usually play each other multiple times in a season, so the
+    // previous per-game fetch multiplied Atlas round-trips by game count.
+    const teamNames = new Set();
+    for (const game of games) {
+        teamNames.add(game.teamA.name);
+        teamNames.add(game.teamB.name);
+    }
+    const teams = await Team.find({
+        organization: orgId,
+        name: { $in: [...teamNames] },
+    })
+        .populate("players.player", "name photo")
+        .lean();
+
+    const rosterByTeamName = {};
+    for (const team of teams) {
+        const map = {};
+        for (const p of team.players || []) {
+            map[String(p.jerseyNumber)] = {
+                playerId: String(p.player?._id || p.player),
+                playerName: p.player?.name || "",
+                playerPhoto: p.player?.photo || "",
+                jerseyNumber: p.jerseyNumber != null ? String(p.jerseyNumber) : "",
+            };
+        }
+        rosterByTeamName[team.name] = map;
+    }
+
     // Accumulated stats across games
     const mergedPassing = {};
     const mergedReceiving = {};
@@ -381,7 +416,11 @@ export async function computeSeasonStats(leagueId, orgId) {
         const gamePlays = playsByGame[gid];
         if (!gamePlays || gamePlays.length === 0) continue;
 
-        const { rosterMap, teamNamesByAB } = await buildRosterMap(game, orgId);
+        const rosterMap = {
+            A: rosterByTeamName[game.teamA.name] || {},
+            B: rosterByTeamName[game.teamB.name] || {},
+        };
+        const teamNamesByAB = { A: game.teamA.name, B: game.teamB.name };
         const gameStats = aggregateStats(gamePlays, rosterMap, teamNamesByAB);
 
         // Helper to merge rows — keyed by playerId|||teamName so each player's
@@ -469,6 +508,27 @@ export async function computeSeasonStats(leagueId, orgId) {
         rushing: rushingRows,
         defensive: defensiveRows,
     };
+}
+
+/**
+ * Same as computeSeasonStatsUncached, but coalesces concurrent calls for the
+ * same league and caches the result briefly, since the leaderboard route
+ * fires 4 requests (one per stat type) at once that all need the same data.
+ */
+export async function computeSeasonStats(leagueId, orgId) {
+    const key = String(leagueId);
+    const cached = seasonStatsCache.get(key);
+    if (cached && cached.expiresAt > Date.now()) {
+        return cached.promise;
+    }
+
+    const promise = computeSeasonStatsUncached(leagueId, orgId);
+    seasonStatsCache.set(key, { promise, expiresAt: Date.now() + SEASON_STATS_TTL_MS });
+
+    // Don't let a failed computation poison the cache for subsequent requests.
+    promise.catch(() => seasonStatsCache.delete(key));
+
+    return promise;
 }
 
 // ---------------------------------------------------------------------------

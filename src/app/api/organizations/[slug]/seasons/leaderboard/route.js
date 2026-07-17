@@ -34,8 +34,13 @@ export async function GET(request, { params }) {
         // Aggregate stats across all leagues, keeping separate rows per player-team combination
         const merged = {};
 
-        for (const league of leagues) {
-            const stats = await computeSeasonStats(league._id, org._id);
+        // Leagues are independent — compute them concurrently instead of one
+        // at a time, since each involves several DB round-trips.
+        const perLeagueStats = await Promise.all(
+            leagues.map((league) => computeSeasonStats(league._id, org._id))
+        );
+
+        for (const stats of perLeagueStats) {
             const rows = stats[statType] || [];
             for (const row of rows) {
                 const id = `${row.playerId}|||${row.teamName}`;
