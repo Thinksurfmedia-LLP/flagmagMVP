@@ -442,6 +442,8 @@ function LeagueTeamsModal({ league, onClose }) {
     const [division, setDivision] = useState("");
     const [newTeamName, setNewTeamName] = useState("");
     const [saving, setSaving] = useState(false);
+    const [editingId, setEditingId] = useState(null);
+    const [editValue, setEditValue] = useState("");
 
     const orgId = league.organization?._id || league.organization;
 
@@ -511,6 +513,36 @@ function LeagueTeamsModal({ league, onClose }) {
         }
     };
 
+    const startEdit = (team) => {
+        setEditingId(team._id);
+        setEditValue(team.division || "");
+    };
+
+    const cancelEdit = () => {
+        setEditingId(null);
+        setEditValue("");
+    };
+
+    const handleSaveEdit = async (team) => {
+        setSaving(true);
+        try {
+            const res = await fetch(`/api/leagues/${league._id}/teams/${team._id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ division: editValue.trim() }),
+            });
+            const data = await res.json();
+            if (!data.success) { showError(data.error); return; }
+            showSuccess("Division updated!");
+            cancelEdit();
+            load();
+        } catch {
+            showError("Failed to update division");
+        } finally {
+            setSaving(false);
+        }
+    };
+
     const handleRemove = async (team) => {
         if (!confirm(`Remove "${team.name}" from this league?`)) return;
         try {
@@ -543,15 +575,42 @@ function LeagueTeamsModal({ league, onClose }) {
                             ) : (
                                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                                     {assigned.map((t) => (
-                                        <div key={t._id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 10px", background: "#f9fafb", border: "1px solid #e8eaef", borderRadius: 6 }}>
-                                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                                {t.logo && <img src={t.logo} alt="" style={{ width: 20, height: 20, borderRadius: 4 }} />}
-                                                <span style={{ fontWeight: 600, fontSize: 13, color: "#1a1d26" }}>{t.name}</span>
-                                                {t.division && <span style={{ color: "#8b90a0", fontSize: 12 }}>({t.division})</span>}
+                                        <div key={t._id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 10px", background: "#f9fafb", border: "1px solid #e8eaef", borderRadius: 6, gap: 8 }}>
+                                            <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
+                                                {t.logo && <img src={t.logo} alt="" style={{ width: 20, height: 20, borderRadius: 4, flexShrink: 0 }} />}
+                                                <span style={{ fontWeight: 600, fontSize: 13, color: "#1a1d26", flexShrink: 0 }}>{t.name}</span>
+                                                {editingId === t._id ? (
+                                                    <input
+                                                        className="admin-form-input"
+                                                        style={{ flex: 1, height: 30, fontSize: 12, padding: "4px 8px" }}
+                                                        value={editValue}
+                                                        onChange={(e) => setEditValue(e.target.value)}
+                                                        placeholder="Division"
+                                                        autoFocus
+                                                    />
+                                                ) : (
+                                                    t.division && <span style={{ color: "#8b90a0", fontSize: 12 }}>({t.division})</span>
+                                                )}
                                             </div>
-                                            <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => handleRemove(t)} title="Remove">
-                                                <i className="fa-solid fa-xmark"></i>
-                                            </button>
+                                            {editingId === t._id ? (
+                                                <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                                                    <button className="admin-btn admin-btn-primary admin-btn-sm" onClick={() => handleSaveEdit(t)} disabled={saving} title="Save">
+                                                        <i className="fa-solid fa-check"></i>
+                                                    </button>
+                                                    <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={cancelEdit} disabled={saving} title="Cancel">
+                                                        <i className="fa-solid fa-xmark"></i>
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                                                    <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => startEdit(t)} title="Edit division">
+                                                        <i className="fa-solid fa-pen"></i>
+                                                    </button>
+                                                    <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => handleRemove(t)} title="Remove">
+                                                        <i className="fa-solid fa-xmark"></i>
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
