@@ -248,13 +248,11 @@ export async function POST(request) {
                     name,
                     logo: row.logo || "",
                     description: row.description || "",
-                    division: row.division || "",
                     coachName: (row.coachname || row.coach_name || "").trim(),
                     coachPhone: (row.coachphone || row.coach_phone || "").trim(),
                     location,
                     organization: organizationId,
-                    season: seasonId,
-                    league: leagueId,
+                    leagues: [{ league: leagueId, division: row.division || "", joinedAt: new Date() }],
                     players: [],
                 });
 

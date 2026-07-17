@@ -19,7 +19,7 @@ export async function GET(request, { params }) {
         const league = await League.findOne({ organization: org._id, slug: seasonSlug }).select("_id").lean();
         if (!league) return NextResponse.json({ teams: [] });
 
-        const teams = await Team.find({ organization: org._id, league: league._id })
+        const teams = await Team.find({ organization: org._id, "leagues.league": league._id })
             .select("name logo")
             .lean();
 

@@ -15,10 +15,6 @@ const TeamSchema = new mongoose.Schema(
             type: String,
             default: "",
         },
-        division: {
-            type: String,
-            default: "",
-        },
         location: {
             stateName: { type: String, default: "" },
             stateAbbr: { type: String, default: "" },
@@ -40,16 +36,27 @@ const TeamSchema = new mongoose.Schema(
             ref: "Organization",
             required: true,
         },
-        season: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Season",
-            default: null,
-        },
-        league: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "League",
-            default: null,
-        },
+        // A team keeps one identity across every league/season it ever played —
+        // this array lets it belong to more than one league at once (e.g. a
+        // regular league and a playoffs bracket running concurrently) and
+        // preserves every past membership instead of overwriting it.
+        leagues: [
+            {
+                league: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: "League",
+                    required: true,
+                },
+                division: {
+                    type: String,
+                    default: "",
+                },
+                joinedAt: {
+                    type: Date,
+                    default: Date.now,
+                },
+            },
+        ],
         players: [
             {
                 player: {
@@ -71,6 +78,7 @@ const TeamSchema = new mongoose.Schema(
 );
 
 TeamSchema.index({ organization: 1, name: 1 }, { unique: true });
+TeamSchema.index({ organization: 1, "leagues.league": 1 });
 
 function getTeamModel() {
     const existing = mongoose.models.Team;
@@ -79,10 +87,9 @@ function getTeamModel() {
         const hasDescription = Boolean(existing.schema.path("description"));
         const hasJerseyNumber = Boolean(existing.schema.path("players.jerseyNumber"));
         const hasCoachName = Boolean(existing.schema.path("coachName"));
-        const hasSeason = Boolean(existing.schema.path("season"));
-        const hasLeague = Boolean(existing.schema.path("league"));
+        const hasLeagues = Boolean(existing.schema.path("leagues"));
         const hasIsPlaceholder = Boolean(existing.schema.path("isPlaceholder"));
-        if (!hasPlayers || !hasDescription || !hasJerseyNumber || !hasCoachName || !hasSeason || !hasLeague || !hasIsPlaceholder) {
+        if (!hasPlayers || !hasDescription || !hasJerseyNumber || !hasCoachName || !hasLeagues || !hasIsPlaceholder) {
             delete mongoose.models.Team;
         }
     }

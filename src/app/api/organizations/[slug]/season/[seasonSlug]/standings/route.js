@@ -16,8 +16,8 @@ export async function GET(request, { params }) {
         const league = await League.findOne({ organization: org._id, slug: seasonSlug }).select("_id name").lean();
         if (!league) return NextResponse.json({ success: false, error: "League not found" }, { status: 404 });
 
-        const teams = await Team.find({ organization: org._id, league: league._id })
-            .select("name logo division")
+        const teams = await Team.find({ organization: org._id, "leagues.league": league._id })
+            .select("name logo leagues")
             .lean();
 
         const games = await Game.find({ league: league._id, status: "completed", gameType: { $ne: "practice" } }).lean();
@@ -26,10 +26,11 @@ export async function GET(request, { params }) {
         const stats = {};
         for (const t of teams) {
             const key = t.name.trim().toLowerCase();
+            const membership = (t.leagues || []).find((l) => String(l.league) === String(league._id));
             stats[key] = {
                 name: t.name.trim(),
                 logo: t.logo || "",
-                division: (t.division || "").trim(),
+                division: (membership?.division || "").trim(),
                 wins: 0, losses: 0, pf: 0, pa: 0,
             };
         }

@@ -183,12 +183,12 @@ export async function PUT(request, { params }) {
         team.name = body.name?.trim() || team.name;
         team.logo = body.logo ?? team.logo;
         team.description = body.description !== undefined ? (body.description?.trim() || "") : team.description;
-        team.division = body.division !== undefined ? (body.division?.trim() || "") : team.division;
         if (body.coachName !== undefined) team.coachName = body.coachName?.trim() || "";
         if (body.coachPhone !== undefined) team.coachPhone = body.coachPhone?.trim() || "";
         if (body.location) team.location = body.location;
-        if (body.season !== undefined) team.season = body.season || null;
-        if (body.league !== undefined) team.league = body.league || null;
+        // League membership is managed from the Leagues admin page
+        // (/api/leagues/[id]/teams), not here — a team can belong to several
+        // leagues at once, so there's no single "the league" to overwrite.
         if (nextPlayersArray) {
             team.players = nextPlayersArray.map(p => ({
                 player: typeof p === "object" ? p.player : p,
@@ -229,8 +229,7 @@ export async function PUT(request, { params }) {
 
         const updated = await Team.findById(team._id)
             .populate("organization", "name slug")
-            .populate("season", "name")
-            .populate("league", "name")
+            .populate("leagues.league", "name")
             .populate("players.player", "name photo presentTeam organization")
             .lean();
 

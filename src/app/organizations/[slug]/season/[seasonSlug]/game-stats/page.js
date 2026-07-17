@@ -20,7 +20,8 @@ async function getData(slug, seasonSlug) {
     const playerCount = await Player.countDocuments({ organization: org._id });
 
     // Fetch only teams assigned to this league
-    const teams = await Team.find({ organization: org._id, league: league._id }).select("name logo division").lean();
+    const teams = await Team.find({ organization: org._id, "leagues.league": league._id }).select("name logo leagues").lean();
+    const divisionFor = (t) => (t.leagues || []).find((l) => String(l.league) === String(league._id))?.division || "";
 
     // Fetch all completed games for this league
     const games = await Game.find({ league: league._id, status: "completed", gameType: { $ne: "practice" } }).lean();
@@ -31,7 +32,7 @@ async function getData(slug, seasonSlug) {
         teamMeta[t.name.trim().toLowerCase()] = {
             name: t.name.trim(),
             logo: t.logo || "",
-            division: (t.division || "").trim(),
+            division: divisionFor(t).trim(),
         };
     }
 
@@ -42,7 +43,7 @@ async function getData(slug, seasonSlug) {
         stats[key] = {
             name: t.name.trim(),
             logo: t.logo || "",
-            division: (t.division || "").trim(),
+            division: divisionFor(t).trim(),
             wins: 0, losses: 0, pf: 0, pa: 0,
         };
     }

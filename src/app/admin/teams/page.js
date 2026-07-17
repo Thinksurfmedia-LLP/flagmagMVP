@@ -108,15 +108,6 @@ function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, ef
     const handleSave = async () => {
         if (!name.trim()) return;
 
-        if (!season) {
-            showError("Season is required");
-            return;
-        }
-        if (!league) {
-            showError("League is required");
-            return;
-        }
-
         setSaving(true);
 
         const locationPayload = pickerState ? {
@@ -132,11 +123,12 @@ function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, ef
             description: description.trim(),
             coachName: coachName.trim(),
             coachPhone: coachPhone.trim(),
-            division: division.trim(),
             location: locationPayload,
             organization: effectiveRole === "admin" ? organization : undefined,
-            season: season || null,
-            league: league || null,
+            // League assignment only applies when creating — editing an
+            // existing team's league memberships happens on the Leagues page,
+            // since a team can belong to more than one league at once.
+            ...(team ? {} : { league: league || null, division: division.trim() }),
         });
         setSaving(false);
     };
@@ -161,39 +153,63 @@ function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, ef
                     </div>
                 )}
 
-                {(() => {
-                    // For admin: filter by selected org. For organizer: API already scoped — show all.
-                    const orgSeasons = effectiveRole === "admin"
-                        ? (seasons || []).filter(s => organization && String(s.organization?._id || s.organization) === organization)
-                        : (seasons || []);
-                    const seasonLeagues = effectiveRole === "admin"
-                        ? (leagues || []).filter(l => organization && String(l.organization?._id || l.organization) === organization && (!season || String(l.season?._id || l.season || "") === season))
-                        : (leagues || []).filter(l => !season || String(l.season?._id || l.season || "") === season);
-                    const seasonDisabled = effectiveRole === "admin" && !organization;
-                    const leagueDisabled = seasonDisabled || !season;
-                    return (
-                        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                            <div className="admin-form-group" style={{ flex: 1, minWidth: 200 }}>
-                                <label className="admin-form-label">Season *</label>
-                                <select className="admin-form-select" value={season} onChange={(e) => { setSeason(e.target.value); setLeague(""); }} disabled={seasonDisabled}>
-                                    <option value="">Select season...</option>
-                                    {orgSeasons.map(s => (
-                                        <option key={s._id} value={s._id}>{s.name}</option>
-                                    ))}
-                                </select>
+                {team ? (
+                    <div className="admin-form-group">
+                        <label className="admin-form-label">League Memberships</label>
+                        {(team.leagues || []).length === 0 ? (
+                            <div style={{ color: "#8b90a0", fontSize: 13 }}>Not assigned to any league yet.</div>
+                        ) : (
+                            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                                {team.leagues.map((m, i) => (
+                                    <div key={m.league?._id || i} style={{ fontSize: 13, color: "#1a1d26" }}>
+                                        <strong>{m.league?.name || "Unknown league"}</strong>
+                                        {m.division && <span style={{ color: "#5a5f72" }}> — {m.division}</span>}
+                                    </div>
+                                ))}
                             </div>
-                            <div className="admin-form-group" style={{ flex: 1, minWidth: 200 }}>
-                                <label className="admin-form-label">League *</label>
-                                <select className="admin-form-select" value={league} onChange={(e) => setLeague(e.target.value)} disabled={leagueDisabled}>
-                                    <option value="">{!season ? "Select a season first..." : "Select league..."}</option>
-                                    {seasonLeagues.map(l => (
-                                        <option key={l._id} value={l._id}>{l.name}</option>
-                                    ))}
-                                </select>
-                            </div>
+                        )}
+                        <div style={{ marginTop: 6, fontSize: 12, color: "#8b90a0" }}>
+                            <i className="fa-solid fa-circle-info" style={{ marginRight: 4 }}></i>
+                            Manage which leagues this team is in from the Leagues page.
                         </div>
-                    );
-                })()}
+                    </div>
+                ) : (
+                    <>
+                        {(() => {
+                            // For admin: filter by selected org. For organizer: API already scoped — show all.
+                            const orgSeasons = effectiveRole === "admin"
+                                ? (seasons || []).filter(s => organization && String(s.organization?._id || s.organization) === organization)
+                                : (seasons || []);
+                            const seasonLeagues = effectiveRole === "admin"
+                                ? (leagues || []).filter(l => organization && String(l.organization?._id || l.organization) === organization && (!season || String(l.season?._id || l.season || "") === season))
+                                : (leagues || []).filter(l => !season || String(l.season?._id || l.season || "") === season);
+                            const seasonDisabled = effectiveRole === "admin" && !organization;
+                            const leagueDisabled = seasonDisabled || !season;
+                            return (
+                                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                                    <div className="admin-form-group" style={{ flex: 1, minWidth: 200 }}>
+                                        <label className="admin-form-label">Season (optional)</label>
+                                        <select className="admin-form-select" value={season} onChange={(e) => { setSeason(e.target.value); setLeague(""); }} disabled={seasonDisabled}>
+                                            <option value="">Select season...</option>
+                                            {orgSeasons.map(s => (
+                                                <option key={s._id} value={s._id}>{s.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="admin-form-group" style={{ flex: 1, minWidth: 200 }}>
+                                        <label className="admin-form-label">League (optional)</label>
+                                        <select className="admin-form-select" value={league} onChange={(e) => setLeague(e.target.value)} disabled={leagueDisabled}>
+                                            <option value="">{!season ? "Select a season first..." : "Select league..."}</option>
+                                            {seasonLeagues.map(l => (
+                                                <option key={l._id} value={l._id}>{l.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                            );
+                        })()}
+                    </>
+                )}
 
                 <div className="admin-form-group">
                     <label className="admin-form-label">Team Name *</label>
@@ -239,6 +255,7 @@ function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, ef
                     </div>
                 </div>
 
+                {!team && (
                 <div className="admin-form-group">
                     <label className="admin-form-label">Division (optional)</label>
                     <div ref={divisionRef} style={{ position: "relative" }}>
@@ -305,6 +322,7 @@ function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, ef
                         })()}
                     </div>
                 </div>
+                )}
 
                 <div className="admin-form-group">
                     <label className="admin-form-label">Origin Location (optional)</label>
@@ -372,7 +390,7 @@ function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, ef
                     <button
                         className="admin-btn admin-btn-primary"
                         onClick={handleSave}
-                        disabled={saving || !name.trim() || (effectiveRole === "admin" && !organization) || !season || !league}
+                        disabled={saving || !name.trim() || (effectiveRole === "admin" && !organization)}
                     >
                         {saving ? "Saving..." : team ? "Save Changes" : "Create Team"}
                     </button>
@@ -728,7 +746,9 @@ export default function AdminTeamsPage() {
     const placeholderTeams = teams.filter((t) => t.isPlaceholder);
 
     // Cascading filter options derived from loaded teams
-    const leagueOptions = [...new Map(regularTeams.filter(t => t.league).map(t => [t.league._id, { id: t.league._id, name: t.league.name }])).values()].sort((a, b) => a.name.localeCompare(b.name));
+    const leagueOptions = [...new Map(
+        regularTeams.flatMap(t => t.leagues || []).filter(m => m.league).map(m => [m.league._id, { id: m.league._id, name: m.league.name }])
+    ).values()].sort((a, b) => a.name.localeCompare(b.name));
     const stateOptions = [...new Set(regularTeams.map(t => t.location?.stateName).filter(Boolean))].sort();
     const countyOptions = filterState
         ? [...new Set(regularTeams.filter(t => t.location?.stateName === filterState).map(t => t.location?.countyName).filter(Boolean))].sort()
@@ -749,9 +769,11 @@ export default function AdminTeamsPage() {
             : <i className="fa-solid fa-sort-down" style={{ marginLeft: 4, fontSize: 11, color: "#e63946" }}></i>;
     };
 
+    const leagueNames = (t) => (t.leagues || []).map(m => m.league?.name).filter(Boolean).join(", ");
+
     const displayTeams = regularTeams
         .filter((t) => {
-            if (filterLeague && t.league?._id !== filterLeague) return false;
+            if (filterLeague && !(t.leagues || []).some(m => m.league?._id === filterLeague)) return false;
             if (!filterState) return true;
             if (t.location?.stateName !== filterState) return false;
             if (filterCounty && t.location?.countyName !== filterCounty) return false;
@@ -760,8 +782,7 @@ export default function AdminTeamsPage() {
         })
         .sort((a, b) => {
             let va = "", vb = "";
-            if (sortField === "season") { va = a.season?.name || ""; vb = b.season?.name || ""; }
-            else if (sortField === "league") { va = a.league?.name || ""; vb = b.league?.name || ""; }
+            if (sortField === "league") { va = leagueNames(a); vb = leagueNames(b); }
             else { va = a.name || ""; vb = b.name || ""; }
             va = va.toLowerCase(); vb = vb.toLowerCase();
             return sortDir === "asc" ? va.localeCompare(vb) : vb.localeCompare(va);
@@ -826,8 +847,6 @@ export default function AdminTeamsPage() {
                             <select className="admin-form-select" value={`${sortField}:${sortDir}`} onChange={(e) => { const [f, d] = e.target.value.split(":"); setSortField(f); setSortDir(d); }} style={{ width: 200, height: 34, fontSize: 13 }}>
                                 <option value="name:asc">Name (A → Z)</option>
                                 <option value="name:desc">Name (Z → A)</option>
-                                <option value="season:asc">Season (A → Z)</option>
-                                <option value="season:desc">Season (Z → A)</option>
                                 <option value="league:asc">League (A → Z)</option>
                                 <option value="league:desc">League (Z → A)</option>
                             </select>
@@ -886,8 +905,7 @@ export default function AdminTeamsPage() {
                                                         <tr>
                                                             <th>Team</th>
                                                             <th>Organization</th>
-                                                            <th>Season</th>
-                                                            <th>League</th>
+                                                            <th>Leagues</th>
                                                             <th>Players</th>
                                                             <th style={{ width: 130 }}>Actions</th>
                                                         </tr>
@@ -897,8 +915,7 @@ export default function AdminTeamsPage() {
                                                             <tr key={team._id}>
                                                                 <td style={{ fontWeight: 600 }}>{team.name}</td>
                                                                 <td>{team.organization?.name || "—"}</td>
-                                                                <td>{team.season?.name || "—"}</td>
-                                                                <td>{team.league?.name || "—"}</td>
+                                                                <td>{leagueNames(team) || "—"}</td>
                                                                 <td>{team.players?.length || 0}</td>
                                                                 <td>
                                                                     <div style={{ display: "flex", gap: 6 }}>
@@ -938,11 +955,8 @@ export default function AdminTeamsPage() {
                                                         {team.organization?.name && (
                                                             <span><strong>Org:</strong> {team.organization.name}</span>
                                                         )}
-                                                        {team.season?.name && (
-                                                            <span><strong>Season:</strong> {team.season.name}</span>
-                                                        )}
-                                                        {team.league?.name && (
-                                                            <span><strong>League:</strong> {team.league.name}</span>
+                                                        {leagueNames(team) && (
+                                                            <span><strong>Leagues:</strong> {leagueNames(team)}</span>
                                                         )}
                                                         <span><strong>Players:</strong> {team.players?.length || 0}</span>
                                                     </div>
@@ -992,7 +1006,7 @@ export default function AdminTeamsPage() {
                             leagues={leagues}
                             user={user}
                             effectiveRole={effectiveRole}
-                            existingDivisions={[...new Set(teams.map(t => t.division).filter(Boolean))]}
+                            existingDivisions={[...new Set(teams.flatMap(t => t.leagues || []).map(m => m.division).filter(Boolean))]}
                             onClose={() => { setModalOpen(false); setEditTarget(null); }}
                             onSave={saveTeam}
                         />

@@ -138,7 +138,7 @@ export default function EditSchedulePage({ params }) {
 
 
     const leagueTeams = leagueId
-        ? teams.filter(t => String(t.league?._id || t.league || "") === leagueId)
+        ? teams.filter(t => (t.leagues || []).some(m => String(m.league?._id || m.league || "") === leagueId))
         : teams;
 
     // Reset league when season changes, but only if the user manually changed the season

@@ -19,7 +19,7 @@ async function getData(slug, seasonSlug) {
     if (!league) return null;
     const [players, teams] = await Promise.all([
         Player.find({ organization: org._id }).lean(),
-        Team.find({ organization: org._id, league: league._id }).lean(),
+        Team.find({ organization: org._id, "leagues.league": league._id }).lean(),
     ]);
 
     return {

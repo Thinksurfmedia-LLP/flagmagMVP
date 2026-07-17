@@ -13,8 +13,8 @@ export async function getPlayerWithLocations(id) {
     if (!player) return { player: null, derivedLocations: [] };
 
     const teams = await Team.find({ "players.player": player._id })
-        .select("name logo location league players")
-        .populate("league", "location locations")
+        .select("name logo location leagues players")
+        .populate("leagues.league", "location locations")
         .lean();
 
     const presentTeams = teams.map(t => {
@@ -35,10 +35,15 @@ export async function getPlayerWithLocations(id) {
             locationSet.add(cityName.trim());
         } else if (countyName?.trim()) {
             locationSet.add(countyName.trim());
-        } else if (team.league?.locations?.length) {
-            team.league.locations.forEach((l) => { if (l?.trim()) locationSet.add(l.trim()); });
-        } else if (team.league?.location?.trim()) {
-            locationSet.add(team.league.location.trim());
+        } else {
+            for (const membership of team.leagues || []) {
+                const league = membership.league;
+                if (league?.locations?.length) {
+                    league.locations.forEach((l) => { if (l?.trim()) locationSet.add(l.trim()); });
+                } else if (league?.location?.trim()) {
+                    locationSet.add(league.location.trim());
+                }
+            }
         }
     }
 

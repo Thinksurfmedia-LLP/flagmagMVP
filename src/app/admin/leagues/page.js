@@ -432,6 +432,191 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
     );
 }
 
+function LeagueTeamsModal({ league, onClose }) {
+    const { showSuccess, showError } = useToast();
+
+    const [assigned, setAssigned] = useState([]);
+    const [orgTeams, setOrgTeams] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [selectedTeamId, setSelectedTeamId] = useState("");
+    const [division, setDivision] = useState("");
+    const [newTeamName, setNewTeamName] = useState("");
+    const [saving, setSaving] = useState(false);
+
+    const orgId = league.organization?._id || league.organization;
+
+    const load = useCallback(async () => {
+        setLoading(true);
+        try {
+            const [assignedRes, teamsRes] = await Promise.all([
+                fetch(`/api/leagues/${league._id}/teams`).then((r) => r.json()),
+                fetch(`/api/teams?organization=${orgId}`).then((r) => r.json()),
+            ]);
+            if (assignedRes.success) setAssigned(assignedRes.data);
+            if (teamsRes.success) setOrgTeams(teamsRes.data.filter((t) => !t.isPlaceholder));
+        } catch {
+            showError("Failed to load teams");
+        } finally {
+            setLoading(false);
+        }
+    }, [league._id, orgId, showError]);
+
+    useEffect(() => { load(); }, [load]);
+
+    const assignedIds = new Set(assigned.map((t) => String(t._id)));
+    const availableToAdd = orgTeams.filter((t) => !assignedIds.has(String(t._id)));
+    const existingDivisions = [...new Set(assigned.map((t) => t.division).filter(Boolean))];
+
+    const handleAssignExisting = async () => {
+        if (!selectedTeamId) return;
+        setSaving(true);
+        try {
+            const res = await fetch(`/api/leagues/${league._id}/teams`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ teamId: selectedTeamId, division: division.trim() }),
+            });
+            const data = await res.json();
+            if (!data.success) { showError(data.error); return; }
+            showSuccess("Team assigned!");
+            setSelectedTeamId("");
+            setDivision("");
+            load();
+        } catch {
+            showError("Failed to assign team");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleCreateAndAssign = async () => {
+        if (!newTeamName.trim()) return;
+        setSaving(true);
+        try {
+            const res = await fetch(`/api/leagues/${league._id}/teams`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: newTeamName.trim(), division: division.trim() }),
+            });
+            const data = await res.json();
+            if (!data.success) { showError(data.error); return; }
+            showSuccess("Team created and assigned!");
+            setNewTeamName("");
+            setDivision("");
+            load();
+        } catch {
+            showError("Failed to create team");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleRemove = async (team) => {
+        if (!confirm(`Remove "${team.name}" from this league?`)) return;
+        try {
+            const res = await fetch(`/api/leagues/${league._id}/teams/${team._id}`, { method: "DELETE" });
+            const data = await res.json();
+            if (!data.success) { showError(data.error); return; }
+            showSuccess("Team removed from league");
+            load();
+        } catch {
+            showError("Failed to remove team");
+        }
+    };
+
+    return (
+        <div className="admin-modal-backdrop">
+            <div className="admin-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 560, maxHeight: "90vh", overflowY: "auto" }}>
+                <button className="admin-modal-close" onClick={onClose} aria-label="Close">
+                    <i className="fa-solid fa-xmark"></i>
+                </button>
+                <h3 className="admin-modal-title">Manage Teams — {league.name}</h3>
+
+                {loading ? (
+                    <div className="admin-loading"><div className="admin-spinner"></div>Loading teams...</div>
+                ) : (
+                    <>
+                        <div className="admin-form-group">
+                            <label className="admin-form-label">Currently Assigned ({assigned.length})</label>
+                            {assigned.length === 0 ? (
+                                <div style={{ color: "#8b90a0", fontSize: 13 }}>No teams assigned yet.</div>
+                            ) : (
+                                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                                    {assigned.map((t) => (
+                                        <div key={t._id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 10px", background: "#f9fafb", border: "1px solid #e8eaef", borderRadius: 6 }}>
+                                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                                {t.logo && <img src={t.logo} alt="" style={{ width: 20, height: 20, borderRadius: 4 }} />}
+                                                <span style={{ fontWeight: 600, fontSize: 13, color: "#1a1d26" }}>{t.name}</span>
+                                                {t.division && <span style={{ color: "#8b90a0", fontSize: 12 }}>({t.division})</span>}
+                                            </div>
+                                            <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => handleRemove(t)} title="Remove">
+                                                <i className="fa-solid fa-xmark"></i>
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="admin-form-group">
+                            <label className="admin-form-label">Division (applies to whichever action below you use)</label>
+                            <input
+                                className="admin-form-input"
+                                value={division}
+                                onChange={(e) => setDivision(e.target.value)}
+                                placeholder="e.g. East, West, Default"
+                                list="leagueTeamsDivisionOptions"
+                            />
+                            {existingDivisions.length > 0 && (
+                                <datalist id="leagueTeamsDivisionOptions">
+                                    {existingDivisions.map((d) => <option key={d} value={d} />)}
+                                </datalist>
+                            )}
+                        </div>
+
+                        <div className="admin-form-group">
+                            <label className="admin-form-label">Assign an Existing Team</label>
+                            <div style={{ display: "flex", gap: 8 }}>
+                                <select className="admin-form-select" style={{ flex: 1 }} value={selectedTeamId} onChange={(e) => setSelectedTeamId(e.target.value)}>
+                                    <option value="">
+                                        {availableToAdd.length === 0 ? "No other teams in this organization" : "Select a team..."}
+                                    </option>
+                                    {availableToAdd.map((t) => (
+                                        <option key={t._id} value={t._id}>{t.name}</option>
+                                    ))}
+                                </select>
+                                <button className="admin-btn admin-btn-primary" onClick={handleAssignExisting} disabled={saving || !selectedTeamId}>
+                                    Assign
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="admin-form-group">
+                            <label className="admin-form-label">Or Create a New Team</label>
+                            <div style={{ display: "flex", gap: 8 }}>
+                                <input
+                                    className="admin-form-input"
+                                    style={{ flex: 1 }}
+                                    value={newTeamName}
+                                    onChange={(e) => setNewTeamName(e.target.value)}
+                                    placeholder="e.g. Eagles"
+                                />
+                                <button className="admin-btn admin-btn-ghost" onClick={handleCreateAndAssign} disabled={saving || !newTeamName.trim()}>
+                                    Create &amp; Assign
+                                </button>
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 20 }}>
+                    <button className="admin-btn admin-btn-ghost" onClick={onClose}>Close</button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function LeaguesPage() {
     const { user, activeRole } = useAuth();
     const { showSuccess, showError } = useToast();
@@ -443,6 +628,7 @@ export default function LeaguesPage() {
     const [searchInput, setSearchInput] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [editTarget, setEditTarget] = useState(null);
+    const [teamsTarget, setTeamsTarget] = useState(null);
 
     // Sort
     const [sortField, setSortField] = useState("name"); // "name" | "startDate" | "endDate"
@@ -850,6 +1036,15 @@ export default function LeaguesPage() {
                                                             {canUpdate && (
                                                                 <button
                                                                     className="admin-btn admin-btn-ghost admin-btn-sm"
+                                                                    onClick={() => setTeamsTarget(league)}
+                                                                    title="Manage Teams"
+                                                                >
+                                                                    <i className="fa-solid fa-people-group"></i>
+                                                                </button>
+                                                            )}
+                                                            {canUpdate && (
+                                                                <button
+                                                                    className="admin-btn admin-btn-ghost admin-btn-sm"
                                                                     onClick={() => { setEditTarget(league); setShowModal(true); }}
                                                                     title="Edit"
                                                                 >
@@ -914,6 +1109,14 @@ export default function LeaguesPage() {
                                                 {canUpdate && (
                                                     <button
                                                         className="admin-btn admin-btn-ghost admin-btn-sm"
+                                                        onClick={() => setTeamsTarget(league)}
+                                                    >
+                                                        <i className="fa-solid fa-people-group"></i> Teams
+                                                    </button>
+                                                )}
+                                                {canUpdate && (
+                                                    <button
+                                                        className="admin-btn admin-btn-ghost admin-btn-sm"
                                                         onClick={() => { setEditTarget(league); setShowModal(true); }}
                                                     >
                                                         <i className="fa-solid fa-pen"></i> Edit
@@ -947,6 +1150,13 @@ export default function LeaguesPage() {
                     userOrgSlug={userOrgSlug}
                     onClose={() => { setShowModal(false); setEditTarget(null); }}
                     onSave={handleSave}
+                />
+            )}
+
+            {teamsTarget && (
+                <LeagueTeamsModal
+                    league={teamsTarget}
+                    onClose={() => setTeamsTarget(null)}
                 />
             )}
         </AdminLayout>
