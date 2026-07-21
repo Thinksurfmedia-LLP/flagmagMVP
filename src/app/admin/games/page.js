@@ -1295,6 +1295,7 @@ export default function AdminGamesPage() {
     const [filterCounty, setFilterCounty] = useState("");
     const [filterCity, setFilterCity] = useState("");
     const [filterVenue, setFilterVenue] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
     const { showSuccess, showError } = useToast();
 
     const effectiveRole = activeRole || user?.role;
@@ -1401,19 +1402,40 @@ export default function AdminGamesPage() {
 
     const filteredGames = (() => {
         if (!filterLeague) return [];
-        const byLeague = games.filter(g => String(g.league) === filterLeague);
-        if (!filterState && !filterCounty && !filterCity && !filterVenue) return byLeague;
+        let byLeague = games.filter(g => String(g.league) === filterLeague);
+        if (filterState || filterCounty || filterCity || filterVenue) {
+            byLeague = byLeague.filter(g => {
+                const locStr = g.location || "";
+                const dashIdx = locStr.indexOf(" - ");
+                const venueName = dashIdx > -1 ? locStr.substring(0, dashIdx) : locStr;
+                const v = venues.find(ven => ven.name === venueName);
+                if (!v) return false;
+                if (filterVenue) return venueName === filterVenue;
+                if (filterCity) return (v.cityName || "") === filterCity;
+                if (filterCounty) return String(v.countyId) === filterCounty;
+                if (filterState) return String(v.stateId) === filterState;
+                return true;
+            });
+        }
+        const q = searchQuery.trim().toLowerCase();
+        if (!q) return byLeague;
+        const looksLikeDate = q.includes("/");
+        const looksLikeTime = q.includes(":");
         return byLeague.filter(g => {
-            const locStr = g.location || "";
-            const dashIdx = locStr.indexOf(" - ");
-            const venueName = dashIdx > -1 ? locStr.substring(0, dashIdx) : locStr;
-            const v = venues.find(ven => ven.name === venueName);
-            if (!v) return false;
-            if (filterVenue) return venueName === filterVenue;
-            if (filterCity) return (v.cityName || "") === filterCity;
-            if (filterCounty) return String(v.countyId) === filterCounty;
-            if (filterState) return String(v.stateId) === filterState;
-            return true;
+            const fields = [
+                g.teamA?.name || "",
+                g.teamB?.name || "",
+                g.location || "",
+                g.teamA?.score != null ? String(g.teamA.score) : "",
+                g.teamB?.score != null ? String(g.teamB.score) : "",
+            ];
+            if (looksLikeDate) {
+                const dateObj = new Date(g.date.split("T")[0] + "T12:00:00Z");
+                fields.push(dateObj.toLocaleDateString(), g.date.split("T")[0]);
+            }
+            if (looksLikeTime) fields.push(g.time || "");
+            const haystack = fields.join(" ").toLowerCase();
+            return haystack.includes(q);
         });
     })();
 
@@ -1531,8 +1553,20 @@ export default function AdminGamesPage() {
                         <div className="admin-card">
                             <div className="admin-card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
                                 <h3>Games ({filteredGames.length})</h3>
-                            {geoStateOptions.length > 0 && (
                                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
+                                <div style={{ position: "relative" }}>
+                                    <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 12, color: "#9ca3af", pointerEvents: "none" }}></i>
+                                    <input
+                                        type="text"
+                                        className="admin-form-input"
+                                        placeholder="Search date, team, score..."
+                                        value={searchQuery}
+                                        onChange={(e) => { setSearchQuery(e.target.value); setGamePage(1); }}
+                                        style={{ width: 200, height: 34, fontSize: 13, paddingLeft: 28 }}
+                                    />
+                                </div>
+                            {geoStateOptions.length > 0 && (
+                                <>
                                     <select className="admin-form-select" value={filterState} onChange={(e) => handleGeoStateChange(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
                                         <option value="">All States</option>
                                         {geoStateOptions.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -1560,8 +1594,9 @@ export default function AdminGamesPage() {
                                             <i className="fa-solid fa-xmark"></i> Clear
                                         </button>
                                     )}
-                                </div>
+                                </>
                             )}
+                            </div>
                         </div>
 
                         {loading ? (
