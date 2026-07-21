@@ -132,11 +132,17 @@ export async function POST(request, { params }) {
                 const locationName = dashIdx > -1 ? body.location.slice(0, dashIdx) : (body.location || "");
                 const fieldName = dashIdx > -1 ? body.location.slice(dashIdx + 3) : "";
 
-                // Week label derived from game date (week starting Sunday)
-                const gameDate = new Date(body.date);
-                const weekStart = new Date(gameDate);
-                weekStart.setUTCDate(gameDate.getUTCDate() - gameDate.getUTCDay());
-                const weekLabel = `Week of ${weekStart.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
+                // If the caller picked an existing schedule week, file the game under
+                // that week's name; otherwise fall back to a date-derived label
+                // (week starting Sunday) so games created without a week selection
+                // still land somewhere sensible.
+                let weekLabel = body.sectionName?.trim();
+                if (!weekLabel) {
+                    const gameDate = new Date(body.date);
+                    const weekStart = new Date(gameDate);
+                    weekStart.setUTCDate(gameDate.getUTCDate() - gameDate.getUTCDay());
+                    weekLabel = `Week of ${weekStart.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
+                }
 
                 const dateStr = typeof body.date === "string"
                     ? body.date.split("T")[0]

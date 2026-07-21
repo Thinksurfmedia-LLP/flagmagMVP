@@ -25,6 +25,8 @@ function CreateMatchContent() {
     });
     const [venueDetails, setVenueDetails] = useState({}); // venueName -> fields[]
     const [selectedField, setSelectedField] = useState("");
+    const [weeks, setWeeks] = useState([]); // week names from the league's schedule
+    const [selectedWeek, setSelectedWeek] = useState("");
     const [loading, setLoading] = useState(false);
     const [dataLoading, setDataLoading] = useState(false);
     const [error, setError] = useState("");
@@ -83,7 +85,7 @@ function CreateMatchContent() {
 
     // Teams filtered by selected league
     const filteredTeams = useMemo(
-        () => allTeams.filter((t) => String(t.league?._id || t.league) === selectedLeague),
+        () => allTeams.filter((t) => (t.leagues || []).some((m) => String(m.league?._id || m.league) === selectedLeague)),
         [allTeams, selectedLeague]
     );
 
@@ -99,6 +101,17 @@ function CreateMatchContent() {
         setForm((f) => ({ ...f, teamA: "", teamB: "", location: "" }));
         setSelectedField("");
         setVenueDetails({});
+        setSelectedWeek("");
+    }, [selectedLeague]);
+
+    // Fetch the league's existing schedule weeks (Week 1, Week 2, ...) so the
+    // game can be filed under one instead of always landing in an auto-generated
+    // "Week of <date>" bucket.
+    useEffect(() => {
+        if (!selectedLeague) { setWeeks([]); return; }
+        apiGet(`/api/seasons/${selectedLeague}/weeks`)
+            .then((res) => setWeeks(res.data || []))
+            .catch(() => setWeeks([]));
     }, [selectedLeague]);
 
     // Fetch venue field details whenever league's locations change
@@ -146,6 +159,7 @@ function CreateMatchContent() {
                 location: fullLocation,
                 status: "upcoming",
                 gameType: form.gameType || "main",
+                sectionName: selectedWeek || "",
             });
             router.push("/matches");
         } catch (err) {
@@ -299,6 +313,23 @@ function CreateMatchContent() {
                                     <option value="">Select Field</option>
                                     {venueDetails[form.location].map((f) => (
                                         <option key={f._id} value={f.name}>{f.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+
+                        {/* Week — from the league's existing schedule, if any */}
+                        {weeks.length > 0 && (
+                            <div className="form-group">
+                                <label>Week</label>
+                                <select
+                                    className="form-control select-form-control"
+                                    value={selectedWeek}
+                                    onChange={(e) => setSelectedWeek(e.target.value)}
+                                >
+                                    <option value="">Select Week</option>
+                                    {weeks.map((w) => (
+                                        <option key={w} value={w}>{w}</option>
                                     ))}
                                 </select>
                             </div>
