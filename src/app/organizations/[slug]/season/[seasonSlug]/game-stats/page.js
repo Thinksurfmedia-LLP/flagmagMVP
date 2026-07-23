@@ -21,7 +21,12 @@ async function getData(slug, seasonSlug) {
 
     // Fetch only teams assigned to this league
     const teams = await Team.find({ organization: org._id, "leagues.league": league._id }).select("name logo leagues").lean();
+    const isPlayoffs = league.leagueType === "playoffs";
     const divisionFor = (t) => (t.leagues || []).find((l) => String(l.league) === String(league._id))?.division || "";
+    const seedFor = (t) => {
+        if (!isPlayoffs) return null;
+        return (t.leagues || []).find((l) => String(l.league) === String(league._id))?.seedNumber ?? null;
+    };
 
     // Fetch all completed games for this league
     const games = await Game.find({ league: league._id, status: "completed", gameType: { $ne: "practice" } }).lean();
@@ -33,6 +38,7 @@ async function getData(slug, seasonSlug) {
             name: t.name.trim(),
             logo: t.logo || "",
             division: divisionFor(t).trim(),
+            seedNumber: seedFor(t),
         };
     }
 
@@ -44,6 +50,7 @@ async function getData(slug, seasonSlug) {
             name: t.name.trim(),
             logo: t.logo || "",
             division: divisionFor(t).trim(),
+            seedNumber: seedFor(t),
             wins: 0, losses: 0, pf: 0, pa: 0,
         };
     }
@@ -51,8 +58,8 @@ async function getData(slug, seasonSlug) {
     const getOrCreate = (rawName) => {
         const key = rawName.trim().toLowerCase();
         if (!stats[key]) {
-            const meta = teamMeta[key] || { name: rawName.trim(), logo: "", division: "" };
-            stats[key] = { name: meta.name, logo: meta.logo, division: meta.division, wins: 0, losses: 0, pf: 0, pa: 0 };
+            const meta = teamMeta[key] || { name: rawName.trim(), logo: "", division: "", seedNumber: null };
+            stats[key] = { name: meta.name, logo: meta.logo, division: meta.division, seedNumber: meta.seedNumber, wins: 0, losses: 0, pf: 0, pa: 0 };
         }
         return stats[key];
     };
@@ -131,12 +138,13 @@ function DivisionTable({ name, rows, isSingle, slug, seasonSlug }) {
                                     <td>
                                         <img src={team.logo || "/assets/images/team-placeholder.svg"} alt="" />
                                         {" "}
-                                        <Link 
+                                        <Link
                                             href={`/organizations/${slug}/season/${seasonSlug}/player-stats?team=${encodeURIComponent(team.name)}`}
                                             style={{ color: "#fff", textDecoration: "underline" }}
                                         >
                                             {team.name}
                                         </Link>
+                                        {team.seedNumber != null && <span style={{ opacity: 0.7 }}> #{team.seedNumber}</span>}
                                     </td>
                                     <td>{team.wins}-{team.losses}</td>
                                     <td>{noGames ? "-" : team.pct.toFixed(2)}</td>

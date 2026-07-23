@@ -440,12 +440,16 @@ function LeagueTeamsModal({ league, onClose }) {
     const [loading, setLoading] = useState(true);
     const [selectedTeamId, setSelectedTeamId] = useState("");
     const [division, setDivision] = useState("");
+    const [seedNumber, setSeedNumber] = useState("");
     const [newTeamName, setNewTeamName] = useState("");
+    const [newTeamSeedNumber, setNewTeamSeedNumber] = useState("");
     const [saving, setSaving] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [editValue, setEditValue] = useState("");
+    const [editSeedValue, setEditSeedValue] = useState("");
 
     const orgId = league.organization?._id || league.organization;
+    const isPlayoffs = league.leagueType === "playoffs";
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -476,13 +480,18 @@ function LeagueTeamsModal({ league, onClose }) {
             const res = await fetch(`/api/leagues/${league._id}/teams`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ teamId: selectedTeamId, division: division.trim() }),
+                body: JSON.stringify({
+                    teamId: selectedTeamId,
+                    division: division.trim(),
+                    ...(isPlayoffs ? { seedNumber: seedNumber === "" ? null : seedNumber } : {}),
+                }),
             });
             const data = await res.json();
             if (!data.success) { showError(data.error); return; }
             showSuccess("Team assigned!");
             setSelectedTeamId("");
             setDivision("");
+            setSeedNumber("");
             load();
         } catch {
             showError("Failed to assign team");
@@ -498,13 +507,18 @@ function LeagueTeamsModal({ league, onClose }) {
             const res = await fetch(`/api/leagues/${league._id}/teams`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: newTeamName.trim(), division: division.trim() }),
+                body: JSON.stringify({
+                    name: newTeamName.trim(),
+                    division: division.trim(),
+                    ...(isPlayoffs ? { seedNumber: newTeamSeedNumber === "" ? null : newTeamSeedNumber } : {}),
+                }),
             });
             const data = await res.json();
             if (!data.success) { showError(data.error); return; }
             showSuccess("Team created and assigned!");
             setNewTeamName("");
             setDivision("");
+            setNewTeamSeedNumber("");
             load();
         } catch {
             showError("Failed to create team");
@@ -516,11 +530,13 @@ function LeagueTeamsModal({ league, onClose }) {
     const startEdit = (team) => {
         setEditingId(team._id);
         setEditValue(team.division || "");
+        setEditSeedValue(team.seedNumber === null || team.seedNumber === undefined ? "" : String(team.seedNumber));
     };
 
     const cancelEdit = () => {
         setEditingId(null);
         setEditValue("");
+        setEditSeedValue("");
     };
 
     const handleSaveEdit = async (team) => {
@@ -529,15 +545,18 @@ function LeagueTeamsModal({ league, onClose }) {
             const res = await fetch(`/api/leagues/${league._id}/teams/${team._id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ division: editValue.trim() }),
+                body: JSON.stringify({
+                    division: editValue.trim(),
+                    ...(isPlayoffs ? { seedNumber: editSeedValue === "" ? null : editSeedValue } : {}),
+                }),
             });
             const data = await res.json();
             if (!data.success) { showError(data.error); return; }
-            showSuccess("Division updated!");
+            showSuccess("Team membership updated!");
             cancelEdit();
             load();
         } catch {
-            showError("Failed to update division");
+            showError("Failed to update team membership");
         } finally {
             setSaving(false);
         }
@@ -580,16 +599,33 @@ function LeagueTeamsModal({ league, onClose }) {
                                                 {t.logo && <img src={t.logo} alt="" style={{ width: 20, height: 20, borderRadius: 4, flexShrink: 0 }} />}
                                                 <span style={{ fontWeight: 600, fontSize: 13, color: "#1a1d26", flexShrink: 0 }}>{t.name}</span>
                                                 {editingId === t._id ? (
-                                                    <input
-                                                        className="admin-form-input"
-                                                        style={{ flex: 1, height: 30, fontSize: 12, padding: "4px 8px" }}
-                                                        value={editValue}
-                                                        onChange={(e) => setEditValue(e.target.value)}
-                                                        placeholder="Division"
-                                                        autoFocus
-                                                    />
+                                                    <>
+                                                        <input
+                                                            className="admin-form-input"
+                                                            style={{ flex: 1, height: 30, fontSize: 12, padding: "4px 8px" }}
+                                                            value={editValue}
+                                                            onChange={(e) => setEditValue(e.target.value)}
+                                                            placeholder="Division"
+                                                            autoFocus
+                                                        />
+                                                        {isPlayoffs && (
+                                                            <input
+                                                                type="number"
+                                                                className="admin-form-input"
+                                                                style={{ width: 70, height: 30, fontSize: 12, padding: "4px 8px", flexShrink: 0 }}
+                                                                value={editSeedValue}
+                                                                onChange={(e) => setEditSeedValue(e.target.value)}
+                                                                placeholder="Seed #"
+                                                            />
+                                                        )}
+                                                    </>
                                                 ) : (
-                                                    t.division && <span style={{ color: "#8b90a0", fontSize: 12 }}>({t.division})</span>
+                                                    <>
+                                                        {t.division && <span style={{ color: "#8b90a0", fontSize: 12 }}>({t.division})</span>}
+                                                        {isPlayoffs && t.seedNumber !== null && t.seedNumber !== undefined && (
+                                                            <span style={{ color: "#fff", background: "#8b90a0", fontSize: 11, fontWeight: 700, padding: "2px 6px", borderRadius: 10, flexShrink: 0 }}>#{t.seedNumber}</span>
+                                                        )}
+                                                    </>
                                                 )}
                                             </div>
                                             {editingId === t._id ? (
@@ -603,7 +639,7 @@ function LeagueTeamsModal({ league, onClose }) {
                                                 </div>
                                             ) : (
                                                 <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                                                    <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => startEdit(t)} title="Edit division">
+                                                    <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => startEdit(t)} title={isPlayoffs ? "Edit division / seed" : "Edit division"}>
                                                         <i className="fa-solid fa-pen"></i>
                                                     </button>
                                                     <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => handleRemove(t)} title="Remove">
@@ -644,6 +680,17 @@ function LeagueTeamsModal({ league, onClose }) {
                                         <option key={t._id} value={t._id}>{t.name}</option>
                                     ))}
                                 </select>
+                                {isPlayoffs && (
+                                    <input
+                                        type="number"
+                                        className="admin-form-input"
+                                        style={{ width: 80, flexShrink: 0 }}
+                                        value={seedNumber}
+                                        onChange={(e) => setSeedNumber(e.target.value)}
+                                        placeholder="Seed #"
+                                        title="Playoff seed number — only applies to this league"
+                                    />
+                                )}
                                 <button className="admin-btn admin-btn-primary" onClick={handleAssignExisting} disabled={saving || !selectedTeamId}>
                                     Assign
                                 </button>
@@ -660,6 +707,17 @@ function LeagueTeamsModal({ league, onClose }) {
                                     onChange={(e) => setNewTeamName(e.target.value)}
                                     placeholder="e.g. Eagles"
                                 />
+                                {isPlayoffs && (
+                                    <input
+                                        type="number"
+                                        className="admin-form-input"
+                                        style={{ width: 80, flexShrink: 0 }}
+                                        value={newTeamSeedNumber}
+                                        onChange={(e) => setNewTeamSeedNumber(e.target.value)}
+                                        placeholder="Seed #"
+                                        title="Playoff seed number — only applies to this league"
+                                    />
+                                )}
                                 <button className="admin-btn admin-btn-ghost" onClick={handleCreateAndAssign} disabled={saving || !newTeamName.trim()}>
                                     Create &amp; Assign
                                 </button>

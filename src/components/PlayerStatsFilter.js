@@ -132,7 +132,9 @@ export default function PlayerStatsFilter({ orgSlug, seasonSlug, allTeams }) {
                         </li>
                         {allTeams.map((team, i) => (
                             <li key={i} className={activeTeam === team.name ? "active" : ""}>
-                                <a href="#" onClick={(e) => { e.preventDefault(); setActiveTeam(team.name); }}>{team.name}</a>
+                                <a href="#" onClick={(e) => { e.preventDefault(); setActiveTeam(team.name); }}>
+                                    {team.name}{team.seedNumber != null && <span style={{ opacity: 0.7 }}> #{team.seedNumber}</span>}
+                                </a>
                             </li>
                         ))}
                     </ul>
@@ -204,7 +206,7 @@ export default function PlayerStatsFilter({ orgSlug, seasonSlug, allTeams }) {
                                                             {" "}
                                                             <span>{player.playerName}</span>
                                                         </td>
-                                                        <td>{player.teamName}</td>
+                                                        <td>{player.teamName}{player.seedNumber != null && <span style={{ opacity: 0.7 }}> #{player.seedNumber}</span>}</td>
                                                         {columns.map((col) => (
                                                             <td key={col.key}>{player[col.key] ?? 0}</td>
                                                         ))}

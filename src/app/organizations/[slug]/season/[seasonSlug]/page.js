@@ -76,14 +76,28 @@ async function getData(slug, seasonSlug) {
         const refs = sectionMeta[initialSectionIdx].gameRefs;
         if (refs.length > 0) {
             initialGames = await Game.find({ _id: { $in: refs } }).sort({ date: 1, time: 1 }).lean();
-            const teams = await Team.find({ organization: org._id }).select("name logo").lean();
-            const teamLogoMap = {};
-            teams.forEach((t) => { teamLogoMap[t.name] = t.logo || ""; });
+            const teams = await Team.find({ organization: org._id }).select("name logo leagues").lean();
+            const teamByName = {};
+            teams.forEach((t) => { teamByName[t.name] = t; });
+
+            // Playoff seed numbers live on the team's membership for this
+            // specific league — regular (non-playoffs) leagues never show one.
+            const isPlayoffs = league.leagueType === "playoffs";
+            const seedFor = (team) => {
+                if (!isPlayoffs || !team) return null;
+                const membership = (team.leagues || []).find((m) => String(m.league) === String(league._id));
+                return membership?.seedNumber ?? null;
+            };
+
             initialGames.forEach((game) => {
-                if (teamLogoMap[game.teamA?.name] !== undefined)
-                    game.teamA.logo = teamLogoMap[game.teamA.name] || game.teamA.logo;
-                if (teamLogoMap[game.teamB?.name] !== undefined)
-                    game.teamB.logo = teamLogoMap[game.teamB.name] || game.teamB.logo;
+                const teamA = teamByName[game.teamA?.name];
+                const teamB = teamByName[game.teamB?.name];
+                if (teamA) game.teamA.logo = teamA.logo || game.teamA.logo;
+                if (teamB) game.teamB.logo = teamB.logo || game.teamB.logo;
+                if (isPlayoffs) {
+                    game.teamA.seedNumber = seedFor(teamA);
+                    game.teamB.seedNumber = seedFor(teamB);
+                }
             });
         }
     }

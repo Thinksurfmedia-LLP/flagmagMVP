@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import League from "@/models/League";
+import Team from "@/models/Team";
 import { computeSeasonStats } from "@/lib/statsAggregation";
 
 /**
@@ -27,9 +28,11 @@ export async function GET(request, { params }) {
         const leagues = await League.find({
             organization: org._id,
             season: { $in: seasonIds },
-        }).select("_id").lean();
+        }).select("_id leagueType").lean();
 
         if (leagues.length === 0) return NextResponse.json({ players: [] });
+
+        const playoffLeagueIds = leagues.filter((l) => l.leagueType === "playoffs").map((l) => String(l._id));
 
         // Aggregate stats across all leagues, keeping separate rows per player-team combination
         const merged = {};
@@ -60,6 +63,27 @@ export async function GET(request, { params }) {
 
         // Recalculate derived fields for passing
         const rows = Object.values(merged);
+
+        // Attach a playoff seed number per team, only when these selected
+        // seasons include a playoffs league — and only when that team's seed
+        // is unambiguous (a team seeded differently across two playoffs
+        // brackets in the same selection shows no number rather than a wrong one).
+        if (playoffLeagueIds.length > 0 && rows.length > 0) {
+            const teamNames = [...new Set(rows.map((r) => r.teamName).filter(Boolean))];
+            const teams = await Team.find({ organization: org._id, name: { $in: teamNames } })
+                .select("name leagues")
+                .lean();
+            const seedByTeam = {};
+            teams.forEach((t) => {
+                const seeds = [...new Set(
+                    (t.leagues || [])
+                        .filter((m) => playoffLeagueIds.includes(String(m.league)) && m.seedNumber !== null && m.seedNumber !== undefined)
+                        .map((m) => m.seedNumber)
+                )];
+                seedByTeam[t.name] = seeds.length === 1 ? seeds[0] : null;
+            });
+            rows.forEach((r) => { r.seedNumber = seedByTeam[r.teamName] ?? null; });
+        }
         if (statType === "passing") {
             for (const p of rows) {
                 const atts = p.atts || 0;

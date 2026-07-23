@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import League from "@/models/League";
+import Team from "@/models/Team";
 import { computeSeasonStats } from "@/lib/statsAggregation";
 
 /**
@@ -24,7 +25,7 @@ export async function GET(request, { params }) {
             return NextResponse.json({ players: [] });
         }
 
-        const league = await League.findOne({ organization: org._id, slug: seasonSlug }).select("_id").lean();
+        const league = await League.findOne({ organization: org._id, slug: seasonSlug }).select("_id leagueType").lean();
         if (!league) {
             return NextResponse.json({ players: [] });
         }
@@ -39,6 +40,21 @@ export async function GET(request, { params }) {
             rows = rows.filter((r) => re.test(r.teamName));
         }
         // All Players: return per-player-per-team rows so multi-team players appear separately
+
+        // Playoff seed numbers are per-league-membership — attach this
+        // league's number to each row by team name, only for playoffs leagues.
+        if (league.leagueType === "playoffs" && rows.length > 0) {
+            const teamNames = [...new Set(rows.map((r) => r.teamName).filter(Boolean))];
+            const teams = await Team.find({ organization: org._id, name: { $in: teamNames } })
+                .select("name leagues")
+                .lean();
+            const seedByTeam = {};
+            teams.forEach((t) => {
+                const membership = (t.leagues || []).find((m) => String(m.league) === String(league._id));
+                seedByTeam[t.name] = membership?.seedNumber ?? null;
+            });
+            rows = rows.map((r) => ({ ...r, seedNumber: seedByTeam[r.teamName] ?? null }));
+        }
 
         return NextResponse.json({ players: rows });
     } catch (error) {

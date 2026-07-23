@@ -51,12 +51,13 @@ function StandingsView({ orgSlug, leagueSlug }) {
                                             <td>
                                                 <img src={team.logo || "/assets/images/team-placeholder.svg"} alt="" />
                                                 {" "}
-                                                <Link 
+                                                <Link
                                                     href={`/organizations/${orgSlug}/season/${leagueSlug}/player-stats?team=${encodeURIComponent(team.name)}`}
                                                     style={{ color: "#fff", textDecoration: "underline" }}
                                                 >
                                                     {team.name}
                                                 </Link>
+                                                {team.seedNumber != null && <span style={{ opacity: 0.7 }}> #{team.seedNumber}</span>}
                                             </td>
                                             <td>{team.wins}-{team.losses}</td>
                                             <td>{noGames ? "-" : team.pct.toFixed(2)}</td>

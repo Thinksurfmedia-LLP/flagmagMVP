@@ -42,8 +42,15 @@ export default async function PlayerStatsPage({ params }) {
     const { org, league, teams } = data;
     const locationText = formatOrganizationLocations(org);
 
+    // Playoff seed numbers are per-league-membership — only surfaced for playoffs leagues.
+    const isPlayoffs = league.leagueType === "playoffs";
+    const seedFor = (t) => {
+        if (!isPlayoffs) return null;
+        return (t.leagues || []).find((l) => String(l.league) === String(league._id))?.seedNumber ?? null;
+    };
+
     // Collect teams from Team collection
-    const allTeams = teams.map((t) => ({ name: t.name, logo: t.logo || "" }));
+    const allTeams = teams.map((t) => ({ name: t.name, logo: t.logo || "", seedNumber: seedFor(t) }));
 
     return (
         <>

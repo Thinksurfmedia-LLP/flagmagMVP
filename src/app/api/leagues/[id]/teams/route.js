@@ -33,7 +33,7 @@ export async function GET(request, { params }) {
         await dbConnect();
         const { id } = await params;
 
-        const league = await League.findById(id).select("organization").lean();
+        const league = await League.findById(id).select("organization leagueType").lean();
         if (!league) {
             return NextResponse.json({ success: false, error: "League not found" }, { status: 404 });
         }
@@ -43,12 +43,16 @@ export async function GET(request, { params }) {
             .sort({ name: 1 })
             .lean();
 
-        const data = teams.map((t) => ({
-            _id: t._id,
-            name: t.name,
-            logo: t.logo || "",
-            division: (t.leagues || []).find((m) => String(m.league) === String(id))?.division || "",
-        }));
+        const data = teams.map((t) => {
+            const membership = (t.leagues || []).find((m) => String(m.league) === String(id));
+            return {
+                _id: t._id,
+                name: t.name,
+                logo: t.logo || "",
+                division: membership?.division || "",
+                seedNumber: membership?.seedNumber ?? null,
+            };
+        });
 
         return NextResponse.json({ success: true, data });
     } catch (error) {
@@ -68,6 +72,12 @@ export async function POST(request, { params }) {
         const { id } = await params;
         const body = await request.json();
         const division = body.division?.trim() || "";
+        const seedNumber = body.seedNumber !== undefined && body.seedNumber !== null && body.seedNumber !== ""
+            ? Number(body.seedNumber)
+            : null;
+        if (seedNumber !== null && !Number.isFinite(seedNumber)) {
+            return NextResponse.json({ success: false, error: "Seed number must be a number" }, { status: 400 });
+        }
 
         const league = await League.findById(id).select("organization").lean();
         if (!league) {
@@ -119,11 +129,11 @@ export async function POST(request, { params }) {
             return NextResponse.json({ success: false, error: "Team is already assigned to this league" }, { status: 409 });
         }
 
-        team.leagues.push({ league: id, division, joinedAt: new Date() });
+        team.leagues.push({ league: id, division, seedNumber, joinedAt: new Date() });
         await team.save();
 
         return NextResponse.json(
-            { success: true, data: { _id: team._id, name: team.name, logo: team.logo || "", division } },
+            { success: true, data: { _id: team._id, name: team.name, logo: team.logo || "", division, seedNumber } },
             { status: 201 }
         );
     } catch (error) {

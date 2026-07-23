@@ -21,10 +21,11 @@ export async function GET(request, { params }) {
         const org = await Organization.findOne({ slug }).select("_id").lean();
         if (!org) return NextResponse.json({ success: false, error: "Org not found" }, { status: 404 });
 
-        const league = await League.findOne({ organization: org._id, slug: seasonSlug }).select("_id").lean();
+        const league = await League.findOne({ organization: org._id, slug: seasonSlug }).select("_id leagueType").lean();
         if (!league) return NextResponse.json({ success: false, error: "League not found" }, { status: 404 });
 
         const leagueId = String(league._id);
+        const isPlayoffs = league.leagueType === "playoffs";
 
         // Fetch all non-practice games for the league up front, sorted by date/time
         const allGames = await Game.find({ league: league._id, gameType: { $ne: "practice" } })
@@ -35,15 +36,25 @@ export async function GET(request, { params }) {
             return NextResponse.json({ success: true, leagueId, weekMeta: [], initialWeekIdx: 0, weeks: [] });
         }
 
-        // Enrich with latest team logos
-        const teams = await Team.find({ organization: org._id }).select("name logo").lean();
-        const teamLogoMap = {};
-        teams.forEach((t) => { teamLogoMap[t.name] = t.logo || ""; });
+        // Enrich with latest team logos (and, for playoffs leagues, this
+        // league's seed number — a per-membership value, not per-team).
+        const teams = await Team.find({ organization: org._id }).select("name logo leagues").lean();
+        const teamByName = {};
+        teams.forEach((t) => { teamByName[t.name] = t; });
+        const seedFor = (team) => {
+            if (!isPlayoffs || !team) return null;
+            const membership = (team.leagues || []).find((m) => String(m.league) === leagueId);
+            return membership?.seedNumber ?? null;
+        };
         allGames.forEach((game) => {
-            if (teamLogoMap[game.teamA?.name] !== undefined)
-                game.teamA.logo = teamLogoMap[game.teamA.name] || game.teamA.logo;
-            if (teamLogoMap[game.teamB?.name] !== undefined)
-                game.teamB.logo = teamLogoMap[game.teamB.name] || game.teamB.logo;
+            const teamA = teamByName[game.teamA?.name];
+            const teamB = teamByName[game.teamB?.name];
+            if (teamA) game.teamA.logo = teamA.logo || game.teamA.logo;
+            if (teamB) game.teamB.logo = teamB.logo || game.teamB.logo;
+            if (isPlayoffs) {
+                game.teamA.seedNumber = seedFor(teamA);
+                game.teamB.seedNumber = seedFor(teamB);
+            }
         });
 
         // Group games into weeks by week-start

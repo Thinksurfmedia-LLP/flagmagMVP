@@ -58,18 +58,29 @@ export async function GET(request, { params }) {
                 teamMap[t.name] = t;
             });
 
+            // Playoff seed numbers are per-league-membership, not per-team —
+            // only surface them for playoffs leagues, and only this league's number.
+            const isPlayoffs = league.leagueType === "playoffs";
+            const seedFor = (teamData) => {
+                if (!isPlayoffs || !teamData) return null;
+                const membership = (teamData.leagues || []).find((m) => String(m.league) === String(id));
+                return membership?.seedNumber ?? null;
+            };
+
             games.forEach((game) => {
                 const teamAData = teamMap[game.teamA?.name];
                 if (teamAData) {
                     game.teamA.logo = teamAData.logo || game.teamA.logo;
                     game.teamA.details = teamAData;
                 }
+                if (isPlayoffs) game.teamA.seedNumber = seedFor(teamAData);
 
                 const teamBData = teamMap[game.teamB?.name];
                 if (teamBData) {
                     game.teamB.logo = teamBData.logo || game.teamB.logo;
                     game.teamB.details = teamBData;
                 }
+                if (isPlayoffs) game.teamB.seedNumber = seedFor(teamBData);
             });
         }
 

@@ -51,6 +51,15 @@ const TeamSchema = new mongoose.Schema(
                     type: String,
                     default: "",
                 },
+                // Playoff seed/bracket number for this specific league
+                // membership only (playoffs leagues use this; regular
+                // leagues leave it null). The same team can hold a
+                // different, unrelated number in another playoffs league —
+                // it lives on the membership entry, not on the team itself.
+                seedNumber: {
+                    type: Number,
+                    default: null,
+                },
                 joinedAt: {
                     type: Date,
                     default: Date.now,
@@ -89,7 +98,8 @@ function getTeamModel() {
         const hasCoachName = Boolean(existing.schema.path("coachName"));
         const hasLeagues = Boolean(existing.schema.path("leagues"));
         const hasIsPlaceholder = Boolean(existing.schema.path("isPlaceholder"));
-        if (!hasPlayers || !hasDescription || !hasJerseyNumber || !hasCoachName || !hasLeagues || !hasIsPlaceholder) {
+        const hasSeedNumber = Boolean(existing.schema.path("leagues.seedNumber"));
+        if (!hasPlayers || !hasDescription || !hasJerseyNumber || !hasCoachName || !hasLeagues || !hasIsPlaceholder || !hasSeedNumber) {
             delete mongoose.models.Team;
         }
     }

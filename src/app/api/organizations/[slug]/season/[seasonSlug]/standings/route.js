@@ -13,9 +13,10 @@ export async function GET(request, { params }) {
         const org = await Organization.findOne({ slug }).select("_id").lean();
         if (!org) return NextResponse.json({ success: false, error: "Org not found" }, { status: 404 });
 
-        const league = await League.findOne({ organization: org._id, slug: seasonSlug }).select("_id name").lean();
+        const league = await League.findOne({ organization: org._id, slug: seasonSlug }).select("_id name leagueType").lean();
         if (!league) return NextResponse.json({ success: false, error: "League not found" }, { status: 404 });
 
+        const isPlayoffs = league.leagueType === "playoffs";
         const teams = await Team.find({ organization: org._id, "leagues.league": league._id })
             .select("name logo leagues")
             .lean();
@@ -31,6 +32,7 @@ export async function GET(request, { params }) {
                 name: t.name.trim(),
                 logo: t.logo || "",
                 division: (membership?.division || "").trim(),
+                seedNumber: isPlayoffs ? (membership?.seedNumber ?? null) : null,
                 wins: 0, losses: 0, pf: 0, pa: 0,
             };
         }
@@ -38,7 +40,7 @@ export async function GET(request, { params }) {
         const getOrCreate = (rawName) => {
             const key = rawName.trim().toLowerCase();
             if (!stats[key]) {
-                stats[key] = { name: rawName.trim(), logo: "", division: "", wins: 0, losses: 0, pf: 0, pa: 0 };
+                stats[key] = { name: rawName.trim(), logo: "", division: "", seedNumber: null, wins: 0, losses: 0, pf: 0, pa: 0 };
             }
             return stats[key];
         };

@@ -216,7 +216,7 @@ export default function LeagueLeaderboard({ orgSlug, leagueSlug }) {
                                                         {" "}
                                                         <span>{player.playerName}</span>
                                                     </td>
-                                                    <td>{player.teamName}</td>
+                                                    <td>{player.teamName}{player.seedNumber != null && <span style={{ opacity: 0.7 }}> #{player.seedNumber}</span>}</td>
                                                     {columns.map((col) => (
                                                         <td key={col.key}>{player[col.key] ?? 0}</td>
                                                     ))}

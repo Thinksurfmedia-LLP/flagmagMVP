@@ -24,8 +24,9 @@ async function assertOrganizerCanManage(authUser, organizationId) {
     return null;
 }
 
-// PUT /api/leagues/[id]/teams/[teamId] — update this membership's division.
-// Body: { division }
+// PUT /api/leagues/[id]/teams/[teamId] — update this membership's division
+// and/or playoff seed number.
+// Body: { division, seedNumber }
 export async function PUT(request, { params }) {
     try {
         const auth = await requireAnyPermission(["manage_leagues", "league_update", "manage_teams", "team_update"]);
@@ -53,10 +54,21 @@ export async function PUT(request, { params }) {
             return NextResponse.json({ success: false, error: "Team is not assigned to this league" }, { status: 404 });
         }
 
-        membership.division = body.division?.trim() || "";
+        if ("division" in body) {
+            membership.division = body.division?.trim() || "";
+        }
+        if ("seedNumber" in body) {
+            const seedNumber = body.seedNumber !== null && body.seedNumber !== ""
+                ? Number(body.seedNumber)
+                : null;
+            if (seedNumber !== null && !Number.isFinite(seedNumber)) {
+                return NextResponse.json({ success: false, error: "Seed number must be a number" }, { status: 400 });
+            }
+            membership.seedNumber = seedNumber;
+        }
         await team.save();
 
-        return NextResponse.json({ success: true, data: { _id: team._id, name: team.name, logo: team.logo || "", division: membership.division } });
+        return NextResponse.json({ success: true, data: { _id: team._id, name: team.name, logo: team.logo || "", division: membership.division, seedNumber: membership.seedNumber } });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }

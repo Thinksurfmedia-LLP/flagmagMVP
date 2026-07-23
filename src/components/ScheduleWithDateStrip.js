@@ -21,7 +21,7 @@ function MatchCard({ game, orgSlug, seasonSlug, orgTimezone }) {
                     <div className="middle">
                         <div className="a">
                             <img src={game.teamA.logo || teamLogoFallback} alt={game.teamA.name} loading="lazy" />
-                            <h6>{game.teamA.name}</h6>
+                            <h6>{game.teamA.name}{game.teamA.seedNumber != null && <span style={{ opacity: 0.7, fontWeight: 400 }}> #{game.teamA.seedNumber}</span>}</h6>
                         </div>
                         <div className="b">
                             {game.status === "completed" ? (
@@ -32,7 +32,7 @@ function MatchCard({ game, orgSlug, seasonSlug, orgTimezone }) {
                         </div>
                         <div className="c">
                             <img src={game.teamB.logo || teamLogoFallback} alt={game.teamB.name} loading="lazy" />
-                            <h6>{game.teamB.name}</h6>
+                            <h6>{game.teamB.name}{game.teamB.seedNumber != null && <span style={{ opacity: 0.7, fontWeight: 400 }}> #{game.teamB.seedNumber}</span>}</h6>
                         </div>
                     </div>
                     <div className="bottom">

@@ -25,13 +25,13 @@ function GameRow({ game, orgSlug, seasonSlug }) {
             <td style={{ fontWeight: 700 }}>{isCompleted ? game.teamA?.score ?? 0 : "-"}</td>
             <td style={{ textAlign: "left" }}>
                 <img src={game.teamA?.logo || teamLogoFallback} alt="" />
-                {game.teamA?.name}
+                {game.teamA?.name}{game.teamA?.seedNumber != null && <span style={{ opacity: 0.7 }}> #{game.teamA.seedNumber}</span>}
             </td>
             <td style={{ color: "rgba(255,255,255,0.45)", fontSize: 12 }}>vs</td>
             <td style={{ fontWeight: 700 }}>{isCompleted ? game.teamB?.score ?? 0 : "-"}</td>
             <td style={{ textAlign: "left" }}>
                 <img src={game.teamB?.logo || teamLogoFallback} alt="" />
-                {game.teamB?.name}
+                {game.teamB?.name}{game.teamB?.seedNumber != null && <span style={{ opacity: 0.7 }}> #{game.teamB.seedNumber}</span>}
             </td>
         </tr>
     );
