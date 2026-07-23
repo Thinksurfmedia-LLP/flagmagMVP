@@ -20,6 +20,10 @@ export default function FumblePage({ game, activeTeam, roster, onSave, onCancel,
             alert("Defender Number is required");
             return;
         }
+        if (points === null && !flagPull) {
+            alert("Select a point outcome or enter the Flag Pull player number");
+            return;
+        }
 
         onSave({
             defender,

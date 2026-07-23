@@ -18,6 +18,15 @@ export default function RunPage({ game, activeTeam, roster, onSave, onCancel, on
     ]);
 
     const handleSave = () => {
+        if (!rusher) {
+            alert("Rusher Number is required");
+            return;
+        }
+        if (points === null && !flagPull) {
+            alert("Select a point outcome or enter the Flag Pull player number");
+            return;
+        }
+
         onSave({
             rusher,
             yards: Number(yards) || 0,

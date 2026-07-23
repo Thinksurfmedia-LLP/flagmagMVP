@@ -30,6 +30,19 @@ export default function CompletionPage({ game, activeTeam, roster, onSave, onCan
     ]);
 
     const handleSave = () => {
+        if (!passer) {
+            alert("Passer Number is required");
+            return;
+        }
+        if (!receiver) {
+            alert("Receiver Number is required");
+            return;
+        }
+        if (points === null && !flagPull) {
+            alert("Select a point outcome or enter the Flag Pull player number");
+            return;
+        }
+
         onSave({
             passer,
             receiver,

@@ -18,6 +18,15 @@ export default function SackPage({ game, activeTeam, roster, onSave, onCancel, o
     ]);
 
     const handleSave = () => {
+        if (!passer) {
+            alert("Passer Number is required");
+            return;
+        }
+        if (!defender) {
+            alert("Defender Number is required");
+            return;
+        }
+
         onSave({
             passer,
             defender,

@@ -20,6 +20,19 @@ export default function InterceptionPage({ game, activeTeam, roster, onSave, onC
     ]);
 
     const handleSave = () => {
+        if (!passer) {
+            alert("Passer Number is required");
+            return;
+        }
+        if (!defender) {
+            alert("Defender Number is required");
+            return;
+        }
+        if (points === null && !flagPull) {
+            alert("Select a point outcome or enter the Flag Pull player number");
+            return;
+        }
+
         onSave({
             passer,
             defender,
