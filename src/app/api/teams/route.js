@@ -5,6 +5,7 @@ import Player from "@/models/Player";
 import User from "@/models/User";
 import { requireAnyPermission } from "@/lib/apiAuth";
 import { reconcilePlayerStatuses } from "@/lib/playerRosterSync";
+import { ensurePlaceholderTeams } from "@/lib/placeholderTeams";
 
 async function getOrgIdForOrganizer(authUser) {
     if (authUser.organization?.id) return authUser.organization.id;
@@ -129,6 +130,13 @@ export async function GET(request) {
             filter.organization = orgId;
         } else if (organization) {
             filter.organization = organization;
+        }
+
+        // Self-heals the TBD/Winner/Losers/bracket-slot placeholder teams for
+        // whichever single organization this request is scoped to, so they
+        // show up in schedule builders without a separate migration step.
+        if (filter.organization) {
+            await ensurePlaceholderTeams(filter.organization);
         }
 
         const teams = await Team.find(filter)

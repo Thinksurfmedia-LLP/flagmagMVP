@@ -4,11 +4,25 @@ import Team from "@/models/Team";
  * System-level placeholder team names available in every organization.
  * Used when a game fixture opponent is not yet known (e.g. knockout brackets).
  */
-export const PLACEHOLDER_TEAM_NAMES = ["TBD", "Winner", "Loser"];
+export const PLACEHOLDER_TEAM_NAMES = [
+    "TBD",
+    "Winner",
+    "Losers",
+    "D1 Semi",
+    "D1 Championship",
+    "D2 Semi",
+    "D2 Championship",
+    "D3 Semi",
+    "D3 Championship",
+];
 
 /**
- * Ensures the three placeholder teams exist for the given organization.
- * Safe to call multiple times — uses upsert so it never creates duplicates.
+ * Ensures the placeholder teams exist for the given organization and are
+ * flagged isPlaceholder. Safe to call repeatedly — uses upsert so it never
+ * creates duplicates, and backfills the flag onto any team that was already
+ * created by hand under one of these names (the org/name pair is unique, so
+ * the upsert alone would otherwise silently no-op on those and leave them
+ * unflagged).
  *
  * @param {string|ObjectId} organizationId
  */
@@ -17,10 +31,10 @@ export async function ensurePlaceholderTeams(organizationId) {
         updateOne: {
             filter: { organization: organizationId, name },
             update: {
+                $set: { isPlaceholder: true },
                 $setOnInsert: {
                     name,
                     organization: organizationId,
-                    isPlaceholder: true,
                     logo: "",
                     description: "",
                     division: "",
@@ -29,6 +43,7 @@ export async function ensurePlaceholderTeams(organizationId) {
                     location: {},
                     season: null,
                     league: null,
+                    leagues: [],
                     players: [],
                 },
             },
