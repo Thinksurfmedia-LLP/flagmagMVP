@@ -1,6 +1,17 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Play from "@/models/Play";
+import Game from "@/models/Game";
+
+// Applies a score delta to a team atomically (MongoDB $inc), so concurrent
+// or rapid-fire play saves can never clobber each other's points the way a
+// client-computed "read score, add delta, write absolute value" update can.
+async function incTeamScore(gameId, targetTeam, delta) {
+    if (!delta || !["A", "B"].includes(targetTeam)) return;
+    await Game.findByIdAndUpdate(gameId, {
+        $inc: { [`team${targetTeam}.score`]: delta },
+    });
+}
 
 // GET all plays for a game
 export async function GET(request, { params }) {
@@ -44,6 +55,9 @@ export async function POST(request, { params }) {
             );
         }
 
+        const ptsAdded = Number(body.ptsAdded) || 0;
+        const targetTeam = body.targetTeam || "";
+
         const play = await Play.create({
             game: gameId,
             type: body.type,
@@ -58,9 +72,11 @@ export async function POST(request, { params }) {
             yards: Number(body.yards) || 0,
             points: body.points || "",
             safety: Boolean(body.safety),
-            ptsAdded: Number(body.ptsAdded) || 0,
-            targetTeam: body.targetTeam || "",
+            ptsAdded,
+            targetTeam,
         });
+
+        await incTeamScore(gameId, targetTeam, ptsAdded);
 
         return NextResponse.json({ success: true, data: play }, { status: 201 });
     } catch (error) {
@@ -121,17 +137,34 @@ export async function PUT(request, { params }) {
         if (body.ptsAdded !== undefined) updates.ptsAdded = Number(body.ptsAdded) || 0;
         if (body.targetTeam !== undefined) updates.targetTeam = body.targetTeam;
 
+        // Snapshot the pre-update points/target so the score can be corrected by
+        // the exact delta (old contribution removed, new contribution applied) —
+        // never derived from client-side score state, which is what caused lost
+        // points when plays were saved in quick succession.
+        const before = await Play.findOne({ _id: playId, game: gameId }).select("ptsAdded targetTeam").lean();
+        if (!before) {
+            return NextResponse.json(
+                { success: false, error: "Play not found" },
+                { status: 404 }
+            );
+        }
+
         const updated = await Play.findOneAndUpdate(
             { _id: playId, game: gameId },
             { $set: updates },
             { new: true }
         );
 
-        if (!updated) {
-            return NextResponse.json(
-                { success: false, error: "Play not found" },
-                { status: 404 }
-            );
+        const oldPts = Number(before.ptsAdded) || 0;
+        const oldTarget = before.targetTeam || "";
+        const newPts = updates.ptsAdded !== undefined ? updates.ptsAdded : oldPts;
+        const newTarget = updates.targetTeam !== undefined ? updates.targetTeam : oldTarget;
+
+        if (oldTarget === newTarget) {
+            await incTeamScore(gameId, newTarget, newPts - oldPts);
+        } else {
+            await incTeamScore(gameId, oldTarget, -oldPts);
+            await incTeamScore(gameId, newTarget, newPts);
         }
 
         return NextResponse.json({ success: true, data: updated });
@@ -165,6 +198,8 @@ export async function DELETE(request, { params }) {
                 { status: 404 }
             );
         }
+
+        await incTeamScore(gameId, deleted.targetTeam, -(Number(deleted.ptsAdded) || 0));
 
         return NextResponse.json({ success: true });
     } catch (error) {

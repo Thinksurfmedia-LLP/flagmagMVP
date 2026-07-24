@@ -241,54 +241,6 @@ function LiveGameContent({ gameId }) {
         }
     };
 
-    // Record a stat action
-    const recordAction = async (actionType) => {
-        const teamName = activeTeam === "A" ? game.teamA.name : game.teamB.name;
-        const logEntry = {
-            time: new Date().toLocaleTimeString(),
-            action: actionType,
-            team: teamName,
-            half,
-            round,
-            type: actionType,
-        };
-
-        setActionLog([logEntry, ...actionLog]);
-        showToast(`${actionType} recorded for ${teamName}`, "success");
-
-        // Update score for certain actions
-        if (actionType === "Touchdown") {
-            const scoreUpdate = {};
-            if (activeTeam === "A") {
-                scoreUpdate["teamA.score"] = (game.teamA.score || 0) + 6;
-            } else {
-                scoreUpdate["teamB.score"] = (game.teamB.score || 0) + 6;
-            }
-            try {
-                await apiPut(`/api/games/${gameId}`, scoreUpdate);
-                fetchGame();
-            } catch {
-                // ignore
-            }
-        }
-    };
-
-    // Update game score manually
-    const updateScore = async (team, delta) => {
-        if (!game) return;
-        const field = team === "A" ? "teamA" : "teamB";
-        const currentScore = game[field].score || 0;
-        const newScore = Math.max(0, currentScore + delta);
-        try {
-            await apiPut(`/api/games/${gameId}`, {
-                [`${field}.score`]: newScore,
-            });
-            fetchGame();
-        } catch (err) {
-            showToast(err.message, "error");
-        }
-    };
-
     const handleUndo = () => {
         setActionLog((prev) => {
             if (prev.length > 0) {
@@ -438,21 +390,7 @@ function LiveGameContent({ gameId }) {
                     }
 
                     const targetTeam = activeTeam;
-                    let netDelta = ptsToAdd;
                     const oldLog = editingLogIndex !== null ? actionLog[editingLogIndex] : null;
-
-                    if (oldLog) {
-                        if (oldLog.targetTeam === targetTeam) {
-                            netDelta = ptsToAdd - oldLog.ptsAdded;
-                        } else {
-                            updateScore(oldLog.targetTeam, -oldLog.ptsAdded);
-                            netDelta = ptsToAdd;
-                        }
-                    }
-
-                    if (netDelta !== 0) {
-                        updateScore(targetTeam, netDelta);
-                    }
 
                     const teamName = activeTeam === "A" ? game.teamA.name : game.teamB.name;
                     const logDesc = `Compl ${data.yards}yd P${data.passer}-R${data.receiver}${data.flagPull ? ` FP:${data.flagPull}` : ''}`;
@@ -467,12 +405,16 @@ function LiveGameContent({ gameId }) {
                         ptsAdded: ptsToAdd,
                         targetTeam
                     };
-                    
+
+                    // Score is derived server-side from ptsAdded/targetTeam via an
+                    // atomic increment on save — never computed here from local
+                    // score state, which is what let rapid-fire plays clobber
+                    // each other's points.
                     if (editingLogIndex !== null) {
                         const newLogs = [...actionLog];
                         newLogs[editingLogIndex] = { ...newLogs[editingLogIndex], ...logEntry };
                         setActionLog(newLogs);
-                        updatePlay(oldLog.playId, "completion", logEntry, data);
+                        updatePlay(oldLog.playId, "completion", logEntry, data).then(fetchGame);
                         setEditingLogIndex(null);
                         showToast("Completion updated", "success");
                     } else {
@@ -484,6 +426,7 @@ function LiveGameContent({ gameId }) {
                                 if (idx !== -1) next[idx] = { ...next[idx], playId };
                                 return next;
                             });
+                            fetchGame();
                         });
                         showToast("Completion saved", "success");
                     }
@@ -568,21 +511,7 @@ function LiveGameContent({ gameId }) {
                     }
 
                     const targetTeam = activeTeam === "A" ? "B" : "A";
-                    let netDelta = ptsToAdd;
                     const oldLog = editingLogIndex !== null ? actionLog[editingLogIndex] : null;
-
-                    if (oldLog) {
-                        if (oldLog.targetTeam === targetTeam) {
-                            netDelta = ptsToAdd - oldLog.ptsAdded;
-                        } else {
-                            updateScore(oldLog.targetTeam, -oldLog.ptsAdded);
-                            netDelta = ptsToAdd;
-                        }
-                    }
-
-                    if (netDelta !== 0) {
-                        updateScore(targetTeam, netDelta);
-                    }
 
                     const teamName = activeTeam === "A" ? game.teamA.name : game.teamB.name;
                     const logDesc = `Fumble D${data.defender}${data.flagPull ? ` FP:${data.flagPull}` : ''}`;
@@ -598,11 +527,13 @@ function LiveGameContent({ gameId }) {
                         targetTeam
                     };
 
+                    // Score is derived server-side from ptsAdded/targetTeam via an
+                    // atomic increment on save — see Completion's onSave for why.
                     if (editingLogIndex !== null) {
                         const newLogs = [...actionLog];
                         newLogs[editingLogIndex] = { ...newLogs[editingLogIndex], ...logEntry };
                         setActionLog(newLogs);
-                        updatePlay(oldLog.playId, "fumble", logEntry, data);
+                        updatePlay(oldLog.playId, "fumble", logEntry, data).then(fetchGame);
                         setEditingLogIndex(null);
                         showToast("Fumble updated", "success");
                     } else {
@@ -614,6 +545,7 @@ function LiveGameContent({ gameId }) {
                                 if (idx !== -1) next[idx] = { ...next[idx], playId };
                                 return next;
                             });
+                            fetchGame();
                         });
                         showToast("Fumble saved", "success");
                     }
@@ -645,21 +577,7 @@ function LiveGameContent({ gameId }) {
                     }
 
                     const targetTeam = activeTeam === "A" ? "B" : "A";
-                    let netDelta = ptsToAdd;
                     const oldLog = editingLogIndex !== null ? actionLog[editingLogIndex] : null;
-
-                    if (oldLog) {
-                        if (oldLog.targetTeam === targetTeam) {
-                            netDelta = ptsToAdd - oldLog.ptsAdded;
-                        } else {
-                            updateScore(oldLog.targetTeam, -oldLog.ptsAdded);
-                            netDelta = ptsToAdd;
-                        }
-                    }
-
-                    if (netDelta !== 0) {
-                        updateScore(targetTeam, netDelta);
-                    }
 
                     const teamName = activeTeam === "A" ? game.teamA.name : game.teamB.name;
                     const logDesc = `INT P${data.passer}-D${data.defender}${data.flagPull ? ` FP:${data.flagPull}` : ''}`;
@@ -675,11 +593,13 @@ function LiveGameContent({ gameId }) {
                         targetTeam
                     };
 
+                    // Score is derived server-side from ptsAdded/targetTeam via an
+                    // atomic increment on save — see Completion's onSave for why.
                     if (editingLogIndex !== null) {
                         const newLogs = [...actionLog];
                         newLogs[editingLogIndex] = { ...newLogs[editingLogIndex], ...logEntry };
                         setActionLog(newLogs);
-                        updatePlay(oldLog.playId, "interception", logEntry, data);
+                        updatePlay(oldLog.playId, "interception", logEntry, data).then(fetchGame);
                         setEditingLogIndex(null);
                         showToast("Interception updated", "success");
                     } else {
@@ -691,6 +611,7 @@ function LiveGameContent({ gameId }) {
                                 if (idx !== -1) next[idx] = { ...next[idx], playId };
                                 return next;
                             });
+                            fetchGame();
                         });
                         showToast("Interception saved", "success");
                     }
@@ -717,21 +638,7 @@ function LiveGameContent({ gameId }) {
                     if (data.safety) ptsToAdd = 2;
 
                     const targetTeam = activeTeam === "A" ? "B" : "A";
-                    let netDelta = ptsToAdd;
                     const oldLog = editingLogIndex !== null ? actionLog[editingLogIndex] : null;
-
-                    if (oldLog) {
-                        if (oldLog.targetTeam === targetTeam) {
-                            netDelta = ptsToAdd - oldLog.ptsAdded;
-                        } else {
-                            updateScore(oldLog.targetTeam, -oldLog.ptsAdded);
-                            netDelta = ptsToAdd;
-                        }
-                    }
-
-                    if (netDelta !== 0) {
-                        updateScore(targetTeam, netDelta);
-                    }
 
                     const teamName = activeTeam === "A" ? game.teamA.name : game.teamB.name;
                     const logDesc = `Sack P${data.passer}-D${data.defender}${data.safety ? ' (Safety)' : ''}`;
@@ -747,11 +654,13 @@ function LiveGameContent({ gameId }) {
                         targetTeam
                     };
 
+                    // Score is derived server-side from ptsAdded/targetTeam via an
+                    // atomic increment on save — see Completion's onSave for why.
                     if (editingLogIndex !== null) {
                         const newLogs = [...actionLog];
                         newLogs[editingLogIndex] = { ...newLogs[editingLogIndex], ...logEntry };
                         setActionLog(newLogs);
-                        updatePlay(oldLog.playId, "sack", logEntry, data);
+                        updatePlay(oldLog.playId, "sack", logEntry, data).then(fetchGame);
                         setEditingLogIndex(null);
                         showToast("Sack updated", "success");
                     } else {
@@ -763,6 +672,7 @@ function LiveGameContent({ gameId }) {
                                 if (idx !== -1) next[idx] = { ...next[idx], playId };
                                 return next;
                             });
+                            fetchGame();
                         });
                         showToast("Sack saved", "success");
                     }
@@ -795,21 +705,7 @@ function LiveGameContent({ gameId }) {
                     }
 
                     const targetTeam = activeTeam;
-                    let netDelta = ptsToAdd;
                     const oldLog = editingLogIndex !== null ? actionLog[editingLogIndex] : null;
-
-                    if (oldLog) {
-                        if (oldLog.targetTeam === targetTeam) {
-                            netDelta = ptsToAdd - oldLog.ptsAdded;
-                        } else {
-                            updateScore(oldLog.targetTeam, -oldLog.ptsAdded);
-                            netDelta = ptsToAdd;
-                        }
-                    }
-
-                    if (netDelta !== 0) {
-                        updateScore(targetTeam, netDelta);
-                    }
 
                     const teamName = activeTeam === "A" ? game.teamA.name : game.teamB.name;
                     const logDesc = `Run ${data.yards}yd R${data.rusher}${data.flagPull ? ` FP:${data.flagPull}` : ''}`;
@@ -825,11 +721,13 @@ function LiveGameContent({ gameId }) {
                         targetTeam
                     };
 
+                    // Score is derived server-side from ptsAdded/targetTeam via an
+                    // atomic increment on save — see Completion's onSave for why.
                     if (editingLogIndex !== null) {
                         const newLogs = [...actionLog];
                         newLogs[editingLogIndex] = { ...newLogs[editingLogIndex], ...logEntry };
                         setActionLog(newLogs);
-                        updatePlay(oldLog.playId, "run", logEntry, data);
+                        updatePlay(oldLog.playId, "run", logEntry, data).then(fetchGame);
                         setEditingLogIndex(null);
                         showToast("Run updated", "success");
                     } else {
@@ -841,6 +739,7 @@ function LiveGameContent({ gameId }) {
                                 if (idx !== -1) next[idx] = { ...next[idx], playId };
                                 return next;
                             });
+                            fetchGame();
                         });
                         showToast("Run saved", "success");
                     }
@@ -1140,8 +1039,6 @@ function LiveGameContent({ gameId }) {
                                     setShowSackPage(true);
                                 } else if (action.action === "Run") {
                                     setShowRunPage(true);
-                                } else {
-                                    recordAction(action.action);
                                 }
                             }}
                         >
