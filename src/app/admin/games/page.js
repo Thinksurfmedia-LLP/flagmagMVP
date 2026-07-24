@@ -1437,7 +1437,7 @@ export default function AdminGamesPage() {
             const haystack = fields.join(" ").toLowerCase();
             return haystack.includes(q);
         });
-    })();
+    })().sort((a, b) => new Date(b.date) - new Date(a.date) || (b.time || "").localeCompare(a.time || ""));
 
 
     const handleSave = async (payload) => {

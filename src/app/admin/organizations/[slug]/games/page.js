@@ -1073,7 +1073,7 @@ export default function OrgGamesPage() {
                 const allGames = gameResponses
                     .filter(d => d.success)
                     .flatMap(d => d.data);
-                allGames.sort((a, b) => new Date(a.date) - new Date(b.date));
+                allGames.sort((a, b) => new Date(b.date) - new Date(a.date) || (b.time || "").localeCompare(a.time || ""));
                 setGames(allGames);
             } else {
                 setGames([]);
