@@ -24,8 +24,8 @@ export async function GET(request, { params }) {
 
         // Fetch leagues, teams, and schedules in parallel
         const [leagues, teams, schedules] = await Promise.all([
-            League.find({ organization: org._id }).select("_id name category").lean(),
-            Team.find({ organization: org._id }).select("name logo").lean(),
+            League.find({ organization: org._id }).select("_id name category leagueType").lean(),
+            Team.find({ organization: org._id }).select("name logo leagues").lean(),
             Schedule.find({ organization: org._id }).select("weeks.name weeks.games.gameRef").lean(),
         ]);
 
@@ -54,19 +54,36 @@ export async function GET(request, { params }) {
 
         const games = await Game.find(filter).sort({ date: 1, time: 1 }).lean();
 
-        // Enrich with league info, latest team logos, and schedule-derived sectionName
+        // Enrich with league info, latest team logos, schedule-derived sectionName,
+        // and (playoffs leagues only) each team's seed number for this league.
+        const seedFor = (team, leagueId, isPlayoffs) => {
+            if (!isPlayoffs || !team) return null;
+            const membership = (team.leagues || []).find((m) => String(m.league) === String(leagueId));
+            return membership?.seedNumber ?? null;
+        };
+
         const data = games.map((game) => {
             const league = leagueMap[String(game.league)];
-            const teamALogo = teamMap[game.teamA?.name]?.logo;
-            const teamBLogo = teamMap[game.teamB?.name]?.logo;
+            const isPlayoffs = league?.leagueType === "playoffs";
+            const teamAData = teamMap[game.teamA?.name];
+            const teamBData = teamMap[game.teamB?.name];
             const sectionName = gameRefSectionMap[String(game._id)] ?? game.sectionName ?? "";
             return {
                 ...game,
                 sectionName,
                 leagueName: league?.name || "",
                 leagueCategory: league?.category || "",
-                teamA: { ...game.teamA, logo: teamALogo || game.teamA?.logo || "" },
-                teamB: { ...game.teamB, logo: teamBLogo || game.teamB?.logo || "" },
+                leagueType: league?.leagueType || "league",
+                teamA: {
+                    ...game.teamA,
+                    logo: teamAData?.logo || game.teamA?.logo || "",
+                    seedNumber: seedFor(teamAData, game.league, isPlayoffs),
+                },
+                teamB: {
+                    ...game.teamB,
+                    logo: teamBData?.logo || game.teamB?.logo || "",
+                    seedNumber: seedFor(teamBData, game.league, isPlayoffs),
+                },
             };
         });
 
