@@ -60,7 +60,21 @@ export async function GET(request, { params }) {
             ...r,
             pct: (r.wins + r.losses) > 0 ? (r.wins / (r.wins + r.losses)) * 100 : 0,
             diff: r.pf - r.pa,
-        })).sort((a, b) => b.pct - a.pct || b.pf - a.pf);
+        })).sort((a, b) => {
+            // Playoff brackets are seeded — before any games are played every
+            // team is 0-0, so sorting by record alone leaves them in
+            // whatever arbitrary order the DB query happened to return.
+            // Seed number is the actual intended display order there.
+            if (isPlayoffs) {
+                const aSeed = a.seedNumber ?? Infinity;
+                const bSeed = b.seedNumber ?? Infinity;
+                if (aSeed !== bSeed) return aSeed - bSeed;
+            }
+            // Win% first; when tied, point differential (not raw points-for)
+            // breaks the tie — a team that's +/-3 outranks one that's -6
+            // even if the second team scored more total points.
+            return b.pct - a.pct || b.diff - a.diff;
+        });
 
         // Group by division
         const divisionNames = [...new Set(rows.map((r) => r.division).filter(Boolean))];
