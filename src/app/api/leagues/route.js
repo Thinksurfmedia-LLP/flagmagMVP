@@ -102,6 +102,7 @@ export async function POST(request) {
             slug,
             type: body.type || "active",
             leagueType: body.leagueType || "league",
+            allowPlaceholderTeams: Boolean(body.allowPlaceholderTeams),
             category: body.category || "",
             locations,
             location: locations[0] || "",

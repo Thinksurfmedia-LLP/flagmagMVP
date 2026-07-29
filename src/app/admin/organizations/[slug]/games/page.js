@@ -566,20 +566,11 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
         } catch { /* ignore */ }
     };
 
-    const updateScore = async (team, delta) => {
-        const field = team === "A" ? "teamA" : "teamB";
-        const currentScore = liveGame[field].score || 0;
-        const newScore = Math.max(0, currentScore + delta);
-        try {
-            await fetch(`/api/games/${game._id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ [`${field}.score`]: newScore }),
-            });
-            refreshGame();
-        } catch { /* ignore */ }
-    };
-
+    // Score is derived server-side from ptsAdded/targetTeam via an atomic
+    // increment on save (see incTeamScore in the plays API route) — it must
+    // never also be set here from local score state. Doing both doubled every
+    // recorded point (this is what caused the North Park playoff scores to
+    // come in exactly 2x the sum of the recorded plays).
     const persistPlay = async (playType, logEntry, playData) => {
         try {
             await fetch(`/api/games/${game._id}/plays`, {
@@ -603,6 +594,7 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
                 }),
             });
             fetchPlays();
+            refreshGame();
         } catch (err) {
             console.error("Failed to persist play:", err);
         }
@@ -626,8 +618,6 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
             if (data.safety) ptsToAdd = 2;
             targetTeam = activeTeam === "A" ? "B" : "A";
         }
-
-        if (ptsToAdd !== 0) updateScore(targetTeam, ptsToAdd);
 
         const teamName = activeTeam === "A" ? liveGame.teamA.name : liveGame.teamB.name;
         const logEntry = {

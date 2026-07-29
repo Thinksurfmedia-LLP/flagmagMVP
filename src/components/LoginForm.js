@@ -9,12 +9,13 @@ export default function LoginForm() {
     const searchParams = useSearchParams();
     const redirectTo = searchParams.get("redirect") || "/";
     const justRegistered = searchParams.get("registered") === "true";
+    const sessionExpired = searchParams.get("expired") === "true";
     const { login } = useAuth();
 
     const [formData, setFormData] = useState({ email: "", password: "" });
     const [remember, setRemember] = useState(true);
     const [showPassword, setShowPassword] = useState(false);
-    const [error, setError] = useState("");
+    const [error, setError] = useState(sessionExpired ? "Your session has expired. Please log in again." : "");
     const [success, setSuccess] = useState(justRegistered ? "Account created! Please log in." : "");
     const [loading, setLoading] = useState(false);
 

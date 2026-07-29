@@ -28,6 +28,14 @@ const LeagueSchema = new mongoose.Schema(
             enum: ["league", "playoffs"],
             default: "league",
         },
+        // Whether placeholder teams (TBD, Winner, Losers, etc.) show up in
+        // this league's team dropdown — opt-in per league instead of every
+        // league showing them, since most regular-season leagues never need
+        // a bracket placeholder.
+        allowPlaceholderTeams: {
+            type: Boolean,
+            default: false,
+        },
         category: {
             type: String,
             default: "",
@@ -99,7 +107,7 @@ LeagueSchema.index({ organization: 1, slug: 1 }, { unique: true });
 function getLeagueModel() {
     if (mongoose.models.League) {
         const existing = mongoose.models.League;
-        if (!existing.schema.paths.divisions || !existing.schema.paths.seasonOverridden || !existing.schema.paths.image || !existing.schema.paths.endDate) {
+        if (!existing.schema.paths.divisions || !existing.schema.paths.seasonOverridden || !existing.schema.paths.image || !existing.schema.paths.endDate || !existing.schema.paths.allowPlaceholderTeams) {
             delete mongoose.models.League;
             delete mongoose.connection.models?.League;
             return mongoose.model("League", LeagueSchema);

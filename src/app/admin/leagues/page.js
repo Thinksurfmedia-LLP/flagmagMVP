@@ -12,6 +12,7 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
         name: initial?.name || "",
         type: initial?.type || "active",
         leagueType: initial?.leagueType || "league",
+        allowPlaceholderTeams: initial?.allowPlaceholderTeams || false,
         category: initial?.category || "",
         locations: Array.isArray(initial?.locations)
             ? initial.locations
@@ -310,6 +311,19 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
                         <option value="league">League</option>
                         <option value="playoffs">Playoffs</option>
                     </select>
+                </div>
+
+                <div className="admin-form-group">
+                    <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                        <input
+                            type="checkbox"
+                            checked={form.allowPlaceholderTeams}
+                            onChange={(e) => setForm({ ...form, allowPlaceholderTeams: e.target.checked })}
+                        />
+                        <span className="admin-form-label" style={{ margin: 0 }}>
+                            Include placeholder teams (TBD, Winner, Losers, etc.) in this league&apos;s team dropdown
+                        </span>
+                    </label>
                 </div>
 
                 <div className="admin-form-group">

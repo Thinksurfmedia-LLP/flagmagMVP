@@ -2,6 +2,21 @@
 
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
 
+// Endpoints where a 401 is an expected, routine outcome (anonymous visitors
+// hit /api/auth/me on every page load; failed login attempts return 401 on
+// purpose) — never treat those as "your session just expired".
+const SESSION_PROBE_PATHS = ["/api/auth/me", "/api/auth/login", "/api/auth/login/mobile"];
+
+function isSessionProbePath(input) {
+    try {
+        const url = typeof input === "string" ? input : input?.url || "";
+        const path = new URL(url, window.location.origin).pathname;
+        return SESSION_PROBE_PATHS.includes(path);
+    } catch {
+        return false;
+    }
+}
+
 const AuthContext = createContext({
     user: null,
     loading: true,
@@ -63,6 +78,34 @@ export function AuthProvider({ children }) {
     useEffect(() => {
         refreshUser();
     }, [refreshUser]);
+
+    // Global safety net: if any request comes back 401 (session expired or
+    // invalidated server-side — e.g. a redeploy that rotated JWT_SECRET),
+    // send the user to a fresh login instead of leaving them looking at a
+    // raw "Authentication required" toast with no way forward.
+    useEffect(() => {
+        if (typeof window === "undefined" || window.__flagmagAuthFetchPatched) return;
+        window.__flagmagAuthFetchPatched = true;
+
+        const originalFetch = window.fetch.bind(window);
+        window.fetch = async (...args) => {
+            const response = await originalFetch(...args);
+            if (
+                response.status === 401 &&
+                !isSessionProbePath(args[0]) &&
+                !window.location.pathname.startsWith("/login")
+            ) {
+                setUser(null);
+                window.location.href = "/login?expired=true";
+            }
+            return response;
+        };
+
+        return () => {
+            window.fetch = originalFetch;
+            window.__flagmagAuthFetchPatched = false;
+        };
+    }, []);
 
     const login = async (email, password) => {
         const res = await fetch("/api/auth/login", {

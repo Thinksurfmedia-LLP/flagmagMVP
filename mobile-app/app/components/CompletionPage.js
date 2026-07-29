@@ -38,10 +38,6 @@ export default function CompletionPage({ game, activeTeam, roster, onSave, onCan
             alert("Receiver Number is required");
             return;
         }
-        if (points === null && !flagPull) {
-            alert("Select a point outcome or enter the Flag Pull player number");
-            return;
-        }
 
         onSave({
             passer,
@@ -163,7 +159,7 @@ export default function CompletionPage({ game, activeTeam, roster, onSave, onCan
                             inputMode="numeric"
                             pattern="[0-9]*"
                             className="form-control"
-                            placeholder="Flag Pull*"
+                            placeholder="Flag Pull"
                             value={flagPull}
                             onChange={(e) => setFlagPull(e.target.value.replace(/\D/g, ""))}
                             disabled={points !== null}

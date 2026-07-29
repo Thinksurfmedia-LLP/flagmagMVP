@@ -28,10 +28,6 @@ export default function InterceptionPage({ game, activeTeam, roster, onSave, onC
             alert("Defender Number is required");
             return;
         }
-        if (points === null && !flagPull) {
-            alert("Select a point outcome or enter the Flag Pull player number");
-            return;
-        }
 
         onSave({
             passer,
@@ -141,7 +137,7 @@ export default function InterceptionPage({ game, activeTeam, roster, onSave, onC
                             inputMode="numeric"
                             pattern="[0-9]*"
                             className="form-control"
-                            placeholder="Flag Pull*"
+                            placeholder="Flag Pull"
                             value={flagPull}
                             onChange={(e) => setFlagPull(e.target.value.replace(/\D/g, ""))}
                             disabled={points !== null}
