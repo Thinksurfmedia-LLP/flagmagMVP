@@ -3,14 +3,21 @@ import dbConnect from "@/lib/dbConnect";
 import Play from "@/models/Play";
 import Game from "@/models/Game";
 
-// Applies a score delta to a team atomically (MongoDB $inc), so concurrent
-// or rapid-fire play saves can never clobber each other's points the way a
-// client-computed "read score, add delta, write absolute value" update can.
+// Applies a score delta to a team atomically, so concurrent or rapid-fire
+// play saves can never clobber each other's points the way a client-computed
+// "read score, add delta, write absolute value" update can.
+//
+// Uses an aggregation-pipeline update (not a plain $inc) because every game
+// starts with score: null (the "not yet played" placeholder — see Game.js),
+// and MongoDB's $inc throws on a null field instead of treating it as 0.
+// $ifNull coalesces null/missing to 0 before adding the delta, atomically,
+// so the very first scoring play of a game never crashes.
 async function incTeamScore(gameId, targetTeam, delta) {
     if (!delta || !["A", "B"].includes(targetTeam)) return;
-    await Game.findByIdAndUpdate(gameId, {
-        $inc: { [`team${targetTeam}.score`]: delta },
-    });
+    const field = `team${targetTeam}.score`;
+    await Game.findByIdAndUpdate(gameId, [
+        { $set: { [field]: { $add: [{ $ifNull: [`$${field}`, 0] }, delta] } } },
+    ]);
 }
 
 // GET all plays for a game
