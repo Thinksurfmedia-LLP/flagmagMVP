@@ -15,9 +15,11 @@ import Game from "@/models/Game";
 async function incTeamScore(gameId, targetTeam, delta) {
     if (!delta || !["A", "B"].includes(targetTeam)) return;
     const field = `team${targetTeam}.score`;
-    await Game.findByIdAndUpdate(gameId, [
-        { $set: { [field]: { $add: [{ $ifNull: [`$${field}`, 0] }, delta] } } },
-    ]);
+    await Game.findByIdAndUpdate(
+        gameId,
+        [{ $set: { [field]: { $add: [{ $ifNull: [`$${field}`, 0] }, delta] } } }],
+        { updatePipeline: true },
+    );
 }
 
 // GET all plays for a game
