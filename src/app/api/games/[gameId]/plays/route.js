@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import mongoose from "mongoose";
 import dbConnect from "@/lib/dbConnect";
 import Play from "@/models/Play";
 import Game from "@/models/Game";
@@ -12,13 +13,18 @@ import Game from "@/models/Game";
 // and MongoDB's $inc throws on a null field instead of treating it as 0.
 // $ifNull coalesces null/missing to 0 before adding the delta, atomically,
 // so the very first scoring play of a game never crashes.
-async function incTeamScore(gameId, targetTeam, delta) {
+//
+// Must run in the same session/transaction as the Play write that triggered
+// it — a play recorded without its score landing (or vice versa) is exactly
+// the bug that left several completed games showing 0 despite a full,
+// correct play log.
+async function incTeamScore(gameId, targetTeam, delta, session) {
     if (!delta || !["A", "B"].includes(targetTeam)) return;
     const field = `team${targetTeam}.score`;
     await Game.findByIdAndUpdate(
         gameId,
         [{ $set: { [field]: { $add: [{ $ifNull: [`$${field}`, 0] }, delta] } } }],
-        { updatePipeline: true },
+        { updatePipeline: true, session },
     );
 }
 
@@ -67,25 +73,34 @@ export async function POST(request, { params }) {
         const ptsAdded = Number(body.ptsAdded) || 0;
         const targetTeam = body.targetTeam || "";
 
-        const play = await Play.create({
-            game: gameId,
-            type: body.type,
-            activeTeam: body.activeTeam,
-            teamName: body.teamName,
-            half: body.half || "1st",
-            passer: body.passer || "",
-            receiver: body.receiver || "",
-            rusher: body.rusher || "",
-            defender: body.defender || "",
-            flagPull: body.flagPull || "",
-            yards: Number(body.yards) || 0,
-            points: body.points || "",
-            safety: Boolean(body.safety),
-            ptsAdded,
-            targetTeam,
-        });
+        const session = await mongoose.startSession();
+        let play;
+        try {
+            await session.withTransaction(async () => {
+                const [created] = await Play.create([{
+                    game: gameId,
+                    type: body.type,
+                    activeTeam: body.activeTeam,
+                    teamName: body.teamName,
+                    half: body.half || "1st",
+                    passer: body.passer || "",
+                    receiver: body.receiver || "",
+                    rusher: body.rusher || "",
+                    defender: body.defender || "",
+                    flagPull: body.flagPull || "",
+                    yards: Number(body.yards) || 0,
+                    points: body.points || "",
+                    safety: Boolean(body.safety),
+                    ptsAdded,
+                    targetTeam,
+                }], { session });
+                play = created;
 
-        await incTeamScore(gameId, targetTeam, ptsAdded);
+                await incTeamScore(gameId, targetTeam, ptsAdded, session);
+            });
+        } finally {
+            await session.endSession();
+        }
 
         return NextResponse.json({ success: true, data: play }, { status: 201 });
     } catch (error) {
@@ -158,22 +173,30 @@ export async function PUT(request, { params }) {
             );
         }
 
-        const updated = await Play.findOneAndUpdate(
-            { _id: playId, game: gameId },
-            { $set: updates },
-            { new: true }
-        );
-
         const oldPts = Number(before.ptsAdded) || 0;
         const oldTarget = before.targetTeam || "";
         const newPts = updates.ptsAdded !== undefined ? updates.ptsAdded : oldPts;
         const newTarget = updates.targetTeam !== undefined ? updates.targetTeam : oldTarget;
 
-        if (oldTarget === newTarget) {
-            await incTeamScore(gameId, newTarget, newPts - oldPts);
-        } else {
-            await incTeamScore(gameId, oldTarget, -oldPts);
-            await incTeamScore(gameId, newTarget, newPts);
+        const session = await mongoose.startSession();
+        let updated;
+        try {
+            await session.withTransaction(async () => {
+                updated = await Play.findOneAndUpdate(
+                    { _id: playId, game: gameId },
+                    { $set: updates },
+                    { new: true, session }
+                );
+
+                if (oldTarget === newTarget) {
+                    await incTeamScore(gameId, newTarget, newPts - oldPts, session);
+                } else {
+                    await incTeamScore(gameId, oldTarget, -oldPts, session);
+                    await incTeamScore(gameId, newTarget, newPts, session);
+                }
+            });
+        } finally {
+            await session.endSession();
         }
 
         return NextResponse.json({ success: true, data: updated });
@@ -200,15 +223,24 @@ export async function DELETE(request, { params }) {
             );
         }
 
-        const deleted = await Play.findOneAndDelete({ _id: playId, game: gameId });
+        const session = await mongoose.startSession();
+        let deleted;
+        try {
+            await session.withTransaction(async () => {
+                deleted = await Play.findOneAndDelete({ _id: playId, game: gameId }, { session });
+                if (!deleted) return;
+                await incTeamScore(gameId, deleted.targetTeam, -(Number(deleted.ptsAdded) || 0), session);
+            });
+        } finally {
+            await session.endSession();
+        }
+
         if (!deleted) {
             return NextResponse.json(
                 { success: false, error: "Play not found" },
                 { status: 404 }
             );
         }
-
-        await incTeamScore(gameId, deleted.targetTeam, -(Number(deleted.ptsAdded) || 0));
 
         return NextResponse.json({ success: true });
     } catch (error) {

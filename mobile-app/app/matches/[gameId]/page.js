@@ -420,15 +420,20 @@ function LiveGameContent({ gameId }) {
                     } else {
                         setActionLog(prev => [logEntry, ...prev]);
                         persistPlay("completion", logEntry, data).then(playId => {
-                            if (playId) setActionLog(prev => {
-                                const next = [...prev];
-                                const idx = next.findIndex(l => !l.playId && l.type === "Completion" && l.time === logEntry.time);
-                                if (idx !== -1) next[idx] = { ...next[idx], playId };
-                                return next;
-                            });
+                            if (playId) {
+                                setActionLog(prev => {
+                                    const next = [...prev];
+                                    const idx = next.findIndex(l => !l.playId && l.type === "Completion" && l.time === logEntry.time);
+                                    if (idx !== -1) next[idx] = { ...next[idx], playId };
+                                    return next;
+                                });
+                                showToast("Completion saved", "success");
+                            } else {
+                                setActionLog(prev => prev.filter(l => !(!l.playId && l.type === "Completion" && l.time === logEntry.time)));
+                                showToast("Failed to save — check connection and try again", "error");
+                            }
                             fetchGame();
                         });
-                        showToast("Completion saved", "success");
                     }
                     setShowCompletionPage(false);
                 }}
@@ -474,14 +479,19 @@ function LiveGameContent({ gameId }) {
                     } else {
                         setActionLog(prev => [logEntry, ...prev]);
                         persistPlay("incomplete", logEntry, data).then(playId => {
-                            if (playId) setActionLog(prev => {
-                                const next = [...prev];
-                                const idx = next.findIndex(l => !l.playId && l.type === "Incompletion" && l.time === logEntry.time);
-                                if (idx !== -1) next[idx] = { ...next[idx], playId };
-                                return next;
-                            });
+                            if (playId) {
+                                setActionLog(prev => {
+                                    const next = [...prev];
+                                    const idx = next.findIndex(l => !l.playId && l.type === "Incompletion" && l.time === logEntry.time);
+                                    if (idx !== -1) next[idx] = { ...next[idx], playId };
+                                    return next;
+                                });
+                                showToast("Incompletion saved", "success");
+                            } else {
+                                setActionLog(prev => prev.filter(l => !(!l.playId && l.type === "Incompletion" && l.time === logEntry.time)));
+                                showToast("Failed to save — check connection and try again", "error");
+                            }
                         });
-                        showToast("Incompletion saved", "success");
                     }
                     setShowIncompletePassPage(false);
                 }}
@@ -539,15 +549,20 @@ function LiveGameContent({ gameId }) {
                     } else {
                         setActionLog(prev => [logEntry, ...prev]);
                         persistPlay("fumble", logEntry, data).then(playId => {
-                            if (playId) setActionLog(prev => {
-                                const next = [...prev];
-                                const idx = next.findIndex(l => !l.playId && l.type === "Fumble" && l.time === logEntry.time);
-                                if (idx !== -1) next[idx] = { ...next[idx], playId };
-                                return next;
-                            });
+                            if (playId) {
+                                setActionLog(prev => {
+                                    const next = [...prev];
+                                    const idx = next.findIndex(l => !l.playId && l.type === "Fumble" && l.time === logEntry.time);
+                                    if (idx !== -1) next[idx] = { ...next[idx], playId };
+                                    return next;
+                                });
+                                showToast("Fumble saved", "success");
+                            } else {
+                                setActionLog(prev => prev.filter(l => !(!l.playId && l.type === "Fumble" && l.time === logEntry.time)));
+                                showToast("Failed to save — check connection and try again", "error");
+                            }
                             fetchGame();
                         });
-                        showToast("Fumble saved", "success");
                     }
                     setShowFumblePage(false);
                 }}
@@ -605,15 +620,20 @@ function LiveGameContent({ gameId }) {
                     } else {
                         setActionLog(prev => [logEntry, ...prev]);
                         persistPlay("interception", logEntry, data).then(playId => {
-                            if (playId) setActionLog(prev => {
-                                const next = [...prev];
-                                const idx = next.findIndex(l => !l.playId && l.type === "Interception" && l.time === logEntry.time);
-                                if (idx !== -1) next[idx] = { ...next[idx], playId };
-                                return next;
-                            });
+                            if (playId) {
+                                setActionLog(prev => {
+                                    const next = [...prev];
+                                    const idx = next.findIndex(l => !l.playId && l.type === "Interception" && l.time === logEntry.time);
+                                    if (idx !== -1) next[idx] = { ...next[idx], playId };
+                                    return next;
+                                });
+                                showToast("Interception saved", "success");
+                            } else {
+                                setActionLog(prev => prev.filter(l => !(!l.playId && l.type === "Interception" && l.time === logEntry.time)));
+                                showToast("Failed to save — check connection and try again", "error");
+                            }
                             fetchGame();
                         });
-                        showToast("Interception saved", "success");
                     }
                     setShowInterceptionPage(false);
                 }}
@@ -666,15 +686,20 @@ function LiveGameContent({ gameId }) {
                     } else {
                         setActionLog(prev => [logEntry, ...prev]);
                         persistPlay("sack", logEntry, data).then(playId => {
-                            if (playId) setActionLog(prev => {
-                                const next = [...prev];
-                                const idx = next.findIndex(l => !l.playId && l.type === "Sack" && l.time === logEntry.time);
-                                if (idx !== -1) next[idx] = { ...next[idx], playId };
-                                return next;
-                            });
+                            if (playId) {
+                                setActionLog(prev => {
+                                    const next = [...prev];
+                                    const idx = next.findIndex(l => !l.playId && l.type === "Sack" && l.time === logEntry.time);
+                                    if (idx !== -1) next[idx] = { ...next[idx], playId };
+                                    return next;
+                                });
+                                showToast("Sack saved", "success");
+                            } else {
+                                setActionLog(prev => prev.filter(l => !(!l.playId && l.type === "Sack" && l.time === logEntry.time)));
+                                showToast("Failed to save — check connection and try again", "error");
+                            }
                             fetchGame();
                         });
-                        showToast("Sack saved", "success");
                     }
                     setShowSackPage(false);
                 }}
@@ -733,15 +758,20 @@ function LiveGameContent({ gameId }) {
                     } else {
                         setActionLog(prev => [logEntry, ...prev]);
                         persistPlay("run", logEntry, data).then(playId => {
-                            if (playId) setActionLog(prev => {
-                                const next = [...prev];
-                                const idx = next.findIndex(l => !l.playId && l.type === "Run" && l.time === logEntry.time);
-                                if (idx !== -1) next[idx] = { ...next[idx], playId };
-                                return next;
-                            });
+                            if (playId) {
+                                setActionLog(prev => {
+                                    const next = [...prev];
+                                    const idx = next.findIndex(l => !l.playId && l.type === "Run" && l.time === logEntry.time);
+                                    if (idx !== -1) next[idx] = { ...next[idx], playId };
+                                    return next;
+                                });
+                                showToast("Run saved", "success");
+                            } else {
+                                setActionLog(prev => prev.filter(l => !(!l.playId && l.type === "Run" && l.time === logEntry.time)));
+                                showToast("Failed to save — check connection and try again", "error");
+                            }
                             fetchGame();
                         });
-                        showToast("Run saved", "success");
                     }
                     setShowRunPage(false);
                 }}
@@ -1167,13 +1197,10 @@ function LiveGameContent({ gameId }) {
                 <BottomFooter
                     onCancel={() => setShowCancelConfirm(true)}
                     onForfeit={() => setShowForfeitConfirm(true)}
-                    onComplete={() => {
-                        if (isPaused) {
-                            setIsPaused(false);
-                            showToast("Game resumed", "success");
-                        } else {
-                            setShowCompleteConfirm(true);
-                        }
+                    onComplete={() => setShowCompleteConfirm(true)}
+                    onResume={() => {
+                        setIsPaused(false);
+                        showToast("Game resumed", "success");
                     }}
                     onReset={handleReset}
                     isPaused={isPaused}

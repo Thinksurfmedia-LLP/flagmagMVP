@@ -14,6 +14,7 @@ export const PLACEHOLDER_TEAM_NAMES = [
     "D2 Championship",
     "D3 Semi",
     "D3 Championship",
+    "D4 Championship",
 ];
 
 /**
