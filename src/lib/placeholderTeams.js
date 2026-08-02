@@ -17,6 +17,24 @@ export const PLACEHOLDER_TEAM_NAMES = [
 ];
 
 /**
+ * Heuristic match for a team NAME (not the isPlaceholder flag) that identifies
+ * an unresolved bracket slot, e.g. on a Game's denormalized teamA/teamB.name
+ * where there's no Team ref to check isPlaceholder against directly.
+ *
+ * @param {string} name
+ */
+export function isPlaceholderTeamName(name) {
+    if (!name || !String(name).trim()) return true;
+    const n = String(name).trim().toLowerCase();
+    return (
+        n === "tbd" ||
+        n === "to be decided" ||
+        n.includes("winner") ||
+        n.includes("loser")
+    );
+}
+
+/**
  * Ensures the placeholder teams exist for the given organization and are
  * flagged isPlaceholder. Safe to call repeatedly — uses upsert so it never
  * creates duplicates, and backfills the flag onto any team that was already

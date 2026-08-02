@@ -558,7 +558,7 @@ export default function EditSchedulePage({ params }) {
                                                 <SearchableSelect
                                                     value={game.team1}
                                                     onChange={(v) => updateGame(wIndex, gIndex, "team1", v)}
-                                                    options={leagueTeams.filter(t => String(t._id) !== game.team2).map(t => ({ value: String(t._id), label: t.name }))}
+                                                    options={leagueTeams.filter(t => t.isPlaceholder || String(t._id) !== game.team2).map(t => ({ value: String(t._id), label: t.name }))}
                                                     placeholder="Select Team 1"
                                                     error={!!errors[`${wIndex}_${gIndex}_team1`]}
                                                 />
@@ -568,7 +568,7 @@ export default function EditSchedulePage({ params }) {
                                                 <SearchableSelect
                                                     value={game.team2}
                                                     onChange={(v) => updateGame(wIndex, gIndex, "team2", v)}
-                                                    options={leagueTeams.filter(t => String(t._id) !== game.team1).map(t => ({ value: String(t._id), label: t.name }))}
+                                                    options={leagueTeams.filter(t => t.isPlaceholder || String(t._id) !== game.team1).map(t => ({ value: String(t._id), label: t.name }))}
                                                     placeholder="Select Team 2"
                                                     error={!!errors[`${wIndex}_${gIndex}_team2`]}
                                                 />

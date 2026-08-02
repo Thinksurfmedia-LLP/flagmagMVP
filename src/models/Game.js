@@ -25,6 +25,20 @@ const GameSchema = new mongoose.Schema(
             logo: { type: String, default: "" },
             score: { type: Number, default: null },
         },
+        // Snapshot of the placeholder team (e.g. "TBD", "Winner of D1 Semi") that
+        // teamA/teamB held before a real team was assigned. Set once, at the moment
+        // of resolution, so the fixture can be reverted later without losing which
+        // placeholder it originally was. Cleared once reverted.
+        originalTeamA: {
+            teamId: { type: mongoose.Schema.Types.ObjectId, ref: "Team", default: null },
+            name: { type: String, default: "" },
+            logo: { type: String, default: "" },
+        },
+        originalTeamB: {
+            teamId: { type: mongoose.Schema.Types.ObjectId, ref: "Team", default: null },
+            name: { type: String, default: "" },
+            logo: { type: String, default: "" },
+        },
         location: {
             type: String,
             default: "",
@@ -87,4 +101,16 @@ GameSchema.pre(["findOneAndUpdate", "updateOne", "updateMany"], function () {
     stripNullScores(this.getUpdate());
 });
 
-export default mongoose.models.Game || mongoose.model("Game", GameSchema);
+function getGameModel() {
+    if (mongoose.models.Game) {
+        const existing = mongoose.models.Game;
+        if (!existing.schema.path("originalTeamA.name") || !existing.schema.path("originalTeamB.name")) {
+            delete mongoose.models.Game;
+            return mongoose.model("Game", GameSchema);
+        }
+        return existing;
+    }
+    return mongoose.model("Game", GameSchema);
+}
+
+export default getGameModel();

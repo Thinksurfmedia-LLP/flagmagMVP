@@ -5,6 +5,7 @@ import League from "@/models/League";
 import { requireAdmin, requireAdminOrStatistician } from "@/lib/apiAuth";
 import Schedule from "@/models/Schedule";
 import Team from "@/models/Team";
+import { isPlaceholderTeamName } from "@/lib/placeholderTeams";
 
 // GET single game
 export async function GET(request, { params }) {
@@ -31,9 +32,10 @@ export async function PUT(request, { params }) {
         const { gameId } = await params;
         const body = await request.json();
 
+        const existing = await Game.findById(gameId).select("league teamA teamB originalTeamA originalTeamB").lean();
+
         // Validate against league start date
         if (body.date) {
-            const existing = await Game.findById(gameId).select("league").lean();
             const leagueId = body.league || existing?.league;
             if (leagueId) {
                 const league = await League.findById(leagueId).select("startDate").lean();
@@ -49,6 +51,19 @@ export async function PUT(request, { params }) {
                         );
                     }
                 }
+            }
+        }
+
+        // Snapshot the placeholder team (e.g. "TBD") the first time it's resolved to a
+        // real team, so the fixture can be reverted later via /reset-fixture.
+        if (existing) {
+            if (body.teamA?.name && isPlaceholderTeamName(existing.teamA?.name) && !isPlaceholderTeamName(body.teamA.name) && !existing.originalTeamA?.name) {
+                const placeholderTeam = await Team.findOne({ name: existing.teamA.name }).select("_id").lean();
+                body.originalTeamA = { teamId: placeholderTeam?._id || null, name: existing.teamA.name, logo: existing.teamA.logo || "" };
+            }
+            if (body.teamB?.name && isPlaceholderTeamName(existing.teamB?.name) && !isPlaceholderTeamName(body.teamB.name) && !existing.originalTeamB?.name) {
+                const placeholderTeam = await Team.findOne({ name: existing.teamB.name }).select("_id").lean();
+                body.originalTeamB = { teamId: placeholderTeam?._id || null, name: existing.teamB.name, logo: existing.teamB.logo || "" };
             }
         }
 

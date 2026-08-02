@@ -264,7 +264,7 @@ function MatchListContent() {
                     ) : (
                         <div className="match-box-wrap">
                             {filteredGames.map((game) => (
-                                <MatchCard key={game._id} game={game} />
+                                <MatchCard key={game._id} game={game} onGamesChanged={fetchGames} />
                             ))}
                         </div>
                     )}
