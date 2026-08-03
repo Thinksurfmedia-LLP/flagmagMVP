@@ -85,9 +85,12 @@ export function AuthProvider({ children }) {
             const data = await res.json();
             if (data.success) {
                 setUser(data.data);
-            } else if (data.invalidated) {
+            } else if (data.invalidated && !window.location.pathname.startsWith("/login")) {
                 // Was logged in, got force-invalidated — not just a cold
                 // anonymous visit. Clear everything and land on a fresh login.
+                // Already on /login: skip the redirect, or a lingering
+                // invalidated token (e.g. a stale mobile-app cookie) would
+                // bounce this same page to itself forever.
                 setUser(null);
                 await clearClientCaches();
                 await fetch("/api/auth/logout", { method: "POST" });
