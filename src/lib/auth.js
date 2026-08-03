@@ -184,6 +184,40 @@ export async function getCurrentUser() {
 }
 
 /**
+ * Mobile-only variant of getAuthState — checks ONLY flagmag-mobile-token,
+ * never falling back to the web cookie.
+ *
+ * Cookies aren't port-scoped: localhost:3000 (admin) and localhost:3001
+ * (stats app) share the same browser cookie jar, by hostname alone. The two
+ * apps use differently-named cookies specifically so two different accounts
+ * can be logged in at once in the same browser — but getAuthState()'s web-
+ * first fallback defeats that the moment both cookies are present: whoever
+ * is logged into the admin dashboard silently wins identity checks in the
+ * stats app too, no matter which account just logged in there. Use this for
+ * anything that must answer "who is logged into the stats app" specifically.
+ */
+export async function getMobileAuthState() {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("flagmag-mobile-token")?.value;
+    if (!token) return { user: null, invalidated: false };
+
+    const payload = await verifyToken(token);
+    if (!payload) return { user: null, invalidated: false };
+
+    if (payload.id) {
+        const orgIds = await getUserOrgIds(payload.id);
+        for (const orgId of orgIds) {
+            const cutoff = await getOrgSessionsCutoff(orgId);
+            if (cutoff && payload.iat * 1000 < new Date(cutoff).getTime()) {
+                return { user: null, invalidated: true };
+            }
+        }
+    }
+
+    return { user: payload, invalidated: false };
+}
+
+/**
  * Clear the auth cookie (logout).
  */
 export async function clearAuthCookie() {
