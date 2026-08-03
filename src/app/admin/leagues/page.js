@@ -748,6 +748,256 @@ function LeagueTeamsModal({ league, onClose }) {
     );
 }
 
+function PlaceholderTeamsModal({ onClose, isAdmin, organizations, userOrgId }) {
+    const { showSuccess, showError } = useToast();
+    const [selectedOrgId, setSelectedOrgId] = useState(isAdmin ? "" : userOrgId);
+    const [placeholders, setPlaceholders] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [editingId, setEditingId] = useState(null);
+    const [editName, setEditName] = useState("");
+    const [editLogo, setEditLogo] = useState("");
+    const [editUploading, setEditUploading] = useState(false);
+    const [newName, setNewName] = useState("");
+    const [newLogo, setNewLogo] = useState("");
+    const [newUploading, setNewUploading] = useState(false);
+
+    const load = useCallback(async (orgId) => {
+        if (!orgId) { setPlaceholders([]); return; }
+        setLoading(true);
+        try {
+            const res = await fetch(`/api/placeholder-teams?organization=${orgId}`);
+            const data = await res.json();
+            if (data.success) setPlaceholders(data.data);
+            else showError(data.error || "Failed to load placeholders");
+        } catch { showError("Failed to load placeholders"); }
+        finally { setLoading(false); }
+    }, [showError]);
+
+    useEffect(() => { load(selectedOrgId); }, [selectedOrgId, load]);
+
+    const handleUpload = async (file, setter, setUploadingFlag) => {
+        if (!file) return;
+        setUploadingFlag(true);
+        try {
+            const fd = new FormData();
+            fd.append("file", file);
+            const res = await fetch("/api/upload", { method: "POST", body: fd });
+            const data = await res.json();
+            if (data.success) setter(data.url);
+            else showError(data.error || "Upload failed");
+        } catch { showError("Upload failed"); }
+        finally { setUploadingFlag(false); }
+    };
+
+    const startEdit = (p) => {
+        setEditingId(p._id);
+        setEditName(p.name);
+        setEditLogo(p.logo || "");
+    };
+    const cancelEdit = () => { setEditingId(null); setEditName(""); setEditLogo(""); };
+
+    const saveEdit = async () => {
+        if (!editName.trim()) { showError("Name is required"); return; }
+        setSaving(true);
+        try {
+            const res = await fetch(`/api/placeholder-teams/${editingId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: editName.trim(), logo: editLogo }),
+            });
+            const data = await res.json();
+            if (!data.success) { showError(data.error); return; }
+            showSuccess("Placeholder updated!");
+            cancelEdit();
+            load(selectedOrgId);
+        } catch { showError("Failed to update placeholder"); }
+        finally { setSaving(false); }
+    };
+
+    const handleDelete = async (p) => {
+        if (!confirm(`Delete placeholder "${p.name}"? Any schedule already using it will show a missing team.`)) return;
+        try {
+            const res = await fetch(`/api/placeholder-teams/${p._id}`, { method: "DELETE" });
+            const data = await res.json();
+            if (!data.success) { showError(data.error); return; }
+            showSuccess("Placeholder deleted");
+            load(selectedOrgId);
+        } catch { showError("Failed to delete placeholder"); }
+    };
+
+    const handleAdd = async () => {
+        if (!newName.trim()) { showError("Name is required"); return; }
+        setSaving(true);
+        try {
+            const res = await fetch("/api/placeholder-teams", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: newName.trim(), logo: newLogo, organization: selectedOrgId }),
+            });
+            const data = await res.json();
+            if (!data.success) { showError(data.error); return; }
+            showSuccess("Placeholder added!");
+            setNewName("");
+            setNewLogo("");
+            load(selectedOrgId);
+        } catch { showError("Failed to add placeholder"); }
+        finally { setSaving(false); }
+    };
+
+    return (
+        <div className="admin-modal-backdrop">
+            <div className="admin-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 560, maxHeight: "90vh", overflowY: "auto" }}>
+                <button className="admin-modal-close" onClick={onClose} aria-label="Close">
+                    <i className="fa-solid fa-xmark"></i>
+                </button>
+                <h3 className="admin-modal-title">Manage Placeholders</h3>
+                <p style={{ color: "#8b90a0", fontSize: 13, marginTop: -8, marginBottom: 16 }}>
+                    Placeholders (TBD, Winner, Losers, bracket slots) fill schedule matchups before the real team is decided.
+                </p>
+
+                {isAdmin && (
+                    <div className="admin-form-group">
+                        <label className="admin-form-label">Organization *</label>
+                        <select className="admin-form-select" value={selectedOrgId} onChange={(e) => setSelectedOrgId(e.target.value)}>
+                            <option value="">Select organization...</option>
+                            {organizations.map((o) => (
+                                <option key={o._id} value={o._id}>{o.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
+
+                {!selectedOrgId ? (
+                    <div style={{ color: "#8b90a0", fontSize: 13 }}>
+                        {isAdmin ? "Select an organization to manage its placeholders." : "No organization found."}
+                    </div>
+                ) : loading ? (
+                    <div className="admin-loading"><div className="admin-spinner"></div>Loading placeholders...</div>
+                ) : (
+                    <>
+                        <div className="admin-form-group">
+                            <label className="admin-form-label">Existing Placeholders ({placeholders.length})</label>
+                            {placeholders.length === 0 ? (
+                                <div style={{ color: "#8b90a0", fontSize: 13 }}>No placeholders yet.</div>
+                            ) : (
+                                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                                    {placeholders.map((p) => (
+                                        <div key={p._id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 10px", background: "#f9fafb", border: "1px solid #e8eaef", borderRadius: 6, gap: 8 }}>
+                                            {editingId === p._id ? (
+                                                <>
+                                                    <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
+                                                        {editLogo ? (
+                                                            <img src={editLogo} alt="" style={{ width: 28, height: 28, borderRadius: 6, objectFit: "cover", flexShrink: 0 }} />
+                                                        ) : (
+                                                            <div style={{ width: 28, height: 28, borderRadius: 6, background: "#e5e7ef", flexShrink: 0 }} />
+                                                        )}
+                                                        <input
+                                                            className="admin-form-input"
+                                                            style={{ flex: 1, height: 30, fontSize: 12, padding: "4px 8px" }}
+                                                            value={editName}
+                                                            onChange={(e) => setEditName(e.target.value)}
+                                                            autoFocus
+                                                        />
+                                                        <label className="admin-btn admin-btn-ghost admin-btn-sm" style={{ cursor: "pointer", margin: 0, flexShrink: 0 }} title="Change image">
+                                                            {editUploading ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-image"></i>}
+                                                            <input type="file" accept="image/*" hidden disabled={editUploading}
+                                                                onChange={(e) => handleUpload(e.target.files?.[0], setEditLogo, setEditUploading)} />
+                                                        </label>
+                                                        {editLogo && (
+                                                            <button
+                                                                type="button"
+                                                                className="admin-btn admin-btn-ghost admin-btn-sm"
+                                                                style={{ flexShrink: 0, color: "#ef4444" }}
+                                                                title="Remove image"
+                                                                onClick={() => setEditLogo("")}
+                                                            >
+                                                                <i className="fa-solid fa-trash"></i>
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                    <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                                                        <button className="admin-btn admin-btn-primary admin-btn-sm" onClick={saveEdit} disabled={saving} title="Save">
+                                                            <i className="fa-solid fa-check"></i>
+                                                        </button>
+                                                        <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={cancelEdit} disabled={saving} title="Cancel">
+                                                            <i className="fa-solid fa-xmark"></i>
+                                                        </button>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
+                                                        {p.logo ? (
+                                                            <img src={p.logo} alt="" style={{ width: 28, height: 28, borderRadius: 6, objectFit: "cover", flexShrink: 0 }} />
+                                                        ) : (
+                                                            <div style={{ width: 28, height: 28, borderRadius: 6, background: "#e5e7ef", flexShrink: 0 }} />
+                                                        )}
+                                                        <span style={{ fontWeight: 600, fontSize: 13, color: "#1a1d26" }}>{p.name}</span>
+                                                    </div>
+                                                    <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                                                        <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => startEdit(p)} title="Edit">
+                                                            <i className="fa-solid fa-pen"></i>
+                                                        </button>
+                                                        <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => handleDelete(p)} title="Delete">
+                                                            <i className="fa-solid fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="admin-form-group">
+                            <label className="admin-form-label">Add a New Placeholder</label>
+                            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                                {newLogo ? (
+                                    <img src={newLogo} alt="" style={{ width: 32, height: 32, borderRadius: 6, objectFit: "cover", flexShrink: 0 }} />
+                                ) : (
+                                    <div style={{ width: 32, height: 32, borderRadius: 6, background: "#e5e7ef", flexShrink: 0 }} />
+                                )}
+                                <input
+                                    className="admin-form-input"
+                                    style={{ flex: 1 }}
+                                    value={newName}
+                                    onChange={(e) => setNewName(e.target.value)}
+                                    placeholder="e.g. Wildcard, D5 Championship"
+                                />
+                                <label className="admin-btn admin-btn-ghost admin-btn-sm" style={{ cursor: "pointer", margin: 0, flexShrink: 0 }}>
+                                    {newUploading ? "Uploading..." : "Image"}
+                                    <input type="file" accept="image/*" hidden disabled={newUploading}
+                                        onChange={(e) => handleUpload(e.target.files?.[0], setNewLogo, setNewUploading)} />
+                                </label>
+                                {newLogo && (
+                                    <button
+                                        type="button"
+                                        className="admin-btn admin-btn-ghost admin-btn-sm"
+                                        style={{ flexShrink: 0, color: "#ef4444" }}
+                                        title="Remove image"
+                                        onClick={() => setNewLogo("")}
+                                    >
+                                        <i className="fa-solid fa-trash"></i>
+                                    </button>
+                                )}
+                                <button className="admin-btn admin-btn-primary" onClick={handleAdd} disabled={saving || !newName.trim()}>
+                                    Add
+                                </button>
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 20 }}>
+                    <button className="admin-btn admin-btn-ghost" onClick={onClose}>Close</button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function LeaguesPage() {
     const { user, activeRole } = useAuth();
     const { showSuccess, showError } = useToast();
@@ -760,6 +1010,7 @@ export default function LeaguesPage() {
     const [showModal, setShowModal] = useState(false);
     const [editTarget, setEditTarget] = useState(null);
     const [teamsTarget, setTeamsTarget] = useState(null);
+    const [showPlaceholdersModal, setShowPlaceholdersModal] = useState(false);
 
     // Sort
     const [sortField, setSortField] = useState("name"); // "name" | "startDate" | "endDate"
@@ -987,6 +1238,15 @@ export default function LeaguesPage() {
                                 onChange={(e) => setSearchInput(e.target.value)}
                                 style={{ width: 200, height: 36, fontSize: 13, minWidth: 120, flex: "1 1 140px" }}
                             />
+                            {canUpdate && (
+                                <button
+                                    className="admin-btn admin-btn-ghost"
+                                    onClick={() => setShowPlaceholdersModal(true)}
+                                    style={{ flexShrink: 0 }}
+                                >
+                                    <i className="fa-solid fa-users-viewfinder"></i> Manage Placeholders
+                                </button>
+                            )}
                             {canCreate && (
                                 <button
                                     className="admin-btn admin-btn-primary"
@@ -1288,6 +1548,15 @@ export default function LeaguesPage() {
                 <LeagueTeamsModal
                     league={teamsTarget}
                     onClose={() => setTeamsTarget(null)}
+                />
+            )}
+
+            {showPlaceholdersModal && (
+                <PlaceholderTeamsModal
+                    isAdmin={isAdmin}
+                    organizations={organizations}
+                    userOrgId={userOrgId}
+                    onClose={() => setShowPlaceholdersModal(false)}
                 />
             )}
         </AdminLayout>

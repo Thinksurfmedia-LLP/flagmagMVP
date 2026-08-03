@@ -1049,7 +1049,8 @@
    flatten into the parent flex row in DOM order: drag|swap → fields → dup|del */
 .schedule-game-row {
     display: flex;
-    gap: 16px;
+    flex-wrap: wrap;
+    gap: 16px 16px;
     align-items: flex-end;
 }
 .sgr-tl,
@@ -1065,11 +1066,25 @@
     cursor: grab;
     line-height: 1;
 }
+/* Team names and field names can run long ("D1 Championship") - give them a
+   real minimum instead of min-width:0, which let the flex row crush them
+   down to a sliver (and the dropdown menu below, since it mirrors the
+   trigger's width) whenever the row didn't have enough space to fit every
+   column at once. Wrapping (above) handles the overflow instead of
+   squeezing text unreadably. */
 .sgr-f-team1,
-.sgr-f-team2,
+.sgr-f-team2 {
+    flex: 1 1 180px;
+    min-width: 180px;
+}
 .sgr-f-field {
-    flex: 1;
-    min-width: 0;
+    flex: 1 1 130px;
+    min-width: 130px;
+}
+.sgr-f-date,
+.sgr-f-time,
+.sgr-f-type {
+    flex: 0 0 auto;
 }
 
 @media (max-width: 768px) {

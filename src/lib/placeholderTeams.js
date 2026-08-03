@@ -36,16 +36,18 @@ export function isPlaceholderTeamName(name) {
 }
 
 /**
- * Ensures the placeholder teams exist for the given organization and are
- * flagged isPlaceholder. Safe to call repeatedly — uses upsert so it never
- * creates duplicates, and backfills the flag onto any team that was already
- * created by hand under one of these names (the org/name pair is unique, so
- * the upsert alone would otherwise silently no-op on those and leave them
- * unflagged).
+ * Bootstraps the default placeholder teams for an organization the FIRST
+ * time it has none at all. Deliberately a one-time seed, not a perpetual
+ * sync — once an org has any isPlaceholder team, organizers can freely
+ * rename or delete them via /api/placeholder-teams without this silently
+ * re-creating whatever they just renamed or removed.
  *
  * @param {string|ObjectId} organizationId
  */
 export async function ensurePlaceholderTeams(organizationId) {
+    const alreadySeeded = await Team.exists({ organization: organizationId, isPlaceholder: true });
+    if (alreadySeeded) return;
+
     const ops = PLACEHOLDER_TEAM_NAMES.map((name) => ({
         updateOne: {
             filter: { organization: organizationId, name },
