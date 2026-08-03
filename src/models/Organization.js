@@ -127,6 +127,14 @@ const OrganizationSchema = new mongoose.Schema(
                 rating: { type: Number, default: 5 },
             },
         ],
+        // Any JWT for this org issued before this moment is rejected —
+        // lets an organizer force everyone linked to this org (organizers,
+        // statisticians, on either the admin dashboard or the stats app)
+        // to log back in.
+        sessionsInvalidatedAt: {
+            type: Date,
+            default: null,
+        },
     },
     {
         timestamps: true,
@@ -138,7 +146,7 @@ function getOrganizationModel() {
     if (existing) {
         const locationsSchema = existing.schema.path("locations");
         const subdocPaths = locationsSchema?.schema?.paths || {};
-        if (!subdocPaths.cityName || !existing.schema.path("timezone")) {
+        if (!subdocPaths.cityName || !existing.schema.path("timezone") || !existing.schema.path("sessionsInvalidatedAt")) {
             delete mongoose.models.Organization;
         }
     }

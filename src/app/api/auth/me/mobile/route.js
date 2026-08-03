@@ -1,23 +1,16 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import dbConnect from "@/lib/dbConnect";
 import Role from "@/models/Role";
 import User from "@/models/User";
 import Organization from "@/models/Organization";
-import { verifyToken } from "@/lib/auth";
+import { getAuthState } from "@/lib/auth";
 
 export async function GET() {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get("flagmag-mobile-token")?.value;
+        const { user, invalidated } = await getAuthState();
 
-        if (!token) {
-            return NextResponse.json({ success: false, error: "Not authenticated" }, { status: 401 });
-        }
-
-        const user = await verifyToken(token);
         if (!user) {
-            return NextResponse.json({ success: false, error: "Not authenticated" }, { status: 401 });
+            return NextResponse.json({ success: false, error: "Not authenticated", invalidated }, { status: 401 });
         }
 
         await dbConnect();

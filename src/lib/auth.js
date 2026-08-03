@@ -1,5 +1,8 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import dbConnect from "@/lib/dbConnect";
+import Organization from "@/models/Organization";
+import User from "@/models/User";
 
 if (!process.env.JWT_SECRET) {
     // A missing env var here means different server instances (or a
@@ -23,6 +26,62 @@ const TOKEN_EXPIRY = `${TOKEN_MAX_AGE_SECONDS}s`;
 // never hits the hard cutoff mid-task. Only real inactivity (7+ days of
 // nobody touching the site) lets it actually expire.
 const REFRESH_THRESHOLD_SECONDS = TOKEN_MAX_AGE_SECONDS / 2;
+
+// Per-org cutoff covering every member of that org (organizer, statistician,
+// whoever) on either platform, cached briefly so this doesn't hit the DB on
+// every single request just to check it.
+const ORG_CUTOFF_CACHE_MS = 5000;
+const orgCutoffCache = new Map();
+
+async function getOrgSessionsCutoff(orgId) {
+    const now = Date.now();
+    const cached = orgCutoffCache.get(orgId);
+    if (cached && now - cached.checkedAt < ORG_CUTOFF_CACHE_MS) {
+        return cached.cutoff;
+    }
+    await dbConnect();
+    const org = await Organization.findById(orgId).select("sessionsInvalidatedAt").lean();
+    const cutoff = org?.sessionsInvalidatedAt || null;
+    orgCutoffCache.set(orgId, { checkedAt: now, cutoff });
+    return cutoff;
+}
+
+/**
+ * Call right after writing a new sessionsInvalidatedAt so the cutoff takes
+ * effect on the very next request instead of waiting out the cache TTL.
+ */
+export function invalidateOrgCutoffCache(orgId) {
+    orgCutoffCache.delete(String(orgId));
+}
+
+// The JWT's own `organization` field only reflects User.organization (the
+// primary field) as it was at login time — many users (e.g. anyone linked
+// via roleOrganizations only, with no primary organization set) have their
+// real org membership living elsewhere entirely. Trusting the token alone
+// silently exempted those users from every org-scoped cutoff. Look up their
+// actual live links instead; cached briefly since role assignments rarely
+// change request-to-request.
+const USER_ORGS_CACHE_MS = 5000;
+const userOrgsCache = new Map();
+
+async function getUserOrgIds(userId) {
+    const now = Date.now();
+    const cached = userOrgsCache.get(userId);
+    if (cached && now - cached.checkedAt < USER_ORGS_CACHE_MS) {
+        return cached.orgIds;
+    }
+    await dbConnect();
+    const userDoc = await User.findById(userId).select("organization roleOrganizations").lean();
+    const orgIds = new Set();
+    if (userDoc?.organization) orgIds.add(String(userDoc.organization));
+    Object.values(userDoc?.roleOrganizations || {})
+        .flatMap((v) => (Array.isArray(v) ? v : [v]))
+        .filter(Boolean)
+        .forEach((id) => orgIds.add(String(id)));
+    const result = [...orgIds];
+    userOrgsCache.set(userId, { checkedAt: now, orgIds: result });
+    return result;
+}
 
 function cookieOptions() {
     return {
@@ -67,20 +126,33 @@ export async function setAuthCookie(token) {
 }
 
 /**
- * Get the current user from the auth cookie.
- * Returns the user payload or null if not authenticated.
+ * Get the current user plus *why* auth failed, when it did.
+ * `invalidated: true` means the cookie was otherwise valid but got cut off
+ * by a force-logout — distinct from never having logged in at all, so
+ * callers can react (e.g. clear client cache) without looping on visitors
+ * who were never authenticated.
  *
  * Only ever called from Route Handlers / Server Actions (never Server
  * Components), so it's safe to write the refreshed cookie here directly.
  */
-export async function getCurrentUser() {
+export async function getAuthState() {
     const cookieStore = await cookies();
     const webToken = cookieStore.get(COOKIE_NAME)?.value;
     const token = webToken || cookieStore.get("flagmag-mobile-token")?.value;
-    if (!token) return null;
+    if (!token) return { user: null, invalidated: false };
 
     const payload = await verifyToken(token);
-    if (!payload) return null;
+    if (!payload) return { user: null, invalidated: false };
+
+    if (payload.id) {
+        const orgIds = await getUserOrgIds(payload.id);
+        for (const orgId of orgIds) {
+            const cutoff = await getOrgSessionsCutoff(orgId);
+            if (cutoff && payload.iat * 1000 < new Date(cutoff).getTime()) {
+                return { user: null, invalidated: true };
+            }
+        }
+    }
 
     // Don't slide the mobile-token cookie here — it's managed by its own
     // login/logout routes and isn't ours to rewrite.
@@ -99,7 +171,16 @@ export async function getCurrentUser() {
         }
     }
 
-    return payload;
+    return { user: payload, invalidated: false };
+}
+
+/**
+ * Get the current user from the auth cookie.
+ * Returns the user payload or null if not authenticated.
+ */
+export async function getCurrentUser() {
+    const { user } = await getAuthState();
+    return user;
 }
 
 /**

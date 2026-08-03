@@ -3,15 +3,15 @@ import dbConnect from "@/lib/dbConnect";
 import Role from "@/models/Role";
 import User from "@/models/User";
 import Organization from "@/models/Organization";
-import { getCurrentUser } from "@/lib/auth";
+import { getAuthState } from "@/lib/auth";
 
 export async function GET() {
     try {
-        const user = await getCurrentUser();
+        const { user, invalidated } = await getAuthState();
 
         if (!user) {
             return NextResponse.json(
-                { success: false, error: "Not authenticated" },
+                { success: false, error: "Not authenticated", invalidated },
                 { status: 401 }
             );
         }

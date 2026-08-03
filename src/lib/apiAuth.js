@@ -1,4 +1,4 @@
-import { getCurrentUser } from "@/lib/auth";
+import { getAuthState } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 const PERMISSION_COMPATIBILITY = {
@@ -16,12 +16,12 @@ const PERMISSION_COMPATIBILITY = {
  * Returns the user payload or a 401 response.
  */
 export async function requireAuth() {
-    const user = await getCurrentUser();
+    const { user, invalidated } = await getAuthState();
     if (!user) {
         return {
             authorized: false,
             response: NextResponse.json(
-                { success: false, error: "Authentication required" },
+                { success: false, error: "Authentication required", invalidated },
                 { status: 401 }
             ),
         };

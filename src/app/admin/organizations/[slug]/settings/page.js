@@ -7,9 +7,28 @@ import { useAuth } from "@/components/AuthProvider";
 import { useImpersonation } from "@/components/ImpersonationProvider";
 import { useToast } from "@/components/AdminToast";
 
+// Wipes local browser state so a force-logged-out user actually gets a
+// clean build on next login, not a login screen over stale cached assets.
+async function clearClientCaches() {
+    try { sessionStorage.clear(); } catch { }
+    try { localStorage.clear(); } catch { }
+    if (typeof caches !== "undefined") {
+        try {
+            const keys = await caches.keys();
+            await Promise.all(keys.map((key) => caches.delete(key)));
+        } catch { }
+    }
+    if (typeof navigator !== "undefined" && navigator.serviceWorker) {
+        try {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map((reg) => reg.unregister()));
+        } catch { }
+    }
+}
+
 export default function OrgSettingsPage() {
     const { slug } = useParams();
-    const { user, activeRole } = useAuth();
+    const { user, activeRole, logout } = useAuth();
     const { org: impersonatedOrg, enterImpersonation } = useImpersonation();
     const { showSuccess, showError } = useToast();
 
@@ -18,6 +37,7 @@ export default function OrgSettingsPage() {
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [forcingLogout, setForcingLogout] = useState(false);
     const [form, setForm] = useState({
         name: "",
         description: "",
@@ -111,6 +131,37 @@ export default function OrgSettingsPage() {
     };
 
     const canManage = isOwnOrg || (user && hasAccess(user, "manage_organizations"));
+
+    const handleForceLogout = async () => {
+        if (!window.confirm(
+            `Log out everyone linked to ${form.name || "this organization"} — organizers and statisticians, ` +
+            `on both the admin dashboard and the stats app?${isOwnOrg ? " This includes you." : ""} ` +
+            "Everyone will need to log back in."
+        )) {
+            return;
+        }
+        setForcingLogout(true);
+        try {
+            const res = await fetch(`/api/organizations/${slug}/force-logout`, { method: "POST" });
+            const data = await res.json();
+            if (data.success) {
+                if (isOwnOrg) {
+                    showSuccess("Everyone has been logged out. Redirecting you to login...");
+                    await clearClientCaches();
+                    await logout();
+                    window.location.href = "/login";
+                } else {
+                    showSuccess("Everyone linked to this organization has been logged out.");
+                }
+            } else {
+                showError(data.error || "Failed to log everyone out");
+            }
+        } catch {
+            showError("Failed to log everyone out");
+        } finally {
+            setForcingLogout(false);
+        }
+    };
 
     return (
         <AdminLayout title="Organization Settings">
@@ -249,6 +300,33 @@ export default function OrgSettingsPage() {
                                     </button>
                                 ))}
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Session Access */}
+                    <div className="admin-card">
+                        <div className="admin-card-header">
+                            <h3><i className="fa-solid fa-power-off" style={{ marginRight: 7, color: "#FF1E00" }}></i>Session Access</h3>
+                        </div>
+                        <div className="admin-card-body">
+                            <p style={{ marginBottom: 16, color: "#666" }}>
+                                Force everyone linked to this organization — organizers and statisticians,
+                                on both the admin dashboard and the stats app — to log back in. Use this
+                                right before games start so everyone picks up the latest roster and
+                                schedule changes.
+                            </p>
+                            <button
+                                type="button"
+                                className="admin-btn admin-btn-danger"
+                                onClick={handleForceLogout}
+                                disabled={forcingLogout}
+                            >
+                                {forcingLogout ? (
+                                    <><i className="fa-solid fa-spinner fa-spin"></i> Logging everyone out...</>
+                                ) : (
+                                    <><i className="fa-solid fa-right-from-bracket"></i> Force Logout Everyone</>
+                                )}
+                            </button>
                         </div>
                     </div>
 

@@ -17,6 +17,26 @@ function isSessionProbePath(input) {
     }
 }
 
+// Wipes everything the browser might be holding onto locally so a
+// force-invalidated user actually gets a clean build, not just a login
+// screen rendered from stale cached assets/state.
+async function clearClientCaches() {
+    try { sessionStorage.clear(); } catch { }
+    try { localStorage.clear(); } catch { }
+    if (typeof caches !== "undefined") {
+        try {
+            const keys = await caches.keys();
+            await Promise.all(keys.map((key) => caches.delete(key)));
+        } catch { }
+    }
+    if (typeof navigator !== "undefined" && navigator.serviceWorker) {
+        try {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map((reg) => reg.unregister()));
+        } catch { }
+    }
+}
+
 const AuthContext = createContext({
     user: null,
     loading: true,
@@ -65,6 +85,14 @@ export function AuthProvider({ children }) {
             const data = await res.json();
             if (data.success) {
                 setUser(data.data);
+            } else if (data.invalidated) {
+                // Was logged in, got force-invalidated — not just a cold
+                // anonymous visit. Clear everything and land on a fresh login.
+                setUser(null);
+                await clearClientCaches();
+                await fetch("/api/auth/logout", { method: "POST" });
+                window.location.href = "/login?invalidated=true";
+                return;
             } else {
                 setUser(null);
             }
@@ -96,7 +124,17 @@ export function AuthProvider({ children }) {
                 !window.location.pathname.startsWith("/login")
             ) {
                 setUser(null);
-                window.location.href = "/login?expired=true";
+                let invalidated = false;
+                try {
+                    invalidated = !!(await response.clone().json())?.invalidated;
+                } catch { }
+                if (invalidated) {
+                    await clearClientCaches();
+                    await originalFetch("/api/auth/logout", { method: "POST" });
+                    window.location.href = "/login?invalidated=true";
+                } else {
+                    window.location.href = "/login?expired=true";
+                }
             }
             return response;
         };
