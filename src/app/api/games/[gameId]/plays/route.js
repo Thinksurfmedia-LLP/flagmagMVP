@@ -24,7 +24,7 @@ async function incTeamScore(gameId, targetTeam, delta, session) {
     await Game.findByIdAndUpdate(
         gameId,
         [{ $set: { [field]: { $add: [{ $ifNull: [`$${field}`, 0] }, delta] } } }],
-        { updatePipeline: true, session },
+        { session },
     );
 }
 
@@ -72,6 +72,15 @@ export async function POST(request, { params }) {
 
         const ptsAdded = Number(body.ptsAdded) || 0;
         const targetTeam = body.targetTeam || "";
+        const idempotencyKey = body.idempotencyKey || null;
+
+        // Check for existing play with same idempotency key (prevent duplicates from retries)
+        if (idempotencyKey) {
+            const existing = await Play.findOne({ idempotencyKey, game: gameId }).lean();
+            if (existing) {
+                return NextResponse.json({ success: true, data: existing }, { status: 201 });
+            }
+        }
 
         const session = await mongoose.startSession();
         let play;
@@ -93,6 +102,7 @@ export async function POST(request, { params }) {
                     safety: Boolean(body.safety),
                     ptsAdded,
                     targetTeam,
+                    idempotencyKey,
                 }], { session });
                 play = created;
 

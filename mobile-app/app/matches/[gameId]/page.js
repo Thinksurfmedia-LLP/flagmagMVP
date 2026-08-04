@@ -169,6 +169,7 @@ function LiveGameContent({ gameId }) {
             playId: play._id?.toString(),
             ptsAdded: play.ptsAdded || 0,
             targetTeam: play.targetTeam || play.activeTeam || "A",
+            idempotencyKey: play.idempotencyKey || null,
             data: {
                 passer: play.passer || "",
                 receiver: play.receiver || "",
@@ -323,6 +324,7 @@ function LiveGameContent({ gameId }) {
                 safety: Boolean(playData.safety),
                 ptsAdded: logEntry.ptsAdded,
                 targetTeam: logEntry.targetTeam,
+                idempotencyKey: logEntry.idempotencyKey,
             });
             return res.data?._id?.toString() || null;
         } catch (err) {
@@ -403,7 +405,8 @@ function LiveGameContent({ gameId }) {
                         activeTeam,
                         data,
                         ptsAdded: ptsToAdd,
-                        targetTeam
+                        targetTeam,
+                        idempotencyKey: editingLogIndex === null ? crypto.randomUUID() : oldLog?.idempotencyKey,
                     };
 
                     // Score is derived server-side from ptsAdded/targetTeam via an
@@ -465,7 +468,8 @@ function LiveGameContent({ gameId }) {
                         activeTeam,
                         data,
                         ptsAdded: 0,
-                        targetTeam: activeTeam
+                        targetTeam: activeTeam,
+                        idempotencyKey: editingLogIndex === null ? crypto.randomUUID() : oldLog?.idempotencyKey,
                     };
                     
                     if (editingLogIndex !== null) {
@@ -534,7 +538,8 @@ function LiveGameContent({ gameId }) {
                         activeTeam,
                         data,
                         ptsAdded: ptsToAdd,
-                        targetTeam
+                        targetTeam,
+                        idempotencyKey: editingLogIndex === null ? crypto.randomUUID() : oldLog?.idempotencyKey,
                     };
 
                     // Score is derived server-side from ptsAdded/targetTeam via an
@@ -605,7 +610,8 @@ function LiveGameContent({ gameId }) {
                         activeTeam,
                         data,
                         ptsAdded: ptsToAdd,
-                        targetTeam
+                        targetTeam,
+                        idempotencyKey: editingLogIndex === null ? crypto.randomUUID() : oldLog?.idempotencyKey,
                     };
 
                     // Score is derived server-side from ptsAdded/targetTeam via an
@@ -671,7 +677,8 @@ function LiveGameContent({ gameId }) {
                         activeTeam,
                         data,
                         ptsAdded: ptsToAdd,
-                        targetTeam
+                        targetTeam,
+                        idempotencyKey: editingLogIndex === null ? crypto.randomUUID() : oldLog?.idempotencyKey,
                     };
 
                     // Score is derived server-side from ptsAdded/targetTeam via an
@@ -743,7 +750,8 @@ function LiveGameContent({ gameId }) {
                         activeTeam,
                         data,
                         ptsAdded: ptsToAdd,
-                        targetTeam
+                        targetTeam,
+                        idempotencyKey: editingLogIndex === null ? crypto.randomUUID() : oldLog?.idempotencyKey,
                     };
 
                     // Score is derived server-side from ptsAdded/targetTeam via an

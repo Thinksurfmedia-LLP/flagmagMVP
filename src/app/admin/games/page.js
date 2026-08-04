@@ -561,6 +561,8 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
     const [editForm, setEditForm] = useState({});
     const [savingEdit, setSavingEdit] = useState(false);
     const [activeTab, setActiveTab] = useState("record"); // "record" or "plays"
+    const [sortColumn, setSortColumn] = useState("index"); // Default sort by # (index)
+    const [sortDirection, setSortDirection] = useState("asc"); // "asc" or "desc"
 
     const teamAScore = liveGame.teamA?.score ?? 0;
     const teamBScore = liveGame.teamB?.score ?? 0;
@@ -783,6 +785,74 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
         }
     };
 
+    const handleSortClick = (column) => {
+        if (sortColumn === column) {
+            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+        } else {
+            setSortColumn(column);
+            setSortDirection("asc");
+        }
+    };
+
+    const getSortedPlays = () => {
+        const sorted = persistedPlays.map((play, originalIdx) => ({
+            ...play,
+            __originalIdx: originalIdx + 1
+        }));
+
+        sorted.sort((a, b) => {
+            let aVal, bVal;
+
+            if (sortColumn === "index") {
+                aVal = a.__originalIdx;
+                bVal = b.__originalIdx;
+            } else if (sortColumn === "type") {
+                aVal = a.type;
+                bVal = b.type;
+            } else if (sortColumn === "team") {
+                aVal = a.teamName;
+                bVal = b.teamName;
+            } else if (sortColumn === "half") {
+                aVal = a.half === "2nd" ? 1 : 0;
+                bVal = b.half === "2nd" ? 1 : 0;
+            } else if (sortColumn === "yards") {
+                aVal = Number(a.yards) || 0;
+                bVal = Number(b.yards) || 0;
+            } else if (sortColumn === "points") {
+                const pointMap = { "None": 0, "Touch Down": 6, "1 Pt.": 1, "2 Pt.": 2 };
+                aVal = pointMap[a.points] ?? 0;
+                bVal = pointMap[b.points] ?? 0;
+            }
+
+            if (typeof aVal === "string") {
+                aVal = aVal.toLowerCase();
+                bVal = bVal.toLowerCase();
+                return sortDirection === "asc" ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+            }
+            return sortDirection === "asc" ? aVal - bVal : bVal - aVal;
+        });
+        return sorted;
+    };
+
+    const sortIndicator = (column) => {
+        if (sortColumn !== column) return null;
+        return sortDirection === "asc" ? " ↑" : " ↓";
+    };
+
+    const renderSortHeader = (label, column) => (
+        <div style={{ display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
+            {label}
+            {sortColumn === column ? (
+                <i
+                    className={`fa-solid ${sortDirection === "asc" ? "fa-arrow-up" : "fa-arrow-down"}`}
+                    style={{ fontSize: 14, color: "#ff1e00" }}
+                ></i>
+            ) : (
+                <i className="fa-solid fa-sort" style={{ fontSize: 14, color: "#d1d5db" }} ></i>
+            )}
+        </div>
+    );
+
     return (
         <div className="admin-modal-backdrop">
             <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 900, maxHeight: "90vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
@@ -790,7 +860,7 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
                     <i className="fa-solid fa-xmark"></i>
                 </button>
                 {/* Header */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, paddingRight: 40 }}>
                     <h3 className="admin-modal-title" style={{ margin: 0 }}>
                         Live Stats — {liveGame.teamA.name} vs {liveGame.teamB.name}
                     </h3>
@@ -910,21 +980,21 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
                                     <table className="admin-table" style={{ fontSize: 12, marginBottom: 0 }}>
                                         <thead>
                                             <tr>
-                                                <th style={{ width: 30 }}>#</th>
-                                                <th>Type</th>
-                                                <th>Details</th>
-                                                <th>Team</th>
-                                                <th>Half</th>
-                                                <th style={{ textAlign: "center" }}>Yds</th>
-                                                <th>Points</th>
-                                                <th style={{ width: 80, textAlign: "center" }}>Actions</th>
+                                                <th style={{ width: 45, cursor: "pointer", whiteSpace: "nowrap" }} onClick={() => handleSortClick("index")}>{renderSortHeader("#", "index")}</th>
+                                                <th style={{ width: 95, cursor: "pointer", whiteSpace: "nowrap" }} onClick={() => handleSortClick("type")}>{renderSortHeader("Type", "type")}</th>
+                                                <th style={{ minWidth: 160 }}>Details</th>
+                                                <th style={{ width: 110, cursor: "pointer", whiteSpace: "nowrap" }} onClick={() => handleSortClick("team")}>{renderSortHeader("Team", "team")}</th>
+                                                <th style={{ width: 60, cursor: "pointer", whiteSpace: "nowrap" }} onClick={() => handleSortClick("half")}>{renderSortHeader("Half", "half")}</th>
+                                                <th style={{ width: 50, textAlign: "center", cursor: "pointer", whiteSpace: "nowrap" }} onClick={() => handleSortClick("yards")}>{renderSortHeader("Yds", "yards")}</th>
+                                                <th style={{ width: 90, cursor: "pointer", whiteSpace: "nowrap" }} onClick={() => handleSortClick("points")}>{renderSortHeader("Points", "points")}</th>
+                                                <th style={{ width: 100, textAlign: "center" }}>Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {persistedPlays.map((play, idx) => (
+                                            {getSortedPlays().map((play, idx) => (
                                                 editingPlayId === play._id ? (
                                                     <tr key={play._id} style={{ background: "#fffbe6" }}>
-                                                        <td>{idx + 1}</td>
+                                                        <td>{play.__originalIdx}</td>
                                                         <td>
                                                             <select style={{ fontSize: 12, padding: "2px 4px", border: "1px solid #d0d5dd", borderRadius: 4 }} value={editForm.type} onChange={e => setEditForm(prev => ({ ...prev, type: e.target.value }))}>
                                                                 {["completion", "incomplete", "interception", "sack", "fumble", "run"].map(t => (
@@ -986,7 +1056,7 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
                                                     </tr>
                                                 ) : (
                                                     <tr key={play._id}>
-                                                        <td style={{ color: "#6b7280" }}>{idx + 1}</td>
+                                                        <td style={{ color: "#6b7280" }}>{play.__originalIdx}</td>
                                                         <td>
                                                             <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: 4, fontSize: 11, fontWeight: 600, background: play.type === "completion" ? "#dcfce7" : play.type === "interception" ? "#fef3c7" : play.type === "sack" ? "#fee2e2" : play.type === "fumble" ? "#fee2e2" : play.type === "run" ? "#dbeafe" : "#f3f4f6", color: play.type === "completion" ? "#166534" : play.type === "interception" ? "#92400e" : play.type === "sack" ? "#991b1b" : play.type === "fumble" ? "#991b1b" : play.type === "run" ? "#1e40af" : "#374151" }}>
                                                                 {playTypeLabel(play.type)}

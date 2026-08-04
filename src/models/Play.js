@@ -38,12 +38,15 @@ const PlaySchema = new mongoose.Schema(
         // Scoring
         ptsAdded: { type: Number, default: 0 },
         targetTeam: { type: String, default: "" }, // "A" or "B" — which team got the points
+        // Idempotency key to prevent duplicate plays from network retries
+        idempotencyKey: { type: String, unique: true, sparse: true },
     },
     { timestamps: true }
 );
 
 PlaySchema.index({ game: 1 });
 PlaySchema.index({ game: 1, type: 1 });
+PlaySchema.index({ idempotencyKey: 1 }, { sparse: true, unique: true });
 
 if (mongoose.models.Play) mongoose.deleteModel("Play");
 export default mongoose.model("Play", PlaySchema);
