@@ -1,13 +1,15 @@
 import mongoose from "mongoose";
-import dbConnect from "@/lib/dbConnect";
-import Game from "@/models/Game";
-import Play from "@/models/Play";
+import dbConnect from "../lib/dbConnect.js";
+import Game from "../models/Game.js";
+import Play from "../models/Play.js";
 
 const games = [
   { date: "2026-02-08", teamA: "Hit N Run", teamB: "Chozen 1nez", league: "CASH COUNTIES XXIII" },
   { date: "2026-02-08", teamA: "Mambas", teamB: "X Men", league: "CASH COUNTIES XXIII" },
   { date: "2026-02-08", teamA: "Suspects", teamB: "ProJanky", league: "CASH COUNTIES XXIII" },
   { date: "2026-02-08", teamA: "BringIt", teamB: "DARKSIDE", league: "CASH COUNTIES XXIII" },
+  { date: "2026-06-14", teamA: "The Shield", teamB: "Paper Boyz", league: "Irvine" },
+  { date: "2026-06-14", teamA: "I Am Success", teamB: "The Shield", league: "Irvine" },
 ];
 
 async function fixGameScores() {

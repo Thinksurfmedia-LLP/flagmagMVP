@@ -2,6 +2,7 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
+import SiteSettings from "@/models/SiteSettings";
 import User from "@/models/User";
 
 if (!process.env.JWT_SECRET) {
@@ -52,6 +53,35 @@ async function getOrgSessionsCutoff(orgId) {
  */
 export function invalidateOrgCutoffCache(orgId) {
     orgCutoffCache.delete(String(orgId));
+}
+
+// Platform-wide cutoff (nightly force-logout-all cron) — checked in addition
+// to any per-org cutoff, so a global logout doesn't require touching every
+// Organization document.
+const GLOBAL_CUTOFF_CACHE_MS = 5000;
+let globalCutoffCache = null; // { checkedAt, cutoff } | null
+
+async function getGlobalSessionsCutoff() {
+    const now = Date.now();
+    if (globalCutoffCache && now - globalCutoffCache.checkedAt < GLOBAL_CUTOFF_CACHE_MS) {
+        return globalCutoffCache.cutoff;
+    }
+    await dbConnect();
+    const settings = await SiteSettings.findOne().select("globalSessionsInvalidatedAt").lean();
+    const cutoff = settings?.globalSessionsInvalidatedAt || null;
+    globalCutoffCache = { checkedAt: now, cutoff };
+    return cutoff;
+}
+
+/**
+ * Call right after writing a new globalSessionsInvalidatedAt so the cutoff
+ * takes effect on the very next request instead of waiting out the cache
+ * TTL. A separate process (e.g. the cron script) writing the DB field can't
+ * reach this in-memory cache directly — that's fine, the 5s TTL bounds the
+ * staleness on its own.
+ */
+export function invalidateGlobalCutoffCache() {
+    globalCutoffCache = null;
 }
 
 // The JWT's own `organization` field only reflects User.organization (the
@@ -144,6 +174,11 @@ export async function getAuthState() {
     const payload = await verifyToken(token);
     if (!payload) return { user: null, invalidated: false };
 
+    const globalCutoff = await getGlobalSessionsCutoff();
+    if (globalCutoff && payload.iat * 1000 < new Date(globalCutoff).getTime()) {
+        return { user: null, invalidated: true };
+    }
+
     if (payload.id) {
         const orgIds = await getUserOrgIds(payload.id);
         for (const orgId of orgIds) {
@@ -203,6 +238,11 @@ export async function getMobileAuthState() {
 
     const payload = await verifyToken(token);
     if (!payload) return { user: null, invalidated: false };
+
+    const globalCutoff = await getGlobalSessionsCutoff();
+    if (globalCutoff && payload.iat * 1000 < new Date(globalCutoff).getTime()) {
+        return { user: null, invalidated: true };
+    }
 
     if (payload.id) {
         const orgIds = await getUserOrgIds(payload.id);

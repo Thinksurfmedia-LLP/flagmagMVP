@@ -9,6 +9,13 @@ const SiteSettingsSchema = new mongoose.Schema(
         twitter: { type: String, trim: true, default: "" },
         instagram: { type: String, trim: true, default: "" },
         youtube: { type: String, trim: true, default: "" },
+        // Any JWT platform-wide issued before this moment is rejected —
+        // used by the nightly force-logout-all cron so every account (web,
+        // admin dashboard, stats app; every org) is logged out at once.
+        globalSessionsInvalidatedAt: {
+            type: Date,
+            default: null,
+        },
     },
     { timestamps: true }
 );
