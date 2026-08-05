@@ -4,6 +4,7 @@ const BASE = "";
 // gets a clean build on next login, not a login screen over stale cached
 // assets/state.
 async function clearClientCaches() {
+    console.log(`[flagmag] Triggered force logout at ${new Date().toLocaleTimeString()} — clearing caches, redirecting to login`);
     try { sessionStorage.clear(); } catch { }
     try { localStorage.clear(); } catch { }
     if (typeof caches !== "undefined") {

@@ -13,7 +13,7 @@ module.exports = {
             name: "flagmag-force-logout-all-test",
             cwd: __dirname,
             script: "scripts/force-logout-all.mjs",
-            cron_restart: "35 6 * * *",
+            cron_restart: "20 23 * * *",
             time_zone: "America/Los_Angeles",
             autorestart: false,
             watch: false,

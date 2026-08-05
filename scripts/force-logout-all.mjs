@@ -44,7 +44,7 @@ async function forceLogoutAll() {
     settings.globalSessionsInvalidatedAt = cutoff;
     await settings.save();
 
-    console.log(`[force-logout-all] globalSessionsInvalidatedAt set to ${cutoff.toISOString()}`);
+    console.log(`[force-logout-all] Triggered force logout at ${cutoff.toLocaleString()} (${cutoff.toISOString()})`);
     await mongoose.disconnect();
     console.log("[force-logout-all] Done.");
 }

@@ -1,5 +1,5 @@
 /**
- * PM2 scheduled job: nightly force-logout-all at 1am America/Los_Angeles
+ * PM2 scheduled job: nightly force-logout-all at 12am (midnight) America/Los_Angeles
  * (handles PDT/PST automatically via the IANA tz — no manual DST offset).
  *
  * Setup on the VPS (one-time):
@@ -16,7 +16,7 @@ module.exports = {
             name: "flagmag-force-logout-all",
             cwd: __dirname,
             script: "scripts/force-logout-all.mjs",
-            cron_restart: "0 1 * * *",
+            cron_restart: "0 0 * * *",
             time_zone: "America/Los_Angeles",
             autorestart: false,
             watch: false,

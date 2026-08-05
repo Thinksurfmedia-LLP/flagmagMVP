@@ -21,6 +21,7 @@ function isSessionProbePath(input) {
 // force-invalidated user actually gets a clean build, not just a login
 // screen rendered from stale cached assets/state.
 async function clearClientCaches() {
+    console.log(`[flagmag] Triggered force logout at ${new Date().toLocaleTimeString()} — clearing caches, redirecting to login`);
     try { sessionStorage.clear(); } catch { }
     try { localStorage.clear(); } catch { }
     if (typeof caches !== "undefined") {
