@@ -212,6 +212,34 @@ export async function DELETE(request, { params }) {
             }
         }
 
+        // Deleting a League used to be a bare deleteOne — nothing checked
+        // whether Teams/Schedules/Games still pointed at it, so those refs
+        // went dangling the moment the League doc vanished (root cause of
+        // the Denstar "Irvine Playoffs Summer 2026" orphaned-league bug:
+        // 6 teams, 1 schedule, 3 games all kept referencing a league that
+        // no longer existed). Block the delete and tell the admin exactly
+        // what's still attached instead of silently orphaning it.
+        const [attachedTeams, attachedSchedules, attachedGames] = await Promise.all([
+            Team.find({ "leagues.league": id }).select("name").lean(),
+            Schedule.find({ leagueId: id }).select("scheduleLabel").lean(),
+            Game.find({ league: id }).select("teamA.name teamB.name date").lean(),
+        ]);
+
+        if (attachedTeams.length || attachedSchedules.length || attachedGames.length) {
+            const parts = [];
+            if (attachedTeams.length) parts.push(`${attachedTeams.length} team(s) [${attachedTeams.slice(0, 5).map(t => t.name).join(", ")}${attachedTeams.length > 5 ? ", ..." : ""}]`);
+            if (attachedSchedules.length) parts.push(`${attachedSchedules.length} schedule(s) [${attachedSchedules.slice(0, 5).map(s => s.scheduleLabel).join(", ")}${attachedSchedules.length > 5 ? ", ..." : ""}]`);
+            if (attachedGames.length) parts.push(`${attachedGames.length} game(s)`);
+
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: `Can't delete this league — still referenced by ${parts.join(", ")}. Remove or reassign those first.`,
+                },
+                { status: 409 },
+            );
+        }
+
         await League.deleteOne({ _id: id });
 
         return NextResponse.json({ success: true, message: "League deleted" }, { status: 200 });

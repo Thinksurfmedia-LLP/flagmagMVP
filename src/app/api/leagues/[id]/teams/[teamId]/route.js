@@ -77,6 +77,12 @@ export async function PUT(request, { params }) {
 // DELETE /api/leagues/[id]/teams/[teamId] — remove this league's membership
 // from the team. The Team document itself (and every other league it
 // belongs to) is untouched — only this one membership entry is dropped.
+//
+// `id` is allowed to point at a League that no longer exists: that's exactly
+// the orphaned-membership case (League deleted with no cascade, dead ref left
+// behind on the team — see the Denstar/XFlag audits). Org authorization then
+// falls back to the team's own organization instead of the league's, since
+// there's no league left to authorize against.
 export async function DELETE(request, { params }) {
     try {
         const auth = await requireAnyPermission(["manage_leagues", "league_update", "manage_teams", "team_update"]);
@@ -86,16 +92,23 @@ export async function DELETE(request, { params }) {
         const { id, teamId } = await params;
 
         const league = await League.findById(id).select("organization").lean();
-        if (!league) {
-            return NextResponse.json({ success: false, error: "League not found" }, { status: 404 });
-        }
-
-        const forbidden = await assertOrganizerCanManage(auth.user, league.organization);
-        if (forbidden) return forbidden;
 
         const team = await Team.findById(teamId);
-        if (!team || String(team.organization) !== String(league.organization)) {
+        if (!team) {
+            return NextResponse.json({ success: false, error: "Team not found" }, { status: 404 });
+        }
+
+        const authOrgId = league ? league.organization : team.organization;
+        if (league && String(team.organization) !== String(league.organization)) {
             return NextResponse.json({ success: false, error: "Team not found in this organization" }, { status: 404 });
+        }
+
+        const forbidden = await assertOrganizerCanManage(auth.user, authOrgId);
+        if (forbidden) return forbidden;
+
+        const membership = team.leagues.find((m) => String(m.league) === String(id));
+        if (!membership) {
+            return NextResponse.json({ success: false, error: "Team is not assigned to this league" }, { status: 404 });
         }
 
         team.leagues = team.leagues.filter((m) => String(m.league) !== String(id));

@@ -146,6 +146,27 @@ export async function GET(request) {
             .sort({ name: 1 })
             .lean();
 
+        // `leagues.league` is a required field on the membership subdocument,
+        // so a null value here after populate can only mean one thing: the
+        // League doc it pointed at was deleted and the membership went
+        // dangling (see Denstar/XFlag orphaned-league audits). Populate also
+        // erases the raw id in the process, so re-fetch it unpopulated and
+        // attach it back — the UI needs the actual dead id to offer removal.
+        const rawTeams = await Team.find(filter).select("leagues").lean();
+        const rawLeagueByMembershipId = new Map();
+        rawTeams.forEach((t) => {
+            (t.leagues || []).forEach((m) => {
+                rawLeagueByMembershipId.set(String(m._id), m.league ? String(m.league) : null);
+            });
+        });
+        teams.forEach((t) => {
+            (t.leagues || []).forEach((m) => {
+                if (!m.league) {
+                    m.danglingLeagueId = rawLeagueByMembershipId.get(String(m._id)) || null;
+                }
+            });
+        });
+
         return NextResponse.json({ success: true, data: teams });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });

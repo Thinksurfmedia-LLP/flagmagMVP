@@ -1,0 +1,157 @@
+{
+  "findings": [
+    {
+      "league": "Beverly Spring 2026",
+      "issue": "game teamA not in league roster",
+      "detail": "Trojans (game 69f5af6de7729de62249692d)"
+    },
+    {
+      "league": "Beverly Spring 2026",
+      "issue": "game teamB not in league roster",
+      "detail": "Dragons (game 69f5af6de7729de62249692d)"
+    },
+    {
+      "league": "Beverly Spring 2026",
+      "issue": "game teamA not in league roster",
+      "detail": "Trojans (game 69f5af6ee7729de622496930)"
+    },
+    {
+      "league": "Beverly Spring 2026",
+      "issue": "game teamB not in league roster",
+      "detail": "Crusaders (game 69f5af6ee7729de622496930)"
+    },
+    {
+      "league": "Beverly Spring 2026",
+      "issue": "game teamA not in league roster",
+      "detail": "Dragons (game 6a052f600817e06c03660d8d)"
+    },
+    {
+      "league": "Beverly Spring 2026",
+      "issue": "game teamB not in league roster",
+      "detail": "Crusaders (game 6a052f600817e06c03660d8d)"
+    },
+    {
+      "league": "Beverly Spring 2026",
+      "issue": "game teamA not in league roster",
+      "detail": "Dragons (game 6a052f870817e06c03660d94)"
+    },
+    {
+      "league": "Beverly Spring 2026",
+      "issue": "game teamB not in league roster",
+      "detail": "Trojans (game 6a052f870817e06c03660d94)"
+    },
+    {
+      "league": "Beverly Spring 2026",
+      "issue": "game teamA not in league roster",
+      "detail": "Crusaders (game 69f5af6fe7729de622496939)"
+    },
+    {
+      "league": "Beverly Spring 2026",
+      "issue": "game teamB not in league roster",
+      "detail": "Trojans (game 69f5af6fe7729de622496939)"
+    },
+    {
+      "league": "Beverly Spring 2026",
+      "issue": "game teamA not in league roster",
+      "detail": "Crusaders (game 69f5af6fe7729de62249693c)"
+    },
+    {
+      "league": "Beverly Spring 2026",
+      "issue": "game teamB not in league roster",
+      "detail": "Dragons (game 69f5af6fe7729de62249693c)"
+    },
+    {
+      "league": "Beverly Spring 2026",
+      "issue": "game teamA not in league roster",
+      "detail": "Trojans (game 69f5af6fe7729de62249693f)"
+    },
+    {
+      "league": "Beverly Spring 2026",
+      "issue": "game teamB not in league roster",
+      "detail": "Dragons (game 69f5af6fe7729de62249693f)"
+    },
+    {
+      "league": "Beverly Spring 2026",
+      "issue": "game teamA not in league roster",
+      "detail": "Trojans (game 69f5af70e7729de622496942)"
+    },
+    {
+      "league": "Beverly Spring 2026",
+      "issue": "game teamB not in league roster",
+      "detail": "Crusaders (game 69f5af70e7729de622496942)"
+    },
+    {
+      "league": "Beverly Spring 2026",
+      "issue": "game teamA not in league roster",
+      "detail": "Dragons (game 69f5af70e7729de622496945)"
+    },
+    {
+      "league": "Beverly Spring 2026",
+      "issue": "game teamB not in league roster",
+      "detail": "Crusaders (game 69f5af70e7729de622496945)"
+    },
+    {
+      "league": "Beverly Spring 2026",
+      "issue": "game teamA not in league roster",
+      "detail": "Dragons (game 69f5af70e7729de622496948)"
+    },
+    {
+      "league": "Beverly Spring 2026",
+      "issue": "game teamB not in league roster",
+      "detail": "Trojans (game 69f5af70e7729de622496948)"
+    },
+    {
+      "league": "Beverly Spring 2026",
+      "issue": "game teamA not in league roster",
+      "detail": "Crusaders (game 69f5af70e7729de62249694b)"
+    },
+    {
+      "league": "Beverly Spring 2026",
+      "issue": "game teamB not in league roster",
+      "detail": "Trojans (game 69f5af70e7729de62249694b)"
+    },
+    {
+      "league": "Beverly Spring 2026",
+      "issue": "game teamA not in league roster",
+      "detail": "Crusaders (game 69f5af71e7729de62249694e)"
+    },
+    {
+      "league": "Beverly Spring 2026",
+      "issue": "game teamB not in league roster",
+      "detail": "Dragons (game 69f5af71e7729de62249694e)"
+    },
+    {
+      "league": "-",
+      "issue": "duplicate jersey numbers",
+      "detail": "DARKSIDE: 7"
+    },
+    {
+      "league": "-",
+      "issue": "duplicate jersey numbers",
+      "detail": "GOAT: 7"
+    },
+    {
+      "league": "-",
+      "issue": "duplicate jersey numbers",
+      "detail": "Members Only: 22"
+    },
+    {
+      "league": "-",
+      "issue": "duplicate jersey numbers",
+      "detail": "N&B: 8"
+    },
+    {
+      "league": "-",
+      "issue": "duplicate jersey numbers",
+      "detail": "Suspects: 1"
+    },
+    {
+      "league": "-",
+      "issue": "duplicate jersey numbers",
+      "detail": "Warfare: 4"
+    }
+  ],
+  "leagueCount": 21,
+  "teamCount": 98,
+  "gameCount": 382
+}

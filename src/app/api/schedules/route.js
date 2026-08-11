@@ -55,7 +55,20 @@ export async function GET(request) {
             .sort({ createdAt: -1 })
             .lean();
 
-        return NextResponse.json({ success: true, data: schedules });
+        // Mongoose's populate silently resolves a dangling leagueId (League
+        // doc deleted, ref left behind) to null — identical to "no league
+        // was ever assigned." That indistinguishability is exactly what let
+        // the Denstar orphaned-league schedule go unnoticed. Re-check the
+        // raw (unpopulated) leagueId so the UI can tell the two apart and
+        // flag the broken ref instead of rendering it as "no league".
+        const rawLeagueIds = await Schedule.find(filter).select("leagueId").lean();
+        const rawLeagueIdById = new Map(rawLeagueIds.map((s) => [String(s._id), s.leagueId ? String(s.leagueId) : null]));
+        const schedulesWithBrokenRefFlag = schedules.map((s) => ({
+            ...s,
+            leagueRefBroken: Boolean(rawLeagueIdById.get(String(s._id))) && !s.leagueId,
+        }));
+
+        return NextResponse.json({ success: true, data: schedulesWithBrokenRefFlag });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }

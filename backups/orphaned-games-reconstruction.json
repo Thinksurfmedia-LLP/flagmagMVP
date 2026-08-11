@@ -1,0 +1,719 @@
+[
+  {
+    "deadGameId": "69cfbfd348b355f7c1384586",
+    "objectIdEncodedCreatedAt": "2026-04-03T13:25:39.000Z",
+    "playCount": 10,
+    "teamNamesInvolved": [
+      "Roughriders 8u",
+      "Golden Eagles 8u"
+    ],
+    "guessedOrgs": [
+      "Showtime Sportz"
+    ],
+    "firstPlayRecordedAt": "2026-04-04T01:56:42.456Z",
+    "lastPlayRecordedAt": "2026-04-04T02:00:39.612Z",
+    "durationMinutes": 4,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "69cfbfd348b355f7c1384589",
+    "objectIdEncodedCreatedAt": "2026-04-03T13:25:39.000Z",
+    "playCount": 21,
+    "teamNamesInvolved": [
+      "Powerhouse 12u",
+      "Hawkeyes 12u"
+    ],
+    "guessedOrgs": [
+      "Showtime Sportz"
+    ],
+    "firstPlayRecordedAt": "2026-04-04T02:25:26.346Z",
+    "lastPlayRecordedAt": "2026-04-04T02:36:08.950Z",
+    "durationMinutes": 11,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "69fee3480817e06c03656df7",
+    "objectIdEncodedCreatedAt": "2026-05-09T07:33:28.000Z",
+    "playCount": 6,
+    "teamNamesInvolved": [
+      "Crusaders",
+      "Trojans"
+    ],
+    "guessedOrgs": [
+      "XFlagFootball"
+    ],
+    "firstPlayRecordedAt": "2026-05-09T09:49:22.229Z",
+    "lastPlayRecordedAt": "2026-05-09T09:56:57.200Z",
+    "durationMinutes": 8,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a00ddb50817e06c0365bf22",
+    "objectIdEncodedCreatedAt": "2026-05-10T19:34:13.000Z",
+    "playCount": 12,
+    "teamNamesInvolved": [
+      "Crusaders",
+      "Dragons"
+    ],
+    "guessedOrgs": [
+      "XFlagFootball"
+    ],
+    "firstPlayRecordedAt": "2026-05-10T20:06:01.658Z",
+    "lastPlayRecordedAt": "2026-05-10T20:12:02.133Z",
+    "durationMinutes": 6,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a1990ec2a5786f17814801c",
+    "objectIdEncodedCreatedAt": "2026-05-29T13:13:16.000Z",
+    "playCount": 1,
+    "teamNamesInvolved": [
+      "Denstar Champs"
+    ],
+    "guessedOrgs": [],
+    "firstPlayRecordedAt": "2026-05-29T13:58:33.698Z",
+    "lastPlayRecordedAt": "2026-05-29T13:58:33.698Z",
+    "durationMinutes": 0,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a19e0102a5786f17814828c",
+    "objectIdEncodedCreatedAt": "2026-05-29T18:50:56.000Z",
+    "playCount": 4,
+    "teamNamesInvolved": [
+      "Denstar Champs"
+    ],
+    "guessedOrgs": [],
+    "firstPlayRecordedAt": "2026-05-29T18:53:06.522Z",
+    "lastPlayRecordedAt": "2026-05-29T18:53:51.490Z",
+    "durationMinutes": 1,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a1d47c92a5786f1781486b0",
+    "objectIdEncodedCreatedAt": "2026-06-01T08:50:17.000Z",
+    "playCount": 3,
+    "teamNamesInvolved": [
+      "Denstar Champs"
+    ],
+    "guessedOrgs": [],
+    "firstPlayRecordedAt": "2026-06-01T08:54:26.857Z",
+    "lastPlayRecordedAt": "2026-06-01T08:54:31.518Z",
+    "durationMinutes": 0,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a1d51d32a5786f178148735",
+    "objectIdEncodedCreatedAt": "2026-06-01T09:33:07.000Z",
+    "playCount": 8,
+    "teamNamesInvolved": [
+      "Denstar Champs"
+    ],
+    "guessedOrgs": [],
+    "firstPlayRecordedAt": "2026-06-01T09:35:31.018Z",
+    "lastPlayRecordedAt": "2026-06-01T09:35:39.088Z",
+    "durationMinutes": 0,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a1d53622a5786f1781487da",
+    "objectIdEncodedCreatedAt": "2026-06-01T09:39:46.000Z",
+    "playCount": 2,
+    "teamNamesInvolved": [
+      "Denstar Champs"
+    ],
+    "guessedOrgs": [],
+    "firstPlayRecordedAt": "2026-06-01T09:41:05.239Z",
+    "lastPlayRecordedAt": "2026-06-01T09:41:06.675Z",
+    "durationMinutes": 0,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a1d53f22a5786f178148863",
+    "objectIdEncodedCreatedAt": "2026-06-01T09:42:10.000Z",
+    "playCount": 6,
+    "teamNamesInvolved": [
+      "Denstar challenger"
+    ],
+    "guessedOrgs": [],
+    "firstPlayRecordedAt": "2026-06-01T09:55:20.914Z",
+    "lastPlayRecordedAt": "2026-06-01T09:55:26.869Z",
+    "durationMinutes": 0,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a1d59962a5786f178148906",
+    "objectIdEncodedCreatedAt": "2026-06-01T10:06:14.000Z",
+    "playCount": 2,
+    "teamNamesInvolved": [
+      "Denstar Champs"
+    ],
+    "guessedOrgs": [],
+    "firstPlayRecordedAt": "2026-06-01T10:23:20.795Z",
+    "lastPlayRecordedAt": "2026-06-01T10:23:22.085Z",
+    "durationMinutes": 0,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a1d92252a5786f178148ada",
+    "objectIdEncodedCreatedAt": "2026-06-01T14:07:33.000Z",
+    "playCount": 6,
+    "teamNamesInvolved": [
+      "Denstar Champs"
+    ],
+    "guessedOrgs": [],
+    "firstPlayRecordedAt": "2026-06-01T15:37:34.212Z",
+    "lastPlayRecordedAt": "2026-06-01T18:19:33.220Z",
+    "durationMinutes": 162,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a1dd1002a5786f178148d28",
+    "objectIdEncodedCreatedAt": "2026-06-01T18:35:44.000Z",
+    "playCount": 8,
+    "teamNamesInvolved": [
+      "Denstar Champs"
+    ],
+    "guessedOrgs": [],
+    "firstPlayRecordedAt": "2026-06-01T18:38:29.855Z",
+    "lastPlayRecordedAt": "2026-06-01T18:38:38.504Z",
+    "durationMinutes": 0,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a1e6d412a5786f178148de2",
+    "objectIdEncodedCreatedAt": "2026-06-02T05:42:25.000Z",
+    "playCount": 7,
+    "teamNamesInvolved": [
+      "Denstar Champs"
+    ],
+    "guessedOrgs": [],
+    "firstPlayRecordedAt": "2026-06-02T05:44:24.359Z",
+    "lastPlayRecordedAt": "2026-06-02T05:46:24.767Z",
+    "durationMinutes": 2,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a1fb2732a5786f178149083",
+    "objectIdEncodedCreatedAt": "2026-06-03T04:49:55.000Z",
+    "playCount": 8,
+    "teamNamesInvolved": [
+      "Denstar Champs",
+      "Denstar challenger"
+    ],
+    "guessedOrgs": [],
+    "firstPlayRecordedAt": "2026-06-03T04:54:07.319Z",
+    "lastPlayRecordedAt": "2026-06-03T04:54:10.825Z",
+    "durationMinutes": 0,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a2019e72a5786f178149238",
+    "objectIdEncodedCreatedAt": "2026-06-03T12:11:19.000Z",
+    "playCount": 4,
+    "teamNamesInvolved": [
+      "Denstar Champs",
+      "Denstar challenger"
+    ],
+    "guessedOrgs": [],
+    "firstPlayRecordedAt": "2026-06-03T12:14:04.257Z",
+    "lastPlayRecordedAt": "2026-06-03T12:14:53.398Z",
+    "durationMinutes": 1,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a297af25f5211d1bb47ec9c",
+    "objectIdEncodedCreatedAt": "2026-06-10T14:55:46.000Z",
+    "playCount": 25,
+    "teamNamesInvolved": [
+      "Denstar Champs",
+      "Denstar challenger"
+    ],
+    "guessedOrgs": [],
+    "firstPlayRecordedAt": "2026-06-10T15:00:20.433Z",
+    "lastPlayRecordedAt": "2026-06-11T06:36:49.139Z",
+    "durationMinutes": 936,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a2983735f5211d1bb47ed0d",
+    "objectIdEncodedCreatedAt": "2026-06-10T15:32:03.000Z",
+    "playCount": 10,
+    "teamNamesInvolved": [
+      "Denstar challenger"
+    ],
+    "guessedOrgs": [],
+    "firstPlayRecordedAt": "2026-06-10T15:34:27.938Z",
+    "lastPlayRecordedAt": "2026-06-10T15:35:35.251Z",
+    "durationMinutes": 1,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a2a59f25f5211d1bb47ee97",
+    "objectIdEncodedCreatedAt": "2026-06-11T06:47:14.000Z",
+    "playCount": 16,
+    "teamNamesInvolved": [
+      "Denstar challenger"
+    ],
+    "guessedOrgs": [],
+    "firstPlayRecordedAt": "2026-06-11T06:49:52.799Z",
+    "lastPlayRecordedAt": "2026-06-11T06:49:54.921Z",
+    "durationMinutes": 0,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a2a5c055f5211d1bb47ef5f",
+    "objectIdEncodedCreatedAt": "2026-06-11T06:56:05.000Z",
+    "playCount": 28,
+    "teamNamesInvolved": [
+      "Denstar Champs"
+    ],
+    "guessedOrgs": [],
+    "firstPlayRecordedAt": "2026-06-11T06:59:37.817Z",
+    "lastPlayRecordedAt": "2026-06-11T06:59:39.943Z",
+    "durationMinutes": 0,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a2a612f5f5211d1bb47f00f",
+    "objectIdEncodedCreatedAt": "2026-06-11T07:18:07.000Z",
+    "playCount": 4,
+    "teamNamesInvolved": [
+      "Denstar challenger"
+    ],
+    "guessedOrgs": [],
+    "firstPlayRecordedAt": "2026-06-11T07:20:13.557Z",
+    "lastPlayRecordedAt": "2026-06-11T07:20:14.697Z",
+    "durationMinutes": 0,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a2a65df5f5211d1bb47f074",
+    "objectIdEncodedCreatedAt": "2026-06-11T07:38:07.000Z",
+    "playCount": 4,
+    "teamNamesInvolved": [
+      "Denstar Champs"
+    ],
+    "guessedOrgs": [],
+    "firstPlayRecordedAt": "2026-06-11T07:40:43.344Z",
+    "lastPlayRecordedAt": "2026-06-11T07:40:44.633Z",
+    "durationMinutes": 0,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a2a68bd5f5211d1bb47f0e0",
+    "objectIdEncodedCreatedAt": "2026-06-11T07:50:21.000Z",
+    "playCount": 1,
+    "teamNamesInvolved": [
+      "Champs"
+    ],
+    "guessedOrgs": [],
+    "firstPlayRecordedAt": "2026-06-14T13:55:09.261Z",
+    "lastPlayRecordedAt": "2026-06-14T13:55:09.261Z",
+    "durationMinutes": 0,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a2b78405f5211d1bb480d63",
+    "objectIdEncodedCreatedAt": "2026-06-12T03:08:48.000Z",
+    "playCount": 62,
+    "teamNamesInvolved": [
+      "Shield",
+      "I Am Success"
+    ],
+    "guessedOrgs": [
+      "XFlagFootball"
+    ],
+    "firstPlayRecordedAt": "2026-06-14T16:18:17.658Z",
+    "lastPlayRecordedAt": "2026-06-14T17:06:10.327Z",
+    "durationMinutes": 48,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a2b78415f5211d1bb480d69",
+    "objectIdEncodedCreatedAt": "2026-06-12T03:08:49.000Z",
+    "playCount": 45,
+    "teamNamesInvolved": [
+      "Paper Boyz",
+      "Shield"
+    ],
+    "guessedOrgs": [
+      "XFlagFootball"
+    ],
+    "firstPlayRecordedAt": "2026-06-14T18:05:49.364Z",
+    "lastPlayRecordedAt": "2026-06-14T18:43:26.964Z",
+    "durationMinutes": 38,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a2d11935f5211d1bb484471",
+    "objectIdEncodedCreatedAt": "2026-06-13T08:15:15.000Z",
+    "playCount": 5,
+    "teamNamesInvolved": [
+      "Red Hawks",
+      "Blue Storm"
+    ],
+    "guessedOrgs": [
+      "Denstar"
+    ],
+    "firstPlayRecordedAt": "2026-06-14T03:43:36.100Z",
+    "lastPlayRecordedAt": "2026-06-14T03:47:53.961Z",
+    "durationMinutes": 4,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a2d11935f5211d1bb484473",
+    "objectIdEncodedCreatedAt": "2026-06-13T08:15:15.000Z",
+    "playCount": 6,
+    "teamNamesInvolved": [
+      "Blue Storm"
+    ],
+    "guessedOrgs": [
+      "Denstar"
+    ],
+    "firstPlayRecordedAt": "2026-06-14T04:55:25.315Z",
+    "lastPlayRecordedAt": "2026-06-14T04:58:55.788Z",
+    "durationMinutes": 4,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a2d11945f5211d1bb484475",
+    "objectIdEncodedCreatedAt": "2026-06-13T08:15:16.000Z",
+    "playCount": 8,
+    "teamNamesInvolved": [
+      "Blue Storm"
+    ],
+    "guessedOrgs": [
+      "Denstar"
+    ],
+    "firstPlayRecordedAt": "2026-06-14T02:41:57.595Z",
+    "lastPlayRecordedAt": "2026-06-14T02:46:04.088Z",
+    "durationMinutes": 4,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a2d11945f5211d1bb484477",
+    "objectIdEncodedCreatedAt": "2026-06-13T08:15:16.000Z",
+    "playCount": 5,
+    "teamNamesInvolved": [
+      "Blue Storm"
+    ],
+    "guessedOrgs": [
+      "Denstar"
+    ],
+    "firstPlayRecordedAt": "2026-06-14T03:04:50.498Z",
+    "lastPlayRecordedAt": "2026-06-14T03:07:30.084Z",
+    "durationMinutes": 3,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a2d227a5f5211d1bb48460e",
+    "objectIdEncodedCreatedAt": "2026-06-13T09:27:22.000Z",
+    "playCount": 3,
+    "teamNamesInvolved": [
+      "IE Raptors"
+    ],
+    "guessedOrgs": [
+      "XFlagFootball"
+    ],
+    "firstPlayRecordedAt": "2026-06-15T02:51:55.752Z",
+    "lastPlayRecordedAt": "2026-06-15T02:54:39.576Z",
+    "durationMinutes": 3,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a2d28075f5211d1bb484710",
+    "objectIdEncodedCreatedAt": "2026-06-13T09:51:03.000Z",
+    "playCount": 10,
+    "teamNamesInvolved": [
+      "Death Watch",
+      "Mambas (Sun)"
+    ],
+    "guessedOrgs": [
+      "XFlagFootball"
+    ],
+    "firstPlayRecordedAt": "2026-06-15T01:14:31.443Z",
+    "lastPlayRecordedAt": "2026-06-15T01:20:34.476Z",
+    "durationMinutes": 6,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a2e2c3cde3d1385a49d96a5",
+    "objectIdEncodedCreatedAt": "2026-06-14T04:21:16.000Z",
+    "playCount": 1,
+    "teamNamesInvolved": [
+      "Red Hawks"
+    ],
+    "guessedOrgs": [
+      "Denstar"
+    ],
+    "firstPlayRecordedAt": "2026-06-14T13:57:12.952Z",
+    "lastPlayRecordedAt": "2026-06-14T13:57:12.952Z",
+    "durationMinutes": 0,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a2e408ade3d1385a49d9a38",
+    "objectIdEncodedCreatedAt": "2026-06-14T05:47:54.000Z",
+    "playCount": 2,
+    "teamNamesInvolved": [
+      "City Boyz"
+    ],
+    "guessedOrgs": [
+      "XFlagFootball"
+    ],
+    "firstPlayRecordedAt": "2026-06-14T15:26:34.061Z",
+    "lastPlayRecordedAt": "2026-06-14T15:26:55.166Z",
+    "durationMinutes": 0,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a2f54b7e91ac941c722e052",
+    "objectIdEncodedCreatedAt": "2026-06-15T01:26:15.000Z",
+    "playCount": 57,
+    "teamNamesInvolved": [
+      "Mambas (Sun)",
+      "Death Watch"
+    ],
+    "guessedOrgs": [
+      "XFlagFootball"
+    ],
+    "firstPlayRecordedAt": "2026-06-15T01:28:19.988Z",
+    "lastPlayRecordedAt": "2026-06-19T09:39:16.705Z",
+    "durationMinutes": 6251,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a2f5aa2e91ac941c722e802",
+    "objectIdEncodedCreatedAt": "2026-06-15T01:51:30.000Z",
+    "playCount": 1,
+    "teamNamesInvolved": [
+      "Warfare"
+    ],
+    "guessedOrgs": [
+      "XFlagFootball"
+    ],
+    "firstPlayRecordedAt": "2026-06-15T01:56:22.050Z",
+    "lastPlayRecordedAt": "2026-06-15T01:56:22.050Z",
+    "durationMinutes": 0,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a2f7c9be91ac941c723281f",
+    "objectIdEncodedCreatedAt": "2026-06-15T04:16:27.000Z",
+    "playCount": 17,
+    "teamNamesInvolved": [
+      "Suspects",
+      "Lets Go"
+    ],
+    "guessedOrgs": [
+      "XFlagFootball"
+    ],
+    "firstPlayRecordedAt": "2026-06-15T04:24:00.878Z",
+    "lastPlayRecordedAt": "2026-06-15T04:32:33.530Z",
+    "durationMinutes": 9,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a359bdb414a9d467c6db557",
+    "objectIdEncodedCreatedAt": "2026-06-19T19:43:23.000Z",
+    "playCount": 2,
+    "teamNamesInvolved": [
+      "Goat",
+      "Red Dogs"
+    ],
+    "guessedOrgs": [
+      "Denstar"
+    ],
+    "firstPlayRecordedAt": "2026-06-25T14:21:03.885Z",
+    "lastPlayRecordedAt": "2026-06-25T14:25:24.881Z",
+    "durationMinutes": 4,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a359bdc414a9d467c6db561",
+    "objectIdEncodedCreatedAt": "2026-06-19T19:43:24.000Z",
+    "playCount": 3,
+    "teamNamesInvolved": [
+      "Red Dogs"
+    ],
+    "guessedOrgs": [
+      "Denstar"
+    ],
+    "firstPlayRecordedAt": "2026-06-20T12:08:21.197Z",
+    "lastPlayRecordedAt": "2026-06-20T12:08:56.607Z",
+    "durationMinutes": 1,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a359bdc414a9d467c6db55b",
+    "objectIdEncodedCreatedAt": "2026-06-19T19:43:24.000Z",
+    "playCount": 5,
+    "teamNamesInvolved": [
+      "Gators"
+    ],
+    "guessedOrgs": [
+      "Denstar"
+    ],
+    "firstPlayRecordedAt": "2026-06-25T06:28:56.199Z",
+    "lastPlayRecordedAt": "2026-06-25T06:38:07.765Z",
+    "durationMinutes": 9,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a359bdc414a9d467c6db55d",
+    "objectIdEncodedCreatedAt": "2026-06-19T19:43:24.000Z",
+    "playCount": 15,
+    "teamNamesInvolved": [
+      "Goat",
+      "Red Dogs"
+    ],
+    "guessedOrgs": [
+      "Denstar"
+    ],
+    "firstPlayRecordedAt": "2026-06-25T06:34:29.917Z",
+    "lastPlayRecordedAt": "2026-06-25T06:37:01.900Z",
+    "durationMinutes": 3,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a35ae4e414a9d467c6dc02d",
+    "objectIdEncodedCreatedAt": "2026-06-19T21:02:06.000Z",
+    "playCount": 60,
+    "teamNamesInvolved": [
+      "Chozen 1nez",
+      "Mambas"
+    ],
+    "guessedOrgs": [
+      "XFlagFootball"
+    ],
+    "firstPlayRecordedAt": "2026-06-22T01:12:59.624Z",
+    "lastPlayRecordedAt": "2026-06-22T02:03:25.320Z",
+    "durationMinutes": 50,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a36126b414a9d467c6defe9",
+    "objectIdEncodedCreatedAt": "2026-06-20T04:09:15.000Z",
+    "playCount": 62,
+    "teamNamesInvolved": [
+      "DARKSIDE",
+      "Mambas"
+    ],
+    "guessedOrgs": [
+      "XFlagFootball"
+    ],
+    "firstPlayRecordedAt": "2026-06-22T02:10:22.425Z",
+    "lastPlayRecordedAt": "2026-06-22T02:53:57.893Z",
+    "durationMinutes": 44,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a3cfed82726dcddb4bf1186",
+    "objectIdEncodedCreatedAt": "2026-06-25T10:11:36.000Z",
+    "playCount": 22,
+    "teamNamesInvolved": [
+      "Red Dogs",
+      "Goat"
+    ],
+    "guessedOrgs": [
+      "Denstar"
+    ],
+    "firstPlayRecordedAt": "2026-06-25T10:12:09.161Z",
+    "lastPlayRecordedAt": "2026-06-25T10:41:47.450Z",
+    "durationMinutes": 30,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a460e8038ec3cc883ee72e2",
+    "objectIdEncodedCreatedAt": "2026-07-02T07:08:48.000Z",
+    "playCount": 12,
+    "teamNamesInvolved": [
+      "Red Dogs",
+      "Goat"
+    ],
+    "guessedOrgs": [
+      "Denstar"
+    ],
+    "firstPlayRecordedAt": "2026-07-02T07:17:26.429Z",
+    "lastPlayRecordedAt": "2026-07-02T07:19:20.240Z",
+    "durationMinutes": 2,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a4ba62f38ec3cc883f459f2",
+    "objectIdEncodedCreatedAt": "2026-07-06T12:57:19.000Z",
+    "playCount": 2,
+    "teamNamesInvolved": [
+      "Warriors"
+    ],
+    "guessedOrgs": [
+      "XFlagFootball"
+    ],
+    "firstPlayRecordedAt": "2026-07-06T12:59:25.972Z",
+    "lastPlayRecordedAt": "2026-07-06T13:00:11.137Z",
+    "durationMinutes": 1,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  },
+  {
+    "deadGameId": "6a570e91c5f7d35fe6667452",
+    "objectIdEncodedCreatedAt": "2026-07-15T04:37:37.000Z",
+    "playCount": 13,
+    "teamNamesInvolved": [
+      "DARKSIDE"
+    ],
+    "guessedOrgs": [
+      "XFlagFootball"
+    ],
+    "firstPlayRecordedAt": "2026-07-17T17:13:54.804Z",
+    "lastPlayRecordedAt": "2026-07-17T17:34:00.556Z",
+    "durationMinutes": 20,
+    "foundInLiveSchedule": false,
+    "scheduleInfo": null
+  }
+]

@@ -5,6 +5,8 @@ import League from "@/models/League";
 import { requireAdmin, requireAdminOrStatistician } from "@/lib/apiAuth";
 import Schedule from "@/models/Schedule";
 import Team from "@/models/Team";
+import Play from "@/models/Play";
+import GameStat from "@/models/GameStat";
 import { isPlaceholderTeamName } from "@/lib/placeholderTeams";
 
 // GET single game
@@ -133,6 +135,13 @@ export async function DELETE(request, { params }) {
             { "weeks.games.gameRef": game._id },
             { $pull: { "weeks.$[].games": { gameRef: game._id } } }
         );
+
+        // Cascade-delete dependent play-by-play and box-score data — a game
+        // is meaningless once gone, but leaving its Plays/GameStats behind
+        // creates dangling refs that silently survive (see Denstar audit:
+        // 614 orphaned plays DB-wide from prior deletes that skipped this).
+        await Play.deleteMany({ game: game._id });
+        await GameStat.deleteMany({ game: game._id });
 
         return NextResponse.json({ success: true, message: "Game deleted" }, { status: 200 });
     } catch (error) {

@@ -46,7 +46,29 @@ export async function PUT(request, { params }) {
             const currentTeams = await TeamModel.find({ "players.player": id });
             const currentTeamIds = new Set(currentTeams.map(t => String(t._id)));
             const nextTeamIds = new Set(body.teams.map(t => String(t.teamId)));
-            
+
+            // Validate every requested jersey number BEFORE writing anything.
+            // This push used to go straight into Team.players unchecked — root
+            // cause of the DARKSIDE/GOAT/Members Only/N&B/Suspects/Warfare
+            // duplicate-jersey findings — unlike /api/teams, which has always
+            // validated this on save. Checking all requests up front (instead
+            // of mid-loop) avoids leaving a half-applied assignment if a later
+            // team in the list turns out to conflict.
+            for (const tReq of body.teams) {
+                const jNum = tReq.jerseyNumber != null && tReq.jerseyNumber !== "" ? Number(tReq.jerseyNumber) : 0;
+                const targetTeam = await TeamModel.findById(tReq.teamId).select("name players").lean();
+                if (!targetTeam) continue;
+                const duplicate = (targetTeam.players || []).find(
+                    (p) => p.jerseyNumber === jNum && String(p.player) !== String(id)
+                );
+                if (duplicate) {
+                    return NextResponse.json(
+                        { success: false, error: `Jersey number ${jNum} is already taken on team "${targetTeam.name}"` },
+                        { status: 409 }
+                    );
+                }
+            }
+
             // Remove from teams no longer in the list
             for (const t of currentTeams) {
                 if (!nextTeamIds.has(String(t._id))) {
@@ -81,7 +103,27 @@ export async function PUT(request, { params }) {
             }
         } else if (teamName !== undefined || jerseyNumber !== undefined) {
             const TeamModel = require("@/models/Team").default || require("mongoose").models.Team;
-            
+
+            // Resolve + validate the target team BEFORE touching any roster —
+            // same duplicate-jersey gap as the body.teams branch above, just
+            // in this endpoint's older single-team assignment path.
+            let newTeam = null;
+            if (teamName && teamName.trim() !== "") {
+                newTeam = await TeamModel.findOne({ name: teamName }).select("name logo players");
+                if (newTeam) {
+                    const jNum = jerseyNumber != null && jerseyNumber !== "" ? Number(jerseyNumber) : 0;
+                    const duplicate = (newTeam.players || []).find(
+                        (p) => p.jerseyNumber === jNum && String(p.player) !== String(id)
+                    );
+                    if (duplicate) {
+                        return NextResponse.json(
+                            { success: false, error: `Jersey number ${jNum} is already taken on team "${newTeam.name}"` },
+                            { status: 409 }
+                        );
+                    }
+                }
+            }
+
             // 1. Remove player from any team they are currently attached to
             await TeamModel.updateMany(
                 { "players.player": id },
@@ -89,20 +131,15 @@ export async function PUT(request, { params }) {
             );
 
             // 2. Add player to the new team with the provided jerseyNumber
-            if (teamName && teamName.trim() !== "") {
-                const newTeam = await TeamModel.findOne({ name: teamName });
-                if (newTeam) {
-                    const jNum = jerseyNumber != null && jerseyNumber !== "" ? Number(jerseyNumber) : 0;
-                    await TeamModel.findByIdAndUpdate(newTeam._id, {
-                        $push: { players: { player: id, jerseyNumber: jNum } }
-                    });
-                    updateData.presentTeam = { name: newTeam.name, logo: newTeam.logo || "" };
-                    
-                    // If player was a free_agent but now assigned to a team, make sure they are active as 'player'
-                    updateData.status = "player"; 
-                } else {
-                    updateData.presentTeam = { name: "", logo: "" };
-                }
+            if (newTeam) {
+                const jNum = jerseyNumber != null && jerseyNumber !== "" ? Number(jerseyNumber) : 0;
+                await TeamModel.findByIdAndUpdate(newTeam._id, {
+                    $push: { players: { player: id, jerseyNumber: jNum } }
+                });
+                updateData.presentTeam = { name: newTeam.name, logo: newTeam.logo || "" };
+
+                // If player was a free_agent but now assigned to a team, make sure they are active as 'player'
+                updateData.status = "player";
             } else {
                 updateData.presentTeam = { name: "", logo: "" };
             }

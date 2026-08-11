@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import AdminLayout, { hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
@@ -24,6 +25,7 @@ export default function EditSchedulePage({ params }) {
     const [leagueId, setLeagueId] = useState("");
     const [locationId, setLocationId] = useState("");
     const [status, setStatus] = useState("Active");
+    const [leagueRefBroken, setLeagueRefBroken] = useState(false);
 
     const [weeks, setWeeks] = useState([
         {
@@ -90,6 +92,7 @@ export default function EditSchedulePage({ params }) {
                 const schedule = scheduleData.data;
                 const schedLeagueId = schedule.leagueId?._id || schedule.leagueId || "";
                 setLeagueId(schedLeagueId);
+                setLeagueRefBroken(Boolean(schedule.leagueRefBroken));
                 
                 // Auto-select season based on the schedule's league
                 if (schedLeagueId && leaguesData.success) {
@@ -408,6 +411,21 @@ export default function EditSchedulePage({ params }) {
                         Cancel
                     </button>
                 </div>
+
+                {leagueRefBroken && (
+                    <div style={{
+                        display: "flex", alignItems: "center", gap: 10,
+                        background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 8,
+                        padding: "12px 16px", marginBottom: 24, color: "#991b1b", fontSize: 13,
+                    }}>
+                        <i className="fa-solid fa-triangle-exclamation"></i>
+                        <span>
+                            This schedule&apos;s league was deleted, but the reference to it was left behind — that&apos;s why
+                            Season and League show blank below. Reassign this schedule to a real league, or delete it, from
+                            the <Link href="/admin/schedules" style={{ color: "#991b1b", textDecoration: "underline" }}>Schedules list</Link>.
+                        </span>
+                    </div>
+                )}
 
                 <div className="schedule-edit-top-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 24, marginBottom: 40 }}>
                     <div className="admin-form-group" style={{ marginBottom: 0 }}>

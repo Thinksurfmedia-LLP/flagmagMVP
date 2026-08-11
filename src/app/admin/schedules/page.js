@@ -291,7 +291,10 @@ export default function SchedulesPage() {
                                             <thead>
                                                 <tr>
                                                     <th onClick={() => toggleSort("scheduleLabel")} style={{ cursor: "pointer", textTransform: "uppercase" }}>
-                                                        League {sortIcon("scheduleLabel")}
+                                                        Schedule {sortIcon("scheduleLabel")}
+                                                    </th>
+                                                    <th style={{ textTransform: "uppercase" }}>
+                                                        League
                                                     </th>
                                                     <th onClick={() => toggleSort("locationName")} style={{ cursor: "pointer" }}>
                                                         Location Name {sortIcon("locationName")}
@@ -306,6 +309,17 @@ export default function SchedulesPage() {
                                                 {paginatedSchedules.map((schedule) => (
                                                     <tr key={schedule._id}>
                                                         <td style={{ fontWeight: 600 }}>{schedule.scheduleLabel}</td>
+                                                        <td>
+                                                            {schedule.leagueId?.name ? (
+                                                                schedule.leagueId.name
+                                                            ) : schedule.leagueRefBroken ? (
+                                                                <span style={{ color: "#dc2626", fontSize: 12 }} title="This schedule's league was deleted but the reference was left behind">
+                                                                    <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: 4 }}></i>League deleted
+                                                                </span>
+                                                            ) : (
+                                                                <span style={{ color: "#8b90a0" }}>—</span>
+                                                            )}
+                                                        </td>
                                                         <td>{schedule.locationName}</td>
                                                         <td>
                                                             <span style={{
@@ -349,6 +363,14 @@ export default function SchedulesPage() {
                                         <div key={schedule._id} className="schedules-card-item">
                                             <div className="schedules-card-item-title">{schedule.scheduleLabel}</div>
                                             <div className="schedules-card-item-meta">
+                                                <span>
+                                                    <strong>League:</strong>{" "}
+                                                    {schedule.leagueId?.name || (
+                                                        schedule.leagueRefBroken
+                                                            ? <span style={{ color: "#dc2626" }}><i className="fa-solid fa-triangle-exclamation" style={{ marginRight: 4 }}></i>League deleted</span>
+                                                            : "—"
+                                                    )}
+                                                </span>
                                                 {schedule.locationName && <span><strong>Location:</strong> {schedule.locationName}</span>}
                                                 <span>
                                                     <span style={{

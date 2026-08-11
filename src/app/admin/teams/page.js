@@ -60,7 +60,9 @@ function ImageUploadField({ value, onChange, placeholder, onError }) {
 }
 
 function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, effectiveRole, onClose, onSave, existingDivisions = [] }) {
-    const { showError } = useToast();
+    const { showError, showSuccess } = useToast();
+    const [removedMembershipIds, setRemovedMembershipIds] = useState(new Set());
+    const [removingMembershipId, setRemovingMembershipId] = useState(null);
     const [name, setName] = useState(team?.name || "");
     const [logo, setLogo] = useState(team?.logo || "");
     const [description, setDescription] = useState(team?.description || "");
@@ -104,6 +106,25 @@ function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, ef
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    const handleRemoveDanglingMembership = async (membership) => {
+        if (!membership.danglingLeagueId || !team?._id) return;
+        setRemovingMembershipId(membership._id);
+        try {
+            const res = await fetch(`/api/leagues/${membership.danglingLeagueId}/teams/${team._id}`, { method: "DELETE" });
+            const data = await res.json();
+            if (!data.success) {
+                showError(data.error || "Failed to remove membership");
+                return;
+            }
+            setRemovedMembershipIds((prev) => new Set(prev).add(membership._id));
+            showSuccess("Removed dangling league membership");
+        } catch {
+            showError("Failed to remove membership");
+        } finally {
+            setRemovingMembershipId(null);
+        }
+    };
 
     const handleSave = async () => {
         if (!name.trim()) return;
@@ -156,14 +177,35 @@ function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, ef
                 {team ? (
                     <div className="admin-form-group">
                         <label className="admin-form-label">League Memberships</label>
-                        {(team.leagues || []).length === 0 ? (
+                        {(team.leagues || []).filter((m) => !removedMembershipIds.has(m._id)).length === 0 ? (
                             <div style={{ color: "#8b90a0", fontSize: 13 }}>Not assigned to any league yet.</div>
                         ) : (
                             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                                {team.leagues.map((m, i) => (
-                                    <div key={m.league?._id || i} style={{ fontSize: 13, color: "#1a1d26" }}>
-                                        <strong>{m.league?.name || "Unknown league"}</strong>
-                                        {m.division && <span style={{ color: "#5a5f72" }}> — {m.division}</span>}
+                                {team.leagues.filter((m) => !removedMembershipIds.has(m._id)).map((m, i) => (
+                                    <div key={m.league?._id || m._id || i} style={{ fontSize: 13, color: "#1a1d26", display: "flex", alignItems: "center", gap: 8 }}>
+                                        {m.league?.name ? (
+                                            <>
+                                                <strong>{m.league.name}</strong>
+                                                {m.division && <span style={{ color: "#5a5f72" }}> — {m.division}</span>}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span style={{ color: "#dc2626" }}>
+                                                    <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: 4 }}></i>
+                                                    Unknown league (deleted)
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    className="admin-btn admin-btn-ghost admin-btn-sm"
+                                                    disabled={removingMembershipId === m._id}
+                                                    onClick={() => handleRemoveDanglingMembership(m)}
+                                                    style={{ height: 24, padding: "0 8px", fontSize: 11 }}
+                                                    title="This league no longer exists — remove the dangling membership"
+                                                >
+                                                    {removingMembershipId === m._id ? "Removing..." : "Remove"}
+                                                </button>
+                                            </>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -770,6 +812,11 @@ export default function AdminTeamsPage() {
     };
 
     const leagueNames = (t) => (t.leagues || []).map(m => m.league?.name).filter(Boolean).join(", ");
+    // A membership with no populated league but a leagues[] entry present is
+    // a dangling ref (League deleted, membership left behind) — leagueNames()
+    // above silently drops it via .filter(Boolean); surface it instead so it
+    // doesn't look like this team just has fewer leagues than it actually does.
+    const hasDanglingLeague = (t) => (t.leagues || []).some(m => !m.league);
 
     const displayTeams = regularTeams
         .filter((t) => {
@@ -915,7 +962,14 @@ export default function AdminTeamsPage() {
                                                             <tr key={team._id}>
                                                                 <td style={{ fontWeight: 600 }}>{team.name}</td>
                                                                 <td>{team.organization?.name || "—"}</td>
-                                                                <td>{leagueNames(team) || "—"}</td>
+                                                                <td>
+                                                                    {leagueNames(team) || "—"}
+                                                                    {hasDanglingLeague(team) && (
+                                                                        <span style={{ color: "#dc2626", fontSize: 11, marginLeft: 6 }} title="This team has a membership pointing at a deleted league — open Edit to remove it">
+                                                                            <i className="fa-solid fa-triangle-exclamation"></i>
+                                                                        </span>
+                                                                    )}
+                                                                </td>
                                                                 <td>{team.players?.length || 0}</td>
                                                                 <td>
                                                                     <div style={{ display: "flex", gap: 6 }}>
@@ -957,6 +1011,12 @@ export default function AdminTeamsPage() {
                                                         )}
                                                         {leagueNames(team) && (
                                                             <span><strong>Leagues:</strong> {leagueNames(team)}</span>
+                                                        )}
+                                                        {hasDanglingLeague(team) && (
+                                                            <span style={{ color: "#dc2626" }}>
+                                                                <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: 4 }}></i>
+                                                                Deleted league ref
+                                                            </span>
                                                         )}
                                                         <span><strong>Players:</strong> {team.players?.length || 0}</span>
                                                     </div>

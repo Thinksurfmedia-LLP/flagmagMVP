@@ -1,0 +1,850 @@
+{
+  "organization": {
+    "_id": "6a17fb3bd4704adc02fe994e",
+    "name": "Denstar"
+  },
+  "leagues": [
+    {
+      "_id": "6a423059ccdc507e8d3fc1da",
+      "name": "All Stars",
+      "type": "active",
+      "leagueType": "league",
+      "season": "6a423019ccdc507e8d3fc1af"
+    },
+    {
+      "_id": "6a17fd12d4704adc02fe99e0",
+      "name": "Arizona League",
+      "type": "active",
+      "season": "6a17fc92d4704adc02fe99c9"
+    },
+    {
+      "_id": "6a61e9fc61ef4832a9017ebf",
+      "name": "Champ Playoffs",
+      "type": "active",
+      "leagueType": "playoffs",
+      "season": "6a423019ccdc507e8d3fc1af"
+    },
+    {
+      "_id": "6a2d06575f5211d1bb483f0b",
+      "name": "Cottonwood Summer League 2026",
+      "type": "active",
+      "leagueType": "league",
+      "season": "6a17fc92d4704adc02fe99c9"
+    },
+    {
+      "_id": "6a4b237638ec3cc883f3a9e6",
+      "name": "El Darado League",
+      "type": "active",
+      "leagueType": "playoffs",
+      "season": "6a423019ccdc507e8d3fc1af"
+    },
+    {
+      "_id": "6a35979c414a9d467c6db0ad",
+      "name": "Florida Spring 2026",
+      "type": "active",
+      "leagueType": "league",
+      "season": "6a3593b8414a9d467c6dace9"
+    },
+    {
+      "_id": "6a60cbf27ee043b81e72be57",
+      "name": "Irvine Playoffs 2026",
+      "type": "active",
+      "leagueType": "playoffs",
+      "season": "6a423019ccdc507e8d3fc1af"
+    },
+    {
+      "_id": "6a3507f9c4ae21c60b8afe05",
+      "name": "Phoenix League",
+      "type": "active",
+      "leagueType": "league",
+      "season": "6a17fc92d4704adc02fe99c9"
+    },
+    {
+      "_id": "6a6ad4283983ca1b486ad632",
+      "name": "Rain Games 2026",
+      "type": "active",
+      "leagueType": "playoffs",
+      "season": "6a423019ccdc507e8d3fc1af"
+    },
+    {
+      "_id": "6a59fa4fc08d6ff7e8e3c457",
+      "name": "RedBull Playoffs",
+      "type": "active",
+      "leagueType": "playoffs",
+      "season": "6a423019ccdc507e8d3fc1af"
+    }
+  ],
+  "seasons": [
+    {
+      "_id": "6a17fc92d4704adc02fe99c9",
+      "name": "Summer 2026"
+    },
+    {
+      "_id": "6a3593b8414a9d467c6dace9",
+      "name": "Spring 2026"
+    },
+    {
+      "_id": "6a423019ccdc507e8d3fc1af",
+      "name": "Monsoon '26"
+    }
+  ],
+  "teams": [
+    {
+      "_id": "6a5a0ba53aadf8af031c543f",
+      "name": "Bald Eagles",
+      "isPlaceholder": false,
+      "playerCount": 0,
+      "leagueMemberships": [
+        "All Stars",
+        "RedBull Playoffs",
+        "6a60ca607ee043b81e72bc5c",
+        "Irvine Playoffs 2026"
+      ]
+    },
+    {
+      "_id": "6a61ed8361ef4832a9017f96",
+      "name": "Black Hornets",
+      "isPlaceholder": false,
+      "playerCount": 2,
+      "leagueMemberships": [
+        "Champ Playoffs"
+      ]
+    },
+    {
+      "_id": "6a2d0be25f5211d1bb484049",
+      "name": "Blue Storm",
+      "isPlaceholder": false,
+      "playerCount": 10,
+      "leagueMemberships": [
+        "El Darado League",
+        "RedBull Playoffs"
+      ]
+    },
+    {
+      "_id": "6a61d82447bad35a5f46df99",
+      "name": "D1 Championship",
+      "isPlaceholder": true,
+      "playerCount": 0,
+      "leagueMemberships": []
+    },
+    {
+      "_id": "6a61d82447bad35a5f46df98",
+      "name": "D1 Semi",
+      "isPlaceholder": true,
+      "playerCount": 0,
+      "leagueMemberships": []
+    },
+    {
+      "_id": "6a61d82447bad35a5f46df9b",
+      "name": "D2 Championship",
+      "isPlaceholder": true,
+      "playerCount": 0,
+      "leagueMemberships": []
+    },
+    {
+      "_id": "6a61d82447bad35a5f46df9a",
+      "name": "D2 Semi",
+      "isPlaceholder": true,
+      "playerCount": 0,
+      "leagueMemberships": []
+    },
+    {
+      "_id": "6a61d82447bad35a5f46df9d",
+      "name": "D3 Championship",
+      "isPlaceholder": true,
+      "playerCount": 0,
+      "leagueMemberships": []
+    },
+    {
+      "_id": "6a61d82447bad35a5f46df9c",
+      "name": "D3 Semi",
+      "isPlaceholder": true,
+      "playerCount": 0,
+      "leagueMemberships": []
+    },
+    {
+      "_id": "6a7063b8960e6845e1430bb8",
+      "name": "D4 Championship",
+      "isPlaceholder": true,
+      "playerCount": 0,
+      "leagueMemberships": []
+    },
+    {
+      "_id": "6a61eda961ef4832a9017fb5",
+      "name": "Daredevils",
+      "isPlaceholder": false,
+      "playerCount": 2,
+      "leagueMemberships": [
+        "Champ Playoffs",
+        "El Darado League"
+      ]
+    },
+    {
+      "_id": "6a4b23e738ec3cc883f3aa18",
+      "name": "El Dorado Kings",
+      "isPlaceholder": false,
+      "playerCount": 6,
+      "leagueMemberships": [
+        "El Darado League",
+        "6a60ca607ee043b81e72bc5c"
+      ]
+    },
+    {
+      "_id": "6a4b249f38ec3cc883f3aba0",
+      "name": "El Dorado Maze",
+      "isPlaceholder": false,
+      "playerCount": 6,
+      "leagueMemberships": [
+        "El Darado League",
+        "Irvine Playoffs 2026"
+      ]
+    },
+    {
+      "_id": "6a4b240238ec3cc883f3aa34",
+      "name": "El Dorado Stars",
+      "isPlaceholder": false,
+      "playerCount": 6,
+      "leagueMemberships": [
+        "El Darado League",
+        "6a60ca607ee043b81e72bc5c"
+      ]
+    },
+    {
+      "_id": "6a632b49bb9e8a98738ad5ca",
+      "name": "Fire Eagles",
+      "isPlaceholder": false,
+      "playerCount": 0,
+      "leagueMemberships": [
+        "El Darado League"
+      ]
+    },
+    {
+      "_id": "6a3597e3414a9d467c6db105",
+      "name": "Gators",
+      "isPlaceholder": false,
+      "playerCount": 6,
+      "leagueMemberships": [
+        "All Stars",
+        "RedBull Playoffs"
+      ]
+    },
+    {
+      "_id": "6a3597bc414a9d467c6db0cd",
+      "name": "Goat",
+      "isPlaceholder": false,
+      "playerCount": 6,
+      "leagueMemberships": [
+        "All Stars",
+        "6a60ca607ee043b81e72bc5c",
+        "Irvine Playoffs 2026"
+      ]
+    },
+    {
+      "_id": "6a5a114a3aadf8af031c5608",
+      "name": "High Hounds",
+      "isPlaceholder": false,
+      "playerCount": 0,
+      "leagueMemberships": [
+        "All Stars",
+        "RedBull Playoffs",
+        "Irvine Playoffs 2026"
+      ]
+    },
+    {
+      "_id": "6a61d82447bad35a5f46df97",
+      "name": "Losers",
+      "isPlaceholder": true,
+      "playerCount": 0,
+      "leagueMemberships": []
+    },
+    {
+      "_id": "6a6ad4403983ca1b486ad66f",
+      "name": "Rain Monsters",
+      "isPlaceholder": false,
+      "playerCount": 3,
+      "leagueMemberships": [
+        "Rain Games 2026"
+      ]
+    },
+    {
+      "_id": "6a6ad4933983ca1b486ad773",
+      "name": "Rainy Champs",
+      "isPlaceholder": false,
+      "playerCount": 3,
+      "leagueMemberships": [
+        "Rain Games 2026"
+      ]
+    },
+    {
+      "_id": "6a3597cc414a9d467c6db0e9",
+      "name": "Red Dogs",
+      "isPlaceholder": false,
+      "playerCount": 6,
+      "leagueMemberships": [
+        "All Stars",
+        "6a60ca607ee043b81e72bc5c"
+      ]
+    },
+    {
+      "_id": "6a2d0bc65f5211d1bb48402d",
+      "name": "Red Hawks",
+      "isPlaceholder": false,
+      "playerCount": 10,
+      "leagueMemberships": [
+        "All Stars",
+        "6a60ca607ee043b81e72bc5c"
+      ]
+    },
+    {
+      "_id": "6a61d82447bad35a5f46df95",
+      "name": "TBD",
+      "isPlaceholder": true,
+      "playerCount": 0,
+      "leagueMemberships": []
+    },
+    {
+      "_id": "6a61d82447bad35a5f46df96",
+      "name": "Winner",
+      "isPlaceholder": true,
+      "playerCount": 0,
+      "leagueMemberships": []
+    }
+  ],
+  "placeholderTeams": [
+    "D1 Championship",
+    "D1 Semi",
+    "D2 Championship",
+    "D2 Semi",
+    "D3 Championship",
+    "D3 Semi",
+    "D4 Championship",
+    "Losers",
+    "TBD",
+    "Winner"
+  ],
+  "teamsWithForeignLeagueRefs": [
+    "Bald Eagles",
+    "El Dorado Kings",
+    "El Dorado Stars",
+    "Goat",
+    "Red Dogs",
+    "Red Hawks"
+  ],
+  "games": {
+    "count": 17,
+    "byLeague": [
+      {
+        "league": "All Stars",
+        "count": 2
+      },
+      {
+        "league": "Arizona League",
+        "count": 0
+      },
+      {
+        "league": "Champ Playoffs",
+        "count": 1
+      },
+      {
+        "league": "Cottonwood Summer League 2026",
+        "count": 0
+      },
+      {
+        "league": "El Darado League",
+        "count": 0
+      },
+      {
+        "league": "Florida Spring 2026",
+        "count": 0
+      },
+      {
+        "league": "Irvine Playoffs 2026",
+        "count": 4
+      },
+      {
+        "league": "Phoenix League",
+        "count": 0
+      },
+      {
+        "league": "Rain Games 2026",
+        "count": 7
+      },
+      {
+        "league": "RedBull Playoffs",
+        "count": 3
+      }
+    ],
+    "fixtures": [
+      {
+        "league": "All Stars",
+        "date": "2026-07-29T00:00:00.000Z",
+        "teamA": "Gators",
+        "teamB": "Red Hawks",
+        "scoreA": 0,
+        "scoreB": 0,
+        "status": "completed"
+      },
+      {
+        "league": "All Stars",
+        "date": "2026-07-29T00:00:00.000Z",
+        "teamA": "Red Hawks",
+        "teamB": "Gators",
+        "scoreA": null,
+        "scoreB": null,
+        "status": "upcoming"
+      },
+      {
+        "league": "RedBull Playoffs",
+        "date": "2026-07-24T00:00:00.000Z",
+        "teamA": "Blue Storm",
+        "teamB": "Gators",
+        "scoreA": 0,
+        "scoreB": 2,
+        "status": "completed"
+      },
+      {
+        "league": "RedBull Playoffs",
+        "date": "2026-07-24T00:00:00.000Z",
+        "teamA": "Bald Eagles",
+        "teamB": "High Hounds",
+        "scoreA": 0,
+        "scoreB": 0,
+        "status": "upcoming"
+      },
+      {
+        "league": "RedBull Playoffs",
+        "date": "2026-07-24T00:00:00.000Z",
+        "teamA": "High Hounds",
+        "teamB": "Blue Storm",
+        "scoreA": null,
+        "scoreB": null,
+        "status": "upcoming"
+      },
+      {
+        "league": "Irvine Playoffs 2026",
+        "date": "2026-07-22T00:00:00.000Z",
+        "teamA": "Bald Eagles",
+        "teamB": "El Dorado Maze",
+        "scoreA": null,
+        "scoreB": null,
+        "status": "upcoming"
+      },
+      {
+        "league": "Irvine Playoffs 2026",
+        "date": "2026-07-22T00:00:00.000Z",
+        "teamA": "El Dorado Maze",
+        "teamB": "Bald Eagles",
+        "scoreA": null,
+        "scoreB": null,
+        "status": "upcoming"
+      },
+      {
+        "league": "Irvine Playoffs 2026",
+        "date": "2026-07-29T00:00:00.000Z",
+        "teamA": "Bald Eagles",
+        "teamB": "High Hounds",
+        "scoreA": 0,
+        "scoreB": 0,
+        "status": "upcoming"
+      },
+      {
+        "league": "Irvine Playoffs 2026",
+        "date": "2026-07-29T00:00:00.000Z",
+        "teamA": "Goat",
+        "teamB": "El Dorado Maze",
+        "scoreA": 0,
+        "scoreB": 0,
+        "status": "in_progress"
+      },
+      {
+        "league": "Champ Playoffs",
+        "date": "2026-08-07T00:00:00.000Z",
+        "teamA": "Black Hornets",
+        "teamB": "Daredevils",
+        "scoreA": 14,
+        "scoreB": 6,
+        "status": "completed"
+      },
+      {
+        "league": "Rain Games 2026",
+        "date": "2026-07-30T00:00:00.000Z",
+        "teamA": "Rain Monsters",
+        "teamB": "Rainy Champs",
+        "scoreA": 32,
+        "scoreB": 18,
+        "status": "completed"
+      },
+      {
+        "league": "Rain Games 2026",
+        "date": "2026-07-30T00:00:00.000Z",
+        "teamA": "Rainy Champs",
+        "teamB": "Rain Monsters",
+        "scoreA": null,
+        "scoreB": null,
+        "status": "upcoming"
+      },
+      {
+        "league": "Rain Games 2026",
+        "date": "2026-07-31T00:00:00.000Z",
+        "teamA": "Rainy Champs",
+        "teamB": "Rain Monsters",
+        "scoreA": 0,
+        "scoreB": 0,
+        "status": "upcoming"
+      },
+      {
+        "league": "Rain Games 2026",
+        "date": "2026-07-31T00:00:00.000Z",
+        "teamA": "TBD",
+        "teamB": "TBD",
+        "scoreA": null,
+        "scoreB": null,
+        "status": "upcoming"
+      },
+      {
+        "league": "Rain Games 2026",
+        "date": "2026-08-03T00:00:00.000Z",
+        "teamA": "TBD",
+        "teamB": "TBD",
+        "scoreA": 0,
+        "scoreB": 0,
+        "status": "upcoming"
+      },
+      {
+        "league": "Rain Games 2026",
+        "date": "2026-08-04T00:00:00.000Z",
+        "teamA": "Rain Monsters",
+        "teamB": "Rainy Champs",
+        "scoreA": 0,
+        "scoreB": 0,
+        "status": "in_progress"
+      },
+      {
+        "league": "Rain Games 2026",
+        "date": "2026-08-06T00:00:00.000Z",
+        "teamA": "D2 Championship",
+        "teamB": "D1 Championship",
+        "scoreA": null,
+        "scoreB": null,
+        "status": "upcoming"
+      }
+    ]
+  },
+  "schedules": [
+    {
+      "_id": "6a5f5122e7601b51ce10dd58",
+      "label": "RedBull Playoffs",
+      "leagueId": "6a59fa4fc08d6ff7e8e3c457",
+      "weeks": 2,
+      "gamesInWeeks": 3
+    },
+    {
+      "_id": "6a60cae17ee043b81e72bd45",
+      "label": "Irvine Playoffs Summer 2026",
+      "leagueId": "6a60ca607ee043b81e72bc5c",
+      "weeks": 1,
+      "gamesInWeeks": 3
+    },
+    {
+      "_id": "6a60cc397ee043b81e72beec",
+      "label": "Irvine Playoffs 2026",
+      "leagueId": "6a60cbf27ee043b81e72be57",
+      "weeks": 1,
+      "gamesInWeeks": 4
+    },
+    {
+      "_id": "6a61edde61ef4832a901806e",
+      "label": "Champ Playoffs",
+      "leagueId": "6a61e9fc61ef4832a9017ebf",
+      "weeks": 1,
+      "gamesInWeeks": 1
+    },
+    {
+      "_id": "6a69cb8856ab95fddbfaa0ff",
+      "label": "All Stars",
+      "leagueId": "6a423059ccdc507e8d3fc1da",
+      "weeks": 1,
+      "gamesInWeeks": 2
+    },
+    {
+      "_id": "6a6ad5123983ca1b486ad951",
+      "label": "Rain Games 2026",
+      "leagueId": "6a6ad4283983ca1b486ad632",
+      "weeks": 1,
+      "gamesInWeeks": 7
+    }
+  ],
+  "gamestats": {
+    "count": 0
+  },
+  "plays": {
+    "count": 28
+  },
+  "players": {
+    "total": 48,
+    "rostered": 45,
+    "freeAgents": 3,
+    "freeAgentNames": [
+      "Sayantan Saha",
+      "Abir Banerjee",
+      "Rio"
+    ],
+    "playersNotOnAnyTeam": [
+      {
+        "name": "Sayantan Saha",
+        "status": "free_agent"
+      },
+      {
+        "name": "Abir Banerjee",
+        "status": "free_agent"
+      },
+      {
+        "name": "Rio",
+        "status": "free_agent"
+      }
+    ]
+  },
+  "users": {
+    "orgScopedUsers": [
+      {
+        "name": "Sayantan Saha",
+        "email": "sayantansaha@test.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Debanik Banerjee",
+        "email": "db@test.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Abir Banerjee",
+        "email": "abir@test.com",
+        "role": "player"
+      },
+      {
+        "name": "Das",
+        "email": "rishikalpa@thinksurfmedia.info",
+        "role": "free_agent"
+      },
+      {
+        "name": "Rio",
+        "email": "rio@flagmag.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Ethan Carter",
+        "email": "eathancarter@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Liam Brooks",
+        "email": "liam.brooks@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Ethan Carter",
+        "email": "ethan.carter@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Noah Bennett",
+        "email": "noah.bennett@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Mason Reed",
+        "email": "mason.reed@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Caleb Turner",
+        "email": "caleb.turner@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Jacob Foster",
+        "email": "jacob.foster@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Ryan Mitchell",
+        "email": "ryan.mitchell@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Aiden Cooper",
+        "email": "aiden.cooper@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Owen Parker",
+        "email": "owen.parker@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Lucas Hayes",
+        "email": "lucas.hayes@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Daniel Walker",
+        "email": "daniel.walker@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Logan Murphy",
+        "email": "logan.murphy@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Benjamin Scott",
+        "email": "benjamin.scott@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Tyler Evans",
+        "email": "tyler.evans@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Nathan Hill",
+        "email": "nathan.hill@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Dylan Price",
+        "email": "dylan.price@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Connor Lewis",
+        "email": "connor.lewis@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Zachary King",
+        "email": "zachary.king@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Gavin Wood",
+        "email": "gavin.wood@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Hunter Collins",
+        "email": "hunter.collins@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Steve Marquez",
+        "email": "steve@gmail.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "John Smith",
+        "email": "john@gmail.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "John Doe",
+        "email": "doe@gmail.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Jane Doe",
+        "email": "jane@gmail.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Mike Denstar",
+        "email": "miked@gmail.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Brian Bree",
+        "email": "brian@gmail.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "William Tib",
+        "email": "tib@gmail.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Michael Kalel",
+        "email": "kalel@gmail.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Quen Trar",
+        "email": "quen@gmail.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Lisa B",
+        "email": "lisab@gmail.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Zim",
+        "email": "zim@gmail.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Glynn",
+        "email": "glynn@gmail.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Mickey",
+        "email": "mickey@gmail.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "tray",
+        "email": "tray@gmail.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "John",
+        "email": "john@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Alex",
+        "email": "alex@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Max",
+        "email": "max@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Tonya",
+        "email": "tonya@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Lauren",
+        "email": "lauren@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Benjamin",
+        "email": "benjamin@denstar.com",
+        "role": "free_agent"
+      },
+      {
+        "name": "Tomas",
+        "email": "tomas@denstar.com",
+        "role": "free_agent"
+      }
+    ],
+    "playerLinkedUsers": 48
+  },
+  "activities": {
+    "count": 98
+  }
+}

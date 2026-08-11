@@ -1,0 +1,16 @@
+{
+  "deletedAt": "2026-08-11T12:18:02.837Z",
+  "skippedCrossOrgUsers": [],
+  "finalVerification": {
+    "organizations": 0,
+    "leagues": 0,
+    "seasons": 0,
+    "teams": 0,
+    "players": 0,
+    "schedules": 0,
+    "activities": 0,
+    "games_under_denstar_leagues": 0,
+    "plays_under_denstar_dead_games": 0,
+    "users_org_denstar_remaining": 0
+  }
+}

@@ -27,6 +27,14 @@ export async function GET(request, { params }) {
             );
         }
 
+        // Same dead-ref ambiguity as the list route: populate resolves a
+        // dangling leagueId to null, indistinguishable from "never assigned".
+        // Re-check the raw field so the edit page can show why League/Season
+        // render blank instead of leaving it unexplained (see Denstar's
+        // "Irvine Playoffs Summer 2026" schedule).
+        const raw = await Schedule.findById(id).select("leagueId").lean();
+        schedule.leagueRefBroken = Boolean(raw?.leagueId) && !schedule.leagueId;
+
         return NextResponse.json(
             { success: true, data: schedule },
             { status: 200 }
