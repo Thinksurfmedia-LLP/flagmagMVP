@@ -1,5 +1,23 @@
 const BASE = "";
 
+// crypto.randomUUID() only exists in a "secure context" — HTTPS, or
+// http://localhost specifically. A statistician testing over the LAN
+// (http://192.168.x.x:3001, same as a real phone hitting the same network
+// as the dev machine) is NOT a secure context, so the API is simply absent
+// there and throws "crypto.randomUUID is not a function". Idempotency keys
+// only need to be unique, not cryptographically random, so this fallback
+// works everywhere the real one doesn't.
+export function generateId() {
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+        return crypto.randomUUID();
+    }
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+        const r = (Math.random() * 16) | 0;
+        const v = c === "x" ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+    });
+}
+
 // Wipes local browser state so a force-logged-out statistician actually
 // gets a clean build on next login, not a login screen over stale cached
 // assets/state.

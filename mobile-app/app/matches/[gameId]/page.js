@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, use } from "react";
 import { useRouter } from "next/navigation";
 import { AuthProvider, useAuth } from "../../lib/AuthContext";
-import { apiGet, apiPost, apiPut } from "../../lib/api";
+import { apiGet, apiPost, apiPut, generateId } from "../../lib/api";
 import MobileHeader from "../../components/MobileHeader";
 import BottomFooter from "../../components/BottomFooter";
 import CompletionPage from "../../components/CompletionPage";
@@ -412,7 +412,7 @@ function LiveGameContent({ gameId }) {
                         data,
                         ptsAdded: ptsToAdd,
                         targetTeam,
-                        idempotencyKey: editingLogIndex === null ? crypto.randomUUID() : oldLog?.idempotencyKey,
+                        idempotencyKey: editingLogIndex === null ? generateId() : oldLog?.idempotencyKey,
                     };
 
                     // Score is derived server-side from ptsAdded/targetTeam via an
@@ -474,7 +474,7 @@ function LiveGameContent({ gameId }) {
                         data,
                         ptsAdded: 0,
                         targetTeam: activeTeam,
-                        idempotencyKey: editingLogIndex === null ? crypto.randomUUID() : oldLog?.idempotencyKey,
+                        idempotencyKey: editingLogIndex === null ? generateId() : oldLog?.idempotencyKey,
                     };
                     
                     if (editingLogIndex !== null) {
@@ -543,7 +543,7 @@ function LiveGameContent({ gameId }) {
                         data,
                         ptsAdded: ptsToAdd,
                         targetTeam,
-                        idempotencyKey: editingLogIndex === null ? crypto.randomUUID() : oldLog?.idempotencyKey,
+                        idempotencyKey: editingLogIndex === null ? generateId() : oldLog?.idempotencyKey,
                     };
 
                     // Score is derived server-side from ptsAdded/targetTeam via an
@@ -614,7 +614,7 @@ function LiveGameContent({ gameId }) {
                         data,
                         ptsAdded: ptsToAdd,
                         targetTeam,
-                        idempotencyKey: editingLogIndex === null ? crypto.randomUUID() : oldLog?.idempotencyKey,
+                        idempotencyKey: editingLogIndex === null ? generateId() : oldLog?.idempotencyKey,
                     };
 
                     // Score is derived server-side from ptsAdded/targetTeam via an
@@ -680,7 +680,7 @@ function LiveGameContent({ gameId }) {
                         data,
                         ptsAdded: ptsToAdd,
                         targetTeam,
-                        idempotencyKey: editingLogIndex === null ? crypto.randomUUID() : oldLog?.idempotencyKey,
+                        idempotencyKey: editingLogIndex === null ? generateId() : oldLog?.idempotencyKey,
                     };
 
                     // Score is derived server-side from ptsAdded/targetTeam via an
@@ -752,7 +752,7 @@ function LiveGameContent({ gameId }) {
                         data,
                         ptsAdded: ptsToAdd,
                         targetTeam,
-                        idempotencyKey: editingLogIndex === null ? crypto.randomUUID() : oldLog?.idempotencyKey,
+                        idempotencyKey: editingLogIndex === null ? generateId() : oldLog?.idempotencyKey,
                     };
 
                     // Score is derived server-side from ptsAdded/targetTeam via an
