@@ -329,6 +329,12 @@ function LiveGameContent({ gameId }) {
             return res.data?._id?.toString() || null;
         } catch (err) {
             console.error("Failed to persist play:", err);
+            // Show the server's actual reason (e.g. "no players on the
+            // roster", a validation error) instead of a generic message —
+            // callers below no longer show their own toast on failure, this
+            // is the one place that does, so it always reflects why it
+            // really failed.
+            showToast(err.message || "Failed to save — check connection and try again", "error");
             return null;
         }
     };
@@ -433,7 +439,6 @@ function LiveGameContent({ gameId }) {
                                 showToast("Completion saved", "success");
                             } else {
                                 setActionLog(prev => prev.filter(l => !(!l.playId && l.type === "Completion" && l.time === logEntry.time)));
-                                showToast("Failed to save — check connection and try again", "error");
                             }
                             fetchGame();
                         });
@@ -493,7 +498,6 @@ function LiveGameContent({ gameId }) {
                                 showToast("Incompletion saved", "success");
                             } else {
                                 setActionLog(prev => prev.filter(l => !(!l.playId && l.type === "Incompletion" && l.time === logEntry.time)));
-                                showToast("Failed to save — check connection and try again", "error");
                             }
                         });
                     }
@@ -564,7 +568,6 @@ function LiveGameContent({ gameId }) {
                                 showToast("Fumble saved", "success");
                             } else {
                                 setActionLog(prev => prev.filter(l => !(!l.playId && l.type === "Fumble" && l.time === logEntry.time)));
-                                showToast("Failed to save — check connection and try again", "error");
                             }
                             fetchGame();
                         });
@@ -636,7 +639,6 @@ function LiveGameContent({ gameId }) {
                                 showToast("Interception saved", "success");
                             } else {
                                 setActionLog(prev => prev.filter(l => !(!l.playId && l.type === "Interception" && l.time === logEntry.time)));
-                                showToast("Failed to save — check connection and try again", "error");
                             }
                             fetchGame();
                         });
@@ -703,7 +705,6 @@ function LiveGameContent({ gameId }) {
                                 showToast("Sack saved", "success");
                             } else {
                                 setActionLog(prev => prev.filter(l => !(!l.playId && l.type === "Sack" && l.time === logEntry.time)));
-                                showToast("Failed to save — check connection and try again", "error");
                             }
                             fetchGame();
                         });
@@ -776,7 +777,6 @@ function LiveGameContent({ gameId }) {
                                 showToast("Run saved", "success");
                             } else {
                                 setActionLog(prev => prev.filter(l => !(!l.playId && l.type === "Run" && l.time === logEntry.time)));
-                                showToast("Failed to save — check connection and try again", "error");
                             }
                             fetchGame();
                         });

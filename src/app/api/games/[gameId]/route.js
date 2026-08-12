@@ -56,6 +56,35 @@ export async function PUT(request, { params }) {
             }
         }
 
+        // Block starting a match when either team has no players — there's
+        // nothing on the field to attribute a play to, and any scores/stats
+        // recorded against an empty roster are meaningless (root cause of
+        // the "Rampage vs Iron Hawks" case: both teams had 0 players and the
+        // mobile app still let the match start and plays get recorded).
+        if (body.status === "in_progress" && existing?.league) {
+            const league = await League.findById(existing.league).select("organization").lean();
+            if (league?.organization) {
+                const teamAName = body.teamA?.name || existing.teamA?.name;
+                const teamBName = body.teamB?.name || existing.teamB?.name;
+                const [teamADoc, teamBDoc] = await Promise.all([
+                    Team.findOne({ name: teamAName, organization: league.organization }).select("players").lean(),
+                    Team.findOne({ name: teamBName, organization: league.organization }).select("players").lean(),
+                ]);
+                const empty = [];
+                if (!teamADoc || (teamADoc.players || []).length === 0) empty.push(teamAName);
+                if (!teamBDoc || (teamBDoc.players || []).length === 0) empty.push(teamBName);
+                if (empty.length > 0) {
+                    return NextResponse.json(
+                        {
+                            success: false,
+                            error: `Can't start this match — ${empty.join(" and ")} ${empty.length > 1 ? "have" : "has"} no players on the roster. Add players to both teams first.`,
+                        },
+                        { status: 400 }
+                    );
+                }
+            }
+        }
+
         // Snapshot the placeholder team (e.g. "TBD") the first time it's resolved to a
         // real team, so the fixture can be reverted later via /reset-fixture.
         if (existing) {

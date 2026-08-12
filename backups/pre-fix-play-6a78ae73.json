@@ -1,0 +1,22 @@
+{
+  "_id": "6a78ae7396b7e893937690f3",
+  "game": "6a744d19fa8a4dbe5c97bfee",
+  "type": "completion",
+  "activeTeam": "A",
+  "teamName": "Mobb",
+  "half": "1st",
+  "passer": "2",
+  "receiver": "4",
+  "rusher": "",
+  "defender": "",
+  "flagPull": "",
+  "yards": 15,
+  "points": "None",
+  "safety": false,
+  "ptsAdded": 0,
+  "targetTeam": "A",
+  "idempotencyKey": null,
+  "createdAt": "2026-08-09T16:44:35.857Z",
+  "updatedAt": "2026-08-09T16:44:35.857Z",
+  "__v": 0
+}

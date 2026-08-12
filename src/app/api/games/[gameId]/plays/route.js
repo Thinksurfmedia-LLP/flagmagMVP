@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 import dbConnect from "@/lib/dbConnect";
 import Play from "@/models/Play";
 import Game from "@/models/Game";
+import League from "@/models/League";
+import Team from "@/models/Team";
 
 // Applies a score delta to a team atomically, so concurrent or rapid-fire
 // play saves can never clobber each other's points the way a client-computed
@@ -24,7 +26,11 @@ async function incTeamScore(gameId, targetTeam, delta, session) {
     await Game.findByIdAndUpdate(
         gameId,
         [{ $set: { [field]: { $add: [{ $ifNull: [`$${field}`, 0] }, delta] } } }],
-        { session },
+        // Mongoose 9 requires this explicitly for any array (aggregation
+        // pipeline) update — without it, findByIdAndUpdate throws "Cannot
+        // pass an array to query updates unless the `updatePipeline` option
+        // is set." on the very first scoring play of any game.
+        { session, updatePipeline: true },
     );
 }
 
@@ -70,6 +76,34 @@ export async function POST(request, { params }) {
             );
         }
 
+        // Defense-in-depth backstop for the same check on the "start match"
+        // action (PUT /api/games/[gameId]) — catches any game that reached
+        // in_progress before that check existed, or got there through some
+        // other path. A play recorded against an empty roster has no real
+        // player to attribute it to.
+        const gameForRosterCheck = await Game.findById(gameId).select("league teamA teamB").lean();
+        if (gameForRosterCheck?.league) {
+            const league = await League.findById(gameForRosterCheck.league).select("organization").lean();
+            if (league?.organization) {
+                const [teamADoc, teamBDoc] = await Promise.all([
+                    Team.findOne({ name: gameForRosterCheck.teamA?.name, organization: league.organization }).select("players").lean(),
+                    Team.findOne({ name: gameForRosterCheck.teamB?.name, organization: league.organization }).select("players").lean(),
+                ]);
+                const empty = [];
+                if (!teamADoc || (teamADoc.players || []).length === 0) empty.push(gameForRosterCheck.teamA?.name);
+                if (!teamBDoc || (teamBDoc.players || []).length === 0) empty.push(gameForRosterCheck.teamB?.name);
+                if (empty.length > 0) {
+                    return NextResponse.json(
+                        {
+                            success: false,
+                            error: `Can't record plays — ${empty.join(" and ")} ${empty.length > 1 ? "have" : "has"} no players on the roster. Add players to both teams first.`,
+                        },
+                        { status: 400 }
+                    );
+                }
+            }
+        }
+
         const ptsAdded = Number(body.ptsAdded) || 0;
         const targetTeam = body.targetTeam || "";
         const idempotencyKey = body.idempotencyKey || null;
@@ -81,6 +115,14 @@ export async function POST(request, { params }) {
                 return NextResponse.json({ success: true, data: existing }, { status: 201 });
             }
         }
+
+        // idempotencyKey is a sparse unique index — it's only safe to skip
+        // duplicate-detection for plays that never carry one if the field is
+        // truly absent from the document. Writing it as an explicit `null`
+        // still counts as "present" to a sparse index, so only ONE play in
+        // the entire collection could ever have a missing key before hitting
+        // a duplicate-key error on every subsequent keyless play (exactly
+        // what happened here). Spread it in only when a real key exists.
 
         const session = await mongoose.startSession();
         let play;
@@ -102,7 +144,7 @@ export async function POST(request, { params }) {
                     safety: Boolean(body.safety),
                     ptsAdded,
                     targetTeam,
-                    idempotencyKey,
+                    ...(idempotencyKey ? { idempotencyKey } : {}),
                 }], { session });
                 play = created;
 
