@@ -23,6 +23,11 @@ function ImageUploadField({ label, value, onChange, placeholder, onError }) {
             const fd = new FormData();
             fd.append("file", file);
             const res = await fetch("/api/upload", { method: "POST", body: fd });
+            // A file over the server's upload limit never reaches our API route at
+            // all — nginx rejects it with a raw 413 HTML page, not JSON, so calling
+            // res.json() on it throws and used to fall through to a generic
+            // "Upload failed" toast. Catch that case by status before parsing.
+            if (res.status === 413) { onError("Upload size limit exceeded. Maximum file size is 1MB."); return; }
             const data = await res.json();
             if (data.success) onChange(data.url);
             else onError(data.error || "Upload failed");
@@ -55,6 +60,7 @@ function ImageUploadField({ label, value, onChange, placeholder, onError }) {
                 </button>
                 <input ref={inputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFile} />
             </div>
+            <div style={{ marginTop: 6, fontSize: 12, color: "#dc2626" }}>Max file size: 1MB</div>
             {value && (
                 <img src={value} alt="" style={{ marginTop: 8, height: 56, borderRadius: 6, border: "1px solid #e5e7ef", objectFit: "cover" }} />
             )}

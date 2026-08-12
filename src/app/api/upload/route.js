@@ -20,9 +20,14 @@ export async function POST(request) {
             return NextResponse.json({ success: false, error: "Invalid file type. Only JPEG, PNG, WebP, GIF, and SVG are allowed." }, { status: 400 });
         }
 
-        const maxSize = 5 * 1024 * 1024; // 5MB
+        // Kept at 1MB to match nginx's client_max_body_size in front of this
+        // route (client decision: keep the default server limit as-is rather
+        // than raising it). Anything over 1MB is actually rejected by nginx
+        // before it reaches here — this check is a fallback for whenever that
+        // isn't true (e.g. local dev without nginx in front).
+        const maxSize = 1 * 1024 * 1024; // 1MB
         if (file.size > maxSize) {
-            return NextResponse.json({ success: false, error: "File too large. Maximum size is 5MB." }, { status: 400 });
+            return NextResponse.json({ success: false, error: "Upload size limit exceeded. Maximum file size is 1MB." }, { status: 400 });
         }
 
         const bytes = await file.arrayBuffer();

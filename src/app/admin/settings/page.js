@@ -117,6 +117,11 @@ export default function SettingsPage() {
             const fd = new FormData();
             fd.append("file", file);
             const res = await fetch("/api/upload", { method: "POST", body: fd });
+            // A file over the server's upload limit never reaches our API route at
+            // all — nginx rejects it with a raw 413 HTML page, not JSON, so calling
+            // res.json() on it throws and used to fall through to a generic
+            // "Upload failed" toast. Catch that case by status before parsing.
+            if (res.status === 413) { showError("Upload size limit exceeded. Maximum file size is 1MB."); return; }
             const data = await res.json();
             if (!data.success) { showError(data.error || "Upload failed"); return; }
             setForm(prev => ({ ...prev, [field]: data.url }));
@@ -284,6 +289,7 @@ export default function SettingsPage() {
                                             onChange={e => handleImageUpload(e.target.files?.[0], "logo")}
                                         />
                                     </div>
+                                    <div style={{ marginTop: 6, fontSize: 12, color: "#dc2626" }}>Max file size: 1MB</div>
                                     {form.logo && (
                                         <div style={{ marginTop: 8 }}>
                                             <img src={form.logo} alt="Logo preview" style={{ width: 60, height: 60, borderRadius: 8, objectFit: "cover", border: "1px solid #e8eaef" }} />
@@ -312,6 +318,7 @@ export default function SettingsPage() {
                                             onChange={e => handleImageUpload(e.target.files?.[0], "bannerImage")}
                                         />
                                     </div>
+                                    <div style={{ marginTop: 6, fontSize: 12, color: "#dc2626" }}>Max file size: 1MB</div>
                                     {form.bannerImage && (
                                         <div style={{ marginTop: 8 }}>
                                             <img src={form.bannerImage} alt="Banner preview" style={{ height: 60, borderRadius: 8, objectFit: "cover", border: "1px solid #e8eaef" }} />
