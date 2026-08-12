@@ -170,10 +170,16 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
             const fd = new FormData();
             fd.append("file", file);
             const res = await fetch("/api/upload", { method: "POST", body: fd });
+            // A file over the server's upload limit never reaches our API route at
+            // all — nginx rejects it with a raw 413 HTML page, not JSON, so calling
+            // res.json() on it throws. This used to fail completely silently here
+            // (empty catch, no error shown) — now it tells the admin why.
+            if (res.status === 413) { showError("Upload size limit exceeded. Maximum file size is 1MB."); return; }
             const data = await res.json();
             if (data.success) setForm(prev => ({ ...prev, image: data.url }));
-        } catch {}
-        setUploading(false);
+            else showError(data.error || "Upload failed");
+        } catch { showError("Upload failed"); }
+        finally { setUploading(false); }
     };
 
     const toggleVenue = (venueName) => {
@@ -299,6 +305,7 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
                             <button type="button" className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => setForm(prev => ({ ...prev, image: "" }))} style={{ color: "#ef4444" }}>Remove</button>
                         )}
                     </div>
+                    <div style={{ marginTop: 6, fontSize: 12, color: "#dc2626" }}>Max file size: 1MB</div>
                 </div>
 
                 <div className="admin-form-group">
@@ -783,6 +790,11 @@ function PlaceholderTeamsModal({ onClose, isAdmin, organizations, userOrgId }) {
             const fd = new FormData();
             fd.append("file", file);
             const res = await fetch("/api/upload", { method: "POST", body: fd });
+            // A file over the server's upload limit never reaches our API route at
+            // all — nginx rejects it with a raw 413 HTML page, not JSON, so calling
+            // res.json() on it throws and used to fall through to a generic
+            // "Upload failed" toast. Catch that case by status before parsing.
+            if (res.status === 413) { showError("Upload size limit exceeded. Maximum file size is 1MB."); return; }
             const data = await res.json();
             if (data.success) setter(data.url);
             else showError(data.error || "Upload failed");
@@ -899,7 +911,7 @@ function PlaceholderTeamsModal({ onClose, isAdmin, organizations, userOrgId }) {
                                                             onChange={(e) => setEditName(e.target.value)}
                                                             autoFocus
                                                         />
-                                                        <label className="admin-btn admin-btn-ghost admin-btn-sm" style={{ cursor: "pointer", margin: 0, flexShrink: 0 }} title="Change image">
+                                                        <label className="admin-btn admin-btn-ghost admin-btn-sm" style={{ cursor: "pointer", margin: 0, flexShrink: 0 }} title="Change image (max 1MB)">
                                                             {editUploading ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-image"></i>}
                                                             <input type="file" accept="image/*" hidden disabled={editUploading}
                                                                 onChange={(e) => handleUpload(e.target.files?.[0], setEditLogo, setEditUploading)} />
@@ -986,6 +998,7 @@ function PlaceholderTeamsModal({ onClose, isAdmin, organizations, userOrgId }) {
                                     Add
                                 </button>
                             </div>
+                            <div style={{ marginTop: 6, fontSize: 12, color: "#dc2626" }}>Max file size: 1MB</div>
                         </div>
                     </>
                 )}

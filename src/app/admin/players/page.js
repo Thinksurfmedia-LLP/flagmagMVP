@@ -410,10 +410,10 @@ export default function AdminPlayersPage() {
                                                 <i className="fa-solid fa-user" style={{ color: '#aaa', fontSize: 24 }}></i>
                                             </div>
                                         )}
-                                        <input 
+                                        <input
                                             type="file"
                                             accept="image/*"
-                                            className="admin-form-input" 
+                                            className="admin-form-input"
                                             onChange={async (e) => {
                                                 const file = e.target.files[0];
                                                 if (!file) return;
@@ -421,12 +421,18 @@ export default function AdminPlayersPage() {
                                                 fd.append("file", file);
                                                 try {
                                                     const res = await fetch("/api/upload", { method: "POST", body: fd });
+                                                    // A file over the server's upload limit never reaches our
+                                                    // API route at all — nginx rejects it with a raw 413 HTML
+                                                    // page, not JSON, so calling res.json() on it throws.
+                                                    if (res.status === 413) { showError("Upload size limit exceeded. Maximum file size is 1MB."); return; }
                                                     const data = await res.json();
                                                     if (data.url) setEditForm(prev => ({ ...prev, photo: data.url }));
+                                                    else showError(data.error || "Upload failed");
                                                 } catch { showError("Upload failed"); }
-                                            }} 
+                                            }}
                                         />
                                     </div>
+                                    <div style={{ marginTop: 6, fontSize: 12, color: "#dc2626" }}>Max file size: 1MB</div>
                                 </div>
 
                                 <div className="admin-form-group">

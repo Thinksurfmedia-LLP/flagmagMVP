@@ -65,6 +65,11 @@ export default function AmenitiesPage() {
             const formData = new FormData();
             formData.append("file", file);
             const res = await fetch("/api/upload", { method: "POST", body: formData });
+            // A file over the server's upload limit never reaches our API route at
+            // all — nginx rejects it with a raw 413 HTML page, not JSON, so calling
+            // res.json() on it throws and used to fall through to a generic
+            // "Upload failed" toast. Catch that case by status before parsing.
+            if (res.status === 413) { showError("Upload size limit exceeded. Maximum file size is 1MB."); return; }
             const data = await res.json();
             if (data.url) setFormIcon(data.url);
             else showError("Upload failed");
@@ -146,6 +151,7 @@ export default function AmenitiesPage() {
                                         <button type="button" className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => setFormIcon("")}>Remove</button>
                                     )}
                                 </div>
+                                <div style={{ marginTop: 6, fontSize: 12, color: "#dc2626" }}>Max file size: 1MB</div>
                             </div>
                             <div style={{ display: "flex", gap: 8, marginTop: 20 }}>
                                 <button type="submit" className="admin-btn admin-btn-primary" disabled={saving}>

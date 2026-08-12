@@ -31,6 +31,7 @@ const selectStyles = {
 };
 
 function OrgLocationModal({ open, editingVenue, orgLocations, amenityList, onClose, onSave, loading }) {
+    const { showError } = useToast();
     const [selectedState, setSelectedState] = useState(null);
     const [selectedCounty, setSelectedCounty] = useState(null);
     const [selectedCity, setSelectedCity] = useState(null);
@@ -152,17 +153,32 @@ function OrgLocationModal({ open, editingVenue, orgLocations, amenityList, onClo
         setUploadingIdx(idx);
         try {
             const urls = [];
+            let sizeRejected = 0;
             for (const file of files) {
                 const formData = new FormData();
                 formData.append("file", file);
                 const res = await fetch("/api/upload", { method: "POST", body: formData });
+                // A file over the server's upload limit never reaches our API route
+                // at all — nginx rejects it with a raw 413 HTML page, not JSON, so
+                // calling res.json() on it throws. This used to fail completely
+                // silently here (empty catch, no error shown) — now it tells the
+                // admin exactly which photos were too large.
+                if (res.status === 413) { sizeRejected++; continue; }
                 const data = await res.json();
                 if (data.success) urls.push(data.url);
+                else showError(data.error || "Upload failed");
             }
             if (urls.length) {
                 setFields(prev => prev.map((f, i) => i === idx ? { ...f, images: [...f.images, ...urls] } : f));
             }
-        } catch {}
+            if (sizeRejected > 0) {
+                showError(
+                    sizeRejected === 1
+                        ? "Upload size limit exceeded. Maximum file size is 1MB."
+                        : `${sizeRejected} photos exceeded the 1MB upload limit and were skipped.`
+                );
+            }
+        } catch { showError("Upload failed"); }
         finally { setUploadingIdx(null); }
         e.target.value = "";
     };
@@ -339,6 +355,7 @@ function OrgLocationModal({ open, editingVenue, orgLocations, amenityList, onClo
                                                         {uploadingIdx === idx ? "Uploading..." : "Upload Photo"}
                                                         <input type="file" accept="image/*" multiple onChange={e => uploadFieldImage(e, idx)} disabled={uploadingIdx === idx} style={{ display: "none" }} />
                                                     </label>
+                                                    <div style={{ marginTop: 6, fontSize: 12, color: "#dc2626" }}>Max file size: 1MB per photo</div>
                                                 </div>
                                             </div>
                                         )}

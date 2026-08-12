@@ -20,6 +20,11 @@ function ImageUploadField({ value, onChange, placeholder, onError }) {
             const fd = new FormData();
             fd.append("file", file);
             const res = await fetch("/api/upload", { method: "POST", body: fd });
+            // A file over the server's upload limit never reaches our API route at
+            // all — nginx rejects it with a raw 413 HTML page, not JSON, so calling
+            // res.json() on it throws and used to fall through to a generic
+            // "Upload failed" toast. Catch that case by status before parsing.
+            if (res.status === 413) { onError("Upload size limit exceeded. Maximum file size is 1MB."); return; }
             const data = await res.json();
             if (data.success) onChange(data.url);
             else onError(data.error || "Upload failed");
@@ -59,7 +64,7 @@ function ImageUploadField({ value, onChange, placeholder, onError }) {
     );
 }
 
-function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, effectiveRole, onClose, onSave, existingDivisions = [] }) {
+function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, effectiveRole, onClose, onSave }) {
     const { showError, showSuccess } = useToast();
     const [removedMembershipIds, setRemovedMembershipIds] = useState(new Set());
     const [removingMembershipId, setRemovingMembershipId] = useState(null);
@@ -68,9 +73,6 @@ function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, ef
     const [description, setDescription] = useState(team?.description || "");
     const [coachName, setCoachName] = useState(team?.coachName || "");
     const [coachPhone, setCoachPhone] = useState(team?.coachPhone || "");
-    const [division, setDivision] = useState(team?.division || "");
-    const [divisionOpen, setDivisionOpen] = useState(false);
-    const divisionRef = React.useRef(null);
     const [organization, setOrganization] = useState(
         team?.organization?._id || team?.organization || user?.organization?.id || ""
     );
@@ -148,8 +150,11 @@ function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, ef
             organization: effectiveRole === "admin" ? organization : undefined,
             // League assignment only applies when creating — editing an
             // existing team's league memberships happens on the Leagues page,
-            // since a team can belong to more than one league at once.
-            ...(team ? {} : { league: league || null, division: division.trim() }),
+            // since a team can belong to more than one league at once. Division
+            // is likewise managed only from there now (see LeagueTeamsModal in
+            // admin/leagues/page.js) — keeps a single source of truth instead of
+            // letting it be set here too and drifting out of sync.
+            ...(team ? {} : { league: league || null }),
         });
         setSaving(false);
     };
@@ -266,6 +271,7 @@ function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, ef
                         placeholder="https://... or upload"
                         onError={showError}
                     />
+                    <div style={{ marginTop: 6, fontSize: 12, color: "#dc2626" }}>Max file size: 1MB</div>
                     {!logo && (
                         <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6, color: "#8b90a0", fontSize: 13 }}>
                             <i className="fa-solid fa-shield-halved"></i>
@@ -296,75 +302,6 @@ function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, ef
                         <input className="admin-form-input" value={coachPhone} onChange={(e) => setCoachPhone(e.target.value)} placeholder="e.g. 555-123-4567" />
                     </div>
                 </div>
-
-                {!team && (
-                <div className="admin-form-group">
-                    <label className="admin-form-label">Division (optional)</label>
-                    <div ref={divisionRef} style={{ position: "relative" }}>
-                        <input
-                            className="admin-form-input"
-                            value={division}
-                            onChange={(event) => { setDivision(event.target.value); setDivisionOpen(true); }}
-                            onFocus={() => setDivisionOpen(true)}
-                            onBlur={() => setTimeout(() => setDivisionOpen(false), 150)}
-                            placeholder="e.g. Division A, Open, Competitive"
-                            autoComplete="off"
-                        />
-                        {divisionOpen && (division.trim() || existingDivisions.length > 0) && (() => {
-                            const matches = existingDivisions.filter(d => d.toLowerCase().includes(division.toLowerCase().trim()));
-                            const isNew = division.trim() && !existingDivisions.some(d => d.toLowerCase() === division.toLowerCase().trim());
-                            if (!matches.length && !isNew) return null;
-                            return (
-                                <div style={{
-                                    position: "absolute",
-                                    top: "calc(100% + 2px)",
-                                    left: 0,
-                                    right: 0,
-                                    background: "#fff",
-                                    border: "1px solid #d5d8e0",
-                                    borderRadius: 6,
-                                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                                    zIndex: 400,
-                                    maxHeight: 180,
-                                    overflowY: "auto",
-                                }}>
-                                    {matches.map(d => (
-                                        <div
-                                            key={d}
-                                            onMouseDown={() => { setDivision(d); setDivisionOpen(false); }}
-                                            style={{
-                                                padding: "8px 12px",
-                                                fontSize: 13,
-                                                color: "#1a1d26",
-                                                cursor: "pointer",
-                                                background: d === division ? "#fff8f7" : "#fff",
-                                            }}
-                                            onMouseEnter={e => e.currentTarget.style.background = "#f9fafb"}
-                                            onMouseLeave={e => e.currentTarget.style.background = d === division ? "#fff8f7" : "#fff"}
-                                        >
-                                            {d}
-                                        </div>
-                                    ))}
-                                    {isNew && (
-                                        <div style={{
-                                            padding: "8px 12px",
-                                            fontSize: 12,
-                                            color: "#6b7280",
-                                            borderTop: matches.length ? "1px solid #f0f1f5" : "none",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: 6,
-                                        }}>
-                                            <i className="fa-solid fa-circle-info" style={{ color: "#FF1E00" }}></i>
-                                            &ldquo;{division.trim()}&rdquo; will be created as a new division
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })()}
-                    </div>
-                </div>
-                )}
 
                 <div className="admin-form-group">
                     <label className="admin-form-label">Origin Location (optional)</label>
@@ -1066,7 +1003,6 @@ export default function AdminTeamsPage() {
                             leagues={leagues}
                             user={user}
                             effectiveRole={effectiveRole}
-                            existingDivisions={[...new Set(teams.flatMap(t => t.leagues || []).map(m => m.division).filter(Boolean))]}
                             onClose={() => { setModalOpen(false); setEditTarget(null); }}
                             onSave={saveTeam}
                         />
