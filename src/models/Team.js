@@ -31,10 +31,42 @@ const TeamSchema = new mongoose.Schema(
             default: "",
             trim: true,
         },
+        // Collected on the public team signup form — not shown on the
+        // public team profile, kept for organizer contact use.
+        address: {
+            type: String,
+            default: "",
+        },
+        // "How else did you hear about us?" from the same form. Free text
+        // rather than an enum — the option list on the form itself is what
+        // constrains it in practice, this just avoids a schema migration
+        // every time that list changes.
+        hearAboutUs: {
+            type: String,
+            default: "",
+        },
         organization: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Organization",
             required: true,
+        },
+        // Set when a team is created through public self-serve registration
+        // (see lib/registration/team.js) — the user account that owns it.
+        // Admin-created teams leave this null.
+        manager: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            default: null,
+        },
+        // The league the manager asked to join at signup time. Intentionally
+        // NOT added to `leagues[]` below — that array means "actually placed
+        // in this league by an organizer." This field just records intent so
+        // the organizer sees it without the team appearing in a live league
+        // unvetted.
+        requestedLeague: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "League",
+            default: null,
         },
         // A team keeps one identity across every league/season it ever played —
         // this array lets it belong to more than one league at once (e.g. a
@@ -99,7 +131,11 @@ function getTeamModel() {
         const hasLeagues = Boolean(existing.schema.path("leagues"));
         const hasIsPlaceholder = Boolean(existing.schema.path("isPlaceholder"));
         const hasSeedNumber = Boolean(existing.schema.path("leagues.seedNumber"));
-        if (!hasPlayers || !hasDescription || !hasJerseyNumber || !hasCoachName || !hasLeagues || !hasIsPlaceholder || !hasSeedNumber) {
+        const hasManager = Boolean(existing.schema.path("manager"));
+        const hasRequestedLeague = Boolean(existing.schema.path("requestedLeague"));
+        const hasAddress = Boolean(existing.schema.path("address"));
+        const hasHearAboutUs = Boolean(existing.schema.path("hearAboutUs"));
+        if (!hasPlayers || !hasDescription || !hasJerseyNumber || !hasCoachName || !hasLeagues || !hasIsPlaceholder || !hasSeedNumber || !hasManager || !hasRequestedLeague || !hasAddress || !hasHearAboutUs) {
             delete mongoose.models.Team;
         }
     }

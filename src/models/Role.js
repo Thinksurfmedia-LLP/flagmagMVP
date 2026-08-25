@@ -221,6 +221,12 @@ export const DEFAULT_ROLES = [
         permissions: ["game_view", "stats_record", "manage_stats"],
         isSystem: true,
     },
+    {
+        name: "Team Manager",
+        slug: "team_manager",
+        permissions: [],
+        isSystem: true,
+    },
 ];
 
 export async function seedDefaultRoles() {

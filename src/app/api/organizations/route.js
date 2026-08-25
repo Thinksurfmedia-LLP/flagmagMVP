@@ -19,6 +19,15 @@ export async function GET(request) {
         const search = searchParams.get("search");
         const sort = searchParams.get("sort") || "featured";
         const filtersOnly = searchParams.get("filtersOnly");
+        const minimal = searchParams.get("minimal");
+
+        // Lightweight shape for pickers (e.g. signup org dropdown) that only
+        // need id/name/slug — skips the season/league/player count
+        // aggregations below, which are wasted work for a `<select>`.
+        if (minimal === "true") {
+            const organizations = await Organization.find({}).select("name slug").sort({ name: 1 }).lean();
+            return NextResponse.json({ success: true, data: organizations }, { status: 200 });
+        }
 
         // Return distinct filter options
         if (filtersOnly === "true") {

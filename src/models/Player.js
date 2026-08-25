@@ -20,6 +20,15 @@ const PlayerSchema = new mongoose.Schema(
             ref: "Organization",
             default: null,
         },
+        // The division/league this free agent asked to be drafted into at
+        // signup time — recorded intent only, same as Team.requestedLeague.
+        // Doesn't place them on any roster by itself; an organizer/team
+        // still has to actually pick them up.
+        requestedLeague: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "League",
+            default: null,
+        },
         name: {
             type: String,
             required: [true, "Player name is required"],
@@ -47,6 +56,12 @@ const PlayerSchema = new mongoose.Schema(
             type: Number,
         },
         location: {
+            type: String,
+            default: "",
+        },
+        // Street address, collected on the public free-agent signup form.
+        // Not shown on the public profile — kept for organizer contact use.
+        address: {
             type: String,
             default: "",
         },
@@ -130,5 +145,15 @@ const PlayerSchema = new mongoose.Schema(
 
 PlayerSchema.index({ user: 1, organization: 1 }, { unique: true, sparse: true });
 
-export default mongoose.models.Player ||
-    mongoose.model("Player", PlayerSchema);
+function getPlayerModel() {
+    const existing = mongoose.models.Player;
+    // Dev HMR can keep a stale compiled model around after a field is added
+    // here — same failure mode Team.js guards against. Rebuild rather than
+    // silently dropping writes to a field the cached model doesn't know about.
+    if (existing && (!existing.schema.path("address") || !existing.schema.path("requestedLeague"))) {
+        delete mongoose.models.Player;
+    }
+    return mongoose.models.Player || mongoose.model("Player", PlayerSchema);
+}
+
+export default getPlayerModel();

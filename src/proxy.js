@@ -13,8 +13,12 @@ const protectedRoutes = [
     "/admin",
 ];
 
-// Routes that should redirect to home if already authenticated
-const authRoutes = ["/login", "/signup"];
+// Routes that should redirect to home if already authenticated. "/signup"
+// is deliberately excluded — a logged-in viewer can still land there to
+// register as a free agent/team, or a logged-in user can make a custom
+// payment. The chooser page itself handles the "you're already signed in"
+// case in-page rather than via redirect.
+const authRoutes = ["/login"];
 
 // Routes that are always public (no auth check needed)
 const publicRoutes = [

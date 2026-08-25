@@ -1,4 +1,4 @@
-import { DM_Sans } from "next/font/google";
+import { DM_Sans, Anton } from "next/font/google";
 import "./globals.css";
 import BootstrapClient from "@/components/BootstrapClient";
 import { AuthProvider } from "@/components/AuthProvider";
@@ -8,6 +8,17 @@ const dmSans = DM_Sans({
   variable: "--font-dm-sans",
   display: "swap",
   weight: ["400", "500", "600", "700"],
+});
+
+// Bold, condensed, single-weight display face — used for punchy headline
+// moments (e.g. the /signup chooser heading) where the site's default
+// grunge/distressed "Cros" font hurts legibility over a photo background,
+// but a plain body-copy weight of DM Sans reads as too generic.
+const anton = Anton({
+  subsets: ["latin"],
+  variable: "--font-anton",
+  display: "swap",
+  weight: "400",
 });
 
 export const metadata = {
@@ -27,7 +38,7 @@ export default function RootLayout({ children }) {
         <link rel="stylesheet" href="/assets/css/jquery.fancybox.min.css" />
         <link rel="stylesheet" href="/assets/css/slick.css" />
       </head>
-      <body className={dmSans.variable}>
+      <body className={`${dmSans.variable} ${anton.variable}`}>
         <AuthProvider>
           <div className="wrapper">
             {children}
