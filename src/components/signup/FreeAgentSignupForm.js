@@ -12,7 +12,7 @@ import StateSelect from "@/components/signup/StateSelect";
 const ROW_2COL = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "15px" };
 const ROW_4COL = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "15px" };
 
-export default function FreeAgentSignupForm() {
+export default function FreeAgentSignupForm({ defaultOrgSlug = "" }) {
     const router = useRouter();
     const { refreshUser } = useAuth();
     const [formData, setFormData] = useState({
@@ -159,7 +159,7 @@ export default function FreeAgentSignupForm() {
                     rows={2}
                 />
                 <div style={ROW_4COL}>
-                    <OrganizationPicker value={organizationId} onChange={handleOrgChange} />
+                    <OrganizationPicker value={organizationId} onChange={handleOrgChange} defaultSlug={defaultOrgSlug} />
                     <LeaguePicker orgSlug={organizationSlug} value={requestedLeagueId} onChange={setRequestedLeagueId} />
                     <StateSelect value={state} onChange={setState} />
                     <input

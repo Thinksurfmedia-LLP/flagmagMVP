@@ -98,6 +98,24 @@ export async function PUT(request, { params }) {
             body.seasonOverridden = body.seasonOverridden || false;
         }
 
+        // Same auto-deposit rule as create: team deposit defaults to
+        // playerFee x 4 unless the organizer explicitly typed one.
+        if (body.playerFee !== undefined || body.teamDeposit !== undefined) {
+            const playerFee = body.playerFee === "" || body.playerFee == null
+                ? 0
+                : Number(body.playerFee);
+            const teamDepositOverridden = body.teamDeposit !== "" && body.teamDeposit != null;
+            body.playerFee = playerFee;
+            body.teamDepositOverridden = teamDepositOverridden;
+            body.teamDeposit = teamDepositOverridden ? Number(body.teamDeposit) : playerFee * 4;
+        }
+        if (body.teamFee !== undefined) {
+            body.teamFee = body.teamFee === "" || body.teamFee == null ? 0 : Number(body.teamFee);
+        }
+        if (body.showOnSignup !== undefined) {
+            body.showOnSignup = Boolean(body.showOnSignup);
+        }
+
         // Turning the option off while games in this league still use a
         // placeholder team would silently orphan those matchups from the
         // team dropdown — block it and tell the admin exactly which games

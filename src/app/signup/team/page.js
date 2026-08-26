@@ -3,7 +3,9 @@ import SignupHeroLayout from "@/components/signup/SignupHeroLayout";
 import SignupFormCard from "@/components/signup/SignupFormCard";
 import TeamSignupForm from "@/components/signup/TeamSignupForm";
 
-export default function TeamSignupPage() {
+export default async function TeamSignupPage({ searchParams }) {
+    const { org } = await searchParams;
+
     return (
         <>
             <SignupHeroLayout
@@ -13,7 +15,7 @@ export default function TeamSignupPage() {
                 showLogo={false}
             >
                 <SignupFormCard>
-                    <TeamSignupForm />
+                    <TeamSignupForm defaultOrgSlug={org || ""} />
                 </SignupFormCard>
             </SignupHeroLayout>
 

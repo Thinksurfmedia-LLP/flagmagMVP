@@ -24,8 +24,9 @@ const CHOICES = [
     },
 ];
 
-export default function SignupChoiceCards() {
+export default function SignupChoiceCards({ orgSlug = "" }) {
     const [hovered, setHovered] = useState(null);
+    const orgQuery = orgSlug ? `?org=${encodeURIComponent(orgSlug)}` : "";
 
     return (
         <div
@@ -41,7 +42,7 @@ export default function SignupChoiceCards() {
                 return (
                     <Link
                         key={choice.href}
-                        href={choice.href}
+                        href={`${choice.href}${orgQuery}`}
                         onMouseEnter={() => setHovered(i)}
                         onMouseLeave={() => setHovered(null)}
                         style={{

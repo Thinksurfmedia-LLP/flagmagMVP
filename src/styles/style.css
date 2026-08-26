@@ -5047,4 +5047,27 @@ footer .copyright-area p {
   .innerpage-section {
     min-height: 90px;
   }
-}/*# sourceMappingURL=style.css.map */
+}
+
+/* ── Signup checkout (registration form + order summary split) ── */
+.signup-checkout-grid {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: 48px;
+  align-items: start;
+}
+.signup-checkout-summary {
+  position: sticky;
+  top: 24px;
+}
+@media only screen and (max-width: 991px) {
+  .signup-checkout-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .signup-checkout-summary {
+    position: static;
+    order: -1;
+  }
+}
+/*# sourceMappingURL=style.css.map */

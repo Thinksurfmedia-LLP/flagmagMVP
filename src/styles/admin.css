@@ -862,6 +862,13 @@
     padding-right: 40px;
 }
 
+/* Desktop only: widen modal so form fields need less scrolling */
+@media (min-width: 769px) {
+    .admin-modal {
+        max-width: 700px;
+    }
+}
+
 /* ── Empty state ── */
 .admin-empty {
     text-align: center;

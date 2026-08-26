@@ -8,7 +8,7 @@ import SearchableSelect from "@/components/SearchableSelect";
  * selected org's id (what the register APIs need) and its slug (what the
  * sibling LeaguePicker needs to fetch divisions).
  */
-export default function OrganizationPicker({ value, onChange, error }) {
+export default function OrganizationPicker({ value, onChange, error, defaultSlug = "" }) {
     const [organizations, setOrganizations] = useState([]);
     const [status, setStatus] = useState("loading"); // "loading" | "ready" | "error"
 
@@ -28,6 +28,15 @@ export default function OrganizationPicker({ value, onChange, error }) {
             .catch(() => { if (!cancelled) setStatus("error"); });
         return () => { cancelled = true; };
     }, []);
+
+    // Pre-select the org the visitor arrived from (e.g. "Register Now" on
+    // an organization page) once the list has loaded — only when nothing
+    // has been picked yet, so it never clobbers a manual choice.
+    useEffect(() => {
+        if (!defaultSlug || value || status !== "ready") return;
+        const match = organizations.find((o) => o.slug === defaultSlug);
+        if (match) onChange(match._id, match.slug);
+    }, [defaultSlug, value, status, organizations, onChange]);
 
     if (status === "error") {
         return (

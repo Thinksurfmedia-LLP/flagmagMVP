@@ -21,7 +21,7 @@ const HEAR_ABOUT_US_OPTIONS = [
     "Other",
 ];
 
-export default function TeamSignupForm() {
+export default function TeamSignupForm({ defaultOrgSlug = "" }) {
     const router = useRouter();
     const { refreshUser } = useAuth();
     const [formData, setFormData] = useState({
@@ -169,7 +169,7 @@ export default function TeamSignupForm() {
                     rows={2}
                 />
                 <div style={ROW_4COL}>
-                    <OrganizationPicker value={organizationId} onChange={handleOrgChange} />
+                    <OrganizationPicker value={organizationId} onChange={handleOrgChange} defaultSlug={defaultOrgSlug} />
                     <LeaguePicker orgSlug={organizationSlug} value={requestedLeagueId} onChange={setRequestedLeagueId} />
                     <StateSelect value={state} onChange={setState} />
                     <input

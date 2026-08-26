@@ -45,8 +45,10 @@ export default function SearchableSelect({
 }) {
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState("");
+    const [openUpward, setOpenUpward] = useState(false);
     const containerRef = useRef(null);
     const palette = dark ? DARK_PALETTE : LIGHT_PALETTE;
+    const MENU_MAX_HEIGHT = 260;
 
     const selectedOption = options.find(o => o.value === value);
 
@@ -84,7 +86,21 @@ export default function SearchableSelect({
     function handleOpen() {
         if (disabled) return;
         setQuery("");
-        setOpen(prev => !prev);
+        setOpen(prev => {
+            const next = !prev;
+            // A dropdown opened near the bottom of the viewport (e.g. this
+            // signup form's League field) used to always render downward
+            // and get cut off by the viewport edge with no way to reach
+            // the rest of the list — flip it above the field instead
+            // whenever there isn't room below.
+            if (next && containerRef.current) {
+                const rect = containerRef.current.getBoundingClientRect();
+                const spaceBelow = window.innerHeight - rect.bottom;
+                const spaceAbove = rect.top;
+                setOpenUpward(spaceBelow < MENU_MAX_HEIGHT + 20 && spaceAbove > spaceBelow);
+            }
+            return next;
+        });
     }
 
     function handleSelect(optValue) {
@@ -148,7 +164,7 @@ export default function SearchableSelect({
             {open && (
                 <div style={{
                     position: "absolute",
-                    top: "calc(100% + 4px)",
+                    ...(openUpward ? { bottom: "calc(100% + 4px)" } : { top: "calc(100% + 4px)" }),
                     left: 0,
                     right: 0,
                     background: palette.menuBg,
@@ -158,7 +174,7 @@ export default function SearchableSelect({
                     zIndex: 9999,
                     overflow: "hidden",
                 }}>
-                    <div style={{ maxHeight: 220, overflowY: "auto" }}>
+                    <div style={{ maxHeight: MENU_MAX_HEIGHT, overflowY: "auto" }}>
                         <div
                             onClick={() => handleSelect("")}
                             style={{ padding: "8px 12px", cursor: "pointer", fontSize: 14, color: palette.placeholderColor }}

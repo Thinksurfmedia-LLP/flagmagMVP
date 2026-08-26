@@ -96,6 +96,13 @@ export async function POST(request) {
             ? body.locations.map((s) => String(s).trim()).filter(Boolean)
             : [];
 
+        // Player fee is the organizer-set base — team deposit defaults to
+        // 4x that unless the organizer typed their own deposit value.
+        const playerFee = body.playerFee === "" || body.playerFee == null ? 0 : Number(body.playerFee);
+        const teamDepositOverridden = body.teamDeposit !== "" && body.teamDeposit != null;
+        const teamDeposit = teamDepositOverridden ? Number(body.teamDeposit) : playerFee * 4;
+        const teamFee = body.teamFee === "" || body.teamFee == null ? 0 : Number(body.teamFee);
+
         const league = await League.create({
             organization: organization._id,
             name: body.name.trim(),
@@ -110,6 +117,11 @@ export async function POST(request) {
             endDate: body.endDate || undefined,
             season: body.season || undefined,
             seasonOverridden: body.seasonOverridden || false,
+            showOnSignup: Boolean(body.showOnSignup),
+            playerFee,
+            teamDeposit,
+            teamDepositOverridden,
+            teamFee,
         });
 
         return NextResponse.json({ success: true, data: league }, { status: 201 });

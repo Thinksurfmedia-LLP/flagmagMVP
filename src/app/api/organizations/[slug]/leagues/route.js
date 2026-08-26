@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import League from "@/models/League";
+import Venue from "@/models/Location";
+import "@/models/County";
+import "@/models/State";
 import "@/models/Season";
 import User from "@/models/User";
 import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
@@ -13,6 +16,7 @@ export async function GET(request, { params }) {
         const { slug } = await params;
         const { searchParams } = new URL(request.url);
         const type = searchParams.get("type");
+        const showOnSignup = searchParams.get("showOnSignup");
 
         const organization = await Organization.findOne({ slug }).lean();
         if (!organization) {
@@ -24,14 +28,39 @@ export async function GET(request, { params }) {
 
         const filter = { organization: organization._id };
         if (type) filter.type = type;
+        // Opt-in filter for public signup surfaces — everything else that
+        // calls this route (admin games/teams/seasons/stats pickers) still
+        // gets the full list regardless of the organizer's signup toggle.
+        if (showOnSignup === "true") filter.showOnSignup = true;
 
         const leagues = await League.find(filter)
             .populate("season", "name isDefault")
             .sort({ startDate: -1 })
             .lean();
 
+        // Resolve each league's venue names to state abbreviations so public
+        // callers (the signup checkout's state-scoped league filter) can
+        // narrow the list without needing admin access to /api/locations.
+        const venueNames = [...new Set(leagues.flatMap((l) => l.locations || []))];
+        const stateByVenueName = new Map();
+        if (venueNames.length) {
+            const venues = await Venue.find({ name: { $in: venueNames } })
+                .populate({ path: "county", populate: { path: "state", select: "abbreviation" } })
+                .select("name county")
+                .lean();
+            for (const venue of venues) {
+                const abbr = venue.county?.state?.abbreviation;
+                if (abbr) stateByVenueName.set(venue.name, abbr);
+            }
+        }
+
+        const data = leagues.map((league) => ({
+            ...league,
+            states: [...new Set((league.locations || []).map((name) => stateByVenueName.get(name)).filter(Boolean))],
+        }));
+
         return NextResponse.json(
-            { success: true, count: leagues.length, data: leagues },
+            { success: true, count: data.length, data },
             { status: 200 }
         );
     } catch (error) {

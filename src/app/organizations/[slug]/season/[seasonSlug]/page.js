@@ -151,7 +151,7 @@ export default async function SeasonSchedulePage({ params }) {
                             </div>
                         </div>
                         <div className="col-auto button-area">
-                            <Link href="#" className="btn btn-primary">Register Now</Link>
+                            <Link href={`/signup?org=${slug}`} className="btn btn-primary">Register Now</Link>
                             <Link href="#" className="btn btn-info-primary">Contact Now</Link>
                         </div>
                     </div>

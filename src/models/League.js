@@ -70,6 +70,37 @@ const LeagueSchema = new mongoose.Schema(
             type: String,
             default: "",
         },
+        // Whether this league is shown as a selectable option on the public
+        // sign-up page — organizers opt in per league.
+        showOnSignup: {
+            type: Boolean,
+            default: false,
+        },
+        // Player/free-agent fee the organizer must set for this league.
+        playerFee: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
+        // Team deposit. Defaults to playerFee x 4 whenever the organizer
+        // hasn't explicitly set their own value (see teamDepositOverridden).
+        teamDeposit: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
+        // True once the organizer has typed a custom team deposit — keeps
+        // the auto (playerFee x 4) calculation from clobbering it later.
+        teamDepositOverridden: {
+            type: Boolean,
+            default: false,
+        },
+        // Flat team registration fee.
+        teamFee: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
         divisions: [
             {
                 name: { type: String },
@@ -107,7 +138,7 @@ LeagueSchema.index({ organization: 1, slug: 1 }, { unique: true });
 function getLeagueModel() {
     if (mongoose.models.League) {
         const existing = mongoose.models.League;
-        if (!existing.schema.paths.divisions || !existing.schema.paths.seasonOverridden || !existing.schema.paths.image || !existing.schema.paths.endDate || !existing.schema.paths.allowPlaceholderTeams) {
+        if (!existing.schema.paths.divisions || !existing.schema.paths.seasonOverridden || !existing.schema.paths.image || !existing.schema.paths.endDate || !existing.schema.paths.allowPlaceholderTeams || !existing.schema.paths.playerFee) {
             delete mongoose.models.League;
             delete mongoose.connection.models?.League;
             return mongoose.model("League", LeagueSchema);

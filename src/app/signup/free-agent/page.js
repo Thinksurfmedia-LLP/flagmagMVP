@@ -3,7 +3,9 @@ import SignupHeroLayout from "@/components/signup/SignupHeroLayout";
 import SignupFormCard from "@/components/signup/SignupFormCard";
 import FreeAgentSignupForm from "@/components/signup/FreeAgentSignupForm";
 
-export default function FreeAgentSignupPage() {
+export default async function FreeAgentSignupPage({ searchParams }) {
+    const { org } = await searchParams;
+
     return (
         <>
             <SignupHeroLayout
@@ -13,7 +15,7 @@ export default function FreeAgentSignupPage() {
                 showLogo={false}
             >
                 <SignupFormCard>
-                    <FreeAgentSignupForm />
+                    <FreeAgentSignupForm defaultOrgSlug={org || ""} />
                 </SignupFormCard>
             </SignupHeroLayout>
 

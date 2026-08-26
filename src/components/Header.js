@@ -64,7 +64,7 @@ export default function Header({ variant = "default", onBookDemo }) {
                                         {/* <li className="nav-item"><Link className="nav-link" href="#">Tournaments</Link></li> */}
                                         <li className="nav-item"><Link className="nav-link" href="/store">Store</Link></li>
                                         <li className="nav-item"><Link className="nav-link" href="/sponsors">Sponsors</Link></li>
-                                        <li className="nav-item"><Link className="nav-link" href="/signup">Register</Link></li>
+                                        {/* <li className="nav-item"><Link className="nav-link" href="/signup">Register</Link></li> */}
                                         {/* <li className="nav-item"><Link className="nav-link" href="#">Resources</Link></li> */}
                                     </ul>
                                 </div>
@@ -85,7 +85,7 @@ export default function Header({ variant = "default", onBookDemo }) {
                                                 {/* <li className="nav-item"><Link className="nav-link" href="#">Tournaments</Link></li> */}
                                                 <li className="nav-item"><Link className="nav-link" href="/store">Store</Link></li>
                                                 <li className="nav-item"><Link className="nav-link" href="/sponsors">Sponsors</Link></li>
-                                                <li className="nav-item"><Link className="nav-link" href="/signup">Register</Link></li>
+                                                {/* <li className="nav-item"><Link className="nav-link" href="/signup">Register</Link></li> */}
                                                 {/* <li className="nav-item"><Link className="nav-link" href="#">Resources</Link></li> */}
                                             </ul>
                                             <HeaderAuth className="for-mobile" onBookDemo={onBookDemo} />

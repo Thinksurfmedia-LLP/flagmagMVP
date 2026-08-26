@@ -22,6 +22,10 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
         startDate: initial?.startDate ? new Date(initial.startDate).toISOString().split("T")[0] : "",
         endDate: initial?.endDate ? new Date(initial.endDate).toISOString().split("T")[0] : "",
         image: initial?.image || "",
+        showOnSignup: initial?.showOnSignup || false,
+        playerFee: initial?.playerFee != null ? String(initial.playerFee) : "",
+        teamDeposit: initial?.teamDepositOverridden && initial?.teamDeposit != null ? String(initial.teamDeposit) : "",
+        teamFee: initial?.teamFee != null ? String(initial.teamFee) : "",
     });
     const [selectedOrgId, setSelectedOrgId] = useState(
         initial?.organization?._id || initial?.organization || (isAdmin ? "" : userOrgId)
@@ -192,6 +196,10 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
     };
 
     const handleSave = async () => {
+        if (form.playerFee === "" || Number(form.playerFee) < 0) {
+            showError("Free agent / player fee is required.");
+            return;
+        }
         setSaving(true);
         await onSave({
             ...form,
@@ -439,6 +447,64 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
                             placeholder="Select end date…"
                             align="right"
                         />
+                    </div>
+                </div>
+
+                <div className="admin-form-group">
+                    <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                        <input
+                            type="checkbox"
+                            checked={form.showOnSignup}
+                            onChange={(e) => setForm({ ...form, showOnSignup: e.target.checked })}
+                        />
+                        <span className="admin-form-label" style={{ margin: 0 }}>
+                            Show this league on the sign up page
+                        </span>
+                    </label>
+                </div>
+
+                <div className="admin-form-group">
+                    <label className="admin-form-label" style={{ marginBottom: 4, display: "block" }}>Pricing</label>
+                    <div style={{ fontSize: 12, color: "#8b90a0", marginBottom: 8 }}>
+                        Team deposit defaults to 4x the player fee unless set explicitly.
+                    </div>
+                    <div style={{ display: "flex", gap: 12 }}>
+                        <div style={{ flex: 1 }}>
+                            <label className="admin-form-label">Free Agent / Player Fee *</label>
+                            <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                className="admin-form-input"
+                                value={form.playerFee}
+                                onChange={(e) => setForm({ ...form, playerFee: e.target.value })}
+                                placeholder="0.00"
+                            />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <label className="admin-form-label">Team Deposit</label>
+                            <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                className="admin-form-input"
+                                value={form.teamDeposit}
+                                onChange={(e) => setForm({ ...form, teamDeposit: e.target.value })}
+                                placeholder={form.playerFee ? `Auto: ${(Number(form.playerFee) * 4).toFixed(2)}` : "Auto: 4x player fee"}
+                            />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <label className="admin-form-label">Team Fee</label>
+                            <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                className="admin-form-input"
+                                value={form.teamFee}
+                                onChange={(e) => setForm({ ...form, teamFee: e.target.value })}
+                                placeholder="0.00"
+                            />
+                        </div>
                     </div>
                 </div>
 
