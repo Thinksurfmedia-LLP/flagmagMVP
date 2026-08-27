@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import SearchableSelect from "@/components/SearchableSelect";
+import PayPalCheckout from "@/components/payments/PayPalCheckout";
 
 const ROW_2COL = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "15px" };
 const FIELD_LABEL_STYLE = { display: "block", fontSize: "12px", color: "rgba(255,255,255,0.5)", marginBottom: "6px" };
@@ -204,14 +205,22 @@ export default function SignupCheckout({ orgSlug: initialOrgSlug = "" }) {
         notes: showErrors && registrationType === "payment" && !form.notes.trim(),
     };
 
+    // The reason PayPal shows the buyer / support sees on the transaction.
+    // The Comments field is only mandatory for Custom Payment — free agent
+    // and team registrations still need *some* reason on the PayPal order,
+    // so fall back to one built from context when the buyer left it blank.
+    const paypalNote = form.notes.trim() || (
+        registrationType === "team"
+            ? `Team registration — ${form.teamName || "unnamed team"}${selectedLeague ? ` (${selectedLeague.name})` : ""}`
+            : `Free agent registration${selectedLeague ? ` — ${selectedLeague.name}` : ""}`
+    );
+
+    // Clicking through with something missing just reveals the field-level
+    // red outlines (see fieldInvalid) — once requiredFilled is true, this
+    // button is swapped out for the real PayPal Buttons below.
     const handlePayNow = () => {
         if (!org) { setError("Couldn't find this organization — please go back and try again."); return; }
-        if (!requiredFilled) { setShowErrors(true); return; }
-        setShowErrors(false);
-        setError("");
-        // Payment + submission wiring lands in the next pass — this is the
-        // layout/flow pass only.
-        setConfirmed(true);
+        setShowErrors(true);
     };
 
     return (
@@ -544,12 +553,12 @@ export default function SignupCheckout({ orgSlug: initialOrgSlug = "" }) {
                             </div>
                         </div>
 
-                        <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px", marginTop: "18px" }}>
+                        {/* <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px", marginTop: "18px" }}>
                             Already have an account?{" "}
                             <Link href="/login" style={{ color: "#FF1E00", textDecoration: "none", fontWeight: 600 }}>
                                 Log in here
                             </Link>
-                        </p>
+                        </p> */}
                     </div>
 
                     {/* ── Right: order summary + Pay Now ── */}
@@ -594,7 +603,21 @@ export default function SignupCheckout({ orgSlug: initialOrgSlug = "" }) {
 
                             {confirmed ? (
                                 <div className="alert alert-success py-2 mt-3" role="alert" style={{ marginTop: "18px" }}>
-                                    Thanks, {form.firstName}! Your details are in — payment checkout connects here next.
+                                    Thanks, {form.firstName}! Your payment went through — we&apos;ll be in touch to confirm your spot.
+                                </div>
+                            ) : requiredFilled ? (
+                                <div style={{ marginTop: "20px" }}>
+                                    <PayPalCheckout
+                                        name={`${form.firstName} ${form.lastName}`.trim()}
+                                        email={form.email}
+                                        amount={total}
+                                        note={paypalNote}
+                                        address={form.address}
+                                        state={state}
+                                        teamName={registrationType === "team" ? form.teamName : ""}
+                                        onSuccess={() => setConfirmed(true)}
+                                        onError={(msg) => setError(msg)}
+                                    />
                                 </div>
                             ) : (
                                 <button
@@ -615,9 +638,9 @@ export default function SignupCheckout({ orgSlug: initialOrgSlug = "" }) {
                                 </button>
                             )}
 
-                            <p style={{ color: "rgba(255,255,255,0.45)", fontSize: "12px", marginTop: "14px", textAlign: "center" }}>
-                                Secure checkout · Powered by FlagMag
-                            </p>
+                            {/* <p style={{ color: "rgba(255,255,255,0.45)", fontSize: "12px", marginTop: "14px", textAlign: "center" }}>
+                                Secure checkout
+                            </p> */}
                         </div>
                     </div>
                 </div>

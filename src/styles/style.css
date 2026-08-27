@@ -5052,7 +5052,12 @@ footer .copyright-area p {
 /* ── Signup checkout (registration form + order summary split) ── */
 .signup-checkout-grid {
   display: grid;
-  grid-template-columns: 3fr 1fr;
+  /* Right column needs real pixel width, not just a flex share — PayPal's
+     inline "Debit or Credit Card" fields render fluid-width inside it, and
+     at the old ~280px (1fr of the 3fr/1fr split) that card form came out
+     cramped. Fixed width here gives it room without touching the form
+     column's own layout. */
+  grid-template-columns: minmax(0, 1fr) 400px;
   gap: 48px;
   align-items: start;
 }
