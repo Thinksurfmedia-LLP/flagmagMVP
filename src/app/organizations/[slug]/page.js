@@ -2,6 +2,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import TalkToTeamButton from "@/components/TalkToTeamButton";
+import RegisterNowButton from "@/components/signup/RegisterNowButton";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import League from "@/models/League";
@@ -108,7 +109,7 @@ export default async function OrganizationDetailPage({ params }) {
                             </div>
                         </div>
                         <div className="col-auto button-area">
-                            <Link href={`/signup?org=${slug}`} className="btn btn-primary">Register Now</Link>
+                            <RegisterNowButton orgSlug={slug} />
                             <Link href="#" className="btn btn-info-primary">Contact Now</Link>
                             <Link href="#" className="btn btn-info-primary">FlagMag+ Stats</Link>
                         </div>

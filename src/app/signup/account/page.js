@@ -6,7 +6,7 @@ import SignupForm from "@/components/SignupForm";
 export default function AccountSignupPage() {
     return (
         <>
-            <SignupHeroLayout title="Let's create your account" subtitle="Signing up for FlagMag is fast and 100% free." maxWidth="480px" showLogo={false}>
+            <SignupHeroLayout title="Let's get you signed up" subtitle="One account for everything on FlagMag." maxWidth="480px" showLogo={false}>
                 <SignupFormCard>
                     <SignupForm />
                 </SignupFormCard>

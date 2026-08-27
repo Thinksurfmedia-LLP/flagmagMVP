@@ -10,6 +10,7 @@ import Player from "@/models/Player";
 import Team from "@/models/Team";
 import { formatOrganizationLocations } from "@/lib/organizationLocations";
 import PlayerStatsFilter from "@/components/PlayerStatsFilter";
+import RegisterNowButton from "@/components/signup/RegisterNowButton";
 
 async function getData(slug, seasonSlug) {
     await dbConnect();
@@ -79,7 +80,7 @@ export default async function PlayerStatsPage({ params }) {
                             </div>
                         </div>
                         <div className="col-auto button-area">
-                            <Link href={`/signup?org=${slug}`} className="btn btn-primary">Register Now</Link>
+                            <RegisterNowButton orgSlug={slug} />
                             <Link href="#" className="btn btn-info-primary">Contact Now</Link>
                         </div>
                     </div>

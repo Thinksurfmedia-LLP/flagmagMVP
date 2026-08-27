@@ -12,12 +12,14 @@ export default function LoginForm() {
     const redirectTo = searchParams.get("redirect") || "/";
     const justRegistered = searchParams.get("registered") === "true";
     const sessionExpired = searchParams.get("expired") === "true";
+    const noticeRegister = searchParams.get("notice") === "register";
     const { login } = useAuth();
 
     const [formData, setFormData] = useState({ email: "", password: "" });
     const [remember, setRemember] = useState(true);
     const [error, setError] = useState(sessionExpired ? "Your session has expired. Please log in again." : "");
     const [success, setSuccess] = useState(justRegistered ? "Account created! Please log in." : "");
+    const [notice] = useState(noticeRegister ? "Please log in to continue with league registration." : "");
     const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
@@ -58,6 +60,12 @@ export default function LoginForm() {
     return (
         <form onSubmit={handleSubmit}>
             <div className="form-area">
+                {notice && !error && (
+                    <div className="alert alert-info py-2" role="alert">
+                        <i className="fa-solid fa-circle-info" style={{ marginRight: "6px" }}></i>
+                        {notice}
+                    </div>
+                )}
                 {error && (
                     <div className="alert alert-danger py-2" role="alert">
                         {error}
@@ -102,12 +110,12 @@ export default function LoginForm() {
                 >
                     {loading ? "SIGNING IN..." : "SIGN IN"}
                 </button>
-                {/* <p className="text-center mt-3" style={{ fontSize: '14px' }}>
-                    Don&apos;t have an account?{' '}
-                    <Link href="/signup" style={{ color: '#FF1E00', textDecoration: 'none', fontWeight: 600 }}>
-                        Get started
+                <p className="text-center mt-3" style={{ fontSize: "14px" }}>
+                    Don&apos;t have an account?{" "}
+                    <Link href="/signup/account" style={{ color: "#FF1E00", textDecoration: "none", fontWeight: 600 }}>
+                        Sign up
                     </Link>
-                </p> */}
+                </p>
             </div>
         </form>
     );

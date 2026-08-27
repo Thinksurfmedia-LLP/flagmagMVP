@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import GalleryCarousel from "@/components/GalleryCarousel";
+import RegisterNowButton from "@/components/signup/RegisterNowButton";
 import Link from "next/link";
 import ScrollToContent from "@/components/ScrollToContent";
 import dbConnect from "@/lib/dbConnect";
@@ -111,7 +112,7 @@ export default async function SeasonLocationPage({ params }) {
                             </div>
                         </div>
                         <div className="col-auto button-area">
-                            <Link href={`/signup?org=${slug}`} className="btn btn-primary">Register Now</Link>
+                            <RegisterNowButton orgSlug={slug} />
                             <Link href="#" className="btn btn-info-primary">Contact Now</Link>
                         </div>
                     </div>
