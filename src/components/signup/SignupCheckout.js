@@ -618,6 +618,8 @@ export default function SignupCheckout({ orgSlug: initialOrgSlug = "" }) {
                                         teamName={registrationType === "team" ? form.teamName : ""}
                                         organizationSlug={organizationSlug}
                                         organizationName={org?.name || ""}
+                                        organizationId={org?._id || ""}
+                                        leagueId={leagueId}
                                         leagueName={selectedLeague?.name || ""}
                                         registrationType={registrationType}
                                         onSuccess={() => setConfirmed(true)}

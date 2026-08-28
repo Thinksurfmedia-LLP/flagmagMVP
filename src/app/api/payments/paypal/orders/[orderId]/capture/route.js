@@ -3,6 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import Payment from "@/models/Payment";
 import { captureOrder } from "@/lib/paypal";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { createRegistrationRecordFromPayment } from "@/lib/registration/fromPayment";
 
 const RATE_LIMIT = { max: 10, windowMs: 60 * 1000 };
 
@@ -28,6 +29,11 @@ export async function POST(request, { params }) {
         // button, retry after a flaky network response) returns the
         // already-recorded result instead of hitting PayPal a second time.
         if (payment.status === "captured") {
+            // Also covers the case where a prior call captured the payment
+            // but crashed/errored before the Player/Team got created below —
+            // this re-checks (createRegistrationRecordFromPayment no-ops if
+            // one already exists) rather than assuming it's done.
+            await createRegistrationRecordFromPayment(payment);
             return NextResponse.json({ success: true, data: { status: "captured" } });
         }
 
@@ -78,6 +84,8 @@ export async function POST(request, { params }) {
                 { status: 502 }
             );
         }
+
+        await createRegistrationRecordFromPayment(payment);
 
         return NextResponse.json({ success: true, data: { status: "captured" } });
     } catch (error) {

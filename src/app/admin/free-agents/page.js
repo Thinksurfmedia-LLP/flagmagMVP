@@ -209,7 +209,7 @@ export default function AdminFreeAgentsPage() {
         const q = search.toLowerCase();
         return (
             fa.name?.toLowerCase().includes(q) ||
-            fa.user?.email?.toLowerCase().includes(q) ||
+            (fa.email || fa.user?.email)?.toLowerCase().includes(q) ||
             fa.organization?.name?.toLowerCase().includes(q)
         );
     });
@@ -364,11 +364,11 @@ export default function AdminFreeAgentsPage() {
                                                 {filtered.map((fa) => (
                                                     <tr key={fa._id}>
                                                         <td style={{ fontWeight: 600 }}>{fa.name}</td>
-                                                        <td style={{ color: "#6b7280" }}>{fa.user?.email || "—"}</td>
+                                                        <td style={{ color: "#6b7280" }}>{fa.email || fa.user?.email || "—"}</td>
                                                         {isAdmin && (
                                                             <td>{fa.organization?.name || "—"}</td>
                                                         )}
-                                                        <td style={{ color: "#6b7280" }}>{fa.user?.phone || "—"}</td>
+                                                        <td style={{ color: "#6b7280" }}>{fa.phone || fa.user?.phone || "—"}</td>
                                                         <td>
                                                             {isAdmin ? (
                                                                 <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
@@ -410,8 +410,8 @@ export default function AdminFreeAgentsPage() {
                                         <div key={fa._id} className="free-agents-card-item">
                                             <div className="free-agents-card-item-title">{fa.name}</div>
                                             <div className="free-agents-card-item-meta">
-                                                {fa.user?.email && <span>{fa.user.email}</span>}
-                                                {fa.user?.phone && <span>{fa.user.phone}</span>}
+                                                {(fa.email || fa.user?.email) && <span>{fa.email || fa.user?.email}</span>}
+                                                {(fa.phone || fa.user?.phone) && <span>{fa.phone || fa.user?.phone}</span>}
                                                 {isAdmin && fa.organization?.name && (
                                                     <span><strong>Org:</strong> {fa.organization.name}</span>
                                                 )}

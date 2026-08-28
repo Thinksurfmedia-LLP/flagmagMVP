@@ -34,6 +34,21 @@ const PlayerSchema = new mongoose.Schema(
             required: [true, "Player name is required"],
             trim: true,
         },
+        // Denormalized from the signup form so contact info survives even
+        // when this player has no linked User (guest free-agent checkout —
+        // see lib/registration/fromPayment.js). Kept in sync with `user`'s
+        // own email/phone when a user IS linked, but never required.
+        email: {
+            type: String,
+            trim: true,
+            lowercase: true,
+            default: "",
+        },
+        phone: {
+            type: String,
+            trim: true,
+            default: "",
+        },
         photo: {
             type: String,
             default: "",
@@ -150,7 +165,7 @@ function getPlayerModel() {
     // Dev HMR can keep a stale compiled model around after a field is added
     // here — same failure mode Team.js guards against. Rebuild rather than
     // silently dropping writes to a field the cached model doesn't know about.
-    if (existing && (!existing.schema.path("address") || !existing.schema.path("requestedLeague"))) {
+    if (existing && (!existing.schema.path("address") || !existing.schema.path("requestedLeague") || !existing.schema.path("email"))) {
         delete mongoose.models.Player;
     }
     return mongoose.models.Player || mongoose.model("Player", PlayerSchema);

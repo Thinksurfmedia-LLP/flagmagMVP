@@ -21,6 +21,8 @@ export default function PayPalCheckout({
     teamName,
     organizationSlug,
     organizationName,
+    organizationId,
+    leagueId,
     leagueName,
     registrationType,
     onSuccess,
@@ -60,7 +62,7 @@ export default function PayPalCheckout({
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         name, email, phone, amount, note, address, state, location, teamName,
-                        organizationSlug, organizationName, leagueName, registrationType,
+                        organizationSlug, organizationName, organizationId, leagueId, leagueName, registrationType,
                     }),
                 });
                 const data = await res.json();
@@ -102,7 +104,7 @@ export default function PayPalCheckout({
         return () => {
             buttonsInstanceRef.current?.close?.();
         };
-    }, [sdkReady, name, email, phone, amount, note, address, state, location, teamName, organizationSlug, organizationName, leagueName, registrationType]);
+    }, [sdkReady, name, email, phone, amount, note, address, state, location, teamName, organizationSlug, organizationName, organizationId, leagueId, leagueName, registrationType]);
 
     if (!clientId) {
         return (

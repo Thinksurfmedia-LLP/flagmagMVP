@@ -24,6 +24,17 @@ const PaymentSchema = new mongoose.Schema(
             enum: ["free-agent", "team", "payment"],
             default: "payment",
         },
+        // Actual FKs (as opposed to the display-only strings above) — set
+        // at order-creation time from the org/league the signup form
+        // already had resolved. Needed to create the real Player/Team
+        // record once payment captures (see lib/registration/fromPayment.js).
+        organization: { type: mongoose.Schema.Types.ObjectId, ref: "Organization", default: null },
+        league: { type: mongoose.Schema.Types.ObjectId, ref: "League", default: null },
+        // Back-reference to whatever record capture-time registration
+        // created from this payment — doubles as the idempotency guard so
+        // a duplicate capture call never creates a second Player/Team.
+        player: { type: mongoose.Schema.Types.ObjectId, ref: "Player", default: null },
+        team: { type: mongoose.Schema.Types.ObjectId, ref: "Team", default: null },
         // Requested amount, validated server-side (see lib/payments/amount.js)
         // before this document is created. Authoritative for the capture
         // step — never trust a client-supplied amount at capture time.
@@ -51,9 +62,10 @@ function getPaymentModel() {
     const existing = mongoose.models.Payment;
     // Dev HMR guard, same rationale as Team.js/Player.js — rebuild rather
     // than silently drop writes to a field the cached model doesn't know.
-    const hasNewFields = ["address", "state", "location", "teamName", "phone", "organizationSlug", "registrationType"].every(
-        (field) => existing?.schema.path(field)
-    );
+    const hasNewFields = [
+        "address", "state", "location", "teamName", "phone",
+        "organizationSlug", "registrationType", "organization", "league", "player", "team",
+    ].every((field) => existing?.schema.path(field));
     if (existing && !hasNewFields) {
         delete mongoose.models.Payment;
     }

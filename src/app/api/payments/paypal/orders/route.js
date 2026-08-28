@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import mongoose from "mongoose";
 import dbConnect from "@/lib/dbConnect";
 import Payment from "@/models/Payment";
 import { normalizeAmount } from "@/lib/payments/amount";
@@ -35,7 +36,7 @@ export async function POST(request) {
         await dbConnect();
         const {
             name, email, phone, amount, note, address, state, location, teamName,
-            organizationSlug, organizationName, leagueName, registrationType,
+            organizationSlug, organizationName, organizationId, leagueId, leagueName, registrationType,
         } = await request.json();
 
         if (!name?.trim()) {
@@ -84,6 +85,8 @@ export async function POST(request) {
                 organizationName: organizationName?.trim() || "",
                 leagueName: leagueName?.trim() || "",
                 registrationType: ["free-agent", "team", "payment"].includes(registrationType) ? registrationType : "payment",
+                organization: mongoose.isValidObjectId(organizationId) ? organizationId : null,
+                league: mongoose.isValidObjectId(leagueId) ? leagueId : null,
             });
         }
 
