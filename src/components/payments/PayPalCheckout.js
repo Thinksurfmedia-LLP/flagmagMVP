@@ -9,7 +9,23 @@ import Script from "next/script";
  * server only at order-creation time — PayPal's UI itself never lets the
  * buyer edit it.
  */
-export default function PayPalCheckout({ name, email, amount, note, address, state, location, teamName, onSuccess, onError }) {
+export default function PayPalCheckout({
+    name,
+    email,
+    phone,
+    amount,
+    note,
+    address,
+    state,
+    location,
+    teamName,
+    organizationSlug,
+    organizationName,
+    leagueName,
+    registrationType,
+    onSuccess,
+    onError,
+}) {
     const containerRef = useRef(null);
     const buttonsInstanceRef = useRef(null);
     const [sdkReady, setSdkReady] = useState(false);
@@ -42,7 +58,10 @@ export default function PayPalCheckout({ name, email, amount, note, address, sta
                 const res = await fetch("/api/payments/paypal/orders", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ name, email, amount, note, address, state, location, teamName }),
+                    body: JSON.stringify({
+                        name, email, phone, amount, note, address, state, location, teamName,
+                        organizationSlug, organizationName, leagueName, registrationType,
+                    }),
                 });
                 const data = await res.json();
                 if (!data.success) {
@@ -83,7 +102,7 @@ export default function PayPalCheckout({ name, email, amount, note, address, sta
         return () => {
             buttonsInstanceRef.current?.close?.();
         };
-    }, [sdkReady, name, email, amount, note, address, state, location, teamName]);
+    }, [sdkReady, name, email, phone, amount, note, address, state, location, teamName, organizationSlug, organizationName, leagueName, registrationType]);
 
     if (!clientId) {
         return (

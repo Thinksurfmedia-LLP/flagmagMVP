@@ -610,11 +610,16 @@ export default function SignupCheckout({ orgSlug: initialOrgSlug = "" }) {
                                     <PayPalCheckout
                                         name={`${form.firstName} ${form.lastName}`.trim()}
                                         email={form.email}
+                                        phone={form.phone}
                                         amount={total}
                                         note={paypalNote}
                                         address={form.address}
                                         state={state}
                                         teamName={registrationType === "team" ? form.teamName : ""}
+                                        organizationSlug={organizationSlug}
+                                        organizationName={org?.name || ""}
+                                        leagueName={selectedLeague?.name || ""}
+                                        registrationType={registrationType}
                                         onSuccess={() => setConfirmed(true)}
                                         onError={(msg) => setError(msg)}
                                     />

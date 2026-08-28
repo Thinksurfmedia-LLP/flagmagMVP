@@ -15,7 +15,10 @@ export async function GET() {
 
     try {
         await dbConnect();
-        const payments = await Payment.find().sort({ createdAt: -1 }).lean();
+        const payments = await Payment.find()
+            .sort({ createdAt: -1 })
+            .populate("user", "name email phone")
+            .lean();
         return NextResponse.json({ success: true, data: payments });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });

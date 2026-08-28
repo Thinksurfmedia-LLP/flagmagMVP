@@ -33,7 +33,10 @@ export async function POST(request) {
         }
 
         await dbConnect();
-        const { name, email, amount, note, address, state, location, teamName } = await request.json();
+        const {
+            name, email, phone, amount, note, address, state, location, teamName,
+            organizationSlug, organizationName, leagueName, registrationType,
+        } = await request.json();
 
         if (!name?.trim()) {
             return NextResponse.json({ success: false, error: "Name is required" }, { status: 400 });
@@ -76,6 +79,11 @@ export async function POST(request) {
                 state: state?.trim() || "",
                 location: location?.trim() || "",
                 teamName: teamName?.trim() || "",
+                phone: phone?.trim() || "",
+                organizationSlug: organizationSlug?.trim() || "",
+                organizationName: organizationName?.trim() || "",
+                leagueName: leagueName?.trim() || "",
+                registrationType: ["free-agent", "team", "payment"].includes(registrationType) ? registrationType : "payment",
             });
         }
 

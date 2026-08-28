@@ -22,7 +22,7 @@ function LeagueCard({ season, orgSlug }) {
                     </ul>
                     <div className="button-area">
                         <Link href={`/organizations/${orgSlug}/season/${season.slug}`} className="btn btn-primary">Enter Season</Link>
-                        <Link href="#" className="btn btn-info-primary">Sign-In</Link>
+                        {/* <Link href="#" className="btn btn-info-primary">Sign-In</Link> */}
                     </div>
                 </div>
             </div>
