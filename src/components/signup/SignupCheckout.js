@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import SearchableSelect from "@/components/SearchableSelect";
 import PayPalCheckout from "@/components/payments/PayPalCheckout";
+import SignupThankYou from "@/components/signup/SignupThankYou";
 
 const ROW_2COL = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "15px" };
 const FIELD_LABEL_STYLE = { display: "block", fontSize: "12px", color: "rgba(255,255,255,0.5)", marginBottom: "6px" };
@@ -222,6 +223,10 @@ export default function SignupCheckout({ orgSlug: initialOrgSlug = "" }) {
         if (!org) { setError("Couldn't find this organization — please go back and try again."); return; }
         setShowErrors(true);
     };
+
+    if (confirmed) {
+        return <SignupThankYou name={form.firstName} orgName={org?.name} logo={org?.logo} />;
+    }
 
     return (
         <div
@@ -608,11 +613,7 @@ export default function SignupCheckout({ orgSlug: initialOrgSlug = "" }) {
                                 <span style={{ color: "#fff", fontWeight: 700, fontSize: "24px" }}>{currency(total)}</span>
                             </div>
 
-                            {confirmed ? (
-                                <div className="alert alert-success py-2 mt-3" role="alert" style={{ marginTop: "18px" }}>
-                                    Thanks, {form.firstName}! Your payment went through — we&apos;ll be in touch to confirm your spot.
-                                </div>
-                            ) : requiredFilled ? (
+                            {requiredFilled ? (
                                 <div style={{ marginTop: "20px" }}>
                                     <PayPalCheckout
                                         name={`${form.firstName} ${form.lastName}`.trim()}

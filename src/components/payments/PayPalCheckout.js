@@ -35,6 +35,18 @@ export default function PayPalCheckout({
 
     const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
 
+    // next/script only ever loads a given `src` once per page and only
+    // fires `onLoad` for whichever mount actually triggered that load.
+    // PayPalCheckout unmounts/remounts as `requiredFilled` flips (e.g.
+    // switching registration type clears teamName, then filling it back in
+    // re-mounts this component) — a *second* mount whose script was already
+    // loaded by an earlier one would otherwise wait forever for an onLoad
+    // that's never coming again, leaving the button area silently blank.
+    // Checking window.paypal directly on mount catches that case.
+    useEffect(() => {
+        if (window.paypal) setSdkReady(true);
+    }, []);
+
     // The parent (CustomPaymentForm) passes new onSuccess/onError function
     // literals on every render — e.g. on every keystroke in an unrelated
     // field, since setError("") in its handleChange re-renders it. Reading
@@ -44,6 +56,20 @@ export default function PayPalCheckout({
     // actual change to name/email/amount/note does.
     const callbacksRef = useRef({ onSuccess, onError });
     callbacksRef.current = { onSuccess, onError };
+
+    // Same rationale as callbacksRef, extended to every order-detail field:
+    // typing in ANY sibling field (team name, address, notes...) re-renders
+    // this component with new prop values every keystroke. Reading them
+    // through a ref instead of closing over them directly means the effect
+    // below never needs those values in its dependency array, so the PayPal
+    // Buttons widget mounts once and stays put instead of being torn down
+    // and re-rendered (and briefly disappearing, or failing to reappear if
+    // a render/close pair overlaps) on every character typed.
+    const fieldsRef = useRef();
+    fieldsRef.current = {
+        name, email, phone, amount, note, address, state, location, teamName,
+        organizationSlug, organizationName, organizationId, leagueId, leagueName, registrationType,
+    };
 
     useEffect(() => {
         if (!sdkReady || !window.paypal || !containerRef.current) return;
@@ -60,10 +86,7 @@ export default function PayPalCheckout({
                 const res = await fetch("/api/payments/paypal/orders", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        name, email, phone, amount, note, address, state, location, teamName,
-                        organizationSlug, organizationName, organizationId, leagueId, leagueName, registrationType,
-                    }),
+                    body: JSON.stringify(fieldsRef.current),
                 });
                 const data = await res.json();
                 if (!data.success) {
@@ -104,7 +127,7 @@ export default function PayPalCheckout({
         return () => {
             buttonsInstanceRef.current?.close?.();
         };
-    }, [sdkReady, name, email, phone, amount, note, address, state, location, teamName, organizationSlug, organizationName, organizationId, leagueId, leagueName, registrationType]);
+    }, [sdkReady]);
 
     if (!clientId) {
         return (
