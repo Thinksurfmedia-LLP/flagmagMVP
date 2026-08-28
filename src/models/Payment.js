@@ -26,15 +26,12 @@ const PaymentSchema = new mongoose.Schema(
         },
         // Actual FKs (as opposed to the display-only strings above) — set
         // at order-creation time from the org/league the signup form
-        // already had resolved. Needed to create the real Player/Team
-        // record once payment captures (see lib/registration/fromPayment.js).
+        // already had resolved. Lets the admin/organizer Registrations
+        // list (GET /api/payments) scope results to one organization.
+        // Registering doesn't auto-create a Player/Team — the organizer
+        // reviews this list and creates the record themselves.
         organization: { type: mongoose.Schema.Types.ObjectId, ref: "Organization", default: null },
         league: { type: mongoose.Schema.Types.ObjectId, ref: "League", default: null },
-        // Back-reference to whatever record capture-time registration
-        // created from this payment — doubles as the idempotency guard so
-        // a duplicate capture call never creates a second Player/Team.
-        player: { type: mongoose.Schema.Types.ObjectId, ref: "Player", default: null },
-        team: { type: mongoose.Schema.Types.ObjectId, ref: "Team", default: null },
         // Requested amount, validated server-side (see lib/payments/amount.js)
         // before this document is created. Authoritative for the capture
         // step — never trust a client-supplied amount at capture time.
@@ -64,7 +61,7 @@ function getPaymentModel() {
     // than silently drop writes to a field the cached model doesn't know.
     const hasNewFields = [
         "address", "state", "location", "teamName", "phone",
-        "organizationSlug", "registrationType", "organization", "league", "player", "team",
+        "organizationSlug", "registrationType", "organization", "league",
     ].every((field) => existing?.schema.path(field));
     if (existing && !hasNewFields) {
         delete mongoose.models.Payment;

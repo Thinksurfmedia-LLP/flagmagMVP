@@ -191,6 +191,10 @@ function getOrganizerNav(orgSlug) {
                     icon: "fa-solid fa-user-clock",
                     perms: ["manage_players", "player_view", "player_create", "player_update", "player_delete"],
                 },
+                // Same always-visible rule as Dashboard/Organization below —
+                // every organizer should see registrations made against
+                // their own org, the API scopes the data, not this nav.
+                { label: "Registrations", href: "/admin/registrations", icon: "fa-solid fa-clipboard-list", perm: "view_dashboard" },
                 {
                     label: "Players",
                     href: "/admin/players",

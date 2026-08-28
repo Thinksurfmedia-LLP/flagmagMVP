@@ -61,7 +61,7 @@ function phoneFor(reg) {
 }
 
 export default function RegistrationsPage() {
-    const { user, loading: authLoading } = useAuth();
+    const { user, activeRole, loading: authLoading } = useAuth();
     const { showError } = useToast();
     const router = useRouter();
 
@@ -71,11 +71,17 @@ export default function RegistrationsPage() {
     const [filterStatus, setFilterStatus] = useState("all");
     const [filterType, setFilterType] = useState("all");
 
-    const isAdmin = user?.role === "admin" || user?.roles?.includes("admin");
+    // An organizer only ever gets their own org's registrations back from
+    // the API (see GET /api/payments) — no client-side org filtering needed
+    // here, the same as /admin/free-agents and /admin/teams.
+    const effectiveRole = activeRole || user?.role;
+    const isAdmin = effectiveRole === "admin" || user?.roles?.includes("admin");
+    const isOrganizer = effectiveRole === "organizer";
+    const canView = isAdmin || isOrganizer;
 
     useEffect(() => {
-        if (!authLoading && !isAdmin) router.replace("/admin");
-    }, [authLoading, isAdmin, router]);
+        if (!authLoading && !canView) router.replace("/admin");
+    }, [authLoading, canView, router]);
 
     const fetchRegistrations = useCallback(async () => {
         try {
@@ -92,8 +98,8 @@ export default function RegistrationsPage() {
     }, [showError]);
 
     useEffect(() => {
-        if (isAdmin) fetchRegistrations();
-    }, [isAdmin, fetchRegistrations]);
+        if (canView) fetchRegistrations();
+    }, [canView, fetchRegistrations]);
 
     const filtered = registrations.filter((r) => {
         const matchStatus = filterStatus === "all" || r.status === filterStatus;
@@ -116,7 +122,7 @@ export default function RegistrationsPage() {
         );
     }
 
-    if (!isAdmin) return null;
+    if (!canView) return null;
 
     return (
         <AdminLayout title="Registrations">
@@ -173,7 +179,7 @@ export default function RegistrationsPage() {
                                     <th>Name</th>
                                     <th>Email</th>
                                     <th>Phone</th>
-                                    <th>Organization</th>
+                                    {isAdmin && <th>Organization</th>}
                                     <th>League</th>
                                     <th>Type</th>
                                     <th>Team</th>
@@ -188,7 +194,9 @@ export default function RegistrationsPage() {
                                         <td style={{ fontWeight: 600 }}>{reg.name}</td>
                                         <td>{reg.email}</td>
                                         <td>{phoneFor(reg)}</td>
-                                        <td>{reg.organizationName || <span style={{ color: "#a0a4b2" }}>—</span>}</td>
+                                        {isAdmin && (
+                                            <td>{reg.organizationName || <span style={{ color: "#a0a4b2" }}>—</span>}</td>
+                                        )}
                                         <td>{reg.leagueName || <span style={{ color: "#a0a4b2" }}>—</span>}</td>
                                         <td>{TYPE_LABELS[reg.registrationType] || TYPE_LABELS.payment}</td>
                                         <td>{reg.teamName || <span style={{ color: "#a0a4b2" }}>—</span>}</td>

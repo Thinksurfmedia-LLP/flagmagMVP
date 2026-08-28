@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+// import Link from "next/link"; // only used by the commented-out signup link below
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import PasswordInput from "@/components/ui/PasswordInput";
@@ -110,12 +110,14 @@ export default function LoginForm() {
                 >
                     {loading ? "SIGNING IN..." : "SIGN IN"}
                 </button>
-                <p className="text-center mt-3" style={{ fontSize: "14px" }}>
+                {/* Self-serve account signup disabled — /signup/account now
+                    404s (see src/app/signup/account/page.js). */}
+                {/* <p className="text-center mt-3" style={{ fontSize: "14px" }}>
                     Don&apos;t have an account?{" "}
                     <Link href="/signup/account" style={{ color: "#FF1E00", textDecoration: "none", fontWeight: 600 }}>
                         Sign up
                     </Link>
-                </p>
+                </p> */}
             </div>
         </form>
     );

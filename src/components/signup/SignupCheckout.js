@@ -233,7 +233,10 @@ export default function SignupCheckout({ orgSlug: initialOrgSlug = "" }) {
             }}
         >
             {/* Minimal checkout top bar — brand mark only, centered, no full
-                site nav, so nothing pulls attention away mid-checkout. */}
+                site nav, so nothing pulls attention away mid-checkout. Shows
+                the org's own logo once it's loaded (this is their signup
+                page, after all) — falls back to the FlagMag mark while
+                loading/erroring or if the org has none set. */}
             <div
                 style={{
                     padding: "24px",
@@ -244,7 +247,11 @@ export default function SignupCheckout({ orgSlug: initialOrgSlug = "" }) {
                 }}
             >
                 <Link href="/" style={{ display: "inline-flex" }}>
-                    <img src="/assets/images/logo.png" alt="FlagMag" style={{ height: "56px" }} />
+                    <img
+                        src={orgStatus === "ready" && org?.logo ? org.logo : "/assets/images/logo.png"}
+                        alt={orgStatus === "ready" && org?.logo ? org.name : "FlagMag"}
+                        style={{ height: "56px" }}
+                    />
                 </Link>
             </div>
             {/* Thin brand stripe nodding to the logo's red/yellow flag mark,

@@ -3,7 +3,6 @@ import dbConnect from "@/lib/dbConnect";
 import Payment from "@/models/Payment";
 import { captureOrder } from "@/lib/paypal";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
-import { createRegistrationRecordFromPayment } from "@/lib/registration/fromPayment";
 
 const RATE_LIMIT = { max: 10, windowMs: 60 * 1000 };
 
@@ -29,11 +28,6 @@ export async function POST(request, { params }) {
         // button, retry after a flaky network response) returns the
         // already-recorded result instead of hitting PayPal a second time.
         if (payment.status === "captured") {
-            // Also covers the case where a prior call captured the payment
-            // but crashed/errored before the Player/Team got created below —
-            // this re-checks (createRegistrationRecordFromPayment no-ops if
-            // one already exists) rather than assuming it's done.
-            await createRegistrationRecordFromPayment(payment);
             return NextResponse.json({ success: true, data: { status: "captured" } });
         }
 
@@ -85,8 +79,10 @@ export async function POST(request, { params }) {
             );
         }
 
-        await createRegistrationRecordFromPayment(payment);
-
+        // Note: capturing a free-agent/team payment does NOT create a
+        // Player/Team record. That's a deliberate manual step — the
+        // organizer reviews the captured registration in /admin/registrations
+        // and creates the actual free agent / team from their own dashboard.
         return NextResponse.json({ success: true, data: { status: "captured" } });
     } catch (error) {
         console.error("[payments/paypal/capture] unexpected error:", error);
