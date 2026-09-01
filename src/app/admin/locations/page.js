@@ -7,6 +7,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { useImpersonation } from "@/components/ImpersonationProvider";
 import { useToast } from "@/components/AdminToast";
 import { US_STATES, US_COUNTIES } from "@/lib/usGeoData";
+import { isValidPhoneNumber } from "@/lib/validators";
 
 const selectStyles = {
     control: (base, state) => ({
@@ -53,8 +54,10 @@ function OrgLocationModal({ open, editingVenue, orgLocations, amenityList, onClo
 
     const countyOptions = useMemo(() => {
         if (!selectedState) return [];
+        const seen = new Set();
         return orgLocations
             .filter(l => l.stateAbbr === selectedState.value)
+            .filter(l => { if (seen.has(l.countyName)) return false; seen.add(l.countyName); return true; })
             .map(l => ({ value: l.countyName, label: l.countyName }));
     }, [orgLocations, selectedState]);
 
@@ -228,7 +231,7 @@ function OrgLocationModal({ open, editingVenue, orgLocations, amenityList, onClo
                         </div>
                         <div style={{ flex: "1 1 250px" }}>
                             <label className="admin-form-label">Phone Number</label>
-                            <input className="admin-form-input" value={managerPhone} onChange={e => setManagerPhone(e.target.value)} placeholder="Phone number" />
+                            <input type="tel" className="admin-form-input" value={managerPhone} onChange={e => setManagerPhone(e.target.value)} placeholder="Phone number" />
                         </div>
                     </div>
 
@@ -449,6 +452,10 @@ function OrgLocationsView() {
         }
         if (!venueName?.trim()) {
             showError("Location name is required");
+            return;
+        }
+        if (!isValidPhoneNumber(managerPhone)) {
+            showError("Enter a valid phone number (digits only, 7–15 digits)");
             return;
         }
         setModalSaving(true);
@@ -738,6 +745,7 @@ function VenueModal({ open, editingVenue, onClose, onSave, loading }) {
                         <div style={{ flex: "1 1 250px" }}>
                             <label className="admin-form-label">Phone Number</label>
                             <input
+                                type="tel"
                                 className="admin-form-input"
                                 value={managerPhone}
                                 onChange={(event) => setManagerPhone(event.target.value)}
@@ -832,6 +840,11 @@ function AdminVenuesView() {
 
         if (!venueName?.trim()) {
             showError("Venue name is required");
+            return;
+        }
+
+        if (!isValidPhoneNumber(managerPhone)) {
+            showError("Enter a valid phone number (digits only, 7–15 digits)");
             return;
         }
 

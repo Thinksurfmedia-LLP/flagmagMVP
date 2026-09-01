@@ -3,6 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import Venue from "@/models/Location";
 import League from "@/models/League";
 import { requireAdmin } from "@/lib/apiAuth";
+import { isValidPhoneNumber } from "@/lib/validators";
 
 export async function PUT(request, { params }) {
     try {
@@ -12,6 +13,10 @@ export async function PUT(request, { params }) {
         await dbConnect();
         const { id } = await params;
         const body = await request.json();
+
+        if (body.managerPhone !== undefined && !isValidPhoneNumber(body.managerPhone)) {
+            return NextResponse.json({ success: false, error: "Enter a valid phone number (digits only, 7–15 digits)" }, { status: 400 });
+        }
 
         const venue = await Venue.findByIdAndUpdate(id, body, { new: true, runValidators: true });
         if (!venue) return NextResponse.json({ success: false, error: "Venue not found" }, { status: 404 });

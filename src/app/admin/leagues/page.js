@@ -1096,8 +1096,12 @@ export default function LeaguesPage() {
     const [sortDir, setSortDir] = useState("asc"); // "asc" | "desc"
 
     // Filters
-    const [allStates, setAllStates] = useState([]);
-    const [allVenues, setAllVenues] = useState([]);
+    const [allStatesRaw, setAllStatesRaw] = useState([]);
+    const [allVenuesRaw, setAllVenuesRaw] = useState([]);
+    // County+state combos the current organizer's org actually operates in
+    // (from Organization.locations) — null means "not scoped" (admin, or
+    // not loaded yet), so state/venue filters fall back to the full list.
+    const [orgLocationKeys, setOrgLocationKeys] = useState(null);
     const [filterState, setFilterState] = useState("");
     const [filterCounty, setFilterCounty] = useState("");
     const [filterCity, setFilterCity] = useState("");
@@ -1134,13 +1138,36 @@ export default function LeaguesPage() {
     useEffect(() => {
         fetch("/api/states")
             .then((r) => r.json())
-            .then((d) => { if (d.success) setAllStates(d.data || []); })
+            .then((d) => { if (d.success) setAllStatesRaw(d.data || []); })
             .catch(() => {});
         fetch("/api/locations")
             .then((r) => r.json())
-            .then((d) => { if (d.success) setAllVenues(d.data || []); })
+            .then((d) => { if (d.success) setAllVenuesRaw(d.data || []); })
             .catch(() => {});
     }, []);
+
+    // Organizers should only filter by the states/counties their own org
+    // operates in, not every state in the system — admins keep the full list.
+    useEffect(() => {
+        if (isAdmin || !userOrgSlug) { setOrgLocationKeys(null); return; }
+        let cancelled = false;
+        fetch(`/api/organizations/${userOrgSlug}`)
+            .then((r) => r.json())
+            .then((d) => {
+                if (cancelled || !d.success) return;
+                const keys = new Set((d.data.locations || []).map((l) => `${l.countyName}|${l.stateAbbr}`));
+                setOrgLocationKeys(keys);
+            })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [isAdmin, userOrgSlug]);
+
+    const allVenues = orgLocationKeys
+        ? allVenuesRaw.filter((v) => orgLocationKeys.has(`${v.countyName}|${v.stateAbbr}`))
+        : allVenuesRaw;
+    const allStates = orgLocationKeys
+        ? allStatesRaw.filter((s) => allVenues.some((v) => v.stateId === s._id))
+        : allStatesRaw;
 
     // Cascading county options based on selected state
     const countyOptions = filterState

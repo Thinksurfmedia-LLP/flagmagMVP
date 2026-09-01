@@ -4,6 +4,7 @@ import State from "@/models/State";
 import County from "@/models/County";
 import Venue from "@/models/Location";
 import { requireAdmin } from "@/lib/apiAuth";
+import { isValidPhoneNumber } from "@/lib/validators";
 
 /**
  * GET /api/locations/by-geo?stateAbbr=XX&countyName=YY
@@ -51,6 +52,10 @@ export async function POST(request) {
 
         if (!stateAbbr || !countyName || !venueName) {
             return NextResponse.json({ success: false, error: "State, county, and venue name are required" }, { status: 400 });
+        }
+
+        if (!isValidPhoneNumber(managerPhone)) {
+            return NextResponse.json({ success: false, error: "Enter a valid phone number (digits only, 7–15 digits)" }, { status: 400 });
         }
 
         // Upsert state
