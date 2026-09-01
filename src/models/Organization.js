@@ -107,6 +107,24 @@ const OrganizationSchema = new mongoose.Schema(
             facebook: { type: String, default: "" },
             twitter: { type: String, default: "" },
             instagram: { type: String, default: "" },
+            youtube: { type: String, default: "" },
+            tiktok: { type: String, default: "" },
+            linkedin: { type: String, default: "" },
+            threads: { type: String, default: "" },
+        },
+        // Org-defined social links beyond the fixed set above — each entry
+        // carries its own display label, target url, and icon. icon holds
+        // either a Font Awesome class string (e.g. "fa-brands fa-discord")
+        // or an image url/data-uri, distinguished by prefix at render time.
+        customSocialLinks: {
+            type: [
+                {
+                    label: { type: String, default: "" },
+                    url: { type: String, default: "" },
+                    icon: { type: String, default: "" },
+                },
+            ],
+            default: [],
         },
         venues: [
             {
@@ -146,7 +164,7 @@ function getOrganizationModel() {
     if (existing) {
         const locationsSchema = existing.schema.path("locations");
         const subdocPaths = locationsSchema?.schema?.paths || {};
-        if (!subdocPaths.cityName || !existing.schema.path("timezone") || !existing.schema.path("sessionsInvalidatedAt")) {
+        if (!subdocPaths.cityName || !existing.schema.path("timezone") || !existing.schema.path("sessionsInvalidatedAt") || !existing.schema.path("socialLinks.youtube") || !existing.schema.path("customSocialLinks")) {
             delete mongoose.models.Organization;
         }
     }
