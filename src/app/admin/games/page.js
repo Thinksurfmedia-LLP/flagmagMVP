@@ -1413,7 +1413,18 @@ export default function AdminGamesPage() {
                 if (orgData.success) setScheduleDays(orgData.data?.scheduleDays || []);
                 if (leagueData.success) setLeagues(leagueData.data);
                 if (teamData.success) setTeams(teamData.data);
-                if (venueData.success) setVenues(venueData.data);
+                if (venueData.success) {
+                    // /api/locations returns every venue system-wide — scope the
+                    // geo filters down to just the counties this org operates in
+                    // (Organization.locations), not every state in the system.
+                    const orgLocationKeys = orgData.success
+                        ? new Set((orgData.data?.locations || []).map((l) => `${l.countyName}|${l.stateAbbr}`))
+                        : null;
+                    const scopedVenues = orgLocationKeys
+                        ? venueData.data.filter((v) => orgLocationKeys.has(`${v.countyName}|${v.stateAbbr}`))
+                        : venueData.data;
+                    setVenues(scopedVenues);
+                }
                 if (gamesData.success) { setGames(gamesData.data); setGamePage(1); }
                 else setGames([]);
             } catch { showError("Failed to load data"); }

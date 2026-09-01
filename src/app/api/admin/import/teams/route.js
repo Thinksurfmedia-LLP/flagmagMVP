@@ -114,18 +114,8 @@ export async function POST(request) {
                 { status: 400 }
             );
         }
-        if (!headers.includes("season")) {
-            return NextResponse.json(
-                { success: false, error: 'CSV must contain a "season" column.' },
-                { status: 400 }
-            );
-        }
-        if (!headers.includes("league")) {
-            return NextResponse.json(
-                { success: false, error: 'CSV must contain a "league" column.' },
-                { status: 400 }
-            );
-        }
+        // season/league columns are optional — a team can be imported
+        // without an initial league membership and assigned to one later.
 
         // Resolve organization
         const allRoles = auth.user.roles?.length ? auth.user.roles : [auth.user.role];
@@ -213,36 +203,38 @@ export async function POST(request) {
             if (rawCity) location.cityName = toTitleCase(rawCity);
 
             try {
-                // Resolve season/league by name — both required
+                // Season/league are optional — a team can be imported with no
+                // league membership at all and assigned to one later. When a
+                // league name is given, it's still validated against the org's
+                // leagues (and season, if also given, disambiguates same-named
+                // leagues across seasons); an unresolvable name is an error.
                 const rawSeason = (row.season || "").trim();
                 const rawLeague = (row.league || "").trim();
 
-                if (!rawSeason) {
-                    results.errors++;
-                    results.details.push({ row: row._rowNum, name, status: "error", reason: "Season is required" });
-                    continue;
+                let leagueId = null;
+                if (rawLeague) {
+                    let seasonId = null;
+                    if (rawSeason) {
+                        seasonId = seasonByName.get(rawSeason.toLowerCase());
+                        if (!seasonId) {
+                            results.errors++;
+                            results.details.push({ row: row._rowNum, name, status: "error", reason: `Season "${rawSeason}" not found in this organization` });
+                            continue;
+                        }
+                    }
+                    // Prefer season-scoped match (when a season was given); fall back to plain name match
+                    leagueId =
+                        (seasonId && leagueBySeasonAndName.get(`${seasonId}::${rawLeague.toLowerCase()}`)) ||
+                        leagueByName.get(rawLeague.toLowerCase());
+                    if (!leagueId) {
+                        results.errors++;
+                        results.details.push({ row: row._rowNum, name, status: "error", reason: `League "${rawLeague}" not found in this organization` });
+                        continue;
+                    }
                 }
-                const seasonId = seasonByName.get(rawSeason.toLowerCase());
-                if (!seasonId) {
-                    results.errors++;
-                    results.details.push({ row: row._rowNum, name, status: "error", reason: `Season "${rawSeason}" not found in this organization` });
-                    continue;
-                }
-
-                if (!rawLeague) {
-                    results.errors++;
-                    results.details.push({ row: row._rowNum, name, status: "error", reason: "League is required" });
-                    continue;
-                }
-                // Prefer season-scoped match; fall back to plain name match
-                const leagueId =
-                    leagueBySeasonAndName.get(`${seasonId}::${rawLeague.toLowerCase()}`) ||
-                    leagueByName.get(rawLeague.toLowerCase());
-                if (!leagueId) {
-                    results.errors++;
-                    results.details.push({ row: row._rowNum, name, status: "error", reason: `League "${rawLeague}" not found in this organization` });
-                    continue;
-                }
+                // A season given without a league has nothing to attach to
+                // (season isn't stored on the team itself) — it's simply
+                // ignored rather than treated as an error.
 
                 await Team.create({
                     name,
@@ -252,7 +244,7 @@ export async function POST(request) {
                     coachPhone: (row.coachphone || row.coach_phone || "").trim(),
                     location,
                     organization: organizationId,
-                    leagues: [{ league: leagueId, division: row.division || "", joinedAt: new Date() }],
+                    leagues: leagueId ? [{ league: leagueId, division: row.division || "", joinedAt: new Date() }] : [],
                     players: [],
                 });
 
@@ -262,7 +254,7 @@ export async function POST(request) {
                     row: row._rowNum,
                     name,
                     status: "created",
-                    reason: "",
+                    reason: leagueId ? "" : "No league assigned — add one later from the team's page",
                 });
             } catch (err) {
                 results.errors++;

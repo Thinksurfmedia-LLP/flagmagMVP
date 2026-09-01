@@ -24,7 +24,11 @@ export default function SchedulesPage() {
     const [currentPage, setCurrentPage] = useState(1);
 
     // Geo filter state
-    const [allVenues, setAllVenues] = useState([]);
+    const [allVenuesRaw, setAllVenuesRaw] = useState([]);
+    // County+state combos the current organizer's org actually operates in
+    // (from Organization.locations) — null means "not scoped" (admin, or
+    // not loaded yet), so the geo filters fall back to the full venue list.
+    const [orgLocationKeys, setOrgLocationKeys] = useState(null);
     const [filterState, setFilterState] = useState("");
     const [filterCounty, setFilterCounty] = useState("");
     const [filterCity, setFilterCity] = useState("");
@@ -42,6 +46,7 @@ export default function SchedulesPage() {
     const organizerOrg = user?.roleOrganizations?.[effectiveRole] || user?.organization;
     const userOrgId = organizerOrg?.id || organizerOrg?._id || "";
     const userOrgName = organizerOrg?.name || "";
+    const userOrgSlug = organizerOrg?.slug || "";
 
     const toggleSort = (col) => {
         if (sortCol === col) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -107,9 +112,29 @@ export default function SchedulesPage() {
     useEffect(() => {
         fetch("/api/locations")
             .then((r) => r.json())
-            .then((d) => { if (d.success) setAllVenues(d.data || []); })
+            .then((d) => { if (d.success) setAllVenuesRaw(d.data || []); })
             .catch(() => {});
     }, []);
+
+    // Organizers should only filter by the states/counties their own org
+    // operates in, not every state in the system — admins keep the full list.
+    useEffect(() => {
+        if (isAdmin || !userOrgSlug) { setOrgLocationKeys(null); return; }
+        let cancelled = false;
+        fetch(`/api/organizations/${userOrgSlug}`)
+            .then((r) => r.json())
+            .then((d) => {
+                if (cancelled || !d.success) return;
+                const keys = new Set((d.data.locations || []).map((l) => `${l.countyName}|${l.stateAbbr}`));
+                setOrgLocationKeys(keys);
+            })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [isAdmin, userOrgSlug]);
+
+    const allVenues = orgLocationKeys
+        ? allVenuesRaw.filter((v) => orgLocationKeys.has(`${v.countyName}|${v.stateAbbr}`))
+        : allVenuesRaw;
 
     // Geo filter derived options
     const geoStateOptions = [...new Map(allVenues.filter(v => v.stateId).map(v => [v.stateId, { id: v.stateId, name: v.stateName }])).values()].sort((a, b) => a.name.localeCompare(b.name));

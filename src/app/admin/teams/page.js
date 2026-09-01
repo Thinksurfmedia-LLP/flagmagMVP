@@ -384,6 +384,7 @@ const TEAM_CSV_SAMPLE = [
     ["Red Dragons", "Spring 2025", "Men's League", "Men's A", "Est. 2022", "John Smith", "555-123-4567", "California", "CA", "Los Angeles", "Pasadena"],
     ["Blue Hawks", "Spring 2025", "Men's League", "Men's A", "", "Jane Doe", "555-987-6543", "California", "CA", "Orange", "Irvine"],
     ["Gold Tigers", "Fall 2025", "Women's League", "Women's B", "Defending champs", "", "", "Texas", "TX", "Harris", "Houston"],
+    ["Silver Wolves", "", "", "", "Not yet assigned to a league", "", "", "Texas", "TX", "Harris", "Houston"],
 ];
 
 function CsvImportModal({ onClose, onImportDone }) {
@@ -490,9 +491,9 @@ function CsvImportModal({ onClose, onImportDone }) {
                             <i className="fa-solid fa-download"></i> Download Template
                         </button>
                     </div>
-                    {/* <div style={{ marginTop: 10, fontSize: 11, color: "#8b90a0" }}>
-                        <strong>Required:</strong> name &nbsp;|&nbsp; <strong>Optional:</strong> division, description, stateName, stateAbbr, countyName, cityName
-                    </div> */}
+                    <div style={{ marginTop: 10, fontSize: 11, color: "#8b90a0" }}>
+                        <strong>Required:</strong> name &nbsp;|&nbsp; <strong>Optional:</strong> season, league, division, description, coachName, coachPhone, stateName, stateAbbr, countyName, cityName
+                    </div>
                 </div>
 
                 {/* Step 2: Upload */}
