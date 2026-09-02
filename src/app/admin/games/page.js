@@ -6,6 +6,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 import WeekdayDatePicker from "@/components/WeekdayDatePicker";
 import AdminPagination from "@/components/AdminPagination";
+import ConfirmModal from "@/components/ConfirmModal";
 
 const GAMES_PER_PAGE = 20;
 
@@ -563,9 +564,23 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
     const [activeTab, setActiveTab] = useState("record"); // "record" or "plays"
     const [sortColumn, setSortColumn] = useState("index"); // Default sort by # (index)
     const [sortDirection, setSortDirection] = useState("asc"); // "asc" or "desc"
+    // Taking a timeout pauses stat recording until the statistician explicitly
+    // resumes — same behavior as the stats app: no further action, offense
+    // switch, or timeout can be logged while paused.
+    const [isPaused, setIsPaused] = useState(false);
+    const [showForfeitConfirm, setShowForfeitConfirm] = useState(false);
+    const [forfeiting, setForfeiting] = useState(false);
+    const [showResetConfirm, setShowResetConfirm] = useState(false);
+    const [resetting, setResetting] = useState(false);
 
     const teamAScore = liveGame.teamA?.score ?? 0;
     const teamBScore = liveGame.teamB?.score ?? 0;
+
+    // Derived straight from the persisted play log (not a separate counter)
+    // so the count is always correct even after reopening the modal or
+    // editing/deleting a logged timeout — max 3 per team per half.
+    const timeoutsCountA = persistedPlays.filter((p) => p.type === "timeout" && p.activeTeam === "A" && p.half === half).length;
+    const timeoutsCountB = persistedPlays.filter((p) => p.type === "timeout" && p.activeTeam === "B" && p.half === half).length;
 
     useEffect(() => {
         (async () => {
@@ -663,6 +678,36 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
         showSuccess(`${type} recorded for ${teamName}`);
     };
 
+    // Max 3 timeouts per team per half — same limit and per-half reset as
+    // the stats app. Logged as a real play (type: "timeout") so it shows up
+    // in the Game Plays list alongside every other recorded play.
+    const handleTimeout = async (team) => {
+        if (isPaused) {
+            showError("Resume the game first");
+            return;
+        }
+        const count = team === "A" ? timeoutsCountA : timeoutsCountB;
+        const teamName = team === "A" ? liveGame.teamA.name : liveGame.teamB.name;
+        if (count >= 3) {
+            showError(`${teamName} has no timeouts left this half`);
+            return;
+        }
+        try {
+            const res = await fetch(`/api/games/${game._id}/plays`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ type: "timeout", activeTeam: team, teamName, half }),
+            });
+            const data = await res.json();
+            if (!data.success) { showError(data.error || "Failed to record timeout"); return; }
+            fetchPlays();
+            setIsPaused(true);
+            showSuccess(`Timeout taken by ${teamName} (${count + 1}/3 this half)`);
+        } catch {
+            showError("Failed to record timeout");
+        }
+    };
+
     const handleStartGame = async () => {
         try {
             if (liveGame.status === "upcoming") {
@@ -704,6 +749,60 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
             refreshGame();
             if (onGameUpdate) onGameUpdate();
         } catch { showError("Failed to cancel game"); }
+    };
+
+    // Forfeit hands the currently-selected offense's opponent a 6-0 win —
+    // matches the stats app's forfeit logic exactly (same field, same math).
+    const forfeitingTeamName = activeTeam === "A" ? liveGame.teamA?.name : liveGame.teamB?.name;
+    const forfeitScoreA = activeTeam === "A" ? 0 : 6;
+    const forfeitScoreB = activeTeam === "B" ? 0 : 6;
+
+    const handleForfeit = async () => {
+        setForfeiting(true);
+        try {
+            const res = await fetch(`/api/games/${game._id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    status: "completed",
+                    "teamA.score": forfeitScoreA,
+                    "teamB.score": forfeitScoreB,
+                }),
+            });
+            const data = await res.json();
+            if (!data.success) { showError(data.error || "Failed to forfeit game"); return; }
+            showSuccess("Game forfeited and completed");
+            setShowForfeitConfirm(false);
+            refreshGame();
+            if (onGameUpdate) onGameUpdate();
+        } catch {
+            showError("Failed to forfeit game");
+        } finally {
+            setForfeiting(false);
+        }
+    };
+
+    const handleResetStats = async () => {
+        setResetting(true);
+        try {
+            const res = await fetch(`/api/games/${game._id}/reset`, { method: "POST" });
+            const data = await res.json();
+            if (!data.success) { showError(data.error || "Failed to reset game"); return; }
+            showSuccess("Game reset to initial state");
+            setShowResetConfirm(false);
+            setPersistedPlays([]);
+            setCurrentPlay(null);
+            setHalf("1st");
+            setTimeoutsA(0);
+            setTimeoutsB(0);
+            setIsPaused(false);
+            refreshGame();
+            if (onGameUpdate) onGameUpdate();
+        } catch {
+            showError("Failed to reset game");
+        } finally {
+            setResetting(false);
+        }
     };
 
     const handleDeletePlay = async (playId) => {
@@ -769,7 +868,7 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
     ];
 
     const playTypeLabel = (type) => {
-        const map = { completion: "Completion", incomplete: "Incompletion", interception: "Interception", sack: "Sack", fumble: "Fumble", run: "Run" };
+        const map = { completion: "Completion", incomplete: "Incompletion", interception: "Interception", sack: "Sack", fumble: "Fumble", run: "Run", timeout: "Timeout" };
         return map[type] || type;
     };
 
@@ -781,6 +880,7 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
             case "sack": return `P:${play.passer || "?"} D:${play.defender || "?"}${play.safety ? " (Safety)" : ""}`;
             case "fumble": return `D:${play.defender || "?"}`;
             case "run": return `${play.yards || 0}yd R:${play.rusher || "?"}`;
+            case "timeout": return "—";
             default: return play.type;
         }
     };
@@ -902,17 +1002,40 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
                     {/* ──── Record Stats Tab ──── */}
                     {activeTab === "record" && (
                         <>
-                            {/* Active team selector + half */}
+                            {/* Active team selector + timeout + half */}
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
                                 <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                                     <span style={{ fontSize: 12, color: "#6b7280", marginRight: 4 }}>Offense:</span>
-                                    <button className={`admin-btn admin-btn-sm ${activeTeam === "A" ? "admin-btn-primary" : "admin-btn-ghost"}`} onClick={() => setActiveTeam("A")}>
+                                    <button className={`admin-btn admin-btn-sm ${activeTeam === "A" ? "admin-btn-primary" : "admin-btn-ghost"}`} onClick={() => { if (isPaused) { showError("Resume the game first"); return; } setActiveTeam("A"); }}>
                                         {liveGame.teamA.name}
                                     </button>
-                                    <button className={`admin-btn admin-btn-sm ${activeTeam === "B" ? "admin-btn-primary" : "admin-btn-ghost"}`} onClick={() => setActiveTeam("B")}>
+                                    <button className={`admin-btn admin-btn-sm ${activeTeam === "B" ? "admin-btn-primary" : "admin-btn-ghost"}`} onClick={() => { if (isPaused) { showError("Resume the game first"); return; } setActiveTeam("B"); }}>
                                         {liveGame.teamB.name}
                                     </button>
                                 </div>
+
+                                {/* Timeout — acts on whichever team is selected as Offense above; max 3 per team per half */}
+                                {liveGame.status === "in_progress" && (() => {
+                                    const activeTeamCount = activeTeam === "A" ? timeoutsCountA : timeoutsCountB;
+                                    const blocked = activeTeamCount >= 3 || isPaused;
+                                    return (
+                                        <button
+                                            onClick={() => handleTimeout(activeTeam)}
+                                            disabled={blocked}
+                                            style={{
+                                                padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: 700, letterSpacing: 0.5,
+                                                background: blocked ? "#f3f4f6" : "rgba(255,100,30,0.12)",
+                                                color: blocked ? "#9ca3af" : "#ff6b1a",
+                                                border: `1.5px solid ${blocked ? "#e5e7eb" : "rgba(255,120,40,0.4)"}`,
+                                                cursor: blocked ? "not-allowed" : "pointer",
+                                            }}
+                                        >
+                                            <i className="fa-solid fa-hand" style={{ marginRight: 6 }}></i>
+                                            Timeout ({activeTeamCount}/3)
+                                        </button>
+                                    );
+                                })()}
+
                                 <div style={{ display: "flex", gap: 0 }}>
                                     <button
                                         onClick={() => setHalf("1st")}
@@ -934,9 +1057,26 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
                                 </div>
                             )}
 
+                            {/* Resume Game banner — shown while paused for a timeout; blocks every
+                                action below until dismissed, same as the stats app */}
+                            {isPaused && liveGame.status === "in_progress" && (
+                                <button
+                                    onClick={() => { setIsPaused(false); showSuccess("Game resumed"); }}
+                                    style={{
+                                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                                        width: "100%", padding: 12, marginBottom: 12, borderRadius: 8, border: "none",
+                                        background: "#22c55e", color: "#fff", fontSize: 13, fontWeight: 700,
+                                        letterSpacing: 0.6, textTransform: "uppercase", cursor: "pointer",
+                                        boxShadow: "0 4px 16px rgba(34,197,94,0.35)",
+                                    }}
+                                >
+                                    <i className="fa-solid fa-play"></i> Resume Game
+                                </button>
+                            )}
+
                             {/* Stat action buttons */}
                             {liveGame.status !== "upcoming" && (
-                                <>
+                                <div style={isPaused ? { opacity: 0.4, pointerEvents: "none" } : undefined}>
                                     <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 8, marginBottom: 12 }}>
                                         {statActions.map(sa => (
                                             <button
@@ -960,7 +1100,7 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
                                             onCancel={() => setCurrentPlay(null)}
                                         />
                                     )}
-                                </>
+                                </div>
                             )}
                         </>
                     )}
@@ -997,7 +1137,7 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
                                                         <td>{play.__originalIdx}</td>
                                                         <td>
                                                             <select style={{ fontSize: 12, padding: "2px 4px", border: "1px solid #d0d5dd", borderRadius: 4 }} value={editForm.type} onChange={e => setEditForm(prev => ({ ...prev, type: e.target.value }))}>
-                                                                {["completion", "incomplete", "interception", "sack", "fumble", "run"].map(t => (
+                                                                {["completion", "incomplete", "interception", "sack", "fumble", "run", "timeout"].map(t => (
                                                                     <option key={t} value={t}>{playTypeLabel(t)}</option>
                                                                 ))}
                                                             </select>
@@ -1058,7 +1198,7 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
                                                     <tr key={play._id}>
                                                         <td style={{ color: "#6b7280" }}>{play.__originalIdx}</td>
                                                         <td>
-                                                            <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: 4, fontSize: 11, fontWeight: 600, background: play.type === "completion" ? "#dcfce7" : play.type === "interception" ? "#fef3c7" : play.type === "sack" ? "#fee2e2" : play.type === "fumble" ? "#fee2e2" : play.type === "run" ? "#dbeafe" : "#f3f4f6", color: play.type === "completion" ? "#166534" : play.type === "interception" ? "#92400e" : play.type === "sack" ? "#991b1b" : play.type === "fumble" ? "#991b1b" : play.type === "run" ? "#1e40af" : "#374151" }}>
+                                                            <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: 4, fontSize: 11, fontWeight: 600, background: play.type === "completion" ? "#dcfce7" : play.type === "interception" ? "#fef3c7" : play.type === "sack" ? "#fee2e2" : play.type === "fumble" ? "#fee2e2" : play.type === "run" ? "#dbeafe" : play.type === "timeout" ? "rgba(168,85,247,0.15)" : "#f3f4f6", color: play.type === "completion" ? "#166534" : play.type === "interception" ? "#92400e" : play.type === "sack" ? "#991b1b" : play.type === "fumble" ? "#991b1b" : play.type === "run" ? "#1e40af" : play.type === "timeout" ? "#a855f7" : "#374151" }}>
                                                                 {playTypeLabel(play.type)}
                                                             </span>
                                                         </td>
@@ -1089,18 +1229,138 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
                 </div>
 
                 {/* Footer */}
-                <div style={{ display: "flex", gap: 10, marginTop: 16, justifyContent: "space-between", borderTop: "1px solid #e8eaef", paddingTop: 16 }}>
+                <div style={{ display: "flex", gap: 10, marginTop: 16, justifyContent: "space-between", borderTop: "1px solid #e8eaef", paddingTop: 16, flexWrap: "wrap" }}>
                     <button className="admin-btn admin-btn-ghost" onClick={onClose}>Close</button>
                     {liveGame.status === "in_progress" && (
-                        <div style={{ display: "flex", gap: 8 }}>
+                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                             <button className="admin-btn admin-btn-ghost" onClick={handleCancelGame} style={{ color: "#dc2626" }}>
                                 <i className="fa-solid fa-ban"></i> Cancel Game
                             </button>
+                            <button className="admin-btn admin-btn-ghost" onClick={() => setShowForfeitConfirm(true)} style={{ color: "#dc2626" }}>
+                                <i className="fa-solid fa-flag"></i> Forfeit
+                            </button>
+                            <button className="admin-btn admin-btn-ghost" onClick={() => setShowResetConfirm(true)} style={{ color: "#5a5f72" }}>
+                                <i className="fa-solid fa-rotate-right"></i> Reset Stats
+                            </button>
                             <button className="admin-btn admin-btn-danger" onClick={handleCompleteGame}>
-                                <i className="fa-solid fa-flag-checkered"></i> Complete Game
+                                <i className="fa-solid fa-flag-checkered"></i> End Game
                             </button>
                         </div>
                     )}
+                </div>
+            </div>
+
+            <ConfirmModal
+                open={showForfeitConfirm}
+                title="Forfeit Game?"
+                message={`${forfeitingTeamName} will forfeit. Final score will be ${liveGame.teamA?.name} ${forfeitScoreA} - ${forfeitScoreB} ${liveGame.teamB?.name}.`}
+                confirmLabel="Yes, Forfeit"
+                confirming={forfeiting}
+                onConfirm={handleForfeit}
+                onCancel={() => { if (!forfeiting) setShowForfeitConfirm(false); }}
+            />
+
+            <ConfirmModal
+                open={showResetConfirm}
+                title="Reset Game?"
+                message="Are you sure you want to reset this game to its initial state? All scores and recorded plays will be cleared."
+                confirmLabel="Yes, Reset"
+                confirming={resetting}
+                onConfirm={handleResetStats}
+                onCancel={() => { if (!resetting) setShowResetConfirm(false); }}
+            />
+        </div>
+    );
+}
+
+// Gates the actual "Start Game" action behind a roster check — a game can't
+// be started at all if either team has no players assigned, and the person
+// starting it always gets one last confirmation prompt either way.
+function StartGameConfirmModal({ game, onClose, onConfirm }) {
+    const [loading, setLoading] = useState(true);
+    const [teamACount, setTeamACount] = useState(0);
+    const [teamBCount, setTeamBCount] = useState(0);
+    const [error, setError] = useState("");
+    const [confirming, setConfirming] = useState(false);
+
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const res = await fetch(`/api/games/${game._id}/roster`);
+                const data = await res.json();
+                if (cancelled) return;
+                if (data.success) {
+                    setTeamACount(data.data.teamA?.length || 0);
+                    setTeamBCount(data.data.teamB?.length || 0);
+                } else {
+                    setError(data.error || "Failed to check team rosters");
+                }
+            } catch {
+                if (!cancelled) setError("Failed to check team rosters");
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, [game._id]);
+
+    const missingTeams = [];
+    if (!loading && teamACount === 0) missingTeams.push(game.teamA.name);
+    if (!loading && teamBCount === 0) missingTeams.push(game.teamB.name);
+    const canStart = !loading && !error && missingTeams.length === 0;
+
+    const handleConfirm = async () => {
+        setConfirming(true);
+        try {
+            await onConfirm();
+        } finally {
+            setConfirming(false);
+        }
+    };
+
+    return (
+        <div className="admin-modal-backdrop" onClick={onClose}>
+            <div className="admin-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 440 }}>
+                <button className="admin-modal-close" onClick={onClose} aria-label="Close">
+                    <i className="fa-solid fa-xmark"></i>
+                </button>
+                <h3 className="admin-modal-title">Start Game?</h3>
+                <p style={{ fontSize: 14, color: "#5a5f72", margin: "0 0 16px" }}>
+                    {game.teamA.name} vs {game.teamB.name}
+                </p>
+
+                {loading ? (
+                    <div className="admin-loading"><div className="admin-spinner"></div>Checking team rosters...</div>
+                ) : error ? (
+                    <div style={{ background: "rgba(220,38,38,0.08)", border: "1px solid rgba(220,38,38,0.3)", borderRadius: 8, padding: 12, fontSize: 13, color: "#dc2626" }}>
+                        <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: 6 }}></i>{error}
+                    </div>
+                ) : missingTeams.length > 0 ? (
+                    <div style={{ background: "rgba(220,38,38,0.08)", border: "1px solid rgba(220,38,38,0.3)", borderRadius: 8, padding: 12, fontSize: 13, color: "#dc2626" }}>
+                        <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: 6 }}></i>
+                        {missingTeams.length === 2
+                            ? <>Neither <strong>{missingTeams[0]}</strong> nor <strong>{missingTeams[1]}</strong> has any players assigned.</>
+                            : <><strong>{missingTeams[0]}</strong> has no players assigned.</>}
+                        {" "}Add players to the team before starting this game.
+                    </div>
+                ) : (
+                    <div style={{ fontSize: 13, color: "#5a5f72" }}>
+                        <i className="fa-solid fa-circle-check" style={{ color: "#16a34a", marginRight: 6 }}></i>
+                        Both teams have players assigned.
+                    </div>
+                )}
+
+                <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 20 }}>
+                    <button className="admin-btn admin-btn-ghost" onClick={onClose} disabled={confirming}>Cancel</button>
+                    <button
+                        className="admin-btn admin-btn-danger"
+                        onClick={handleConfirm}
+                        disabled={!canStart || confirming}
+                        title={!canStart && !loading && !error ? "Both teams need at least one player assigned" : undefined}
+                    >
+                        {confirming ? "Starting..." : "Yes, Start Game"}
+                    </button>
                 </div>
             </div>
         </div>
@@ -1346,6 +1606,7 @@ export default function AdminGamesPage() {
     const [editTarget, setEditTarget] = useState(null);
     const [showLiveStats, setShowLiveStats] = useState(false);
     const [liveStatsTarget, setLiveStatsTarget] = useState(null);
+    const [startConfirmTarget, setStartConfirmTarget] = useState(null);
     const [importModalOpen, setImportModalOpen] = useState(false);
     const [filterSeason, setFilterSeason] = useState("");
     const [filterLeague, setFilterLeague] = useState("");
@@ -1555,6 +1816,43 @@ export default function AdminGamesPage() {
         } catch { showError("Failed to delete game"); }
     };
 
+    // Games that haven't started yet get gated behind the roster-check
+    // confirmation; a game already in progress or completed just opens
+    // straight into Live Stats since there's no "start" decision left to make.
+    const openLiveStats = (game) => {
+        if (game.status === "upcoming") {
+            setStartConfirmTarget(game);
+        } else {
+            setLiveStatsTarget(game);
+            setShowLiveStats(true);
+        }
+    };
+
+    const confirmStartGame = async () => {
+        const target = startConfirmTarget;
+        try {
+            const res = await fetch(`/api/games/${target._id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: "in_progress" }),
+            });
+            const data = await res.json();
+            if (!data.success) {
+                showError(data.error || "Failed to start game");
+                return;
+            }
+            // Open Live Stats already showing in_progress so its own "Start
+            // Game" button — gated on status === "upcoming" — doesn't render
+            // a second time.
+            setLiveStatsTarget({ ...target, status: "in_progress" });
+            setShowLiveStats(true);
+            setStartConfirmTarget(null);
+            fetchAllGames();
+        } catch {
+            showError("Failed to start game");
+        }
+    };
+
     const canView   = user && hasAnyAccess(user, ["manage_games", "game_view", "game_create", "game_update", "game_delete"]);
     const canCreate = user && hasAnyAccess(user, ["manage_games", "game_create"]);
     const canUpdate = user && hasAnyAccess(user, ["manage_games", "game_update"]);
@@ -1718,7 +2016,7 @@ export default function AdminGamesPage() {
                                                     <div style={{ display: "flex", gap: 6 }}>
                                                         <button
                                                             className="admin-btn admin-btn-ghost admin-btn-sm"
-                                                            onClick={() => { setLiveStatsTarget(game); setShowLiveStats(true); }}
+                                                            onClick={() => openLiveStats(game)}
                                                             title="Record Live Stats"
                                                             style={{ color: "#ff1e00" }}
                                                         >
@@ -1756,7 +2054,7 @@ export default function AdminGamesPage() {
                                             </span>
                                         </div>
                                         <div className="games-card-item-actions">
-                                            <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setLiveStatsTarget(game); setShowLiveStats(true); }} style={{ color: "#ff1e00" }}>
+                                            <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => openLiveStats(game)} style={{ color: "#ff1e00" }}>
                                                 <i className="fa-solid fa-play-circle"></i> Live
                                             </button>
                                             {canUpdate && (
@@ -1811,6 +2109,13 @@ export default function AdminGamesPage() {
                 <GameCsvImportModal
                     onClose={() => setImportModalOpen(false)}
                     onImportDone={() => fetchAllGames()}
+                />
+            )}
+            {startConfirmTarget && (
+                <StartGameConfirmModal
+                    game={startConfirmTarget}
+                    onClose={() => setStartConfirmTarget(null)}
+                    onConfirm={confirmStartGame}
                 />
             )}
         </AdminLayout>
