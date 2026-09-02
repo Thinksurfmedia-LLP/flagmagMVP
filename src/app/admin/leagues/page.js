@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import AdminLayout, { hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
@@ -525,7 +525,9 @@ function LeagueTeamsModal({ league, onClose }) {
     const [assigned, setAssigned] = useState([]);
     const [orgTeams, setOrgTeams] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [selectedTeamId, setSelectedTeamId] = useState("");
+    const [selectedTeamIds, setSelectedTeamIds] = useState([]);
+    const [pickerOpen, setPickerOpen] = useState(false);
+    const pickerRef = useRef(null);
     const [division, setDivision] = useState("");
     const [seedNumber, setSeedNumber] = useState("");
     const [newTeamName, setNewTeamName] = useState("");
@@ -556,32 +558,67 @@ function LeagueTeamsModal({ league, onClose }) {
 
     useEffect(() => { load(); }, [load]);
 
+    // Close the team picker when clicking outside it
+    useEffect(() => {
+        if (!pickerOpen) return;
+        const handleClickOutside = (e) => {
+            if (pickerRef.current && !pickerRef.current.contains(e.target)) setPickerOpen(false);
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [pickerOpen]);
+
     const assignedIds = new Set(assigned.map((t) => String(t._id)));
     const availableToAdd = orgTeams.filter((t) => !assignedIds.has(String(t._id)));
     const existingDivisions = [...new Set(assigned.map((t) => t.division).filter(Boolean))];
 
     const handleAssignExisting = async () => {
-        if (!selectedTeamId) return;
+        if (selectedTeamIds.length === 0) return;
         setSaving(true);
+        // Seed numbers are per-team, so only apply the single Seed # field when
+        // exactly one team is selected — with several teams selected there's no
+        // one number that makes sense for all of them.
+        const applySeed = isPlayoffs && selectedTeamIds.length === 1;
         try {
-            const res = await fetch(`/api/leagues/${league._id}/teams`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    teamId: selectedTeamId,
-                    division: division.trim(),
-                    ...(isPlayoffs ? { seedNumber: seedNumber === "" ? null : seedNumber } : {}),
-                }),
+            const results = await Promise.allSettled(
+                selectedTeamIds.map((teamId) =>
+                    fetch(`/api/leagues/${league._id}/teams`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            teamId,
+                            division: division.trim(),
+                            ...(applySeed ? { seedNumber: seedNumber === "" ? null : seedNumber } : {}),
+                        }),
+                    }).then((r) => r.json())
+                )
+            );
+
+            let successCount = 0;
+            const failures = [];
+            results.forEach((result, i) => {
+                if (result.status === "fulfilled" && result.value.success) {
+                    successCount++;
+                } else {
+                    const teamName = availableToAdd.find((t) => t._id === selectedTeamIds[i])?.name || "Team";
+                    const reason = result.status === "fulfilled" ? result.value.error : "Request failed";
+                    failures.push(`${teamName}: ${reason}`);
+                }
             });
-            const data = await res.json();
-            if (!data.success) { showError(data.error); return; }
-            showSuccess("Team assigned!");
-            setSelectedTeamId("");
+
+            if (successCount > 0) {
+                showSuccess(successCount === 1 ? "Team assigned!" : `${successCount} teams assigned!`);
+            }
+            if (failures.length > 0) {
+                showError(failures.join(" · "));
+            }
+
+            setSelectedTeamIds([]);
             setDivision("");
             setSeedNumber("");
             load();
         } catch {
-            showError("Failed to assign team");
+            showError("Failed to assign teams");
         } finally {
             setSaving(false);
         }
@@ -757,17 +794,63 @@ function LeagueTeamsModal({ league, onClose }) {
                         </div>
 
                         <div className="admin-form-group">
-                            <label className="admin-form-label">Assign an Existing Team</label>
+                            <label className="admin-form-label">Assign Existing Team(s)</label>
                             <div style={{ display: "flex", gap: 8 }}>
-                                <select className="admin-form-select" style={{ flex: 1 }} value={selectedTeamId} onChange={(e) => setSelectedTeamId(e.target.value)}>
-                                    <option value="">
-                                        {availableToAdd.length === 0 ? "No other teams in this organization" : "Select a team..."}
-                                    </option>
-                                    {availableToAdd.map((t) => (
-                                        <option key={t._id} value={t._id}>{t.name}</option>
-                                    ))}
-                                </select>
-                                {isPlayoffs && (
+                                <div ref={pickerRef} style={{ position: "relative", flex: 1 }}>
+                                    <div
+                                        className="admin-form-select"
+                                        style={{
+                                            display: "flex", alignItems: "center", justifyContent: "space-between",
+                                            cursor: availableToAdd.length === 0 ? "not-allowed" : "pointer",
+                                            userSelect: "none",
+                                        }}
+                                        onClick={() => availableToAdd.length > 0 && setPickerOpen((o) => !o)}
+                                    >
+                                        <span style={{ color: selectedTeamIds.length === 0 ? "#8b90a0" : "#1a1d26", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                            {availableToAdd.length === 0
+                                                ? "No other teams in this organization"
+                                                : selectedTeamIds.length === 0
+                                                ? "Select team(s)..."
+                                                : selectedTeamIds.length === 1
+                                                ? availableToAdd.find((t) => t._id === selectedTeamIds[0])?.name || "1 team selected"
+                                                : `${selectedTeamIds.length} teams selected`}
+                                        </span>
+                                        <i className={`fa-solid fa-chevron-${pickerOpen ? "up" : "down"}`} style={{ fontSize: 11, color: "#8b90a0", flexShrink: 0, marginLeft: 8 }}></i>
+                                    </div>
+                                    {pickerOpen && availableToAdd.length > 0 && (
+                                        <div style={{
+                                            position: "absolute", bottom: "calc(100% + 4px)", left: 0, right: 0, zIndex: 30,
+                                            background: "#fff", border: "1px solid #d5d8e0", borderRadius: 8,
+                                            maxHeight: 280, overflowY: "auto", boxShadow: "0 -8px 24px rgba(0,0,0,0.12)",
+                                        }}>
+                                            {availableToAdd.map((t) => {
+                                                const checked = selectedTeamIds.includes(t._id);
+                                                return (
+                                                    <label
+                                                        key={t._id}
+                                                        style={{
+                                                            display: "flex", alignItems: "center", gap: 8, padding: "8px 10px",
+                                                            fontSize: 13, color: "#1a1d26", cursor: "pointer",
+                                                            borderBottom: "1px solid #f1f2f5",
+                                                            background: checked ? "#fff5f4" : "#fff",
+                                                        }}
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={checked}
+                                                            onChange={() => setSelectedTeamIds((prev) =>
+                                                                checked ? prev.filter((id) => id !== t._id) : [...prev, t._id]
+                                                            )}
+                                                            style={{ flexShrink: 0 }}
+                                                        />
+                                                        <span>{t.name}</span>
+                                                    </label>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                                {isPlayoffs && selectedTeamIds.length === 1 && (
                                     <input
                                         type="number"
                                         className="admin-form-input"
@@ -778,10 +861,49 @@ function LeagueTeamsModal({ league, onClose }) {
                                         title="Playoff seed number — only applies to this league"
                                     />
                                 )}
-                                <button className="admin-btn admin-btn-primary" onClick={handleAssignExisting} disabled={saving || !selectedTeamId}>
-                                    Assign
+                                <button className="admin-btn admin-btn-primary" style={{ flexShrink: 0 }} onClick={handleAssignExisting} disabled={saving || selectedTeamIds.length === 0}>
+                                    {selectedTeamIds.length > 1 ? `Assign (${selectedTeamIds.length})` : "Assign"}
                                 </button>
                             </div>
+                            {selectedTeamIds.length > 0 && (
+                                <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 6 }}>
+                                    {selectedTeamIds.map((id) => {
+                                        const t = availableToAdd.find((team) => team._id === id);
+                                        if (!t) return null;
+                                        return (
+                                            <span
+                                                key={id}
+                                                style={{
+                                                    display: "inline-flex", alignItems: "center", gap: 6,
+                                                    background: "#fff5f4", border: "1px solid #ffd6d1", color: "#1a1d26",
+                                                    borderRadius: 20, padding: "4px 6px 4px 10px", fontSize: 12, fontWeight: 500,
+                                                }}
+                                            >
+                                                {t.name}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSelectedTeamIds((prev) => prev.filter((tid) => tid !== id))}
+                                                    aria-label={`Remove ${t.name}`}
+                                                    style={{
+                                                        display: "inline-flex", alignItems: "center", justifyContent: "center",
+                                                        width: 16, height: 16, borderRadius: "50%", border: "none",
+                                                        background: "rgba(220,38,38,0.12)", color: "#dc2626", cursor: "pointer",
+                                                        fontSize: 10, lineHeight: 1, padding: 0,
+                                                    }}
+                                                >
+                                                    <i className="fa-solid fa-xmark"></i>
+                                                </button>
+                                            </span>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                            {selectedTeamIds.length > 1 && (
+                                <div style={{ marginTop: 6, fontSize: 12, color: "#8b90a0" }}>
+                                    <i className="fa-solid fa-circle-info" style={{ marginRight: 4 }}></i>
+                                    The division above will be applied to all {selectedTeamIds.length} selected teams.
+                                </div>
+                            )}
                         </div>
 
                         <div className="admin-form-group">
