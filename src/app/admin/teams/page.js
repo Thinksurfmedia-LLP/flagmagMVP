@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import React from "react";
 import AdminPagination from "@/components/AdminPagination";
+import ConfirmModal from "@/components/ConfirmModal";
 import AdminLayout, { hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
@@ -129,7 +130,14 @@ function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, ef
     };
 
     const handleSave = async () => {
-        if (!name.trim()) return;
+        if (!name.trim()) {
+            showError("Team name is required");
+            return;
+        }
+        if (effectiveRole === "admin" && !organization) {
+            showError("Please select an organization");
+            return;
+        }
 
         setSaving(true);
 
@@ -369,7 +377,7 @@ function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, ef
                     <button
                         className="admin-btn admin-btn-primary"
                         onClick={handleSave}
-                        disabled={saving || !name.trim() || (effectiveRole === "admin" && !organization)}
+                        disabled={saving}
                     >
                         {saving ? "Saving..." : team ? "Save Changes" : "Create Team"}
                     </button>
@@ -612,6 +620,8 @@ export default function AdminTeamsPage() {
     const [modalOpen, setModalOpen] = useState(false);
     const [editTarget, setEditTarget] = useState(null);
     const [importModalOpen, setImportModalOpen] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deleting, setDeleting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 50;
 
@@ -706,11 +716,11 @@ export default function AdminTeamsPage() {
         }
     };
 
-    const deleteTeam = async (team) => {
-        if (!confirm(`Delete team "${team.name}"?`)) return;
-
+    const confirmDeleteTeam = async () => {
+        if (!deleteTarget) return;
+        setDeleting(true);
         try {
-            const res = await fetch(`/api/teams/${team._id}`, { method: "DELETE" });
+            const res = await fetch(`/api/teams/${deleteTarget._id}`, { method: "DELETE" });
             const data = await res.json();
             if (!data.success) {
                 showError(data.error || "Failed to delete team");
@@ -718,8 +728,11 @@ export default function AdminTeamsPage() {
             }
             fetchData();
             showSuccess("Team deleted!");
+            setDeleteTarget(null);
         } catch {
             showError("Failed to delete team");
+        } finally {
+            setDeleting(false);
         }
     };
     const regularTeams = teams.filter((t) => !t.isPlaceholder);
@@ -923,7 +936,7 @@ export default function AdminTeamsPage() {
                                                                         {canDelete && (
                                                                             <button
                                                                                 className="admin-btn admin-btn-danger admin-btn-sm"
-                                                                                onClick={() => deleteTeam(team)}
+                                                                                onClick={() => setDeleteTarget(team)}
                                                                                 title="Delete"
                                                                             >
                                                                                 <i className="fa-solid fa-trash"></i>
@@ -970,7 +983,7 @@ export default function AdminTeamsPage() {
                                                         {canDelete && (
                                                             <button
                                                                 className="admin-btn admin-btn-danger admin-btn-sm"
-                                                                onClick={() => deleteTeam(team)}
+                                                                onClick={() => setDeleteTarget(team)}
                                                             >
                                                                 <i className="fa-solid fa-trash"></i> Delete
                                                             </button>
@@ -1015,6 +1028,16 @@ export default function AdminTeamsPage() {
                             onImportDone={() => fetchData()}
                         />
                     )}
+
+                    <ConfirmModal
+                        open={Boolean(deleteTarget)}
+                        title="Delete team"
+                        message={deleteTarget ? `Delete team "${deleteTarget.name}"? This cannot be undone.` : ""}
+                        confirmLabel="Delete"
+                        confirming={deleting}
+                        onConfirm={confirmDeleteTeam}
+                        onCancel={() => { if (!deleting) setDeleteTarget(null); }}
+                    />
                 </>
             )}
         </AdminLayout>
