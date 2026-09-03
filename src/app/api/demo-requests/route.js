@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import DemoRequest from "@/models/DemoRequest";
 import { requireAuth } from "@/lib/apiAuth";
+import { sendMail } from "@/lib/mailer";
 
 const PERSONAL_EMAIL_DOMAINS = [
     "gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "aol.com",
@@ -36,6 +37,27 @@ export async function POST(request) {
             preferredDateTime: preferredDateTime?.trim() || "",
             agreedToContact: true,
         });
+
+        // Best-effort notification — a mail hiccup should never fail the
+        // submission itself; the request is already safely stored above.
+        try {
+            await sendMail({
+                to: process.env.DEMO_REQUEST_NOTIFY_EMAIL || process.env.GMAIL_USER,
+                replyTo: demo.workEmail,
+                subject: `New demo request — ${demo.organizationName}`,
+                html: `
+                    <h2>New Demo Request</h2>
+                    <p><strong>Full Name:</strong> ${demo.fullName}</p>
+                    <p><strong>Work Email:</strong> ${demo.workEmail}</p>
+                    <p><strong>Phone:</strong> ${demo.phone}</p>
+                    <p><strong>Organization:</strong> ${demo.organizationName}</p>
+                    <p><strong>Preferred Date &amp; Time:</strong> ${demo.preferredDateTime || "Not specified"}</p>
+                `,
+                text: `New Demo Request\n\nFull Name: ${demo.fullName}\nWork Email: ${demo.workEmail}\nPhone: ${demo.phone}\nOrganization: ${demo.organizationName}\nPreferred Date & Time: ${demo.preferredDateTime || "Not specified"}`,
+            });
+        } catch (mailError) {
+            console.error("Failed to send demo request notification email:", mailError);
+        }
 
         return NextResponse.json({ success: true, data: demo }, { status: 201 });
     } catch (error) {

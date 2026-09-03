@@ -39,6 +39,26 @@ const GameSchema = new mongoose.Schema(
             name: { type: String, default: "" },
             logo: { type: String, default: "" },
         },
+        // Set when a team forfeits and the organizer schedules a live "No
+        // Stats Game" against a stand-in opponent so the real team's players
+        // still get game reps/stats. `noStatsSide` marks which side (A or B)
+        // is occupied by the stand-in — permanent once set, so stats and
+        // standings can keep excluding that side's plays even long after the
+        // game is completed and the fixture reverted. `noStatsOriginalTeam`
+        // snapshots the real (forfeiting) team that side belongs to, so it
+        // can be restored — with its score forced back to 0 — when the game
+        // is completed. This is separate from originalTeamA/B above, which
+        // serves the unrelated placeholder-team (TBD/Winner) resolution flow.
+        noStatsSide: {
+            type: String,
+            enum: ["A", "B", null],
+            default: null,
+        },
+        noStatsOriginalTeam: {
+            teamId: { type: mongoose.Schema.Types.ObjectId, ref: "Team", default: null },
+            name: { type: String, default: "" },
+            logo: { type: String, default: "" },
+        },
         location: {
             type: String,
             default: "",
@@ -104,7 +124,7 @@ GameSchema.pre(["findOneAndUpdate", "updateOne", "updateMany"], function () {
 function getGameModel() {
     if (mongoose.models.Game) {
         const existing = mongoose.models.Game;
-        if (!existing.schema.path("originalTeamA.name") || !existing.schema.path("originalTeamB.name")) {
+        if (!existing.schema.path("originalTeamA.name") || !existing.schema.path("originalTeamB.name") || !existing.schema.path("noStatsSide")) {
             delete mongoose.models.Game;
             return mongoose.model("Game", GameSchema);
         }

@@ -572,7 +572,16 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
     // switch, or timeout can be logged while paused.
     const [isPaused, setIsPaused] = useState(false);
     const [showForfeitConfirm, setShowForfeitConfirm] = useState(false);
+    const [showNoStatsPrompt, setShowNoStatsPrompt] = useState(false);
     const [forfeiting, setForfeiting] = useState(false);
+    // No Stats Game — "Yes" branch: pick a stand-in team to replace the
+    // forfeiting side so its real opponent can still rack up game reps/stats.
+    const [showSubstituteChoice, setShowSubstituteChoice] = useState(false);
+    const [showTeamPicker, setShowTeamPicker] = useState(false);
+    const [leagueTeams, setLeagueTeams] = useState([]);
+    const [loadingLeagueTeams, setLoadingLeagueTeams] = useState(false);
+    const [selectedSubTeamId, setSelectedSubTeamId] = useState("");
+    const [applyingSubstitute, setApplyingSubstitute] = useState(false);
     const [showResetConfirm, setShowResetConfirm] = useState(false);
     const [resetting, setResetting] = useState(false);
 
@@ -729,10 +738,22 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
     const handleCompleteGame = async () => {
         if (!confirm("Are you sure you want to mark this game as completed?")) return;
         try {
+            const payload = { status: "completed" };
+            // No Stats Game wrap-up: put the real (forfeiting) team's name back
+            // in this slot and force its score to 0 — the stand-in's own score
+            // never counts, no matter what it actually was.
+            if (liveGame.noStatsSide && liveGame.noStatsOriginalTeam?.name) {
+                const side = liveGame.noStatsSide;
+                payload[side === "A" ? "teamA" : "teamB"] = {
+                    name: liveGame.noStatsOriginalTeam.name,
+                    logo: liveGame.noStatsOriginalTeam.logo || "",
+                    score: 0,
+                };
+            }
             await fetch(`/api/games/${game._id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status: "completed" }),
+                body: JSON.stringify(payload),
             });
             showSuccess("Game completed!");
             refreshGame();
@@ -760,7 +781,18 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
     const forfeitScoreA = activeTeam === "A" ? 0 : 6;
     const forfeitScoreB = activeTeam === "B" ? 0 : 6;
 
-    const handleForfeit = async () => {
+    // Step 1: "Yes, Forfeit" doesn't apply anything yet — it just moves to the
+    // No Stats Game question, which decides how the forfeit actually gets
+    // recorded.
+    const handleForfeitConfirmed = () => {
+        setShowForfeitConfirm(false);
+        setShowNoStatsPrompt(true);
+    };
+
+    // Step 2, "No" — apply the forfeit result directly: mark the game
+    // completed with the 0-6 score, no plays recorded, standings update from
+    // the score alone.
+    const applyForfeitNoStats = async () => {
         setForfeiting(true);
         try {
             const res = await fetch(`/api/games/${game._id}`, {
@@ -775,13 +807,94 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
             const data = await res.json();
             if (!data.success) { showError(data.error || "Failed to forfeit game"); return; }
             showSuccess("Game forfeited and completed");
-            setShowForfeitConfirm(false);
+            setShowNoStatsPrompt(false);
             refreshGame();
             if (onGameUpdate) onGameUpdate();
         } catch {
             showError("Failed to forfeit game");
         } finally {
             setForfeiting(false);
+        }
+    };
+
+    // Step 2, "Yes" — move to the substitute-vs-placeholder choice instead of
+    // applying anything yet.
+    const applyForfeitWithNoStatsGame = () => {
+        setShowNoStatsPrompt(false);
+        setShowSubstituteChoice(true);
+    };
+
+    const loadLeagueTeams = async () => {
+        if (leagueTeams.length > 0 || loadingLeagueTeams) return;
+        setLoadingLeagueTeams(true);
+        try {
+            const res = await fetch(`/api/leagues/${liveGame.league}/teams`);
+            const data = await res.json();
+            if (data.success) setLeagueTeams(data.data);
+            else showError(data.error || "Failed to load teams");
+        } catch {
+            showError("Failed to load teams");
+        } finally {
+            setLoadingLeagueTeams(false);
+        }
+    };
+
+    const openTeamPicker = () => {
+        setShowSubstituteChoice(false);
+        setShowTeamPicker(true);
+        loadLeagueTeams();
+    };
+
+    // "NO STATS placeholder" isn't specified/built yet.
+    const applyNoStatsPlaceholder = () => {
+        showError("The NO STATS placeholder option isn't set up yet.");
+    };
+
+    const forfeitedSideTeam = activeTeam === "A"
+        ? { name: liveGame.teamA?.name, logo: liveGame.teamA?.logo || "" }
+        : { name: liveGame.teamB?.name, logo: liveGame.teamB?.logo || "" };
+
+    const availableSubTeams = leagueTeams.filter(
+        (t) => t.name !== liveGame.teamA?.name && t.name !== liveGame.teamB?.name
+    );
+
+    const closeSubstituteFlow = () => {
+        setShowSubstituteChoice(false);
+        setShowTeamPicker(false);
+        setSelectedSubTeamId("");
+    };
+
+    // Replace the forfeiting side with the chosen stand-in and start the No
+    // Stats Game — the game plays out live so the real opponent gets stats,
+    // but Game.noStatsSide marks this side so its plays never count (see
+    // statsAggregation.js), and the score gets reverted/zeroed when the game
+    // is later completed (see handleCompleteGame).
+    const applySubstituteTeam = async () => {
+        const chosen = availableSubTeams.find((t) => t._id === selectedSubTeamId);
+        if (!chosen) return;
+        const side = activeTeam;
+        setApplyingSubstitute(true);
+        try {
+            const res = await fetch(`/api/games/${game._id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    status: "in_progress",
+                    noStatsSide: side,
+                    noStatsOriginalTeam: { name: forfeitedSideTeam.name, logo: forfeitedSideTeam.logo },
+                    [side === "A" ? "teamA" : "teamB"]: { name: chosen.name, logo: chosen.logo || "", score: 0 },
+                }),
+            });
+            const data = await res.json();
+            if (!data.success) { showError(data.error || "Failed to schedule the No Stats Game"); return; }
+            showSuccess(`No Stats Game started against ${chosen.name}`);
+            closeSubstituteFlow();
+            refreshGame();
+            if (onGameUpdate) onGameUpdate();
+        } catch {
+            showError("Failed to schedule the No Stats Game");
+        } finally {
+            setApplyingSubstitute(false);
         }
     };
 
@@ -1258,10 +1371,90 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
                 title="Forfeit Game?"
                 message={`${forfeitingTeamName} will forfeit. Final score will be ${liveGame.teamA?.name} ${forfeitScoreA} - ${forfeitScoreB} ${liveGame.teamB?.name}.`}
                 confirmLabel="Yes, Forfeit"
-                confirming={forfeiting}
-                onConfirm={handleForfeit}
-                onCancel={() => { if (!forfeiting) setShowForfeitConfirm(false); }}
+                onConfirm={handleForfeitConfirmed}
+                onCancel={() => setShowForfeitConfirm(false)}
             />
+
+            {showNoStatsPrompt && (
+                <div className="admin-modal-backdrop" onClick={() => { if (!forfeiting) setShowNoStatsPrompt(false); }}>
+                    <div className="admin-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 440 }}>
+                        <button className="admin-modal-close" onClick={() => { if (!forfeiting) setShowNoStatsPrompt(false); }} aria-label="Close">
+                            <i className="fa-solid fa-xmark"></i>
+                        </button>
+                        <h3 className="admin-modal-title">Schedule a No Stats Game?</h3>
+                        <p style={{ fontSize: 14, color: "#5a5f72", margin: "0 0 20px" }}>
+                            Choose <strong>Yes</strong> to bring in a stand-in team so the real opponent can still play out the game and rack up stats. Choose <strong>No</strong> to record the forfeit result immediately instead — no plays logged, the score updates right away and standings reflect the winner.
+                        </p>
+                        <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                            <button type="button" className="admin-btn admin-btn-ghost" onClick={applyForfeitWithNoStatsGame} disabled={forfeiting}>
+                                Yes
+                            </button>
+                            <button type="button" className="admin-btn admin-btn-danger" onClick={applyForfeitNoStats} disabled={forfeiting}>
+                                {forfeiting ? "Recording..." : "No"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showSubstituteChoice && (
+                <div className="admin-modal-backdrop" onClick={closeSubstituteFlow}>
+                    <div className="admin-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 440 }}>
+                        <button className="admin-modal-close" onClick={closeSubstituteFlow} aria-label="Close">
+                            <i className="fa-solid fa-xmark"></i>
+                        </button>
+                        <h3 className="admin-modal-title">How should the No Stats Game be filled?</h3>
+                        <p style={{ fontSize: 14, color: "#5a5f72", margin: "0 0 20px" }}>
+                            {forfeitedSideTeam.name} didn&apos;t show up. Replace them with a real team so {activeTeam === "A" ? liveGame.teamB?.name : liveGame.teamA?.name} can still get game reps, or use a NO STATS placeholder.
+                        </p>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                            <button type="button" className="admin-btn admin-btn-primary" onClick={openTeamPicker}>
+                                <i className="fa-solid fa-people-group"></i> Select a Team
+                            </button>
+                            <button type="button" className="admin-btn admin-btn-ghost" onClick={applyNoStatsPlaceholder}>
+                                NO STATS Placeholder
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showTeamPicker && (
+                <div className="admin-modal-backdrop" onClick={() => { if (!applyingSubstitute) closeSubstituteFlow(); }}>
+                    <div className="admin-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 440 }}>
+                        <button className="admin-modal-close" onClick={() => { if (!applyingSubstitute) closeSubstituteFlow(); }} aria-label="Close">
+                            <i className="fa-solid fa-xmark"></i>
+                        </button>
+                        <h3 className="admin-modal-title">Select a Team</h3>
+                        <p style={{ fontSize: 14, color: "#5a5f72", margin: "0 0 16px" }}>
+                            {forfeitedSideTeam.name} will be replaced by the team you pick below for this game only. {activeTeam === "A" ? liveGame.teamB?.name : liveGame.teamA?.name}&apos;s stats will count normally; the stand-in&apos;s plays are recorded but ignored.
+                        </p>
+                        {loadingLeagueTeams ? (
+                            <div className="admin-loading"><div className="admin-spinner"></div>Loading teams...</div>
+                        ) : (
+                            <select
+                                className="admin-form-select"
+                                style={{ width: "100%", marginBottom: 20 }}
+                                value={selectedSubTeamId}
+                                onChange={(e) => setSelectedSubTeamId(e.target.value)}
+                            >
+                                <option value="">
+                                    {availableSubTeams.length === 0 ? "No other teams in this league" : "Select a team..."}
+                                </option>
+                                {availableSubTeams.map((t) => (
+                                    <option key={t._id} value={t._id}>{t.name}</option>
+                                ))}
+                            </select>
+                        )}
+                        <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                            <button type="button" className="admin-btn admin-btn-ghost" onClick={closeSubstituteFlow} disabled={applyingSubstitute}>Cancel</button>
+                            <button type="button" className="admin-btn admin-btn-primary" onClick={applySubstituteTeam} disabled={applyingSubstitute || !selectedSubTeamId}>
+                                {applyingSubstitute ? "Starting..." : "Start No Stats Game"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <ConfirmModal
                 open={showResetConfirm}

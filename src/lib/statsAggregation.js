@@ -328,6 +328,19 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
     };
 }
 
+// A team occupying a "No Stats Game" substitute slot (Game.noStatsSide — see
+// the model comment) never contributes real stats, no matter whether that
+// side currently shows the stand-in's name (mid-game) or has since been
+// reverted to the real forfeiting team's name (after completion) — either
+// way it's whatever teamNamesByAB[noStatsSide] resolves to *at this same
+// query*, so filtering by that name always matches the rows aggregateStats
+// just labeled with it.
+function excludeNoStatsSide(rows, noStatsSide, teamNamesByAB) {
+    if (!noStatsSide) return rows;
+    const excludedName = teamNamesByAB[noStatsSide];
+    return rows.filter((row) => row.teamName !== excludedName);
+}
+
 /**
  * Compute aggregated stats for a single game.
  */
@@ -340,9 +353,16 @@ export async function computeGameStats(gameId) {
 
     const { rosterMap, teamNamesByAB } = await buildRosterMap(game, league.organization);
     const plays = await Play.find({ game: gameId }).sort({ createdAt: 1 }).lean();
+    const rawStats = aggregateStats(plays, rosterMap, teamNamesByAB);
+    const stats = {
+        passing: excludeNoStatsSide(rawStats.passing, game.noStatsSide, teamNamesByAB),
+        receiving: excludeNoStatsSide(rawStats.receiving, game.noStatsSide, teamNamesByAB),
+        rushing: excludeNoStatsSide(rawStats.rushing, game.noStatsSide, teamNamesByAB),
+        defensive: excludeNoStatsSide(rawStats.defensive, game.noStatsSide, teamNamesByAB),
+    };
 
     return {
-        stats: aggregateStats(plays, rosterMap, teamNamesByAB),
+        stats,
         game,
         teamNames: teamNamesByAB,
     };
@@ -441,10 +461,10 @@ async function computeSeasonStatsUncached(leagueId, orgId) {
             }
         };
 
-        mergeRows(mergedPassing, gameStats.passing, ["atts", "comp", "yards", "tds", "pat", "ints", "sacks", "safety"]);
-        mergeRows(mergedReceiving, gameStats.receiving, ["receptions", "yards", "tds", "pat"]);
-        mergeRows(mergedRushing, gameStats.rushing, ["atts", "yards", "tds", "pat"]);
-        mergeRows(mergedDefensive, gameStats.defensive, ["dint", "dintTD", "dtd", "dpat", "dsacks", "dsafety", "fumbles", "flagPulls"]);
+        mergeRows(mergedPassing, excludeNoStatsSide(gameStats.passing, game.noStatsSide, teamNamesByAB), ["atts", "comp", "yards", "tds", "pat", "ints", "sacks", "safety"]);
+        mergeRows(mergedReceiving, excludeNoStatsSide(gameStats.receiving, game.noStatsSide, teamNamesByAB), ["receptions", "yards", "tds", "pat"]);
+        mergeRows(mergedRushing, excludeNoStatsSide(gameStats.rushing, game.noStatsSide, teamNamesByAB), ["atts", "yards", "tds", "pat"]);
+        mergeRows(mergedDefensive, excludeNoStatsSide(gameStats.defensive, game.noStatsSide, teamNamesByAB), ["dint", "dintTD", "dtd", "dpat", "dsacks", "dsafety", "fumbles", "flagPulls"]);
     }
 
     // Recalculate derived fields
