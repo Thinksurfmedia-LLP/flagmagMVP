@@ -39,6 +39,8 @@ function formatCountdown(ms) {
     return `${mins}m ${secs}s`;
 }
 
+const MIN_PLAYERS_TO_START = 4;
+
 function isPlaceholderTeamName(name) {
     if (!name || !String(name).trim()) return true;
     const n = String(name).trim().toLowerCase();
@@ -148,6 +150,33 @@ export default function MatchCard({ game, onStart, onGamesChanged }) {
                     logo: teamB.logo || "",
                     score: game.teamB?.score ?? 0,
                 };
+            }
+
+            // Both teams need a minimum roster before a game can be started.
+            // With placeholder teams being reassigned, check the freshly
+            // selected teams' own player lists (already loaded in allTeams)
+            // instead of the game's roster, which still reflects the old
+            // placeholder matchup at this point.
+            let countA, countB, nameA, nameB;
+            if (needsTeamEdit) {
+                const teamA = allTeams.find((t) => String(t._id) === teamASelection);
+                const teamB = allTeams.find((t) => String(t._id) === teamBSelection);
+                countA = (teamA?.players || []).length;
+                countB = (teamB?.players || []).length;
+                nameA = teamA?.name;
+                nameB = teamB?.name;
+            } else {
+                const rosterRes = await apiGet(`/api/games/${game._id}/roster`);
+                countA = (rosterRes.data?.teamA || []).length;
+                countB = (rosterRes.data?.teamB || []).length;
+                nameA = game.teamA?.name;
+                nameB = game.teamB?.name;
+            }
+            const shortTeams = [nameA && countA < MIN_PLAYERS_TO_START ? nameA : null, nameB && countB < MIN_PLAYERS_TO_START ? nameB : null].filter(Boolean);
+            if (shortTeams.length > 0) {
+                setStartError(`${shortTeams.join(" and ")} ${shortTeams.length > 1 ? "need" : "needs"} at least ${MIN_PLAYERS_TO_START} players before starting.`);
+                setStarting(false);
+                return;
             }
 
             await apiPut(`/api/games/${game._id}`, payload);

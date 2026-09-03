@@ -159,17 +159,21 @@ export default async function SeasonLocationPage({ params }) {
                                             </div>
                                             <div className="col-lg map-content-area">
                                                 <h3>{venue.name}</h3>
-                                                <ul>
-                                                    {allAmenities.map((amenity, aIdx) => (
-                                                        <li key={aIdx}>
-                                                            {amenityIconMap[amenity] && <img src={amenityIconMap[amenity]} alt="" style={{ width: 50, height: 50, objectFit: "contain", flexShrink: 0 }} />} {amenity}
-                                                        </li>
-                                                    ))}
-                                                    <li><img src="/assets/images/v8.png" alt="" /> Field: {field.name}</li>
-                                                    <li>
-                                                        <img src="/assets/images/v7.png" alt="" /> Location – {venue.cityName || loc.cityName || ""}
-                                                    </li>
-                                                </ul>
+                                                <div style={{ display: "flex", alignItems: "center", gap: 15, fontWeight: 600, marginBottom: 25 }}>
+                                                    <img src="/assets/images/v7.png" alt="" /> Location – {venue.cityName || loc.cityName || ""}
+                                                </div>
+                                                <div style={{ textTransform: "uppercase", fontSize: 20, fontWeight: 700, letterSpacing: 1, color: "rgba(255,255,255,0.85)", marginBottom: 15 }}>Amenities</div>
+                                                {allAmenities.length > 0 ? (
+                                                    <ul>
+                                                        {allAmenities.map((amenity, aIdx) => (
+                                                            <li key={aIdx}>
+                                                                {amenityIconMap[amenity] && <img src={amenityIconMap[amenity]} alt="" style={{ width: 50, height: 50, objectFit: "contain", flexShrink: 0 }} />} {amenity}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                ) : (
+                                                    <p style={{ color: "rgba(255,255,255,0.5)", fontStyle: "italic" }}>No amenities listed.</p>
+                                                )}
                                             </div>
                                         </div>
 

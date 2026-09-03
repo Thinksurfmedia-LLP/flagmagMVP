@@ -9,6 +9,9 @@ import AdminPagination from "@/components/AdminPagination";
 import ConfirmModal from "@/components/ConfirmModal";
 
 const GAMES_PER_PAGE = 20;
+// Minimum players required on each team's roster before a game can be
+// started — matches the same limit enforced in the stats app (mobile-app).
+const MIN_PLAYERS_TO_START = 4;
 
 const STAT_FIELDS = ["rate", "atts", "comp", "tds", "pct", "xp2", "yards", "ten", "twenty", "forty", "ints", "intOpen", "intXp"];
 const STAT_LABELS = { rate: "Rate", atts: "Atts", comp: "Comp", tds: "TDs", pct: "%", xp2: "XP2", yards: "Yards", ten: "10+", twenty: "20+", forty: "40+", ints: "INTs", intOpen: "Int Open", intXp: "Int XP" };
@@ -1306,8 +1309,8 @@ function StartGameConfirmModal({ game, onClose, onConfirm }) {
     }, [game._id]);
 
     const missingTeams = [];
-    if (!loading && teamACount === 0) missingTeams.push(game.teamA.name);
-    if (!loading && teamBCount === 0) missingTeams.push(game.teamB.name);
+    if (!loading && teamACount < MIN_PLAYERS_TO_START) missingTeams.push({ name: game.teamA.name, count: teamACount });
+    if (!loading && teamBCount < MIN_PLAYERS_TO_START) missingTeams.push({ name: game.teamB.name, count: teamBCount });
     const canStart = !loading && !error && missingTeams.length === 0;
 
     const handleConfirm = async () => {
@@ -1339,15 +1342,18 @@ function StartGameConfirmModal({ game, onClose, onConfirm }) {
                 ) : missingTeams.length > 0 ? (
                     <div style={{ background: "rgba(220,38,38,0.08)", border: "1px solid rgba(220,38,38,0.3)", borderRadius: 8, padding: 12, fontSize: 13, color: "#dc2626" }}>
                         <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: 6 }}></i>
-                        {missingTeams.length === 2
-                            ? <>Neither <strong>{missingTeams[0]}</strong> nor <strong>{missingTeams[1]}</strong> has any players assigned.</>
-                            : <><strong>{missingTeams[0]}</strong> has no players assigned.</>}
-                        {" "}Add players to the team before starting this game.
+                        {missingTeams.map((t, i) => (
+                            <span key={t.name}>
+                                {i > 0 && " and "}
+                                <strong>{t.name}</strong> has only {t.count} player{t.count === 1 ? "" : "s"}
+                            </span>
+                        ))}
+                        . Each team needs at least {MIN_PLAYERS_TO_START} players before starting.
                     </div>
                 ) : (
                     <div style={{ fontSize: 13, color: "#5a5f72" }}>
                         <i className="fa-solid fa-circle-check" style={{ color: "#16a34a", marginRight: 6 }}></i>
-                        Both teams have players assigned.
+                        Both teams have at least {MIN_PLAYERS_TO_START} players assigned.
                     </div>
                 )}
 
@@ -1357,7 +1363,7 @@ function StartGameConfirmModal({ game, onClose, onConfirm }) {
                         className="admin-btn admin-btn-danger"
                         onClick={handleConfirm}
                         disabled={!canStart || confirming}
-                        title={!canStart && !loading && !error ? "Both teams need at least one player assigned" : undefined}
+                        title={!canStart && !loading && !error ? `Both teams need at least ${MIN_PLAYERS_TO_START} players assigned` : undefined}
                     >
                         {confirming ? "Starting..." : "Yes, Start Game"}
                     </button>
