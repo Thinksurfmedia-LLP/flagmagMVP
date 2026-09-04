@@ -25,7 +25,6 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
         showOnSignup: initial?.showOnSignup || false,
         playerFee: initial?.playerFee != null ? String(initial.playerFee) : "",
         teamDeposit: initial?.teamDepositOverridden && initial?.teamDeposit != null ? String(initial.teamDeposit) : "",
-        teamFee: initial?.teamFee != null ? String(initial.teamFee) : "",
     });
     const [selectedOrgId, setSelectedOrgId] = useState(
         initial?.organization?._id || initial?.organization || (isAdmin ? "" : userOrgId)
@@ -491,18 +490,6 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
                                 value={form.teamDeposit}
                                 onChange={(e) => setForm({ ...form, teamDeposit: e.target.value })}
                                 placeholder={form.playerFee ? `Auto: ${(Number(form.playerFee) * 4).toFixed(2)}` : "Auto: 4x player fee"}
-                            />
-                        </div>
-                        <div style={{ flex: 1 }}>
-                            <label className="admin-form-label">Team Fee</label>
-                            <input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                className="admin-form-input"
-                                value={form.teamFee}
-                                onChange={(e) => setForm({ ...form, teamFee: e.target.value })}
-                                placeholder="0.00"
                             />
                         </div>
                     </div>

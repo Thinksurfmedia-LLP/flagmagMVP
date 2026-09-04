@@ -24,6 +24,15 @@ const PaymentSchema = new mongoose.Schema(
             enum: ["free-agent", "team", "payment"],
             default: "payment",
         },
+        // Team registrations only — which of the two ways the buyer paid
+        // (a flat team deposit vs. a per-player total) and, only for the
+        // per-player option, how many players that total was based on.
+        teamPaymentMethod: {
+            type: String,
+            enum: ["deposit", "playerFees", null],
+            default: null,
+        },
+        playerCount: { type: Number, default: null },
         // Actual FKs (as opposed to the display-only strings above) — set
         // at order-creation time from the org/league the signup form
         // already had resolved. Lets the admin/organizer Registrations
@@ -62,6 +71,7 @@ function getPaymentModel() {
     const hasNewFields = [
         "address", "state", "location", "teamName", "phone",
         "organizationSlug", "registrationType", "organization", "league",
+        "teamPaymentMethod", "playerCount",
     ].every((field) => existing?.schema.path(field));
     if (existing && !hasNewFields) {
         delete mongoose.models.Payment;

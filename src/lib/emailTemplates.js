@@ -44,10 +44,11 @@ function emailWrapper({ heading, bodyHtml, badge }) {
     return { html, attachments: logoAttachment ? [logoAttachment] : [] };
 }
 
-function fieldRow(label, value, { isLink = false } = {}) {
+function fieldRow(label, value, { linkType } = {}) {
     const displayValue = value || "Not specified";
-    const valueHtml = isLink && value
-        ? `<a href="${label === "Work Email" ? `mailto:${value}` : `tel:${value.replace(/\s/g, "")}`}" style="color:#160f0e;text-decoration:none;">${displayValue}</a>`
+    const href = linkType === "email" ? `mailto:${value}` : linkType === "tel" ? `tel:${value.replace(/\s/g, "")}` : null;
+    const valueHtml = href && value
+        ? `<a href="${href}" style="color:#160f0e;text-decoration:none;">${displayValue}</a>`
         : displayValue;
     return `
         <tr>
@@ -76,8 +77,8 @@ function formatPreferredDateTime(value) {
 export function demoRequestEmail(demo) {
     const rows = [
         fieldRow("Full Name", demo.fullName),
-        fieldRow("Work Email", demo.workEmail, { isLink: true }),
-        fieldRow("Phone", demo.phone, { isLink: true }),
+        fieldRow("Work Email", demo.workEmail, { linkType: "email" }),
+        fieldRow("Phone", demo.phone, { linkType: "tel" }),
         fieldRow("Organization", demo.organizationName),
         fieldRow("Preferred Date & Time", formatPreferredDateTime(demo.preferredDateTime)),
     ].join("");
@@ -87,6 +88,79 @@ export function demoRequestEmail(demo) {
     return emailWrapper({
         badge: "New Demo Request",
         heading: `${firstName} Sent You a Demo Request`,
+        bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows}</table>`,
+    });
+}
+
+const REGISTRATION_TYPE_LABELS = {
+    "free-agent": "Free Agent",
+    team: "Team",
+    payment: "Payment",
+};
+
+// Subject-line phrasing differs slightly from REGISTRATION_TYPE_LABELS above
+// ("payment" reads as "Custom Payment" here, not "Payment Registration").
+const REGISTRATION_SUBJECT_LABELS = {
+    "free-agent": "Free Agent Registration",
+    team: "Team Registration",
+    payment: "Custom Payment",
+};
+
+/**
+ * Subject line for the registration notification email — e.g.
+ * "Flagmag | United Flag Football - Team Registration".
+ */
+export function registrationSubject(payment) {
+    const typeLabel = REGISTRATION_SUBJECT_LABELS[payment.registrationType] || "Registration";
+    return `Flagmag | ${payment.organizationName || "Organization"} - ${typeLabel}`;
+}
+
+function formatCurrency(amount, currency) {
+    if (amount === null || amount === undefined) return "";
+    try {
+        return new Intl.NumberFormat("en-US", { style: "currency", currency: currency || "USD" }).format(amount);
+    } catch {
+        return `$${Number(amount).toFixed(2)}`;
+    }
+}
+
+/**
+ * Notification email sent to the FlagMag team when a captured PayPal
+ * payment completes a signup (org registration, team, or free-agent).
+ * @param {object} payment - A captured Payment document.
+ * @returns {{ html: string, attachments: Array }}
+ */
+export function registrationEmail(payment) {
+    // Prefer what PayPal actually captured over the originally-requested
+    // amount — that's the number that actually landed, and the capture
+    // route already verifies the two match before marking this "captured".
+    const amountPaid = payment.capturedAmount ?? payment.amount;
+    const locationParts = [payment.location, payment.state].filter(Boolean).join(", ");
+
+    const rows = [
+        fieldRow("Full Name", payment.name),
+        fieldRow("Email", payment.email, { linkType: "email" }),
+        fieldRow("Phone", payment.phone, { linkType: "tel" }),
+        fieldRow("Registration Type", REGISTRATION_TYPE_LABELS[payment.registrationType] || payment.registrationType),
+        ...(payment.teamName ? [fieldRow("Team Name", payment.teamName)] : []),
+        fieldRow("Organization", payment.organizationName),
+        ...(payment.leagueName ? [fieldRow("League", payment.leagueName)] : []),
+        ...(payment.address ? [fieldRow("Address", payment.address)] : []),
+        ...(locationParts ? [fieldRow("Location", locationParts)] : []),
+        ...(payment.note ? [fieldRow("Note", payment.note)] : []),
+        ...(payment.teamPaymentMethod === "deposit" ? [fieldRow("Payment For", "Team Deposit")] : []),
+        ...(payment.teamPaymentMethod === "playerFees" ? [fieldRow("Payment For", `Team Fee (${payment.playerCount || 0} players)`)] : []),
+        fieldRow("Amount Paid", formatCurrency(amountPaid, payment.currency)),
+    ].join("");
+
+    const firstName = (payment.name || "").trim().split(/\s+/)[0] || "Someone";
+    const heading = payment.registrationType === "free-agent" ? `${firstName} Registered for Free Agent`
+        : payment.registrationType === "team" ? `${firstName} Registered for Team`
+        : `${firstName} sent you custom payment`;
+
+    return emailWrapper({
+        badge: "New Registration",
+        heading,
         bodyHtml: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows}</table>`,
     });
 }

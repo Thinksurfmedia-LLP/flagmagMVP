@@ -159,9 +159,11 @@ export default function SignupCheckout({ orgSlug: initialOrgSlug = "" }) {
     const teamDepositAmount = selectedLeague?.teamDeposit || 0;
     const playerCountNum = Number(form.playerCount) || 0;
     const playerFeesTotal = playerCountNum * (selectedLeague?.playerFee || 0);
-    // Paying by per-player fees has to at least cover the deposit — that's
-    // the whole point of the deposit floor.
-    const playerFeesShortfall = teamPaymentMethod === "playerFees" && playerFeesTotal < teamDepositAmount;
+    // The Team Fee (player count × per-player fee, set by the registrar at
+    // payment time) has to come out strictly ABOVE the flat deposit — paying
+    // exactly the deposit amount this way defeats the point of offering the
+    // per-player option at all.
+    const playerFeesShortfall = teamPaymentMethod === "playerFees" && playerFeesTotal <= teamDepositAmount;
 
     const lineItems = useMemo(() => {
         if (registrationType === "free-agent") {
@@ -169,9 +171,9 @@ export default function SignupCheckout({ orgSlug: initialOrgSlug = "" }) {
         }
         if (registrationType === "team") {
             const primary = teamPaymentMethod === "playerFees"
-                ? { label: `Player Fees (${playerCountNum || 0} players)`, amount: playerFeesTotal }
+                ? { label: `Team Fee (${playerCountNum || 0} players)`, amount: playerFeesTotal }
                 : { label: "Team Deposit", amount: teamDepositAmount };
-            return [primary, { label: "Team Fee", amount: selectedLeague?.teamFee || 0 }];
+            return [primary];
         }
         return [{ label: "Custom Payment", amount: Number(form.amount) || 0 }];
     }, [registrationType, selectedLeague, form.amount, teamPaymentMethod, playerCountNum, playerFeesTotal, teamDepositAmount]);
@@ -457,7 +459,7 @@ export default function SignupCheckout({ orgSlug: initialOrgSlug = "" }) {
                                             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px" }}>
                                                 {[
                                                     { value: "deposit", label: `Team Deposit (${currency(teamDepositAmount)})` },
-                                                    { value: "playerFees", label: "Player Fees" },
+                                                    { value: "playerFees", label: "Team Fee" },
                                                 ].map((opt) => {
                                                     const active = teamPaymentMethod === opt.value;
                                                     return (
@@ -494,7 +496,7 @@ export default function SignupCheckout({ orgSlug: initialOrgSlug = "" }) {
                                                 />
                                                 <div style={{ marginTop: "8px", fontSize: "13px", color: playerFeesShortfall ? "#f87171" : "rgba(255,255,255,0.5)" }}>
                                                     {playerFeesShortfall
-                                                        ? `Must total at least ${currency(teamDepositAmount)} (the team deposit) — currently ${currency(playerFeesTotal)}.`
+                                                        ? `Team Fee must be greater than ${currency(teamDepositAmount)} (the team deposit) — currently ${currency(playerFeesTotal)}.`
                                                         : `${currency(playerFeesTotal)} total at ${currency(selectedLeague?.playerFee || 0)}/player.`}
                                                 </div>
                                             </div>
@@ -630,6 +632,8 @@ export default function SignupCheckout({ orgSlug: initialOrgSlug = "" }) {
                                         leagueId={leagueId}
                                         leagueName={selectedLeague?.name || ""}
                                         registrationType={registrationType}
+                                        teamPaymentMethod={registrationType === "team" ? teamPaymentMethod : undefined}
+                                        playerCount={registrationType === "team" && teamPaymentMethod === "playerFees" ? playerCountNum : undefined}
                                         onSuccess={() => setConfirmed(true)}
                                         onError={(msg) => setError(msg)}
                                     />

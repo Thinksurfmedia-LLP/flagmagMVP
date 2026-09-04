@@ -37,6 +37,7 @@ export async function POST(request) {
         const {
             name, email, phone, amount, note, address, state, location, teamName,
             organizationSlug, organizationName, organizationId, leagueId, leagueName, registrationType,
+            teamPaymentMethod, playerCount,
         } = await request.json();
 
         if (!name?.trim()) {
@@ -87,6 +88,11 @@ export async function POST(request) {
                 registrationType: ["free-agent", "team", "payment"].includes(registrationType) ? registrationType : "payment",
                 organization: mongoose.isValidObjectId(organizationId) ? organizationId : null,
                 league: mongoose.isValidObjectId(leagueId) ? leagueId : null,
+                // Team registrations only — which of the two ways the buyer
+                // chose to pay, and (only for the per-player option) how many
+                // players that total was based on. Neither applies otherwise.
+                teamPaymentMethod: ["deposit", "playerFees"].includes(teamPaymentMethod) ? teamPaymentMethod : null,
+                playerCount: teamPaymentMethod === "playerFees" && Number(playerCount) > 0 ? Number(playerCount) : null,
             });
         }
 

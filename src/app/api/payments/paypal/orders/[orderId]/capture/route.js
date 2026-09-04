@@ -3,6 +3,8 @@ import dbConnect from "@/lib/dbConnect";
 import Payment from "@/models/Payment";
 import { captureOrder } from "@/lib/paypal";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { sendMail } from "@/lib/mailer";
+import { registrationEmail, registrationSubject } from "@/lib/emailTemplates";
 
 const RATE_LIMIT = { max: 10, windowMs: 60 * 1000 };
 
@@ -83,6 +85,23 @@ export async function POST(request, { params }) {
         // Player/Team record. That's a deliberate manual step — the
         // organizer reviews the captured registration in /admin/registrations
         // and creates the actual free agent / team from their own dashboard.
+
+        // Best-effort notification — a mail hiccup should never fail a
+        // payment that has already actually captured on PayPal's side.
+        try {
+            const { html, attachments } = registrationEmail(payment);
+            await sendMail({
+                to: process.env.DEMO_REQUEST_NOTIFY_EMAIL || process.env.GMAIL_USER,
+                replyTo: payment.email,
+                subject: registrationSubject(payment),
+                html,
+                attachments,
+                text: `New Registration\n\nFull Name: ${payment.name}\nEmail: ${payment.email}\nPhone: ${payment.phone || "Not specified"}\nType: ${payment.registrationType}\nOrganization: ${payment.organizationName}\nAmount Paid: ${payment.capturedAmount ?? payment.amount} ${payment.currency}`,
+            });
+        } catch (mailError) {
+            console.error("Failed to send registration notification email:", mailError);
+        }
+
         return NextResponse.json({ success: true, data: { status: "captured" } });
     } catch (error) {
         console.error("[payments/paypal/capture] unexpected error:", error);

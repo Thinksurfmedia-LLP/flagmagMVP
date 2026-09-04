@@ -25,6 +25,8 @@ export default function PayPalCheckout({
     leagueId,
     leagueName,
     registrationType,
+    teamPaymentMethod,
+    playerCount,
     onSuccess,
     onError,
 }) {
@@ -69,6 +71,7 @@ export default function PayPalCheckout({
     fieldsRef.current = {
         name, email, phone, amount, note, address, state, location, teamName,
         organizationSlug, organizationName, organizationId, leagueId, leagueName, registrationType,
+        teamPaymentMethod, playerCount,
     };
 
     useEffect(() => {
