@@ -3,6 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import DemoRequest from "@/models/DemoRequest";
 import { requireAuth } from "@/lib/apiAuth";
 import { sendMail } from "@/lib/mailer";
+import { demoRequestEmail } from "@/lib/emailTemplates";
 
 const PERSONAL_EMAIL_DOMAINS = [
     "gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "aol.com",
@@ -41,18 +42,13 @@ export async function POST(request) {
         // Best-effort notification — a mail hiccup should never fail the
         // submission itself; the request is already safely stored above.
         try {
+            const { html, attachments } = demoRequestEmail(demo);
             await sendMail({
                 to: process.env.DEMO_REQUEST_NOTIFY_EMAIL || process.env.GMAIL_USER,
                 replyTo: demo.workEmail,
-                subject: `New demo request — ${demo.organizationName}`,
-                html: `
-                    <h2>New Demo Request</h2>
-                    <p><strong>Full Name:</strong> ${demo.fullName}</p>
-                    <p><strong>Work Email:</strong> ${demo.workEmail}</p>
-                    <p><strong>Phone:</strong> ${demo.phone}</p>
-                    <p><strong>Organization:</strong> ${demo.organizationName}</p>
-                    <p><strong>Preferred Date &amp; Time:</strong> ${demo.preferredDateTime || "Not specified"}</p>
-                `,
+                subject: "Flagmag Demo Request",
+                html,
+                attachments,
                 text: `New Demo Request\n\nFull Name: ${demo.fullName}\nWork Email: ${demo.workEmail}\nPhone: ${demo.phone}\nOrganization: ${demo.organizationName}\nPreferred Date & Time: ${demo.preferredDateTime || "Not specified"}`,
             });
         } catch (mailError) {

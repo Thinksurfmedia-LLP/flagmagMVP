@@ -24,9 +24,9 @@ function getTransporter() {
 
 /**
  * Sends an email via the shared Gmail sender.
- * @param {{ to: string, subject: string, html: string, text?: string, replyTo?: string }} options
+ * @param {{ to: string, subject: string, html: string, text?: string, replyTo?: string, attachments?: Array }} options
  */
-export async function sendMail({ to, subject, html, text, replyTo }) {
+export async function sendMail({ to, subject, html, text, replyTo, attachments }) {
     const transporter = getTransporter();
     await transporter.sendMail({
         from: `"FlagMag" <${process.env.GMAIL_USER}>`,
@@ -35,5 +35,6 @@ export async function sendMail({ to, subject, html, text, replyTo }) {
         html,
         text,
         ...(replyTo ? { replyTo } : {}),
+        ...(attachments?.length ? { attachments } : {}),
     });
 }

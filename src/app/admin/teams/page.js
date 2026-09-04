@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import React from "react";
+import { createPortal } from "react-dom";
 import AdminPagination from "@/components/AdminPagination";
 import ConfirmModal from "@/components/ConfirmModal";
 import AdminLayout, { hasAnyAccess } from "@/components/AdminLayout";
@@ -387,6 +388,288 @@ function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, ef
     );
 }
 
+function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
+    const { showSuccess, showError } = useToast();
+    const [pickerOpen, setPickerOpen] = useState(false);
+    const [pickerPos, setPickerPos] = useState(null); // { left, width, top?, bottom? }
+    const pickerRef = React.useRef(null);
+    const pickerTriggerRef = React.useRef(null);
+
+    // The picker renders in a portal (see below) so a long dropdown can never
+    // get clipped by this modal's own overflow-y:auto — it escapes to
+    // document.body and is positioned in fixed/viewport coordinates instead.
+    // Opens downward when there's room, otherwise upward, based on actual
+    // remaining viewport space rather than always picking one direction.
+    const togglePicker = () => {
+        if (pickerOpen) { setPickerOpen(false); return; }
+        const rect = pickerTriggerRef.current?.getBoundingClientRect();
+        if (!rect) return;
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        const openDownward = spaceBelow >= 200 || spaceBelow >= spaceAbove;
+        setPickerPos({
+            left: rect.left,
+            width: rect.width,
+            ...(openDownward ? { top: rect.bottom + 4 } : { bottom: window.innerHeight - rect.top + 4 }),
+        });
+        setPickerOpen(true);
+    };
+
+    // Local roster copy: [{ player: playerId, jerseyNumber }] — same shape
+    // PUT /api/teams/[id] expects for `players` (a full-replace array, see
+    // that route's PUT handler).
+    const [roster, setRoster] = useState(
+        (team.players || []).map((p) => ({
+            playerId: String(p.player?._id || p.player),
+            playerName: p.player?.name || "",
+            playerPhoto: p.player?.photo || "",
+            jerseyNumber: p.jerseyNumber != null ? String(p.jerseyNumber) : "",
+        }))
+    );
+    const [selectedPlayerId, setSelectedPlayerId] = useState("");
+    const [newJersey, setNewJersey] = useState("");
+    const [saving, setSaving] = useState(false);
+    const [editingId, setEditingId] = useState(null);
+    const [editJersey, setEditJersey] = useState("");
+
+    const orgId = String(team.organization?._id || team.organization || "");
+    const rosterIds = new Set(roster.map((r) => r.playerId));
+
+    // Only players in this team's own org, not already on this team's roster.
+    const availableToAdd = (allPlayers || []).filter(
+        (p) => !rosterIds.has(String(p._id)) && (!orgId || String(p.organization?._id || p.organization || "") === orgId)
+    );
+
+    // A player can be rostered on several teams at once — surface every OTHER
+    // team (name + jersey #) they're already on next to their name in the
+    // picker, so assigning here doesn't blindside anyone about a scheduling
+    // conflict.
+    const otherTeamsByPlayerId = {};
+    for (const t of allTeams || []) {
+        if (String(t._id) === String(team._id)) continue;
+        for (const p of t.players || []) {
+            const pid = String(p.player?._id || p.player);
+            if (!otherTeamsByPlayerId[pid]) otherTeamsByPlayerId[pid] = [];
+            otherTeamsByPlayerId[pid].push({ teamName: t.name, jerseyNumber: p.jerseyNumber });
+        }
+    }
+
+    // Close the player picker when clicking outside it — the dropdown itself
+    // lives in a portal (see pickerDropdownRef below), so a click inside it
+    // is NOT a DOM descendant of pickerRef and must be checked separately.
+    const pickerDropdownRef = React.useRef(null);
+    useEffect(() => {
+        if (!pickerOpen) return;
+        const handleClickOutside = (e) => {
+            if (pickerRef.current?.contains(e.target)) return;
+            if (pickerDropdownRef.current?.contains(e.target)) return;
+            setPickerOpen(false);
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [pickerOpen]);
+
+    const persist = async (nextRoster, successMessage) => {
+        setSaving(true);
+        try {
+            const res = await fetch(`/api/teams/${team._id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    players: nextRoster.map((r) => ({ player: r.playerId, jerseyNumber: r.jerseyNumber })),
+                }),
+            });
+            const data = await res.json();
+            if (!data.success) { showError(data.error || "Failed to update roster"); return false; }
+            setRoster(nextRoster);
+            showSuccess(successMessage);
+            if (onSave) onSave();
+            return true;
+        } catch {
+            showError("Failed to update roster");
+            return false;
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleAssign = async () => {
+        if (!selectedPlayerId || !newJersey.trim()) return;
+        const player = availableToAdd.find((p) => String(p._id) === selectedPlayerId);
+        if (!player) return;
+        const ok = await persist(
+            [...roster, { playerId: String(player._id), playerName: player.name, playerPhoto: player.photo || "", jerseyNumber: newJersey.trim() }],
+            `${player.name} added to the roster!`
+        );
+        if (ok) { setSelectedPlayerId(""); setNewJersey(""); }
+    };
+
+    const startEdit = (entry) => {
+        setEditingId(entry.playerId);
+        setEditJersey(entry.jerseyNumber);
+    };
+
+    const cancelEdit = () => {
+        setEditingId(null);
+        setEditJersey("");
+    };
+
+    const handleSaveEdit = async (entry) => {
+        if (!editJersey.trim()) { showError("Jersey number is required"); return; }
+        const next = roster.map((r) => r.playerId === entry.playerId ? { ...r, jerseyNumber: editJersey.trim() } : r);
+        const ok = await persist(next, "Jersey number updated!");
+        if (ok) cancelEdit();
+    };
+
+    const handleRemove = async (entry) => {
+        if (!confirm(`Remove ${entry.playerName} from this team's roster?`)) return;
+        await persist(roster.filter((r) => r.playerId !== entry.playerId), "Player removed from roster");
+    };
+
+    return (
+        <div className="admin-modal-backdrop" onClick={onClose}>
+            <div className="admin-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 560, maxHeight: "90vh", overflowY: "auto" }}>
+                <button className="admin-modal-close" onClick={onClose} aria-label="Close">
+                    <i className="fa-solid fa-xmark"></i>
+                </button>
+                <h3 className="admin-modal-title">Manage Players — {team.name}</h3>
+
+                <div className="admin-form-group">
+                    <label className="admin-form-label">Currently Assigned ({roster.length})</label>
+                    {roster.length === 0 ? (
+                        <div style={{ color: "#8b90a0", fontSize: 13 }}>No players assigned yet.</div>
+                    ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                            {roster.map((entry) => (
+                                <div key={entry.playerId} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 10px", background: "#f9fafb", border: "1px solid #e8eaef", borderRadius: 6, gap: 8 }}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
+                                        {entry.playerPhoto && <img src={entry.playerPhoto} alt="" style={{ width: 20, height: 20, borderRadius: "50%", flexShrink: 0, objectFit: "cover" }} />}
+                                        <span style={{ fontWeight: 600, fontSize: 13, color: "#1a1d26", flexShrink: 0 }}>{entry.playerName || "(unknown player)"}</span>
+                                        {editingId === entry.playerId ? (
+                                            <input
+                                                type="number"
+                                                className="admin-form-input"
+                                                style={{ width: 70, height: 30, fontSize: 12, padding: "4px 8px" }}
+                                                value={editJersey}
+                                                onChange={(e) => setEditJersey(e.target.value)}
+                                                placeholder="Jersey #"
+                                                autoFocus
+                                            />
+                                        ) : (
+                                            <span style={{ color: "#8b90a0", fontSize: 12 }}>#{entry.jerseyNumber}</span>
+                                        )}
+                                    </div>
+                                    {editingId === entry.playerId ? (
+                                        <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                                            <button className="admin-btn admin-btn-primary admin-btn-sm" onClick={() => handleSaveEdit(entry)} disabled={saving} title="Save">
+                                                <i className="fa-solid fa-check"></i>
+                                            </button>
+                                            <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={cancelEdit} disabled={saving} title="Cancel">
+                                                <i className="fa-solid fa-xmark"></i>
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                                            <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => startEdit(entry)} title="Edit jersey number">
+                                                <i className="fa-solid fa-pen"></i>
+                                            </button>
+                                            <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => handleRemove(entry)} title="Remove">
+                                                <i className="fa-solid fa-xmark"></i>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                <div className="admin-form-group">
+                    <label className="admin-form-label">Assign an Existing Player</label>
+                    <div style={{ display: "flex", gap: 8 }}>
+                        <div ref={pickerRef} style={{ position: "relative", flex: 1 }}>
+                            <div
+                                ref={pickerTriggerRef}
+                                className="admin-form-select"
+                                style={{
+                                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                                    cursor: availableToAdd.length === 0 ? "not-allowed" : "pointer",
+                                    userSelect: "none",
+                                }}
+                                onClick={() => availableToAdd.length > 0 && togglePicker()}
+                            >
+                                <span style={{ color: selectedPlayerId ? "#1a1d26" : "#8b90a0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                    {availableToAdd.length === 0
+                                        ? "No other players in this organization"
+                                        : availableToAdd.find((p) => String(p._id) === selectedPlayerId)?.name || "Select a player..."}
+                                </span>
+                                <i className={`fa-solid fa-chevron-${pickerOpen ? "up" : "down"}`} style={{ fontSize: 11, color: "#8b90a0", flexShrink: 0, marginLeft: 8 }}></i>
+                            </div>
+                            {pickerOpen && availableToAdd.length > 0 && pickerPos && typeof document !== "undefined" && createPortal(
+                                <div
+                                    ref={pickerDropdownRef}
+                                    style={{
+                                        position: "fixed", left: pickerPos.left, width: pickerPos.width,
+                                        ...(pickerPos.top !== undefined ? { top: pickerPos.top } : { bottom: pickerPos.bottom }),
+                                        zIndex: 10000,
+                                        background: "#fff", border: "1px solid #d5d8e0", borderRadius: 8,
+                                        maxHeight: 320, overflowY: "auto", boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+                                    }}
+                                >
+                                    {availableToAdd.map((p) => {
+                                        const otherTeams = otherTeamsByPlayerId[String(p._id)] || [];
+                                        return (
+                                            <div
+                                                key={p._id}
+                                                onClick={() => { setSelectedPlayerId(String(p._id)); setPickerOpen(false); }}
+                                                style={{
+                                                    display: "flex", alignItems: "center", flexWrap: "wrap", gap: 6, padding: "8px 10px",
+                                                    fontSize: 13, color: "#1a1d26", cursor: "pointer", borderBottom: "1px solid #f1f2f5",
+                                                    background: String(p._id) === selectedPlayerId ? "#fff5f4" : "#fff",
+                                                }}
+                                            >
+                                                <span style={{ fontWeight: 600 }}>{p.name}</span>
+                                                {otherTeams.map((ot, i) => (
+                                                    <span
+                                                        key={i}
+                                                        style={{
+                                                            display: "inline-flex", alignItems: "center", gap: 3,
+                                                            background: "#eef0f4", color: "#5a5f72", fontSize: 11, fontWeight: 600,
+                                                            padding: "2px 8px", borderRadius: 12, whiteSpace: "nowrap",
+                                                        }}
+                                                    >
+                                                        {ot.teamName} #{ot.jerseyNumber}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        );
+                                    })}
+                                </div>,
+                                document.body
+                            )}
+                        </div>
+                        <input
+                            type="number"
+                            className="admin-form-input"
+                            style={{ width: 90, flexShrink: 0 }}
+                            value={newJersey}
+                            onChange={(e) => setNewJersey(e.target.value)}
+                            placeholder="Jersey #"
+                        />
+                        <button className="admin-btn admin-btn-primary" onClick={handleAssign} disabled={saving || !selectedPlayerId || !newJersey.trim()}>
+                            Assign
+                        </button>
+                    </div>
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 20 }}>
+                    <button className="admin-btn admin-btn-ghost" onClick={onClose}>Close</button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 const TEAM_CSV_HEADERS = ["name", "season", "league", "division", "description", "coachName", "coachPhone", "stateName", "stateAbbr", "countyName", "cityName"];
 const TEAM_CSV_SAMPLE = [
     ["Red Dragons", "Spring 2025", "Men's League", "Men's A", "Est. 2022", "John Smith", "555-123-4567", "California", "CA", "Los Angeles", "Pasadena"],
@@ -622,6 +905,7 @@ export default function AdminTeamsPage() {
     const [importModalOpen, setImportModalOpen] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [deleting, setDeleting] = useState(false);
+    const [playersTarget, setPlayersTarget] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 50;
 
@@ -927,6 +1211,15 @@ export default function AdminTeamsPage() {
                                                                         {canUpdate && (
                                                                             <button
                                                                                 className="admin-btn admin-btn-ghost admin-btn-sm"
+                                                                                onClick={() => setPlayersTarget(team)}
+                                                                                title="Manage Players"
+                                                                            >
+                                                                                <i className="fa-solid fa-people-group"></i>
+                                                                            </button>
+                                                                        )}
+                                                                        {canUpdate && (
+                                                                            <button
+                                                                                className="admin-btn admin-btn-ghost admin-btn-sm"
                                                                                 onClick={() => { setEditTarget(team); setModalOpen(true); }}
                                                                                 title="Edit"
                                                                             >
@@ -972,6 +1265,14 @@ export default function AdminTeamsPage() {
                                                         <span><strong>Players:</strong> {team.players?.length || 0}</span>
                                                     </div>
                                                     <div className="teams-card-item-actions">
+                                                        {canUpdate && (
+                                                            <button
+                                                                className="admin-btn admin-btn-ghost admin-btn-sm"
+                                                                onClick={() => setPlayersTarget(team)}
+                                                            >
+                                                                <i className="fa-solid fa-people-group"></i> Players
+                                                            </button>
+                                                        )}
                                                         {canUpdate && (
                                                             <button
                                                                 className="admin-btn admin-btn-ghost admin-btn-sm"
@@ -1026,6 +1327,16 @@ export default function AdminTeamsPage() {
                         <CsvImportModal
                             onClose={() => setImportModalOpen(false)}
                             onImportDone={() => fetchData()}
+                        />
+                    )}
+
+                    {playersTarget && (
+                        <TeamPlayersModal
+                            team={playersTarget}
+                            allPlayers={freeAgents}
+                            allTeams={teams}
+                            onClose={() => setPlayersTarget(null)}
+                            onSave={fetchData}
                         />
                     )}
 
