@@ -341,6 +341,19 @@ function excludeNoStatsSide(rows, noStatsSide, teamNamesByAB) {
     return rows.filter((row) => row.teamName !== excludedName);
 }
 
+// Ad-hoc "<Real Team> STATS" (or bare "NO STATS") teams organizers created
+// by hand, before/outside the noStatsSide substitute-team flow above, purely
+// to log reps for a forfeited opponent's players — e.g. "Darkside STATS",
+// "Chozen STATS". Per-league pages (e.g. player-stats) still show these rows
+// intentionally, so this is NOT applied in computeGameStats/computeSeasonStats
+// below — only the cross-league season leaderboard route filters them out
+// (see seasons/leaderboard/route.js), since that's the only surface where
+// stats attributed to a stand-in scrimmage team shouldn't count.
+export function isNoStatsTeamName(name) {
+    if (!name) return false;
+    return /\bstats$/i.test(name.trim());
+}
+
 /**
  * Compute aggregated stats for a single game.
  */

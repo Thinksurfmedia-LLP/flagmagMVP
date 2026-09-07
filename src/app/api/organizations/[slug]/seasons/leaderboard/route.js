@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import League from "@/models/League";
-import Team from "@/models/Team";
-import { computeSeasonStats } from "@/lib/statsAggregation";
+import { computeSeasonStats, isNoStatsTeamName } from "@/lib/statsAggregation";
 
 /**
  * GET /api/organizations/[slug]/seasons/leaderboard?seasons=id1,id2&statType=passing
@@ -32,7 +31,10 @@ export async function GET(request, { params }) {
 
         if (leagues.length === 0) return NextResponse.json({ players: [] });
 
-        const playoffLeagueIds = leagues.filter((l) => l.leagueType === "playoffs").map((l) => String(l._id));
+        // Season leaderboard is regular-season only — playoffs (including
+        // combined brackets like "CASH COUNTIES XXIII") don't count toward it.
+        const regularSeasonLeagues = leagues.filter((l) => l.leagueType !== "playoffs");
+        if (regularSeasonLeagues.length === 0) return NextResponse.json({ players: [] });
 
         // Aggregate stats across all leagues, keeping separate rows per player-team combination
         const merged = {};
@@ -40,12 +42,16 @@ export async function GET(request, { params }) {
         // Leagues are independent — compute them concurrently instead of one
         // at a time, since each involves several DB round-trips.
         const perLeagueStats = await Promise.all(
-            leagues.map((league) => computeSeasonStats(league._id, org._id))
+            regularSeasonLeagues.map((league) => computeSeasonStats(league._id, org._id))
         );
 
         for (const stats of perLeagueStats) {
             const rows = stats[statType] || [];
             for (const row of rows) {
+                // Ad-hoc "<Team> STATS" scrimmage rosters (see isNoStatsTeamName)
+                // still show on the per-league player-stats page — only the
+                // cross-league season leaderboard excludes them.
+                if (isNoStatsTeamName(row.teamName)) continue;
                 const id = `${row.playerId}|||${row.teamName}`;
                 if (!merged[id]) {
                     merged[id] = { ...row };
@@ -64,26 +70,10 @@ export async function GET(request, { params }) {
         // Recalculate derived fields for passing
         const rows = Object.values(merged);
 
-        // Attach a playoff seed number per team, only when these selected
-        // seasons include a playoffs league — and only when that team's seed
-        // is unambiguous (a team seeded differently across two playoffs
-        // brackets in the same selection shows no number rather than a wrong one).
-        if (playoffLeagueIds.length > 0 && rows.length > 0) {
-            const teamNames = [...new Set(rows.map((r) => r.teamName).filter(Boolean))];
-            const teams = await Team.find({ organization: org._id, name: { $in: teamNames } })
-                .select("name leagues")
-                .lean();
-            const seedByTeam = {};
-            teams.forEach((t) => {
-                const seeds = [...new Set(
-                    (t.leagues || [])
-                        .filter((m) => playoffLeagueIds.includes(String(m.league)) && m.seedNumber !== null && m.seedNumber !== undefined)
-                        .map((m) => m.seedNumber)
-                )];
-                seedByTeam[t.name] = seeds.length === 1 ? seeds[0] : null;
-            });
-            rows.forEach((r) => { r.seedNumber = seedByTeam[r.teamName] ?? null; });
-        }
+        // No seed number here — this leaderboard is regular-season only, and
+        // seeds are a playoffs concept; showing one next to a team's name on
+        // a regular-season table implies playoff stats fed the row, which
+        // they don't. (Per-league pages that do include playoffs still show it.)
         if (statType === "passing") {
             for (const p of rows) {
                 const atts = p.atts || 0;
