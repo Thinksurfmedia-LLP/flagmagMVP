@@ -29,8 +29,10 @@ async function getData(slug, seasonSlug) {
         return (t.leagues || []).find((l) => String(l.league) === String(league._id))?.seedNumber ?? null;
     };
 
-    // Fetch all completed games for this league
-    const games = await Game.find({ league: league._id, status: "completed", gameType: { $ne: "practice" } }).lean();
+    // Fetch all completed games for this league — noStatsBothSides games (a
+    // forfeit turned into a live No Stats Game) never count toward either
+    // team's win/loss/points record here.
+    const games = await Game.find({ league: league._id, status: "completed", gameType: { $ne: "practice" }, noStatsBothSides: { $ne: true } }).lean();
 
     // Build a lookup: normalized team name -> { name, logo, division }
     const teamMeta = {};

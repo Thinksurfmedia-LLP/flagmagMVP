@@ -41,14 +41,13 @@ const GameSchema = new mongoose.Schema(
         },
         // Set when a team forfeits and the organizer schedules a live "No
         // Stats Game" against a stand-in opponent so the real team's players
-        // still get game reps/stats. `noStatsSide` marks which side (A or B)
-        // is occupied by the stand-in — permanent once set, so stats and
-        // standings can keep excluding that side's plays even long after the
-        // game is completed and the fixture reverted. `noStatsOriginalTeam`
+        // still get game reps. `noStatsSide` marks which side (A or B) is
+        // occupied by the stand-in — permanent once set. `noStatsOriginalTeam`
         // snapshots the real (forfeiting) team that side belongs to, so it
         // can be restored — with its score forced back to 0 — when the game
-        // is completed. This is separate from originalTeamA/B above, which
-        // serves the unrelated placeholder-team (TBD/Winner) resolution flow.
+        // is completed, so the schedule still shows who actually forfeited.
+        // This is separate from originalTeamA/B above, which serves the
+        // unrelated placeholder-team (TBD/Winner) resolution flow.
         noStatsSide: {
             type: String,
             enum: ["A", "B", null],
@@ -58,6 +57,18 @@ const GameSchema = new mongoose.Schema(
             teamId: { type: mongoose.Schema.Types.ObjectId, ref: "Team", default: null },
             name: { type: String, default: "" },
             logo: { type: String, default: "" },
+        },
+        // The game itself stays a normal, visible fixture — it still shows up
+        // in the schedule/weekly games table, and clicking into it still
+        // shows the real live plays/score/box score. This flag is ONLY
+        // checked by season/league aggregate views (computeSeasonStats in
+        // statsAggregation.js, standings/route.js, game-stats/page.js) so
+        // that NEITHER team's win/loss/points nor any player's stats count
+        // toward anything league- or season-wide — permanent once set, same
+        // as noStatsSide.
+        noStatsBothSides: {
+            type: Boolean,
+            default: false,
         },
         location: {
             type: String,
@@ -124,7 +135,7 @@ GameSchema.pre(["findOneAndUpdate", "updateOne", "updateMany"], function () {
 function getGameModel() {
     if (mongoose.models.Game) {
         const existing = mongoose.models.Game;
-        if (!existing.schema.path("originalTeamA.name") || !existing.schema.path("originalTeamB.name") || !existing.schema.path("noStatsSide")) {
+        if (!existing.schema.path("originalTeamA.name") || !existing.schema.path("originalTeamB.name") || !existing.schema.path("noStatsSide") || !existing.schema.path("noStatsBothSides")) {
             delete mongoose.models.Game;
             return mongoose.model("Game", GameSchema);
         }

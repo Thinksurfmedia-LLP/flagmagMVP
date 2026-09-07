@@ -395,7 +395,11 @@ const seasonStatsCache = new Map();
 const SEASON_STATS_TTL_MS = 10_000;
 
 async function computeSeasonStatsUncached(leagueId, orgId) {
-    const games = await Game.find({ league: leagueId, gameType: { $ne: "practice" } }).lean();
+    // noStatsBothSides games (see start-no-stats-game/route.js) are excluded
+    // outright here — neither side's plays should feed league/season player
+    // stats or the season leaderboard, unlike noStatsSide which only strips
+    // one side's rows via excludeNoStatsSide below.
+    const games = await Game.find({ league: leagueId, gameType: { $ne: "practice" }, noStatsBothSides: { $ne: true } }).lean();
     if (!games.length) return { passing: [], receiving: [], rushing: [], defensive: [] };
 
     // Build roster maps for all unique team pairs

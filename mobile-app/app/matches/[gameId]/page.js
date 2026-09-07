@@ -307,11 +307,6 @@ function LiveGameContent({ gameId }) {
         loadLeagueTeams();
     };
 
-    // "NO STATS placeholder" isn't specified/built yet.
-    const applyNoStatsPlaceholder = () => {
-        showToast("The NO STATS placeholder option isn't set up yet.", "error");
-    };
-
     const closeSubstituteFlow = () => {
         setShowSubstituteChoice(false);
         setShowTeamPicker(false);
@@ -326,26 +321,28 @@ function LiveGameContent({ gameId }) {
         (t) => t.name !== game?.teamA?.name && t.name !== game?.teamB?.name
     );
 
-    // Replace the forfeiting side with the chosen stand-in and start the No
-    // Stats Game — the game plays out live so the real opponent gets stats,
-    // but Game.noStatsSide marks this side so its plays never count (see
-    // statsAggregation.js on the backend), and the score gets reverted/zeroed
-    // when the game is later completed.
+    // This is two separate games, not one game reused for both: the
+    // originally-scheduled fixture is completed right now as a real forfeit
+    // (0-6/6-0, counts normally toward standings/stats, same as pressing
+    // "No" directly), and a brand-new game is created for the live scrimmage
+    // against the chosen stand-in — its own row in the schedule, same week
+    // as the original. That new game is marked noStatsBothSides so NEITHER
+    // team's record nor any player's stats count toward standings,
+    // league/season stats, game-stats team records, or the season
+    // leaderboard, even though its own box score/plays are fully viewable
+    // (see start-no-stats-game/route.js). We navigate there to keep scoring.
     const applySubstituteTeam = async () => {
         const chosen = availableSubTeams.find((t) => String(t._id) === selectedSubTeamId);
         if (!chosen) return;
-        const side = activeTeam;
         setApplyingSubstitute(true);
         try {
-            await apiPut(`/api/games/${gameId}`, {
-                status: "in_progress",
-                noStatsSide: side,
-                noStatsOriginalTeam: { name: forfeitedSideTeam.name, logo: forfeitedSideTeam.logo },
-                [side === "A" ? "teamA" : "teamB"]: { name: chosen.name, logo: chosen.logo || "", score: 0 },
+            const res = await apiPost(`/api/games/${gameId}/start-no-stats-game`, {
+                forfeitSide: activeTeam,
+                standInTeamId: chosen._id,
             });
             showToast(`No Stats Game started against ${chosen.name}`, "success");
             closeSubstituteFlow();
-            await fetchGame();
+            router.replace(`/matches/${res.data.newGame._id}`);
         } catch (err) {
             showToast(err.message || "Failed to schedule the No Stats Game", "error");
         } finally {
@@ -1301,6 +1298,10 @@ function LiveGameContent({ gameId }) {
                     }}
                     onReset={handleReset}
                     isPaused={isPaused}
+                    // A No Stats scrimmage (see start-no-stats-game/route.js) has no
+                    // real opponent to forfeit against — it's already the stand-in
+                    // fixture, not a real matchup that could no-show.
+                    showForfeit={!game?.noStatsBothSides}
                 />
                 )}
 
@@ -1357,9 +1358,9 @@ function LiveGameContent({ gameId }) {
                 {showNoStatsPrompt && (
                     <div className="confirm-overlay" onClick={() => { if (!forfeiting) setShowNoStatsPrompt(false); }}>
                         <div className="confirm-box" onClick={e => e.stopPropagation()}>
-                            <h4 style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 19 }}>Schedule a No Stats Game?</h4>
+                            <h4 style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 19 }}>Start a No Stats Game?</h4>
                             <p className="confirm-detail">
-                                Choose <strong>Yes</strong> to bring in a stand-in team so the real opponent can still play out the game and rack up stats. Choose <strong>No</strong> to record the forfeit result immediately instead — no plays logged, the score updates right away and standings reflect the winner.
+                                Choose <strong>Yes</strong> to conclude this game as a forfeit and start a new stats game that won't count toward either team's stats. Choose <strong>No</strong> to just conclude this game as a forfeit.
                             </p>
                             <div className="confirm-actions">
                                 <button
@@ -1409,11 +1410,10 @@ function LiveGameContent({ gameId }) {
                             </h4>
                             <p className="confirm-detail">
                                 {forfeitedSideTeam.name} didn&apos;t show up. Replace them with a real team so{" "}
-                                {activeTeam === "A" ? game?.teamB?.name : game?.teamA?.name} can still get game reps, or use a NO STATS placeholder.
+                                {activeTeam === "A" ? game?.teamB?.name : game?.teamA?.name} can still get game reps.
                             </p>
                             <div className="confirm-actions" style={{ flexDirection: "column" }}>
                                 <button className="btn btn-primary" onClick={openTeamPicker}>Select a Team</button>
-                                <button className="btn btn-secondary" onClick={applyNoStatsPlaceholder}>NO STATS Placeholder</button>
                             </div>
                         </div>
                     </div>
@@ -1425,8 +1425,8 @@ function LiveGameContent({ gameId }) {
                         <div className="confirm-box" onClick={e => e.stopPropagation()}>
                             <h4 style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 19 }}>Select a Team</h4>
                             <p className="confirm-detail">
-                                {forfeitedSideTeam.name} will be replaced by the team you pick below for this game only.{" "}
-                                {activeTeam === "A" ? game?.teamB?.name : game?.teamA?.name}&apos;s stats will count normally; the stand-in&apos;s plays are recorded but ignored.
+                                This game will be completed as a forfeit ({forfeitedSideTeam.name} didn&apos;t show up), and a new game will start against the team you pick below.{" "}
+                                That new game won&apos;t count toward game stats, league or season stats, the season leaderboard, or standings — for either team or any player. It&apos;s reps only.
                             </p>
                             {loadingLeagueTeams ? (
                                 <p className="confirm-detail">Loading teams...</p>

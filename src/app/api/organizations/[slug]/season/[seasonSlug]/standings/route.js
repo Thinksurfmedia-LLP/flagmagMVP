@@ -21,7 +21,9 @@ export async function GET(request, { params }) {
             .select("name logo leagues")
             .lean();
 
-        const games = await Game.find({ league: league._id, status: "completed", gameType: { $ne: "practice" } }).lean();
+        // noStatsBothSides games (a forfeit turned into a live No Stats
+        // Game) never count toward either team's win/loss/points here.
+        const games = await Game.find({ league: league._id, status: "completed", gameType: { $ne: "practice" }, noStatsBothSides: { $ne: true } }).lean();
 
         // Seed all teams with zero stats
         const stats = {};

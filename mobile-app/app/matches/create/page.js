@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { AuthProvider, useAuth } from "../../lib/AuthContext";
 import { apiGet, apiPost } from "../../lib/api";
+import WeekdayDatePicker from "../../components/WeekdayDatePicker";
 
 function CreateMatchContent() {
     const router = useRouter();
@@ -30,6 +31,7 @@ function CreateMatchContent() {
     const [loading, setLoading] = useState(false);
     const [dataLoading, setDataLoading] = useState(false);
     const [error, setError] = useState("");
+    const [scheduleDays, setScheduleDays] = useState([]); // org-wide game days, e.g. ["Saturday", "Sunday"]
 
     useEffect(() => {
         if (!authLoading && !user) router.push("/login");
@@ -43,7 +45,7 @@ function CreateMatchContent() {
         if (!orgSlug) return;
 
         setDataLoading(true);
-        let remaining = 3;
+        let remaining = 4;
         const done = () => { if (--remaining === 0) setDataLoading(false); };
 
         apiGet(`/api/organizations/${orgSlug}/seasons`)
@@ -63,6 +65,11 @@ function CreateMatchContent() {
 
         apiGet(`/api/teams`)
             .then((res) => setAllTeams(res.data || []))
+            .catch(() => {})
+            .finally(done);
+
+        apiGet(`/api/organizations/${orgSlug}`)
+            .then((res) => setScheduleDays(res.data?.scheduleDays || []))
             .catch(() => {})
             .finally(done);
     }, [user]);
@@ -340,12 +347,12 @@ function CreateMatchContent() {
                             <div>
                                 <div className="form-group">
                                     <label>Date *</label>
-                                    <input
-                                        type="date"
-                                        className="form-control"
+                                    <WeekdayDatePicker
                                         value={form.date}
-                                        onChange={update("date")}
-                                        required
+                                        onChange={(d) => setForm((f) => ({ ...f, date: d }))}
+                                        allowedDays={scheduleDays}
+                                        placeholder="Select game date..."
+                                        minDate={leagueObj?.startDate ? new Date(leagueObj.startDate).toISOString().split("T")[0] : null}
                                     />
                                 </div>
                             </div>

@@ -1,6 +1,6 @@
 "use client";
 
-export default function BottomFooter({ onCancel, onForfeit, onComplete, onResume, onReset, isPaused }) {
+export default function BottomFooter({ onCancel, onForfeit, onComplete, onResume, onReset, isPaused, showForfeit = true }) {
     return (
         <footer className="bottom-footer">
             {isPaused && (
@@ -14,10 +14,12 @@ export default function BottomFooter({ onCancel, onForfeit, onComplete, onResume
                     <i className="fa-solid fa-ban"></i>
                     <span>Cancel Game</span>
                 </button>
-                <button onClick={onForfeit} className="footer-btn footer-btn-forfeit">
-                    <i className="fa-solid fa-flag"></i>
-                    <span>Forfeit</span>
-                </button>
+                {showForfeit && (
+                    <button onClick={onForfeit} className="footer-btn footer-btn-forfeit">
+                        <i className="fa-solid fa-flag"></i>
+                        <span>Forfeit</span>
+                    </button>
+                )}
                 <button onClick={onComplete} className="footer-btn footer-btn-complete">
                     <i className="fa-solid fa-stop"></i>
                     <span>End Game</span>
