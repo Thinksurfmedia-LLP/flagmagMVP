@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import League from "@/models/League";
-import { computeSeasonStats, isNoStatsTeamName } from "@/lib/statsAggregation";
+import { computeSeasonStats, isNoStatsTeamName, computePasserRating } from "@/lib/statsAggregation";
 
 /**
  * GET /api/organizations/[slug]/seasons/leaderboard?seasons=id1,id2&statType=passing
@@ -81,17 +81,10 @@ export async function GET(request, { params }) {
                 const yards = p.yards || 0;
                 const tds = p.tds || 0;
                 const ints = p.ints || 0;
+                const pat = p.pat || 0;
                 p.pct = atts > 0 ? parseFloat(((comp / atts) * 100).toFixed(1)) : 0;
                 p.ypc = comp > 0 ? parseFloat((yards / comp).toFixed(1)) : 0;
-                if (atts > 0) {
-                    let a = Math.max(0, Math.min(((comp / atts) - 0.3) * 5, 2.375));
-                    let b = Math.max(0, Math.min(((yards / atts) - 3) * 0.25, 2.375));
-                    let c = Math.max(0, Math.min((tds / atts) * 20, 2.375));
-                    let d = Math.max(0, Math.min(2.375 - ((ints / atts) * 25), 2.375));
-                    p.rate = parseFloat((((a + b + c + d) / 6) * 100).toFixed(1));
-                } else {
-                    p.rate = 0;
-                }
+                p.rate = computePasserRating(atts, comp, yards, tds, ints, pat);
             }
         } else if (statType === "receiving") {
             for (const r of rows) {

@@ -4,6 +4,24 @@ import Game from "@/models/Game";
 import League from "@/models/League";
 import "@/models/Player";
 
+// Passer rating — ported from the legacy Xflag system's 5-factor formula
+// (LiveGameManageController::calcscore, factors a-e) so ratings keep matching
+// what the old site produced. a=completion%, b=TD rate, c=INT rate, d=yards
+// per attempt — each rounded to 2 decimals and clamped to [0, 2.375]; e=PAT
+// points per touchdown minus a fixed baseline (0.66), left UNCLAMPED, same
+// as the legacy formula. Divisor 0.06 is equivalent to "/6 * 100".
+export function computePasserRating(atts, comp, yards, tds, ints, pat) {
+    if (!atts) return 0;
+    const clamp2 = (n) => Math.round(Math.max(0, Math.min(2.375, n)) * 100) / 100;
+    const a = clamp2(((comp / atts) * 100 - 30) / 20);
+    const b = clamp2((tds / atts) * 100 / (20 / 3));
+    const c = clamp2((9.5 - (ints / atts) * 100) / 4);
+    const d = clamp2(((yards / atts) - 3) / 4);
+    const e = tds ? Math.round(((pat / tds) - 0.66) * 100) / 100 : 0;
+    const sum = a + b + c + d + e;
+    return sum === 0 ? 0 : parseFloat((sum / 0.06).toFixed(1));
+}
+
 /**
  * Build a jersey-number-to-player lookup for a game.
  * Returns { teamA: { "12": { playerId, playerName, playerPhoto } }, teamB: { ... } }
@@ -221,24 +239,10 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
         const yards = p.yards || 0;
         const tds = p.tds || 0;
         const ints = p.ints || 0;
+        const pat = (p.pat1 || 0) + (p.pat2 || 0);
 
         const pct = atts > 0 ? ((comp / atts) * 100).toFixed(1) : "0.0";
         const ypc = comp > 0 ? (yards / comp).toFixed(1) : "0.0";
-
-        let rate = 0;
-        if (atts > 0) {
-            let a = ((comp / atts) - 0.3) * 5;
-            let b = ((yards / atts) - 3) * 0.25;
-            let c = (tds / atts) * 20;
-            let d = 2.375 - ((ints / atts) * 25);
-
-            a = Math.max(0, Math.min(a, 2.375));
-            b = Math.max(0, Math.min(b, 2.375));
-            c = Math.max(0, Math.min(c, 2.375));
-            d = Math.max(0, Math.min(d, 2.375));
-
-            rate = ((a + b + c + d) / 6) * 100;
-        }
 
         return {
             playerId: p.playerId,
@@ -250,13 +254,13 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
             comp,
             yards,
             tds,
-            pat: (p.pat1 || 0) + (p.pat2 || 0),
+            pat,
             ints,
             sacks: p.sacks || 0,
             safety: p.safety || 0,
             pct: parseFloat(pct),
             ypc: parseFloat(ypc),
-            rate: parseFloat(rate.toFixed(1)),
+            rate: computePasserRating(atts, comp, yards, tds, ints, pat),
         };
     });
 
@@ -442,7 +446,13 @@ async function computeSeasonStatsUncached(leagueId, orgId) {
     const mergedReceiving = {};
     const mergedRushing = {};
     const mergedDefensive = {};
-    const gamesPlayedByPlayer = {};
+    // Games-played is scoped per category — a player's rushing appearances
+    // and defensive appearances aren't the same set of games, so each needs
+    // its own tally (rushAvgPerGame/flagPullsPerGame must divide by games
+    // where THAT category actually had a stat, not any game the player
+    // touched in any of the other three categories).
+    const rushingGamesByPlayer = {};
+    const defensiveGamesByPlayer = {};
 
     for (const game of games) {
         const gid = String(game._id);
@@ -458,7 +468,8 @@ async function computeSeasonStatsUncached(leagueId, orgId) {
 
         // Helper to merge rows — keyed by playerId|||teamName so each player's
         // stats remain isolated per team (fixes multi-team player aggregation bug).
-        const mergeRows = (target, rows, fields) => {
+        // `gamesByPlayer`, when passed, tracks games played for THIS category only.
+        const mergeRows = (target, rows, fields, gamesByPlayer) => {
             for (const row of rows) {
                 const key = `${row.playerId}|||${row.teamName}`;
                 if (!target[key]) {
@@ -468,16 +479,17 @@ async function computeSeasonStatsUncached(leagueId, orgId) {
                         target[key][f] = (target[key][f] || 0) + (row[f] || 0);
                     }
                 }
-                // Track games played per player+team combination
-                if (!gamesPlayedByPlayer[key]) gamesPlayedByPlayer[key] = new Set();
-                gamesPlayedByPlayer[key].add(gid);
+                if (gamesByPlayer) {
+                    if (!gamesByPlayer[key]) gamesByPlayer[key] = new Set();
+                    gamesByPlayer[key].add(gid);
+                }
             }
         };
 
         mergeRows(mergedPassing, excludeNoStatsSide(gameStats.passing, game.noStatsSide, teamNamesByAB), ["atts", "comp", "yards", "tds", "pat", "ints", "sacks", "safety"]);
         mergeRows(mergedReceiving, excludeNoStatsSide(gameStats.receiving, game.noStatsSide, teamNamesByAB), ["receptions", "yards", "tds", "pat"]);
-        mergeRows(mergedRushing, excludeNoStatsSide(gameStats.rushing, game.noStatsSide, teamNamesByAB), ["atts", "yards", "tds", "pat"]);
-        mergeRows(mergedDefensive, excludeNoStatsSide(gameStats.defensive, game.noStatsSide, teamNamesByAB), ["dint", "dintTD", "dtd", "dpat", "dsacks", "dsafety", "fumbles", "flagPulls"]);
+        mergeRows(mergedRushing, excludeNoStatsSide(gameStats.rushing, game.noStatsSide, teamNamesByAB), ["atts", "yards", "tds", "pat"], rushingGamesByPlayer);
+        mergeRows(mergedDefensive, excludeNoStatsSide(gameStats.defensive, game.noStatsSide, teamNamesByAB), ["dint", "dintTD", "dtd", "dpat", "dsacks", "dsafety", "fumbles", "flagPulls"], defensiveGamesByPlayer);
     }
 
     // Recalculate derived fields
@@ -487,30 +499,16 @@ async function computeSeasonStatsUncached(leagueId, orgId) {
         const yards = p.yards || 0;
         const tds = p.tds || 0;
         const ints = p.ints || 0;
+        const pat = p.pat || 0;
 
         const pct = atts > 0 ? ((comp / atts) * 100).toFixed(1) : "0.0";
         const ypc = comp > 0 ? (yards / comp).toFixed(1) : "0.0";
 
-        let rate = 0;
-        if (atts > 0) {
-            let a = ((comp / atts) - 0.3) * 5;
-            let b = ((yards / atts) - 3) * 0.25;
-            let c = (tds / atts) * 20;
-            let d = 2.375 - ((ints / atts) * 25);
-
-            a = Math.max(0, Math.min(a, 2.375));
-            b = Math.max(0, Math.min(b, 2.375));
-            c = Math.max(0, Math.min(c, 2.375));
-            d = Math.max(0, Math.min(d, 2.375));
-
-            rate = ((a + b + c + d) / 6) * 100;
-        }
-
-        return { 
-            ...p, 
-            pct: parseFloat(pct), 
+        return {
+            ...p,
+            pct: parseFloat(pct),
             ypc: parseFloat(ypc),
-            rate: parseFloat(rate.toFixed(1))
+            rate: computePasserRating(atts, comp, yards, tds, ints, pat),
         };
     });
 
@@ -522,14 +520,14 @@ async function computeSeasonStatsUncached(leagueId, orgId) {
     const rushingRows = Object.values(mergedRushing).map((r) => {
         const key = `${r.playerId}|||${r.teamName}`;
         const ypc = r.atts > 0 ? (r.yards / r.atts).toFixed(1) : "0.0";
-        const gp = gamesPlayedByPlayer[key]?.size || 1;
+        const gp = rushingGamesByPlayer[key]?.size || 1;
         const rushAvgPerGame = (r.yards / gp).toFixed(1);
         return { ...r, ypc: parseFloat(ypc), gamesPlayed: gp, rushAvgPerGame: parseFloat(rushAvgPerGame) };
     });
 
     const defensiveRows = Object.values(mergedDefensive).map((d) => {
         const key = `${d.playerId}|||${d.teamName}`;
-        const gp = gamesPlayedByPlayer[key]?.size || 1;
+        const gp = defensiveGamesByPlayer[key]?.size || 1;
         const fpPerGame = (d.flagPulls / gp).toFixed(1);
         const impact = (d.dint || 0) + (d.dsacks || 0);
         return { ...d, gamesPlayed: gp, flagPullsPerGame: parseFloat(fpPerGame), defImpact: impact };
@@ -583,21 +581,15 @@ function recalcDerivedFields(p, statType) {
         const yards = p.yards || 0;
         const tds = p.tds || 0;
         const ints = p.ints || 0;
+        const pat = p.pat || 0;
         const pct = atts > 0 ? ((comp / atts) * 100).toFixed(1) : "0.0";
         const ypc = comp > 0 ? (yards / comp).toFixed(1) : "0.0";
-        let rate = 0;
-        if (atts > 0) {
-            let a = ((comp / atts) - 0.3) * 5;
-            let b = ((yards / atts) - 3) * 0.25;
-            let c = (tds / atts) * 20;
-            let d = 2.375 - ((ints / atts) * 25);
-            a = Math.max(0, Math.min(a, 2.375));
-            b = Math.max(0, Math.min(b, 2.375));
-            c = Math.max(0, Math.min(c, 2.375));
-            d = Math.max(0, Math.min(d, 2.375));
-            rate = ((a + b + c + d) / 6) * 100;
-        }
-        return { ...p, pct: parseFloat(pct), ypc: parseFloat(ypc), rate: parseFloat(rate.toFixed(1)) };
+        return {
+            ...p,
+            pct: parseFloat(pct),
+            ypc: parseFloat(ypc),
+            rate: computePasserRating(atts, comp, yards, tds, ints, pat),
+        };
     }
     if (statType === "receiving") {
         const ypr = (p.receptions || 0) > 0 ? (p.yards / p.receptions).toFixed(1) : "0.0";
