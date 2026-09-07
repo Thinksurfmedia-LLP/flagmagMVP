@@ -97,7 +97,7 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
                     inc(ps, "yards", play.yards);
                     if (isTD) inc(ps, "tds");
                     if (is1pt) inc(ps, "pat1");
-                    if (is2pt) inc(ps, "pat2");
+                    if (is2pt) inc(ps, "pat2", 2);
                 }
                 // RECEIVER (from activeTeam)
                 const rcvr = resolvePlayer(play.receiver, at, rosterMap);
@@ -107,7 +107,7 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
                     inc(rs, "yards", play.yards);
                     if (isTD) inc(rs, "tds");
                     if (is1pt) inc(rs, "pat1");
-                    if (is2pt) inc(rs, "pat2");
+                    if (is2pt) inc(rs, "pat2", 2);
                 }
                 // FLAG PULL (from other team — defensive)
                 if (play.flagPull) {
@@ -142,7 +142,7 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
                     const ds = getOrInit(defensive, defender, otherTeam);
                     inc(ds, "dint");
                     if (isTD) inc(ds, "dintTD");
-                    if (is2pt) inc(ds, "dpat");
+                    if (is2pt) inc(ds, "dpat", 2);
                 }
                 // FLAG PULL (from activeTeam — pulling flag on defender running back)
                 if (play.flagPull) {
@@ -161,7 +161,7 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
                     const ds = getOrInit(defensive, defender, otherTeam);
                     inc(ds, "fumbles");
                     if (isTD) inc(ds, "fumbleTD");
-                    if (is2pt) inc(ds, "fumblePAT");
+                    if (is2pt) inc(ds, "fumblePAT", 2);
                 }
                 // FLAG PULL (from activeTeam)
                 if (play.flagPull) {
@@ -199,7 +199,7 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
                     inc(rs, "yards", play.yards);
                     if (isTD) inc(rs, "tds");
                     if (is1pt) inc(rs, "pat1");
-                    if (is2pt) inc(rs, "pat2");
+                    if (is2pt) inc(rs, "pat2", 2);
                 }
                 // FLAG PULL (from other team — defensive)
                 if (play.flagPull) {
