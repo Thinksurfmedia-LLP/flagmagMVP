@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 export default function Footer() {
     const [settings, setSettings] = useState(null);
@@ -90,9 +91,14 @@ export default function Footer() {
 
             <div className="copyright-area">
                 <div className="container">
-                    <div className="row align-items-center">
+                    <div className="row align-items-center justify-content-between">
                         <div className="col-md mb-2 mb-md-0">
                             <p>All Rights Reserved © 2026</p>
+                        </div>
+                        <div className="col-md-auto">
+                            <ul className="footer-legal-links">
+                                <li><Link href="/privacy-policy">Privacy Policy</Link></li>
+                            </ul>
                         </div>
                     </div>
                 </div>

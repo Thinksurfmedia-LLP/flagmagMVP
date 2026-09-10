@@ -2474,6 +2474,21 @@ footer .copyright-area p {
   margin: 0;
   font-size: 13px;
 }
+footer .copyright-area .footer-legal-links {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+footer .copyright-area .footer-legal-links li a {
+  color: #fff;
+  font-size: 13px;
+}
+footer .copyright-area .footer-legal-links li a:hover {
+  color: #ff1e00;
+}
 
 .store-banner-section {
   margin: 0 0 0px;
