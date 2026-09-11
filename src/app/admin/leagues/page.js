@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import AdminLayout, { hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
@@ -514,7 +515,12 @@ function LeagueTeamsModal({ league, onClose }) {
     const [loading, setLoading] = useState(true);
     const [selectedTeamIds, setSelectedTeamIds] = useState([]);
     const [pickerOpen, setPickerOpen] = useState(false);
+    const [pickerPos, setPickerPos] = useState(null); // { left, width, top?, bottom? }
+    const [pickerSearch, setPickerSearch] = useState("");
     const pickerRef = useRef(null);
+    const pickerTriggerRef = useRef(null);
+    const pickerDropdownRef = useRef(null);
+    const pickerSearchRef = useRef(null);
     const [division, setDivision] = useState("");
     const [seedNumber, setSeedNumber] = useState("");
     const [newTeamName, setNewTeamName] = useState("");
@@ -545,18 +551,46 @@ function LeagueTeamsModal({ league, onClose }) {
 
     useEffect(() => { load(); }, [load]);
 
-    // Close the team picker when clicking outside it
+    // Close the team picker when clicking outside it — the dropdown itself
+    // renders in a portal (see below), so a click inside it is NOT a DOM
+    // descendant of pickerRef and must be checked separately.
     useEffect(() => {
         if (!pickerOpen) return;
         const handleClickOutside = (e) => {
-            if (pickerRef.current && !pickerRef.current.contains(e.target)) setPickerOpen(false);
+            if (pickerRef.current?.contains(e.target)) return;
+            if (pickerDropdownRef.current?.contains(e.target)) return;
+            setPickerOpen(false);
         };
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [pickerOpen]);
 
+    // Renders in a portal at document.body in fixed coordinates so a long
+    // team list can never get clipped by this modal's own overflow-y:auto —
+    // opens downward when there's room, otherwise upward, based on actual
+    // remaining viewport space instead of always opening one direction.
+    const togglePicker = () => {
+        if (pickerOpen) { setPickerOpen(false); return; }
+        const rect = pickerTriggerRef.current?.getBoundingClientRect();
+        if (!rect) return;
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        const openDownward = spaceBelow >= 200 || spaceBelow >= spaceAbove;
+        setPickerPos({
+            left: rect.left,
+            width: rect.width,
+            ...(openDownward ? { top: rect.bottom + 4 } : { bottom: window.innerHeight - rect.top + 4 }),
+        });
+        setPickerSearch("");
+        setPickerOpen(true);
+        requestAnimationFrame(() => pickerSearchRef.current?.focus());
+    };
+
     const assignedIds = new Set(assigned.map((t) => String(t._id)));
     const availableToAdd = orgTeams.filter((t) => !assignedIds.has(String(t._id)));
+    const searchedAvailable = pickerSearch.trim()
+        ? availableToAdd.filter((t) => t.name?.toLowerCase().includes(pickerSearch.trim().toLowerCase()))
+        : availableToAdd;
     const existingDivisions = [...new Set(assigned.map((t) => t.division).filter(Boolean))];
 
     const handleAssignExisting = async () => {
@@ -785,13 +819,14 @@ function LeagueTeamsModal({ league, onClose }) {
                             <div style={{ display: "flex", gap: 8 }}>
                                 <div ref={pickerRef} style={{ position: "relative", flex: 1 }}>
                                     <div
+                                        ref={pickerTriggerRef}
                                         className="admin-form-select"
                                         style={{
                                             display: "flex", alignItems: "center", justifyContent: "space-between",
                                             cursor: availableToAdd.length === 0 ? "not-allowed" : "pointer",
                                             userSelect: "none",
                                         }}
-                                        onClick={() => availableToAdd.length > 0 && setPickerOpen((o) => !o)}
+                                        onClick={() => availableToAdd.length > 0 && togglePicker()}
                                     >
                                         <span style={{ color: selectedTeamIds.length === 0 ? "#8b90a0" : "#1a1d26", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                             {availableToAdd.length === 0
@@ -804,37 +839,63 @@ function LeagueTeamsModal({ league, onClose }) {
                                         </span>
                                         <i className={`fa-solid fa-chevron-${pickerOpen ? "up" : "down"}`} style={{ fontSize: 11, color: "#8b90a0", flexShrink: 0, marginLeft: 8 }}></i>
                                     </div>
-                                    {pickerOpen && availableToAdd.length > 0 && (
-                                        <div style={{
-                                            position: "absolute", bottom: "calc(100% + 4px)", left: 0, right: 0, zIndex: 30,
-                                            background: "#fff", border: "1px solid #d5d8e0", borderRadius: 8,
-                                            maxHeight: 280, overflowY: "auto", boxShadow: "0 -8px 24px rgba(0,0,0,0.12)",
-                                        }}>
-                                            {availableToAdd.map((t) => {
-                                                const checked = selectedTeamIds.includes(t._id);
-                                                return (
-                                                    <label
-                                                        key={t._id}
-                                                        style={{
-                                                            display: "flex", alignItems: "center", gap: 8, padding: "8px 10px",
-                                                            fontSize: 13, color: "#1a1d26", cursor: "pointer",
-                                                            borderBottom: "1px solid #f1f2f5",
-                                                            background: checked ? "#fff5f4" : "#fff",
-                                                        }}
-                                                    >
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={checked}
-                                                            onChange={() => setSelectedTeamIds((prev) =>
-                                                                checked ? prev.filter((id) => id !== t._id) : [...prev, t._id]
-                                                            )}
-                                                            style={{ flexShrink: 0 }}
-                                                        />
-                                                        <span>{t.name}</span>
-                                                    </label>
-                                                );
-                                            })}
-                                        </div>
+                                    {pickerOpen && availableToAdd.length > 0 && pickerPos && typeof document !== "undefined" && createPortal(
+                                        <div
+                                            ref={pickerDropdownRef}
+                                            style={{
+                                                position: "fixed", left: pickerPos.left, width: pickerPos.width,
+                                                ...(pickerPos.top !== undefined ? { top: pickerPos.top } : { bottom: pickerPos.bottom }),
+                                                zIndex: 10000,
+                                                background: "#fff", border: "1px solid #d5d8e0", borderRadius: 8,
+                                                maxHeight: 340, overflow: "hidden", display: "flex", flexDirection: "column",
+                                                boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+                                            }}
+                                        >
+                                            <input
+                                                ref={pickerSearchRef}
+                                                type="text"
+                                                value={pickerSearch}
+                                                onChange={(e) => setPickerSearch(e.target.value)}
+                                                onClick={(e) => e.stopPropagation()}
+                                                placeholder="Search teams..."
+                                                style={{
+                                                    border: "none", borderBottom: "1px solid #e8eaef", padding: "10px 12px",
+                                                    fontSize: 13, outline: "none", flexShrink: 0,
+                                                }}
+                                            />
+                                            <div style={{ overflowY: "auto" }}>
+                                                {searchedAvailable.length === 0 && (
+                                                    <div style={{ padding: "12px 10px", fontSize: 13, color: "#8b90a0", fontStyle: "italic" }}>
+                                                        No teams match &quot;{pickerSearch}&quot;
+                                                    </div>
+                                                )}
+                                                {searchedAvailable.map((t) => {
+                                                    const checked = selectedTeamIds.includes(t._id);
+                                                    return (
+                                                        <label
+                                                            key={t._id}
+                                                            style={{
+                                                                display: "flex", alignItems: "center", gap: 8, padding: "8px 10px",
+                                                                fontSize: 13, color: "#1a1d26", cursor: "pointer",
+                                                                borderBottom: "1px solid #f1f2f5",
+                                                                background: checked ? "#fff5f4" : "#fff",
+                                                            }}
+                                                        >
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={checked}
+                                                                onChange={() => setSelectedTeamIds((prev) =>
+                                                                    checked ? prev.filter((id) => id !== t._id) : [...prev, t._id]
+                                                                )}
+                                                                style={{ flexShrink: 0 }}
+                                                            />
+                                                            <span>{t.name}</span>
+                                                        </label>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>,
+                                        document.body
                                     )}
                                 </div>
                                 {isPlayoffs && selectedTeamIds.length === 1 && (

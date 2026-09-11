@@ -114,6 +114,22 @@ const TeamSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
+        // Numbers permanently off-limits on THIS team, independent of the
+        // current roster — e.g. retiring a departed player's number so a new
+        // free agent can't be silently assigned it next season. Checked by
+        // PUT /api/teams/[id] whenever `players[]` is replaced; a caller can
+        // still deliberately reassign one by passing `allowRetiredNumbers`.
+        retiredNumbers: [
+            {
+                jerseyNumber: { type: Number, required: true },
+                // Whose honor it's retired for, if any — that SAME player can
+                // still be assigned this number (re-joining the team later);
+                // it's everyone else who's blocked.
+                player: { type: mongoose.Schema.Types.ObjectId, ref: "Player", default: null },
+                reason: { type: String, default: "", trim: true },
+                retiredAt: { type: Date, default: Date.now },
+            },
+        ],
     },
     { timestamps: true }
 );
@@ -135,7 +151,8 @@ function getTeamModel() {
         const hasRequestedLeague = Boolean(existing.schema.path("requestedLeague"));
         const hasAddress = Boolean(existing.schema.path("address"));
         const hasHearAboutUs = Boolean(existing.schema.path("hearAboutUs"));
-        if (!hasPlayers || !hasDescription || !hasJerseyNumber || !hasCoachName || !hasLeagues || !hasIsPlaceholder || !hasSeedNumber || !hasManager || !hasRequestedLeague || !hasAddress || !hasHearAboutUs) {
+        const hasRetiredNumbers = Boolean(existing.schema.path("retiredNumbers"));
+        if (!hasPlayers || !hasDescription || !hasJerseyNumber || !hasCoachName || !hasLeagues || !hasIsPlaceholder || !hasSeedNumber || !hasManager || !hasRequestedLeague || !hasAddress || !hasHearAboutUs || !hasRetiredNumbers) {
             delete mongoose.models.Team;
         }
     }

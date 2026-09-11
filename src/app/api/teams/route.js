@@ -143,6 +143,7 @@ export async function GET(request) {
             .populate("organization", "name slug")
             .populate("leagues.league", "name")
             .populate("players.player", "name photo presentTeam organization")
+            .populate("retiredNumbers.player", "name")
             .sort({ name: 1 })
             .lean();
 
@@ -274,6 +275,7 @@ export async function POST(request) {
             .populate("organization", "name slug")
             .populate("leagues.league", "name")
             .populate("players.player", "name photo presentTeam organization")
+            .populate("retiredNumbers.player", "name")
             .lean();
 
         return NextResponse.json({ success: true, data: created }, { status: 201 });

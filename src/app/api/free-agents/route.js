@@ -190,7 +190,11 @@ export async function POST(request) {
         }
 
         let userId;
-        let userName;
+        // The account holder's own name (e.g. a parent's login) is not
+        // necessarily who this Player profile is FOR — a parent registering
+        // multiple kids under one login gives a different name per kid.
+        // Falls back to the account name only when no name was submitted.
+        let playerName;
 
         if (body.userId) {
             // Promote existing user
@@ -199,17 +203,18 @@ export async function POST(request) {
                 return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
             }
 
-            // Check if user is already a free agent/player for this org
-            const existing = await Player.findOne({ user: body.userId, organization: organizationId });
+            userId = user._id;
+            playerName = (body.name || user.name).trim();
+
+            // One login can hold more than one free-agent profile in the same
+            // org (siblings) — only block re-adding the exact same profile.
+            const existing = await Player.findOne({ user: userId, organization: organizationId, name: playerName });
             if (existing) {
                 return NextResponse.json(
-                    { success: false, error: "This user is already registered for this organization" },
+                    { success: false, error: `${playerName} is already registered as a free agent for this organization` },
                     { status: 409 }
                 );
             }
-
-            userId = user._id;
-            userName = user.name;
 
             // Update user role to free_agent if currently viewer
             if (user.role === "viewer") {
@@ -230,17 +235,18 @@ export async function POST(request) {
 
             const existingUser = await User.findOne({ email: body.email.toLowerCase().trim() });
             if (existingUser) {
-                // Check if this existing user is already registered for this org
-                const existingPlayer = await Player.findOne({ user: existingUser._id, organization: organizationId });
+                userId = existingUser._id;
+                playerName = body.name.trim();
+
+                // Same login, different kid — only block re-adding the same
+                // profile twice, not a sibling under the same account.
+                const existingPlayer = await Player.findOne({ user: userId, organization: organizationId, name: playerName });
                 if (existingPlayer) {
                     return NextResponse.json(
-                        { success: false, error: "A user with this email is already registered for this organization" },
+                        { success: false, error: `${playerName} is already registered as a free agent for this organization` },
                         { status: 409 }
                     );
                 }
-
-                userId = existingUser._id;
-                userName = existingUser.name;
 
                 if (existingUser.role === "viewer") {
                     await User.updateOne(
@@ -286,13 +292,15 @@ export async function POST(request) {
                 });
 
                 userId = newUser._id;
-                userName = newUser.name;
+                playerName = newUser.name;
             }
         }
 
         const player = await Player.create({
             user: userId,
-            name: userName,
+            name: playerName,
+            email: body.email ? body.email.toLowerCase().trim() : "",
+            phone: body.phone || "",
             organization: organizationId,
             status: "free_agent",
         });

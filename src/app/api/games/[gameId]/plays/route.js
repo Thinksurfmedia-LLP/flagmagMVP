@@ -5,6 +5,20 @@ import Play from "@/models/Play";
 import Game from "@/models/Game";
 import League from "@/models/League";
 import Team from "@/models/Team";
+import { resolvePlayPlayerIds } from "@/lib/statsAggregation";
+
+// Builds the bare jersey-number → playerId map resolvePlayPlayerIds needs,
+// straight from a Team doc's own (unpopulated) `players` array — no extra
+// populate() query, since the only thing freezing an ID onto a Play needs
+// is the ID itself, not the player's name/photo (those get looked up at
+// READ time instead, via statsAggregation's playerInfoById).
+function jerseyMap(teamDoc) {
+    const map = {};
+    for (const p of teamDoc?.players || []) {
+        map[String(p.jerseyNumber)] = { playerId: String(p.player) };
+    }
+    return map;
+}
 
 // Applies a score delta to a team atomically, so concurrent or rapid-fire
 // play saves can never clobber each other's points the way a client-computed
@@ -82,6 +96,11 @@ export async function POST(request, { params }) {
         // other path. A play recorded against an empty roster has no real
         // player to attribute it to.
         const gameForRosterCheck = await Game.findById(gameId).select("league teamA teamB").lean();
+        // Resolved once we have both team rosters below — this is the
+        // identity frozen onto the Play (see Play.js's `<field>Player`
+        // fields). Stays all-null (same as a play recorded before this
+        // existed) if the league/org/roster lookups below don't pan out.
+        let resolvedIds = {};
         if (gameForRosterCheck?.league) {
             const league = await League.findById(gameForRosterCheck.league).select("organization").lean();
             if (league?.organization) {
@@ -101,6 +120,14 @@ export async function POST(request, { params }) {
                         { status: 400 }
                     );
                 }
+                resolvedIds = resolvePlayPlayerIds(
+                    {
+                        type: body.type, activeTeam: body.activeTeam,
+                        passer: body.passer || "", receiver: body.receiver || "",
+                        rusher: body.rusher || "", defender: body.defender || "", flagPull: body.flagPull || "",
+                    },
+                    { A: jerseyMap(teamADoc), B: jerseyMap(teamBDoc) }
+                );
             }
         }
 
@@ -124,6 +151,12 @@ export async function POST(request, { params }) {
         // a duplicate-key error on every subsequent keyless play (exactly
         // what happened here). Spread it in only when a real key exists.
 
+        const passer = body.passer || "";
+        const receiver = body.receiver || "";
+        const rusher = body.rusher || "";
+        const defender = body.defender || "";
+        const flagPull = body.flagPull || "";
+
         const session = await mongoose.startSession();
         let play;
         try {
@@ -134,11 +167,12 @@ export async function POST(request, { params }) {
                     activeTeam: body.activeTeam,
                     teamName: body.teamName,
                     half: body.half || "1st",
-                    passer: body.passer || "",
-                    receiver: body.receiver || "",
-                    rusher: body.rusher || "",
-                    defender: body.defender || "",
-                    flagPull: body.flagPull || "",
+                    passer,
+                    receiver,
+                    rusher,
+                    defender,
+                    flagPull,
+                    ...resolvedIds,
                     yards: Number(body.yards) || 0,
                     points: body.points || "",
                     safety: Boolean(body.safety),
@@ -217,7 +251,9 @@ export async function PUT(request, { params }) {
         // the exact delta (old contribution removed, new contribution applied) —
         // never derived from client-side score state, which is what caused lost
         // points when plays were saved in quick succession.
-        const before = await Play.findOne({ _id: playId, game: gameId }).select("ptsAdded targetTeam").lean();
+        const before = await Play.findOne({ _id: playId, game: gameId })
+            .select("ptsAdded targetTeam type activeTeam passer receiver rusher defender flagPull")
+            .lean();
         if (!before) {
             return NextResponse.json(
                 { success: false, error: "Play not found" },
@@ -229,6 +265,43 @@ export async function PUT(request, { params }) {
         const oldTarget = before.targetTeam || "";
         const newPts = updates.ptsAdded !== undefined ? updates.ptsAdded : oldPts;
         const newTarget = updates.targetTeam !== undefined ? updates.targetTeam : oldTarget;
+
+        // Re-freeze player identity if anything that affects it changed —
+        // same reasoning as the POST handler (see Play.js's `<field>Player`
+        // fields). Always recomputed from the merged old+new values, using
+        // whatever the roster looks like right now (correct for an edit made
+        // shortly after the original play, same as it was for the original
+        // create — an edit made long after a roster change would freeze the
+        // NEW roster's mapping, which is the best available truth at that
+        // point since the old one is gone, same limitation as any backfill).
+        const mergedForResolution = {
+            type: updates.type ?? before.type,
+            activeTeam: updates.activeTeam ?? before.activeTeam,
+            passer: updates.passer ?? before.passer,
+            receiver: updates.receiver ?? before.receiver,
+            rusher: updates.rusher ?? before.rusher,
+            defender: updates.defender ?? before.defender,
+            flagPull: updates.flagPull ?? before.flagPull,
+        };
+        try {
+            const gameForResolution = await Game.findById(gameId).select("league teamA teamB").lean();
+            if (gameForResolution?.league) {
+                const leagueForResolution = await League.findById(gameForResolution.league).select("organization").lean();
+                if (leagueForResolution?.organization) {
+                    const [teamADoc, teamBDoc] = await Promise.all([
+                        Team.findOne({ name: gameForResolution.teamA?.name, organization: leagueForResolution.organization }).select("players").lean(),
+                        Team.findOne({ name: gameForResolution.teamB?.name, organization: leagueForResolution.organization }).select("players").lean(),
+                    ]);
+                    Object.assign(
+                        updates,
+                        resolvePlayPlayerIds(mergedForResolution, { A: jerseyMap(teamADoc), B: jerseyMap(teamBDoc) })
+                    );
+                }
+            }
+        } catch {
+            // Best-effort — an edit that can't re-resolve identity still
+            // saves; it just keeps whatever was frozen on the play before.
+        }
 
         const session = await mongoose.startSession();
         let updated;

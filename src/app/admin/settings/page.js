@@ -35,6 +35,20 @@ export default function SettingsPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [forcingLogout, setForcingLogout] = useState(false);
+    const [orgId, setOrgId] = useState(null);
+
+    // Retired jersey numbers — per team, managed here instead of the Manage
+    // Players modal so it reads as an organization-wide policy tool rather
+    // than something buried in one team's roster editor.
+    const [teams, setTeams] = useState([]);
+    const [loadingTeams, setLoadingTeams] = useState(false);
+    const [selectedTeamId, setSelectedTeamId] = useState("");
+    const [rosterHistory, setRosterHistory] = useState([]);
+    const [loadingRosterHistory, setLoadingRosterHistory] = useState(false);
+    const [retireJersey, setRetireJersey] = useState("");
+    const [retirePlayerId, setRetirePlayerId] = useState("");
+    const [retireReason, setRetireReason] = useState("");
+    const [retiring, setRetiring] = useState(false);
     const [uploading, setUploading] = useState({ logo: false, banner: false });
     const [uploadingCustomIcon, setUploadingCustomIcon] = useState(null); // index of the row currently uploading, or null
     const logoInputRef = useRef(null);
@@ -84,6 +98,7 @@ export default function SettingsPage() {
                 const data = await res.json();
                 if (data.success) {
                     const org = data.data;
+                    setOrgId(org._id);
                     setForm({
                         name: org.name || "",
                         description: org.description || "",
@@ -112,6 +127,85 @@ export default function SettingsPage() {
             finally { setLoading(false); }
         })();
     }, [slug]);
+
+    useEffect(() => {
+        if (!orgId) return;
+        (async () => {
+            setLoadingTeams(true);
+            try {
+                const res = await fetch(`/api/teams?organization=${orgId}`);
+                const data = await res.json();
+                if (data.success) setTeams((data.data || []).filter((t) => !t.isPlaceholder));
+            } catch { showError("Failed to load teams"); }
+            finally { setLoadingTeams(false); }
+        })();
+    }, [orgId]);
+
+    useEffect(() => {
+        if (!selectedTeamId) { setRosterHistory([]); return; }
+        (async () => {
+            setLoadingRosterHistory(true);
+            setRetirePlayerId("");
+            try {
+                const res = await fetch(`/api/teams/${selectedTeamId}/roster-history`);
+                const data = await res.json();
+                if (data.success) setRosterHistory(data.data || []);
+                else showError(data.error || "Failed to load this team's roster history");
+            } catch { showError("Failed to load this team's roster history"); }
+            finally { setLoadingRosterHistory(false); }
+        })();
+    }, [selectedTeamId]);
+
+    const selectedTeam = teams.find((t) => String(t._id) === selectedTeamId) || null;
+    const retiredNumbers = (selectedTeam?.retiredNumbers || []).map((r) => ({
+        jerseyNumber: String(r.jerseyNumber),
+        playerId: r.player?._id ? String(r.player._id) : "",
+        playerName: r.player?.name || "",
+        reason: r.reason || "",
+    }));
+
+    const persistRetiredNumbers = async (nextRetired, successMessage) => {
+        setRetiring(true);
+        try {
+            const res = await fetch(`/api/teams/${selectedTeamId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    retiredNumbers: nextRetired.map((r) => ({ jerseyNumber: r.jerseyNumber, player: r.playerId || null, reason: r.reason })),
+                }),
+            });
+            const data = await res.json();
+            if (!data.success) { showError(data.error || "Failed to update retired numbers"); return false; }
+            setTeams((prev) => prev.map((t) => String(t._id) === selectedTeamId ? data.data : t));
+            showSuccess(successMessage);
+            return true;
+        } catch {
+            showError("Failed to update retired numbers");
+            return false;
+        } finally {
+            setRetiring(false);
+        }
+    };
+
+    const handleRetire = async () => {
+        const num = retireJersey.trim();
+        if (!num || !retirePlayerId) return;
+        if (retiredNumbers.some((r) => r.jerseyNumber === num)) {
+            showError(`#${num} is already retired for this team`);
+            return;
+        }
+        const player = rosterHistory.find((p) => String(p._id) === retirePlayerId);
+        const ok = await persistRetiredNumbers(
+            [...retiredNumbers, { jerseyNumber: num, playerId: retirePlayerId, playerName: player?.name || "", reason: retireReason.trim() }],
+            `#${num} reserved for ${player?.name || "this player"} on ${selectedTeam?.name}`
+        );
+        if (ok) { setRetireJersey(""); setRetirePlayerId(""); setRetireReason(""); }
+    };
+
+    const handleUnretire = async (entry) => {
+        if (!confirm(`Stop reserving #${entry.jerseyNumber} on ${selectedTeam?.name}? Any player on this team could be assigned it again.`)) return;
+        await persistRetiredNumbers(retiredNumbers.filter((r) => r.jerseyNumber !== entry.jerseyNumber), `#${entry.jerseyNumber} released`);
+    };
 
     const addCustomLink = () => {
         setForm(prev => ({ ...prev, customSocialLinks: [...prev.customSocialLinks, { label: "", url: "", icon: "" }] }));
@@ -537,6 +631,94 @@ export default function SettingsPage() {
                                     <i className="fa-solid fa-circle-info" style={{ marginRight: 4 }}></i>
                                     Contact admin to change schedule days.
                                 </p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Retired Jersey Numbers */}
+                    <div className="admin-card">
+                        <div className="admin-card-header">
+                            <h3><i className="fa-solid fa-shirt" style={{ marginRight: 7, color: "#FF1E00" }}></i>Retired Jersey Numbers</h3>
+                        </div>
+                        <div className="admin-card-body">
+                            <p style={{ marginBottom: 16, color: "#666" }}>
+                                Reserve a number for a specific player on one team — no one else can be
+                                assigned it on THAT team going forward, this season or any future one.
+                                Other teams (in this or any other league) are unaffected — the same
+                                number is still free to use elsewhere.
+                            </p>
+
+                            <div className="admin-form-group">
+                                <label className="admin-form-label">Team</label>
+                                <select
+                                    className="admin-form-select"
+                                    value={selectedTeamId}
+                                    onChange={(e) => setSelectedTeamId(e.target.value)}
+                                    disabled={loadingTeams}
+                                >
+                                    <option value="">{loadingTeams ? "Loading teams..." : "Select a team..."}</option>
+                                    {teams.map((t) => (
+                                        <option key={t._id} value={t._id}>{t.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {selectedTeamId && (
+                                <>
+                                    {retiredNumbers.length > 0 && (
+                                        <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 14 }}>
+                                            {retiredNumbers.map((entry) => (
+                                                <div key={entry.jerseyNumber} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap", padding: "8px 10px", background: "#f9fafb", border: "1px solid #e8eaef", borderRadius: 6 }}>
+                                                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                                                        <span style={{ fontWeight: 700, fontSize: 13, color: "#1a1d26" }}>#{entry.jerseyNumber}</span>
+                                                        <span style={{ fontSize: 13, color: "#1a1d26" }}>{entry.playerName || "(unknown player)"}</span>
+                                                        {entry.reason && <span style={{ fontSize: 12, color: "#8b90a0" }}>{entry.reason}</span>}
+                                                    </div>
+                                                    <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => handleUnretire(entry)} disabled={retiring}>
+                                                        <i className="fa-solid fa-rotate-left"></i> Release
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                                        <select
+                                            className="admin-form-select"
+                                            style={{ flex: "1 1 220px" }}
+                                            value={retirePlayerId}
+                                            onChange={(e) => setRetirePlayerId(e.target.value)}
+                                            disabled={loadingRosterHistory}
+                                        >
+                                            <option value="">{loadingRosterHistory ? "Loading players..." : "Select a player who's ever played for this team..."}</option>
+                                            {rosterHistory.map((p) => (
+                                                <option key={p._id} value={p._id}>{p.name}</option>
+                                            ))}
+                                        </select>
+                                        <input
+                                            type="number"
+                                            className="admin-form-input"
+                                            style={{ width: 110, flexShrink: 0 }}
+                                            value={retireJersey}
+                                            onChange={(e) => setRetireJersey(e.target.value)}
+                                            placeholder="Number"
+                                        />
+                                        <input
+                                            className="admin-form-input"
+                                            style={{ flex: "1 1 160px" }}
+                                            value={retireReason}
+                                            onChange={(e) => setRetireReason(e.target.value)}
+                                            placeholder="Reason (optional)"
+                                        />
+                                        <button
+                                            className="admin-btn admin-btn-primary"
+                                            onClick={handleRetire}
+                                            disabled={retiring || !retireJersey.trim() || !retirePlayerId}
+                                        >
+                                            Reserve
+                                        </button>
+                                    </div>
+                                </>
                             )}
                         </div>
                     </div>

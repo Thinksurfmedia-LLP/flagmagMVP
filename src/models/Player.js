@@ -158,7 +158,12 @@ const PlayerSchema = new mongoose.Schema(
     }
 );
 
-PlayerSchema.index({ user: 1, organization: 1 }, { unique: true, sparse: true });
+// One login can hold more than one free-agent profile in the same org (a
+// parent registering multiple kids under their own email/account) — the
+// constraint is against re-importing/re-adding the exact same person twice,
+// not against a second sibling. Old index was {user,organization} alone;
+// see the migration note in getPlayerModel below.
+PlayerSchema.index({ user: 1, organization: 1, name: 1 }, { unique: true, sparse: true });
 
 function getPlayerModel() {
     const existing = mongoose.models.Player;

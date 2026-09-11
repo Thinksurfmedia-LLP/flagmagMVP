@@ -23,9 +23,12 @@ export function computePasserRating(atts, comp, yards, tds, ints, pat) {
 }
 
 /**
- * Build a jersey-number-to-player lookup for a game.
- * Returns { teamA: { "12": { playerId, playerName, playerPhoto } }, teamB: { ... } }
- * along with the team names.
+ * Build a jersey-number-to-player lookup for a game, plus a flat
+ * playerId → {playerName, playerPhoto} index across both rosters (used to
+ * display a play's FROZEN passerPlayer/receiverPlayer/etc — see
+ * resolvePlayerField below — since that path already knows the playerId and
+ * only needs name/photo, not a jersey-number lookup).
+ * Returns { rosterMap: { A: { "12": { playerId, playerName, playerPhoto, jerseyNumber } }, B: {...} }, teamNamesByAB, playerInfoById }
  */
 async function buildRosterMap(game, orgId) {
     const teams = await Team.find({
@@ -36,31 +39,160 @@ async function buildRosterMap(game, orgId) {
         .lean();
 
     const rosterMap = {};
+    const playerInfoById = {};
     const teamNamesByAB = { A: game.teamA.name, B: game.teamB.name };
 
     for (const team of teams) {
         const map = {};
         for (const p of team.players || []) {
-            map[String(p.jerseyNumber)] = {
-                playerId: String(p.player?._id || p.player),
+            const playerId = String(p.player?._id || p.player);
+            const info = {
+                playerId,
                 playerName: p.player?.name || "",
                 playerPhoto: p.player?.photo || "",
                 jerseyNumber: p.jerseyNumber != null ? String(p.jerseyNumber) : "",
             };
+            map[String(p.jerseyNumber)] = info;
+            playerInfoById[playerId] = info;
         }
         if (team.name === game.teamA.name) rosterMap.A = map;
         if (team.name === game.teamB.name) rosterMap.B = map;
     }
 
-    return { rosterMap, teamNamesByAB };
+    return { rosterMap, teamNamesByAB, playerInfoById };
 }
 
 /**
- * Look up a player from a jersey number and team side.
+ * Look up a player from a jersey number and team side — the LEGACY path,
+ * only still correct for plays recorded before the frozen-identity fields
+ * existed, or for a jersey number that genuinely never resolved at write
+ * time. See resolvePlayerField for the path that should be used for
+ * anything read off an actual Play document.
  */
 function resolvePlayer(jerseyNumber, teamSide, rosterMap) {
     if (!jerseyNumber || !rosterMap[teamSide]) return null;
     return rosterMap[teamSide][String(jerseyNumber)] || null;
+}
+
+/**
+ * Resolve one of a play's five player-carrying fields (passer/receiver/
+ * rusher/defender/flagPull) to a player, preferring the frozen `<field>Player`
+ * ID captured when the play was recorded (see resolvePlayPlayerIds) over a
+ * live jersey-number lookup against the team's CURRENT roster. This is the
+ * whole point of freezing the ID: a team's roster/jersey assignments get
+ * reused season to season, so re-resolving old plays against today's roster
+ * silently misattributes or drops historical stats once anything changes.
+ *
+ * Falls back to the legacy jersey-number lookup only when there's no frozen
+ * ID (plays recorded before this field existed) — existing data keeps
+ * behaving exactly as it did before this change.
+ */
+function resolvePlayerField(play, fieldKey, teamSide, rosterMap, playerInfoById) {
+    const resolvedId = play[`${fieldKey}Player`];
+    if (resolvedId) {
+        const info = playerInfoById[String(resolvedId)];
+        if (info) {
+            return {
+                playerId: String(resolvedId),
+                playerName: info.playerName,
+                playerPhoto: info.playerPhoto,
+                // The number THIS play recorded them wearing, not whatever
+                // they wear on the current roster (could differ, or they
+                // could be off the roster entirely by now).
+                jerseyNumber: play[fieldKey] || "",
+            };
+        }
+        // Frozen ID points at a Player that no longer exists (deleted) —
+        // fall through to the legacy lookup as a last resort.
+    }
+    return resolvePlayer(play[fieldKey], teamSide, rosterMap);
+}
+
+// Shared by anything that needs a bare jersey-number → playerId map (no
+// name/photo needed) to freeze player identity at write time — e.g. the
+// plays route, which already has each team's `players` array in hand from
+// its own roster-emptiness check and doesn't need an extra populate() query.
+export { buildRosterMap };
+
+/**
+ * Given a play's raw fields (type, activeTeam, and whichever of
+ * passer/receiver/rusher/defender/flagPull apply) and a rosterMap ({A:{jersey:{playerId}}, B:{...}}
+ * — from buildRosterMap, or any equivalent jersey→{playerId} map), resolve
+ * each field to a player ID using the exact same per-play-type "which side
+ * does this field come from" rules aggregateStats uses below (passer/
+ * receiver/rusher always from the acting team; defender always from the
+ * other team; flagPull's side depends on play type — see each case).
+ * Returns { passerPlayer, receiverPlayer, rusherPlayer, defenderPlayer, flagPullPlayer },
+ * each either a player ID string or null. Called ONCE, when a play is
+ * created/edited — the result is what gets frozen onto the Play document.
+ */
+export function resolvePlayPlayerIds({ type, activeTeam, passer, receiver, rusher, defender, flagPull }, rosterMap) {
+    const at = activeTeam;
+    const otherTeam = at === "A" ? "B" : "A";
+    const result = {
+        passerPlayer: null,
+        receiverPlayer: null,
+        rusherPlayer: null,
+        defenderPlayer: null,
+        flagPullPlayer: null,
+    };
+    const lookup = (jerseyNumber, side) => resolvePlayer(jerseyNumber, side, rosterMap)?.playerId || null;
+
+    switch (type) {
+        case "completion":
+            result.passerPlayer = lookup(passer, at);
+            result.receiverPlayer = lookup(receiver, at);
+            result.flagPullPlayer = lookup(flagPull, otherTeam);
+            break;
+        case "incomplete":
+            result.passerPlayer = lookup(passer, at);
+            break;
+        case "interception":
+            result.passerPlayer = lookup(passer, at);
+            result.defenderPlayer = lookup(defender, otherTeam);
+            result.flagPullPlayer = lookup(flagPull, at);
+            break;
+        case "fumble":
+            result.defenderPlayer = lookup(defender, otherTeam);
+            result.flagPullPlayer = lookup(flagPull, at);
+            break;
+        case "sack":
+            result.passerPlayer = lookup(passer, at);
+            result.defenderPlayer = lookup(defender, otherTeam);
+            break;
+        case "run":
+            result.rusherPlayer = lookup(rusher, at);
+            result.flagPullPlayer = lookup(flagPull, otherTeam);
+            break;
+        default:
+            break;
+    }
+    return result;
+}
+
+/**
+ * Same per-play-type "which side does this frozen field belong to" mapping
+ * as resolvePlayPlayerIds, exposed on its own for callers that already have
+ * the resolved `<field>Player` IDs on a play and just need to know whose
+ * side each one is on — e.g. "every player who's ever recorded a stat for
+ * THIS team" (see GET /api/teams/[id]/roster-history), which has to check,
+ * for a play where this team could be on either side across its games,
+ * whether a given resolved field actually belongs to this team's side for
+ * that specific play.
+ * Returns { passerPlayer: "A"|"B", ... } — only the keys that apply to `type`.
+ */
+export function getFieldSides(type, activeTeam) {
+    const at = activeTeam;
+    const otherTeam = at === "A" ? "B" : "A";
+    switch (type) {
+        case "completion": return { passerPlayer: at, receiverPlayer: at, flagPullPlayer: otherTeam };
+        case "incomplete": return { passerPlayer: at };
+        case "interception": return { passerPlayer: at, defenderPlayer: otherTeam, flagPullPlayer: at };
+        case "fumble": return { defenderPlayer: otherTeam, flagPullPlayer: at };
+        case "sack": return { passerPlayer: at, defenderPlayer: otherTeam };
+        case "run": return { rusherPlayer: at, flagPullPlayer: otherTeam };
+        default: return {};
+    }
 }
 
 /**
@@ -69,9 +201,10 @@ function resolvePlayer(jerseyNumber, teamSide, rosterMap) {
  * @param {Array} plays - Array of Play documents
  * @param {Object} rosterMap - { A: { jerseyNum: playerInfo }, B: { ... } }
  * @param {Object} teamNamesByAB - { A: "Team A Name", B: "Team B Name" }
+ * @param {Object} playerInfoById - { playerId: { playerName, playerPhoto } } — for resolving a play's frozen player IDs
  * @returns { passing: [...], receiving: [...], rushing: [...], defensive: [...] }
  */
-function aggregateStats(plays, rosterMap, teamNamesByAB) {
+function aggregateStats(plays, rosterMap, teamNamesByAB, playerInfoById) {
     // Accumulators keyed by playerId
     const passing = {};
     const receiving = {};
@@ -107,7 +240,7 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
         switch (play.type) {
             case "completion": {
                 // PASSER (from activeTeam)
-                const passer = resolvePlayer(play.passer, at, rosterMap);
+                const passer = resolvePlayerField(play, "passer", at, rosterMap, playerInfoById);
                 if (passer) {
                     const ps = getOrInit(passing, passer, at);
                     inc(ps, "atts");
@@ -118,7 +251,7 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
                     if (is2pt) inc(ps, "pat2", 2);
                 }
                 // RECEIVER (from activeTeam)
-                const rcvr = resolvePlayer(play.receiver, at, rosterMap);
+                const rcvr = resolvePlayerField(play, "receiver", at, rosterMap, playerInfoById);
                 if (rcvr) {
                     const rs = getOrInit(receiving, rcvr, at);
                     inc(rs, "receptions");
@@ -129,7 +262,7 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
                 }
                 // FLAG PULL (from other team — defensive)
                 if (play.flagPull) {
-                    const fp = resolvePlayer(play.flagPull, otherTeam, rosterMap);
+                    const fp = resolvePlayerField(play, "flagPull", otherTeam, rosterMap, playerInfoById);
                     if (fp) {
                         const ds = getOrInit(defensive, fp, otherTeam);
                         inc(ds, "flagPulls");
@@ -139,7 +272,7 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
             }
             case "incomplete": {
                 // PASSER (from activeTeam) — attempt but no completion
-                const passer = resolvePlayer(play.passer, at, rosterMap);
+                const passer = resolvePlayerField(play, "passer", at, rosterMap, playerInfoById);
                 if (passer) {
                     const ps = getOrInit(passing, passer, at);
                     inc(ps, "atts");
@@ -148,14 +281,14 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
             }
             case "interception": {
                 // PASSER (from activeTeam) — attempt + interception thrown
-                const passer = resolvePlayer(play.passer, at, rosterMap);
+                const passer = resolvePlayerField(play, "passer", at, rosterMap, playerInfoById);
                 if (passer) {
                     const ps = getOrInit(passing, passer, at);
                     inc(ps, "atts");
                     inc(ps, "ints");
                 }
                 // DEFENDER (from other team) — defensive interception
-                const defender = resolvePlayer(play.defender, otherTeam, rosterMap);
+                const defender = resolvePlayerField(play, "defender", otherTeam, rosterMap, playerInfoById);
                 if (defender) {
                     const ds = getOrInit(defensive, defender, otherTeam);
                     inc(ds, "dint");
@@ -164,7 +297,7 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
                 }
                 // FLAG PULL (from activeTeam — pulling flag on defender running back)
                 if (play.flagPull) {
-                    const fp = resolvePlayer(play.flagPull, at, rosterMap);
+                    const fp = resolvePlayerField(play, "flagPull", at, rosterMap, playerInfoById);
                     if (fp) {
                         const ds2 = getOrInit(defensive, fp, at);
                         inc(ds2, "flagPulls");
@@ -174,7 +307,7 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
             }
             case "fumble": {
                 // DEFENDER (from other team) — recovered fumble
-                const defender = resolvePlayer(play.defender, otherTeam, rosterMap);
+                const defender = resolvePlayerField(play, "defender", otherTeam, rosterMap, playerInfoById);
                 if (defender) {
                     const ds = getOrInit(defensive, defender, otherTeam);
                     inc(ds, "fumbles");
@@ -183,7 +316,7 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
                 }
                 // FLAG PULL (from activeTeam)
                 if (play.flagPull) {
-                    const fp = resolvePlayer(play.flagPull, at, rosterMap);
+                    const fp = resolvePlayerField(play, "flagPull", at, rosterMap, playerInfoById);
                     if (fp) {
                         const ds2 = getOrInit(defensive, fp, at);
                         inc(ds2, "flagPulls");
@@ -193,14 +326,14 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
             }
             case "sack": {
                 // PASSER (from activeTeam) — sacked
-                const passer = resolvePlayer(play.passer, at, rosterMap);
+                const passer = resolvePlayerField(play, "passer", at, rosterMap, playerInfoById);
                 if (passer) {
                     const ps = getOrInit(passing, passer, at);
                     inc(ps, "sacks");
                     if (play.safety) inc(ps, "safety");
                 }
                 // DEFENDER (from other team) — recorded the sack
-                const defender = resolvePlayer(play.defender, otherTeam, rosterMap);
+                const defender = resolvePlayerField(play, "defender", otherTeam, rosterMap, playerInfoById);
                 if (defender) {
                     const ds = getOrInit(defensive, defender, otherTeam);
                     inc(ds, "dsacks");
@@ -210,7 +343,7 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
             }
             case "run": {
                 // RUSHER (from activeTeam)
-                const rusher = resolvePlayer(play.rusher, at, rosterMap);
+                const rusher = resolvePlayerField(play, "rusher", at, rosterMap, playerInfoById);
                 if (rusher) {
                     const rs = getOrInit(rushing, rusher, at);
                     inc(rs, "atts");
@@ -221,7 +354,7 @@ function aggregateStats(plays, rosterMap, teamNamesByAB) {
                 }
                 // FLAG PULL (from other team — defensive)
                 if (play.flagPull) {
-                    const fp = resolvePlayer(play.flagPull, otherTeam, rosterMap);
+                    const fp = resolvePlayerField(play, "flagPull", otherTeam, rosterMap, playerInfoById);
                     if (fp) {
                         const ds = getOrInit(defensive, fp, otherTeam);
                         inc(ds, "flagPulls");
@@ -368,9 +501,9 @@ export async function computeGameStats(gameId) {
     const league = await League.findById(game.league).select("organization").lean();
     if (!league) return null;
 
-    const { rosterMap, teamNamesByAB } = await buildRosterMap(game, league.organization);
+    const { rosterMap, teamNamesByAB, playerInfoById } = await buildRosterMap(game, league.organization);
     const plays = await Play.find({ game: gameId }).sort({ createdAt: 1 }).lean();
-    const rawStats = aggregateStats(plays, rosterMap, teamNamesByAB);
+    const rawStats = aggregateStats(plays, rosterMap, teamNamesByAB, playerInfoById);
     const stats = {
         passing: excludeNoStatsSide(rawStats.passing, game.noStatsSide, teamNamesByAB),
         receiving: excludeNoStatsSide(rawStats.receiving, game.noStatsSide, teamNamesByAB),
@@ -432,15 +565,19 @@ async function computeSeasonStatsUncached(leagueId, orgId) {
         .lean();
 
     const rosterByTeamName = {};
+    const playerInfoById = {};
     for (const team of teams) {
         const map = {};
         for (const p of team.players || []) {
-            map[String(p.jerseyNumber)] = {
-                playerId: String(p.player?._id || p.player),
+            const playerId = String(p.player?._id || p.player);
+            const info = {
+                playerId,
                 playerName: p.player?.name || "",
                 playerPhoto: p.player?.photo || "",
                 jerseyNumber: p.jerseyNumber != null ? String(p.jerseyNumber) : "",
             };
+            map[String(p.jerseyNumber)] = info;
+            playerInfoById[playerId] = info;
         }
         rosterByTeamName[team.name] = map;
     }
@@ -468,7 +605,7 @@ async function computeSeasonStatsUncached(leagueId, orgId) {
             B: rosterByTeamName[game.teamB.name] || {},
         };
         const teamNamesByAB = { A: game.teamA.name, B: game.teamB.name };
-        const gameStats = aggregateStats(gamePlays, rosterMap, teamNamesByAB);
+        const gameStats = aggregateStats(gamePlays, rosterMap, teamNamesByAB, playerInfoById);
 
         // Helper to merge rows — keyed by playerId|||teamName so each player's
         // stats remain isolated per team (fixes multi-team player aggregation bug).

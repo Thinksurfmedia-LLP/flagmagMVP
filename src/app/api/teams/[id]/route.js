@@ -163,6 +163,49 @@ export async function PUT(request, { params }) {
                     { status: 400 }
                 );
             }
+
+            // A retired number stays off-limits for anyone except the player
+            // it's reserved for (re-joining the team) — unless the caller
+            // explicitly overrides it. Checked against the number itself,
+            // not against whoever wore it before, since `players[]` is a
+            // full replacement and the old assignment is about to be gone.
+            if (!body.allowRetiredNumbers) {
+                for (const entry of nextPlayersArray) {
+                    if (typeof entry !== "object") continue;
+                    const num = Number(entry.jerseyNumber);
+                    const retired = (team.retiredNumbers || []).find((r) => r.jerseyNumber === num);
+                    if (!retired) continue;
+                    const reservedForThisPlayer = retired.player && String(retired.player) === String(entry.player);
+                    if (!reservedForThisPlayer) {
+                        return NextResponse.json(
+                            {
+                                success: false,
+                                error: `Jersey #${num} is retired for this team${retired.reason ? ` (${retired.reason})` : ""} — pass allowRetiredNumbers to reassign it anyway`,
+                            },
+                            { status: 409 }
+                        );
+                    }
+                }
+            }
+        }
+
+        // Full replace, same pattern as `players[]` above — the organizer's
+        // retire/un-retire UI always sends the complete current list.
+        if (Array.isArray(body.retiredNumbers)) {
+            for (const entry of body.retiredNumbers) {
+                if (entry.jerseyNumber === undefined || entry.jerseyNumber === null || entry.jerseyNumber === "") {
+                    return NextResponse.json(
+                        { success: false, error: "Jersey number is required for a retired-number entry" },
+                        { status: 400 }
+                    );
+                }
+            }
+            team.retiredNumbers = body.retiredNumbers.map((r) => ({
+                jerseyNumber: Number(r.jerseyNumber),
+                player: r.player || null,
+                reason: (r.reason || "").trim(),
+                retiredAt: r.retiredAt || new Date(),
+            }));
         }
 
         if (hasRole(auth.user, "organizer") && nextPlayerIds.length > 0) {
@@ -231,6 +274,7 @@ export async function PUT(request, { params }) {
             .populate("organization", "name slug")
             .populate("leagues.league", "name")
             .populate("players.player", "name photo presentTeam organization")
+            .populate("retiredNumbers.player", "name")
             .lean();
 
         return NextResponse.json({ success: true, data: updated });

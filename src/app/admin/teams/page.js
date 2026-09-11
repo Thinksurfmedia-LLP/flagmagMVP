@@ -392,8 +392,10 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
     const { showSuccess, showError } = useToast();
     const [pickerOpen, setPickerOpen] = useState(false);
     const [pickerPos, setPickerPos] = useState(null); // { left, width, top?, bottom? }
+    const [pickerSearch, setPickerSearch] = useState("");
     const pickerRef = React.useRef(null);
     const pickerTriggerRef = React.useRef(null);
+    const pickerSearchRef = React.useRef(null);
 
     // The picker renders in a portal (see below) so a long dropdown can never
     // get clipped by this modal's own overflow-y:auto — it escapes to
@@ -412,7 +414,11 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
             width: rect.width,
             ...(openDownward ? { top: rect.bottom + 4 } : { bottom: window.innerHeight - rect.top + 4 }),
         });
+        setPickerSearch("");
         setPickerOpen(true);
+        // Portal content isn't mounted yet on this same tick — wait a frame
+        // before focusing the search box inside it.
+        requestAnimationFrame(() => pickerSearchRef.current?.focus());
     };
 
     // Local roster copy: [{ player: playerId, jerseyNumber }] — same shape
@@ -432,6 +438,17 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
     const [editingId, setEditingId] = useState(null);
     const [editJersey, setEditJersey] = useState("");
 
+    // Numbers permanently off-limits on this team (e.g. retired to honor a
+    // past player), independent of who's currently on the roster. Managed
+    // from /admin/settings now, not here — this modal only needs to READ
+    // the list to block a conflicting assignment (see checkRetired below).
+    const retiredNumbers = (team.retiredNumbers || []).map((r) => ({
+        jerseyNumber: String(r.jerseyNumber),
+        playerId: r.player?._id ? String(r.player._id) : "",
+        playerName: r.player?.name || "",
+        reason: r.reason || "",
+    }));
+
     const orgId = String(team.organization?._id || team.organization || "");
     const rosterIds = new Set(roster.map((r) => r.playerId));
 
@@ -439,6 +456,9 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
     const availableToAdd = (allPlayers || []).filter(
         (p) => !rosterIds.has(String(p._id)) && (!orgId || String(p.organization?._id || p.organization || "") === orgId)
     );
+    const searchedAvailable = pickerSearch.trim()
+        ? availableToAdd.filter((p) => p.name?.toLowerCase().includes(pickerSearch.trim().toLowerCase()))
+        : availableToAdd;
 
     // A player can be rostered on several teams at once — surface every OTHER
     // team (name + jersey #) they're already on next to their name in the
@@ -469,6 +489,16 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [pickerOpen]);
 
+    // Blocks assigning/editing to a retired number unless it's reserved for
+    // that exact player (re-joining the team). Returns an error string, or
+    // null if the number is fine to use.
+    const checkRetired = (jerseyNumber, playerId) => {
+        const retired = retiredNumbers.find((r) => r.jerseyNumber === String(jerseyNumber).trim());
+        if (!retired) return null;
+        if (retired.playerId && retired.playerId === String(playerId)) return null;
+        return `#${retired.jerseyNumber} is retired for this team${retired.playerName ? ` (${retired.playerName})` : ""}${retired.reason ? ` — ${retired.reason}` : ""}`;
+    };
+
     const persist = async (nextRoster, successMessage) => {
         setSaving(true);
         try {
@@ -497,6 +527,8 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
         if (!selectedPlayerId || !newJersey.trim()) return;
         const player = availableToAdd.find((p) => String(p._id) === selectedPlayerId);
         if (!player) return;
+        const retiredError = checkRetired(newJersey.trim(), selectedPlayerId);
+        if (retiredError) { showError(retiredError); return; }
         const ok = await persist(
             [...roster, { playerId: String(player._id), playerName: player.name, playerPhoto: player.photo || "", jerseyNumber: newJersey.trim() }],
             `${player.name} added to the roster!`
@@ -516,6 +548,8 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
 
     const handleSaveEdit = async (entry) => {
         if (!editJersey.trim()) { showError("Jersey number is required"); return; }
+        const retiredError = checkRetired(editJersey.trim(), entry.playerId);
+        if (retiredError) { showError(retiredError); return; }
         const next = roster.map((r) => r.playerId === entry.playerId ? { ...r, jerseyNumber: editJersey.trim() } : r);
         const ok = await persist(next, "Jersey number updated!");
         if (ok) cancelEdit();
@@ -613,10 +647,29 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
                                         ...(pickerPos.top !== undefined ? { top: pickerPos.top } : { bottom: pickerPos.bottom }),
                                         zIndex: 10000,
                                         background: "#fff", border: "1px solid #d5d8e0", borderRadius: 8,
-                                        maxHeight: 320, overflowY: "auto", boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+                                        maxHeight: 360, overflow: "hidden", display: "flex", flexDirection: "column",
+                                        boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
                                     }}
                                 >
-                                    {availableToAdd.map((p) => {
+                                    <input
+                                        ref={pickerSearchRef}
+                                        type="text"
+                                        value={pickerSearch}
+                                        onChange={(e) => setPickerSearch(e.target.value)}
+                                        onClick={(e) => e.stopPropagation()}
+                                        placeholder="Search players..."
+                                        style={{
+                                            border: "none", borderBottom: "1px solid #e8eaef", padding: "10px 12px",
+                                            fontSize: 13, outline: "none", flexShrink: 0,
+                                        }}
+                                    />
+                                    <div style={{ overflowY: "auto" }}>
+                                    {searchedAvailable.length === 0 && (
+                                        <div style={{ padding: "12px 10px", fontSize: 13, color: "#8b90a0", fontStyle: "italic" }}>
+                                            No players match &quot;{pickerSearch}&quot;
+                                        </div>
+                                    )}
+                                    {searchedAvailable.map((p) => {
                                         const otherTeams = otherTeamsByPlayerId[String(p._id)] || [];
                                         return (
                                             <div
@@ -644,6 +697,7 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
                                             </div>
                                         );
                                     })}
+                                    </div>
                                 </div>,
                                 document.body
                             )}
@@ -661,6 +715,24 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
                         </button>
                     </div>
                 </div>
+
+                {retiredNumbers.length > 0 && (
+                    <div className="admin-form-group">
+                        <label className="admin-form-label">Retired Numbers</label>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                            {retiredNumbers.map((entry) => (
+                                <div key={entry.jerseyNumber} style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", padding: "8px 10px", background: "#f9fafb", border: "1px solid #e8eaef", borderRadius: 6 }}>
+                                    <span style={{ fontWeight: 700, fontSize: 13, color: "#1a1d26" }}>#{entry.jerseyNumber}</span>
+                                    {entry.playerName && <span style={{ fontSize: 13, color: "#1a1d26" }}>{entry.playerName}</span>}
+                                    {entry.reason && <span style={{ fontSize: 12, color: "#8b90a0" }}>{entry.reason}</span>}
+                                </div>
+                            ))}
+                        </div>
+                        <div style={{ fontSize: 12, color: "#8b90a0", marginTop: 6 }}>
+                            Manage retired numbers from Organization Settings.
+                        </div>
+                    </div>
+                )}
 
                 <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 20 }}>
                     <button className="admin-btn admin-btn-ghost" onClick={onClose}>Close</button>

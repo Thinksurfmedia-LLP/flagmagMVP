@@ -31,6 +31,19 @@ const PlaySchema = new mongoose.Schema(
         rusher: { type: String, default: "" },
         defender: { type: String, default: "" },
         flagPull: { type: String, default: "" },
+        // Resolved player identity, frozen at the moment this play was
+        // recorded (see resolvePlayPlayerIds in lib/statsAggregation.js) —
+        // a team's roster/jersey assignments are mutable and get reused
+        // season to season, so stats aggregation must key off THIS, not by
+        // re-resolving the jersey number strings above against whatever the
+        // team's roster happens to be at read time. null on a field means
+        // that jersey number didn't resolve to anyone on the roster at
+        // write time (or this play predates this field's existence).
+        passerPlayer: { type: mongoose.Schema.Types.ObjectId, ref: "Player", default: null },
+        receiverPlayer: { type: mongoose.Schema.Types.ObjectId, ref: "Player", default: null },
+        rusherPlayer: { type: mongoose.Schema.Types.ObjectId, ref: "Player", default: null },
+        defenderPlayer: { type: mongoose.Schema.Types.ObjectId, ref: "Player", default: null },
+        flagPullPlayer: { type: mongoose.Schema.Types.ObjectId, ref: "Player", default: null },
         // Play result data
         yards: { type: Number, default: 0 },
         points: { type: String, default: "" }, // "Touch Down", "1 Pt.", "2 Pt.", "None", or ""
