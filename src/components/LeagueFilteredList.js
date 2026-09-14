@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 
 // A league can be played across several venues (season.locations), but older
@@ -22,7 +22,7 @@ function formatLocationsDisplay(locations) {
     return `${shown} +${locations.length - MAX_LOCATIONS_SHOWN}`;
 }
 
-function LeagueCard({ season, orgSlug }) {
+function LeagueCard({ season, orgSlug, showSeasonName }) {
     const leagueImg = season.image || "/assets/images/league-placeholder.svg";
     const locationsDisplay = formatLocationsDisplay(getLeagueLocations(season));
     return (
@@ -36,6 +36,14 @@ function LeagueCard({ season, orgSlug }) {
                 <div className="right">
                     <h5>{season.name}</h5>
                     <ul>
+                        {/* Only shown while the season dropdown is on "All Seasons" —
+                            that's the one view where two leagues can share a name
+                            (e.g. "Chino" every summer) with nothing else on the card
+                            telling them apart. Picking a specific season already
+                            disambiguates the whole list, so this would be redundant. */}
+                        {showSeasonName && season.seasonName && (
+                            <li><img src="/assets/images/icon-calander.png" alt="" /> Season - <span>{season.seasonName}</span></li>
+                        )}
                         <li><img src="/assets/images/icon-map.png" alt="" /> Locations - <span title={getLeagueLocations(season).join(", ")}>{locationsDisplay}</span></li>
                         <li><img src="/assets/images/icon-calander.png" alt="" /> Start date - <span>{new Date(season.startDate).toLocaleDateString("en-US", { timeZone: "UTC", weekday: "short", month: "short", day: "2-digit" })}</span></li>
                         <li><img src="/assets/images/icon-clock.png" alt="" /> Time - <span>{season.firstGameTime || season.time || "TBD"}</span></li>
@@ -50,10 +58,19 @@ function LeagueCard({ season, orgSlug }) {
     );
 }
 
-export default function LeagueFilteredList({ leagues, orgSlug }) {
+export default function LeagueFilteredList({ leagues, orgSlug, defaultSeasonName = "", onCountChange }) {
     const [locationFilter, setLocationFilter] = useState("");
     const [categoryFilter, setCategoryFilter] = useState("");
-    const [seasonFilter, setSeasonFilter] = useState("");
+    // Defaults to the org's default season (set in Admin > Seasons) instead
+    // of "All Seasons" — otherwise every reused league name (e.g. "Chino"
+    // every summer) shows once per season with nothing but the small
+    // "Season -" line to tell them apart. Falls back to "All Seasons" if
+    // that season has no leagues in THIS list (e.g. the default season
+    // hasn't started yet, or this is the Past Leagues tab) rather than
+    // defaulting into an empty result.
+    const [seasonFilter, setSeasonFilter] = useState(() =>
+        defaultSeasonName && leagues.some((l) => l.seasonName === defaultSeasonName) ? defaultSeasonName : ""
+    );
 
     // Extract unique values for dropdowns
     const uniqueLocations = useMemo(() => {
@@ -89,6 +106,15 @@ export default function LeagueFilteredList({ leagues, orgSlug }) {
         });
     }, [leagues, locationFilter, categoryFilter, seasonFilter]);
 
+    // Lets the tab label above this list ("Active Leagues (N)") track
+    // whatever's actually showing — including the initial default-season
+    // filter, and relabeling itself to "Past Leagues" when the visitor picks
+    // an earlier season here — instead of always "Active Leagues" + the
+    // unfiltered total.
+    useEffect(() => {
+        onCountChange?.(filtered.length, seasonFilter);
+    }, [filtered.length, seasonFilter, onCountChange]);
+
     return (
         <>
             <div className="leagues-filter-area">
@@ -114,7 +140,7 @@ export default function LeagueFilteredList({ leagues, orgSlug }) {
 
             <div className="row mt-3 g-4">
                 {filtered.length > 0 ? filtered.map((season) => (
-                    <LeagueCard key={season._id} season={season} orgSlug={orgSlug} />
+                    <LeagueCard key={season._id} season={season} orgSlug={orgSlug} showSeasonName={!seasonFilter} />
                 )) : (
                     <div className="col-12 text-center py-4"><p>No leagues match the selected filters.</p></div>
                 )}

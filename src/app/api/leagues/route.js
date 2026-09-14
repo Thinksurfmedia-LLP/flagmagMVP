@@ -4,6 +4,7 @@ import League from "@/models/League";
 import Organization from "@/models/Organization";
 import User from "@/models/User";
 import { requireAnyPermission } from "@/lib/apiAuth";
+import { generateUniqueLeagueSlug } from "@/lib/leagueSlug";
 
 // GET all leagues (admin sees all; organizer sees own org's)
 export async function GET(request) {
@@ -90,7 +91,11 @@ export async function POST(request) {
             }
         }
 
-        const slug = body.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+        const slug = await generateUniqueLeagueSlug({
+            organizationId: organization._id,
+            seasonId: body.season || null,
+            name: body.name,
+        });
 
         const locations = Array.isArray(body.locations)
             ? body.locations.map((s) => String(s).trim()).filter(Boolean)
@@ -128,7 +133,7 @@ export async function POST(request) {
     } catch (error) {
         if (error.code === 11000) {
             return NextResponse.json(
-                { success: false, error: "A league with this name already exists for this organization" },
+                { success: false, error: "A league with this name already exists for this organization and season" },
                 { status: 400 },
             );
         }

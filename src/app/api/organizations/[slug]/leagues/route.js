@@ -8,6 +8,7 @@ import "@/models/State";
 import "@/models/Season";
 import User from "@/models/User";
 import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
+import { generateUniqueLeagueSlug } from "@/lib/leagueSlug";
 
 // GET leagues for an organization
 export async function GET(request, { params }) {
@@ -106,7 +107,11 @@ export async function POST(request, { params }) {
             return NextResponse.json({ success: false, error: "League name is required" }, { status: 400 });
         }
 
-        const leagueSlug = body.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+        const leagueSlug = await generateUniqueLeagueSlug({
+            organizationId: organization._id,
+            seasonId: body.season || null,
+            name: body.name,
+        });
 
         const locations = Array.isArray(body.locations)
             ? body.locations.map((s) => String(s).trim()).filter(Boolean)
@@ -128,7 +133,7 @@ export async function POST(request, { params }) {
     } catch (error) {
         if (error.code === 11000) {
             return NextResponse.json(
-                { success: false, error: "A league with this name already exists for this organization" },
+                { success: false, error: "A league with this name already exists for this organization and season" },
                 { status: 400 },
             );
         }

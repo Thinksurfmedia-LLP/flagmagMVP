@@ -133,7 +133,11 @@ const LeagueSchema = new mongoose.Schema(
     }
 );
 
-LeagueSchema.index({ organization: 1, slug: 1 }, { unique: true });
+// Uniqueness is per organization + season, not just organization — the
+// same league name (e.g. "Chino") legitimately recurs every season, so the
+// old {organization, slug} index rejected a brand new season's "Chino" as
+// a duplicate of last season's. Season joins the key instead.
+LeagueSchema.index({ organization: 1, season: 1, slug: 1 }, { unique: true });
 
 function getLeagueModel() {
     if (mongoose.models.League) {

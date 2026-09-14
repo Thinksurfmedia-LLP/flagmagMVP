@@ -1276,6 +1276,7 @@ export default function LeaguesPage() {
     const [filterCounty, setFilterCounty] = useState("");
     const [filterCity, setFilterCity] = useState("");
     const [filterLocation, setFilterLocation] = useState("");
+    const [filterSeason, setFilterSeason] = useState("");
 
     const isAdmin = user?.role === "admin";
     const effectiveRole = activeRole || user?.role;
@@ -1401,8 +1402,22 @@ export default function LeaguesPage() {
         allVenues.map((v) => [v.name, { stateId: v.stateId, countyId: v.countyId, cityName: v.cityName || "" }])
     );
 
+    // Season filter options — same name can now exist once per season (see
+    // League's {organization, season, slug} unique index), so distinguishing
+    // by season here is what actually disambiguates a "Chino Summer 2026"
+    // from a "Chino Fall 2026" in this list. Derived from whichever leagues
+    // are already loaded (server-side search only, no state/season filter)
+    // rather than a separate API call, since every row already carries its
+    // populated season.
+    const seasonOptions = [...new Map(
+        leagues
+            .filter((l) => l.season?._id)
+            .map((l) => [l.season._id, l.season])
+    ).values()].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+
     // Derive filtered + sorted league list
     const displayLeagues = [...leagues]
+        .filter((league) => !filterSeason || league.season?._id === filterSeason)
         .filter((league) => {
             if (!filterState && !filterCounty && !filterCity && !filterLocation) return true;
             const names = Array.isArray(league.locations) && league.locations.length > 0
@@ -1537,6 +1552,19 @@ export default function LeaguesPage() {
 
                     {/* Filter + Sort bar */}
                     <div className="leagues-filter-bar" style={{ display: "flex", justifyContent: "flex-end", flexWrap: "wrap", gap: 8, padding: "10px 16px 10px", borderBottom: "1px solid #e8eaf0", marginBottom: 4, alignItems: "center" }}>
+                        {/* Season */}
+                        <select
+                            className="admin-form-select"
+                            value={filterSeason}
+                            onChange={(e) => setFilterSeason(e.target.value)}
+                            style={{ width: 155, height: 34, fontSize: 13 }}
+                        >
+                            <option value="">All Seasons</option>
+                            {seasonOptions.map((s) => (
+                                <option key={s._id} value={s._id}>{s.name}</option>
+                            ))}
+                        </select>
+
                         {/* State */}
                         <select
                             className="admin-form-select"
@@ -1618,10 +1646,10 @@ export default function LeaguesPage() {
                         </select>
 
                         {/* Clear filters */}
-                        {(filterState || filterCounty || filterCity || filterLocation) && (
+                        {(filterSeason || filterState || filterCounty || filterCity || filterLocation) && (
                             <button
                                 className="admin-btn admin-btn-ghost admin-btn-sm"
-                                onClick={() => { setFilterState(""); setFilterCounty(""); setFilterCity(""); setFilterLocation(""); }}
+                                onClick={() => { setFilterSeason(""); setFilterState(""); setFilterCounty(""); setFilterCity(""); setFilterLocation(""); }}
                                 style={{ height: 34, whiteSpace: "nowrap" }}
                             >
                                 <i className="fa-solid fa-xmark"></i> Clear

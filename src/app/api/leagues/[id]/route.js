@@ -197,6 +197,12 @@ export async function PUT(request, { params }) {
 
         return NextResponse.json({ success: true, data: league }, { status: 200 });
     } catch (error) {
+        if (error.code === 11000) {
+            return NextResponse.json(
+                { success: false, error: "A league with this name already exists for this organization and season" },
+                { status: 400 },
+            );
+        }
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }

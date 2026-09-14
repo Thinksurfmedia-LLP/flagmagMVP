@@ -10,14 +10,17 @@ import League from "@/models/League";
 import Season from "@/models/Season";
 import Player from "@/models/Player";
 import Game from "@/models/Game";
-import LeagueFilteredList from "@/components/LeagueFilteredList";
+import LeaguesTabsSection from "@/components/LeaguesTabsSection";
 
 async function getOrgAndSeasons(slug) {
     await dbConnect();
     const organization = await Organization.findOne({ slug }).lean();
-    if (!organization) return { organization: null, activeSeasons: [], pastSeasons: [] };
+    if (!organization) return { organization: null, activeSeasons: [], pastSeasons: [], defaultSeasonName: "" };
 
-    const seasons = await League.find({ organization: organization._id }).sort({ startDate: -1 }).populate("season", "name slug").lean();
+    const [seasons, defaultSeason] = await Promise.all([
+        League.find({ organization: organization._id }).sort({ startDate: -1 }).populate("season", "name slug").lean(),
+        Season.findOne({ organization: organization._id, isDefault: true }).select("name").lean(),
+    ]);
 
     // Count players belonging to this org
     const playerCount = await Player.countDocuments({ organization: organization._id });
@@ -54,12 +57,13 @@ async function getOrgAndSeasons(slug) {
         organization: JSON.parse(JSON.stringify({ ...organization, playerCount })),
         activeSeasons: JSON.parse(JSON.stringify(activeSeasons)),
         pastSeasons: JSON.parse(JSON.stringify(pastSeasons)),
+        defaultSeasonName: defaultSeason?.name || "",
     };
 }
 
 export default async function OrganizationDetailPage({ params }) {
     const { slug } = await params;
-    const { organization: org, activeSeasons, pastSeasons } = await getOrgAndSeasons(slug);
+    const { organization: org, activeSeasons, pastSeasons, defaultSeasonName } = await getOrgAndSeasons(slug);
 
     if (!org) {
         return (
@@ -138,25 +142,12 @@ export default async function OrganizationDetailPage({ params }) {
 
             <section className="leagues-section section-padding">
                 <div className="container">
-                    <ul className="nav nav-pills leagues-nav" id="pills-tab" role="tablist">
-                        <li className="nav-item" role="presentation">
-                            <button className="nav-link active" id="leagues-one-tab" data-bs-toggle="pill" data-bs-target="#leagues-one" type="button" role="tab" aria-controls="leagues-one" aria-selected="true">Active Leagues ({activeSeasons.length})</button>
-                        </li>
-                        {pastSeasons.length > 0 && (
-                            <li className="nav-item" role="presentation">
-                                <button className="nav-link" id="leagues-two-tab" data-bs-toggle="pill" data-bs-target="#leagues-two" type="button" role="tab" aria-controls="leagues-two" aria-selected="false">Past Leagues ({pastSeasons.length})</button>
-                            </li>
-                        )}
-                    </ul>
-
-                    <div className="tab-content" id="pills-tabContent">
-                        <div className="tab-pane fade show active" id="leagues-one" role="tabpanel" aria-labelledby="leagues-one-tab" tabIndex="0">
-                            <LeagueFilteredList leagues={activeSeasons} orgSlug={slug} />
-                        </div>
-                        <div className="tab-pane fade" id="leagues-two" role="tabpanel" aria-labelledby="leagues-two-tab" tabIndex="0">
-                            <LeagueFilteredList leagues={pastSeasons} orgSlug={slug} />
-                        </div>
-                    </div>
+                    <LeaguesTabsSection
+                        activeSeasons={activeSeasons}
+                        pastSeasons={pastSeasons}
+                        orgSlug={slug}
+                        defaultSeasonName={defaultSeasonName}
+                    />
                 </div>
             </section>
 
