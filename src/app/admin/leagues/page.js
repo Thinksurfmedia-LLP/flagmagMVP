@@ -45,6 +45,11 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
     const [seasonLocked, setSeasonLocked] = useState(!initial?.seasonOverridden);
     const [loadingSeasons, setLoadingSeasons] = useState(false);
 
+    // Status (Active/Past) tracks whichever season is selected, same
+    // lock/override pattern as Season above — auto-computed unless the
+    // organizer explicitly unlocks and picks one themselves.
+    const [typeLocked, setTypeLocked] = useState(!initial?.typeOverridden);
+
     // Resolve the slug for the selected org
     const selectedOrgSlug = isAdmin
         ? organizations.find((o) => o._id === selectedOrgId)?.slug
@@ -137,6 +142,22 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
         return () => { cancelled = true; };
     }, [selectedOrgId]);
 
+    // Status auto-tracks whichever season is selected — active if that
+    // season is this org's current default, past otherwise — same rule
+    // the backend applies on create and re-applies to every non-overridden
+    // league whenever the org's default season changes (see
+    // src/lib/leagueSeasonSync.js). Recomputes live as the season picker
+    // changes so what's shown here always matches what save will send.
+    useEffect(() => {
+        if (!typeLocked) return;
+        if (!selectedSeasonId || seasons.length === 0) return;
+        const selectedSeason = seasons.find((s) => s._id === selectedSeasonId);
+        const computed = selectedSeason?.isDefault ? "active" : "past";
+        setForm((prev) => (prev.type === computed ? prev : { ...prev, type: computed }));
+    }, [typeLocked, selectedSeasonId, seasons]);
+
+    const handleTypeUnlock = () => setTypeLocked(false);
+
     const handleSeasonUnlock = async () => {
         setSeasonLocked(false);
         // Notification to admin deactivated for now
@@ -206,6 +227,7 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
             organization: selectedOrgId,
             season: selectedSeasonId || undefined,
             seasonOverridden: !seasonLocked,
+            typeOverridden: !typeLocked,
         });
         setSaving(false);
     };
@@ -343,14 +365,34 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
 
                 <div className="admin-form-group">
                     <label className="admin-form-label">Status</label>
-                    <select
-                        className="admin-form-select"
-                        value={form.type}
-                        onChange={(e) => setForm({ ...form, type: e.target.value })}
-                    >
-                        <option value="active">Active</option>
-                        <option value="past">Past</option>
-                    </select>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <select
+                            className="admin-form-select"
+                            value={form.type}
+                            onChange={(e) => setForm({ ...form, type: e.target.value })}
+                            disabled={typeLocked}
+                            style={typeLocked ? { background: "#f3f4f6", color: "#6b7280", cursor: "not-allowed", flex: 1 } : { flex: 1 }}
+                        >
+                            <option value="active">Active</option>
+                            <option value="past">Past</option>
+                        </select>
+                        {typeLocked && (
+                            <button
+                                type="button"
+                                className="admin-btn admin-btn-ghost admin-btn-sm"
+                                onClick={handleTypeUnlock}
+                                title="Override auto status"
+                                style={{ flexShrink: 0 }}
+                            >
+                                <i className="fa-solid fa-pen"></i>
+                            </button>
+                        )}
+                    </div>
+                    {typeLocked && (
+                        <div style={{ marginTop: 6, fontSize: 12, color: "#8b90a0" }}>
+                            Auto-set from the selected season — active while it&apos;s this organization&apos;s default season, past otherwise.
+                        </div>
+                    )}
                 </div>
 
                 <div className="admin-form-group">
@@ -1273,6 +1315,15 @@ export default function LeaguesPage() {
     const [orgLocationKeys, setOrgLocationKeys] = useState(null);
     const [filterLocation, setFilterLocation] = useState("");
     const [filterSeason, setFilterSeason] = useState("");
+    // Defaults to "active" — League.type is now auto-derived from each
+    // league's own organization's current default season (see
+    // src/lib/leagueSeasonSync.js), so this is what actually makes "only
+    // what's current" the default view here, the same way the public org
+    // page defaults its Active Leagues tab. Works even when this list spans
+    // multiple organizations at once (each with its own default season),
+    // unlike pre-selecting one specific Season, which only makes sense
+    // scoped to a single org.
+    const [filterStatus, setFilterStatus] = useState("active");
 
     const isAdmin = user?.role === "admin";
     const effectiveRole = activeRole || user?.role;
@@ -1361,8 +1412,15 @@ export default function LeaguesPage() {
             .map((l) => [l.season._id, l.season])
     ).values()].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
 
+    const statusOptions = [
+        { value: "active", label: "Active" },
+        { value: "past", label: "Past" },
+        { value: "all", label: "All Statuses" },
+    ];
+
     // Derive filtered + sorted league list
     const displayLeagues = [...leagues]
+        .filter((league) => filterStatus === "all" || league.type === filterStatus)
         .filter((league) => !filterSeason || league.season?._id === filterSeason)
         .filter((league) => {
             if (!filterLocation) return true;
@@ -1490,6 +1548,20 @@ export default function LeaguesPage() {
 
                     {/* Filter + Sort bar */}
                     <div className="leagues-filter-bar" style={{ display: "flex", justifyContent: "flex-end", flexWrap: "wrap", gap: 8, padding: "10px 16px 10px", borderBottom: "1px solid #e8eaf0", marginBottom: 4, alignItems: "center" }}>
+                        {/* Status — defaults to Active; single source of truth is
+                            League.type, auto-derived from each league's own org's
+                            current default season (see src/lib/leagueSeasonSync.js) */}
+                        <select
+                            className="admin-form-select"
+                            value={filterStatus}
+                            onChange={(e) => setFilterStatus(e.target.value)}
+                            style={{ width: 155, height: 34, fontSize: 13 }}
+                        >
+                            {statusOptions.map((s) => (
+                                <option key={s.value} value={s.value}>{s.label}</option>
+                            ))}
+                        </select>
+
                         {/* Season */}
                         <select
                             className="admin-form-select"
@@ -1499,7 +1571,7 @@ export default function LeaguesPage() {
                         >
                             <option value="">All Seasons</option>
                             {seasonOptions.map((s) => (
-                                <option key={s._id} value={s._id}>{s.name}</option>
+                                <option key={s._id} value={s._id}>{s.name}{s.isDefault ? " (Default)" : ""}</option>
                             ))}
                         </select>
 
@@ -1538,11 +1610,12 @@ export default function LeaguesPage() {
                             <option value="endDate:desc">End Date (Newest first)</option>
                         </select>
 
-                        {/* Clear filters */}
-                        {(filterSeason || filterLocation) && (
+                        {/* Clear filters — back to the default view (Active, All Seasons,
+                            All Locations), not an unfiltered "All Statuses" list */}
+                        {(filterStatus !== "active" || filterSeason || filterLocation) && (
                             <button
                                 className="admin-btn admin-btn-ghost admin-btn-sm"
-                                onClick={() => { setFilterSeason(""); setFilterLocation(""); }}
+                                onClick={() => { setFilterStatus("active"); setFilterSeason(""); setFilterLocation(""); }}
                                 style={{ height: 34, whiteSpace: "nowrap" }}
                             >
                                 <i className="fa-solid fa-xmark"></i> Clear

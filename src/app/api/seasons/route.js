@@ -5,6 +5,7 @@ import Organization from "@/models/Organization";
 import User from "@/models/User";
 import { requireAnyPermission } from "@/lib/apiAuth";
 import { logActivity } from "@/lib/activityLogger";
+import { syncLeagueTypesToDefaultSeason } from "@/lib/leagueSeasonSync";
 
 // GET all seasons (admin sees all; organizer sees own org's)
 export async function GET(request) {
@@ -106,6 +107,10 @@ export async function POST(request) {
             slug,
             isDefault: body.isDefault || false,
         });
+
+        if (season.isDefault) {
+            await syncLeagueTypesToDefaultSeason(organization._id, season._id);
+        }
 
         await logActivity({
             userId: auth.user.id,

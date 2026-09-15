@@ -9,6 +9,7 @@ import "@/models/Season";
 import User from "@/models/User";
 import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
 import { generateUniqueLeagueSlug } from "@/lib/leagueSlug";
+import { computeLeagueType } from "@/lib/leagueSeasonSync";
 
 // GET leagues for an organization
 export async function GET(request, { params }) {
@@ -117,11 +118,19 @@ export async function POST(request, { params }) {
             ? body.locations.map((s) => String(s).trim()).filter(Boolean)
             : [];
 
+        // Auto-derived from the season's default status unless the caller
+        // explicitly pinned a status — see src/lib/leagueSeasonSync.js.
+        const typeOverridden = Boolean(body.typeOverridden);
+        const type = typeOverridden
+            ? (["active", "past"].includes(body.type) ? body.type : "active")
+            : await computeLeagueType(body.season || null);
+
         const league = await League.create({
             organization: organization._id,
             name: body.name.trim(),
             slug: leagueSlug,
-            type: body.type || "active",
+            type,
+            typeOverridden,
             category: body.category || "",
             locations,
             location: locations[0] || "",

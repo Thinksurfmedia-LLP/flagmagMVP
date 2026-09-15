@@ -18,10 +18,23 @@ const LeagueSchema = new mongoose.Schema(
             lowercase: true,
             trim: true,
         },
+        // Auto-derived by default: "active" when this league's season is its
+        // organization's current default season, "past" otherwise — kept in
+        // sync via syncLeagueTypesToDefaultSeason (src/lib/leagueSeasonSync.js)
+        // whenever the org's default season changes. An organizer can still
+        // pin a specific league's status manually (see typeOverridden below),
+        // in which case that sync leaves it alone.
         type: {
             type: String,
             enum: ["active", "past"],
             default: "active",
+        },
+        // True once an organizer has manually chosen this league's Status
+        // instead of letting it track the default season — same override
+        // pattern as seasonOverridden/teamDepositOverridden below.
+        typeOverridden: {
+            type: Boolean,
+            default: false,
         },
         leagueType: {
             type: String,
@@ -142,7 +155,7 @@ LeagueSchema.index({ organization: 1, season: 1, slug: 1 }, { unique: true });
 function getLeagueModel() {
     if (mongoose.models.League) {
         const existing = mongoose.models.League;
-        if (!existing.schema.paths.divisions || !existing.schema.paths.seasonOverridden || !existing.schema.paths.image || !existing.schema.paths.endDate || !existing.schema.paths.allowPlaceholderTeams || !existing.schema.paths.playerFee) {
+        if (!existing.schema.paths.divisions || !existing.schema.paths.seasonOverridden || !existing.schema.paths.image || !existing.schema.paths.endDate || !existing.schema.paths.allowPlaceholderTeams || !existing.schema.paths.playerFee || !existing.schema.paths.typeOverridden) {
             delete mongoose.models.League;
             delete mongoose.connection.models?.League;
             return mongoose.model("League", LeagueSchema);

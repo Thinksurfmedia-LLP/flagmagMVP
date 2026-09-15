@@ -4,6 +4,7 @@ import Season from "@/models/Season";
 import User from "@/models/User";
 import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
 import { logActivity } from "@/lib/activityLogger";
+import { syncLeagueTypesToDefaultSeason } from "@/lib/leagueSeasonSync";
 
 // GET single season
 export async function GET(request, { params }) {
@@ -84,6 +85,10 @@ export async function PUT(request, { params }) {
                 { success: false, error: "Season not found" },
                 { status: 404 }
             );
+        }
+
+        if (updates.isDefault) {
+            await syncLeagueTypesToDefaultSeason(existingSeason.organization, season._id);
         }
 
         await logActivity({

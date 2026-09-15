@@ -4,6 +4,7 @@ import Organization from "@/models/Organization";
 import Season from "@/models/Season";
 import User from "@/models/User";
 import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
+import { syncLeagueTypesToDefaultSeason } from "@/lib/leagueSeasonSync";
 
 // GET seasons for an organization
 export async function GET(request, { params }) {
@@ -95,6 +96,10 @@ export async function POST(request, { params }) {
             type: body.type || "active",
             isDefault: body.isDefault || false,
         });
+
+        if (season.isDefault) {
+            await syncLeagueTypesToDefaultSeason(organization._id, season._id);
+        }
 
         return NextResponse.json(
             { success: true, data: season },
