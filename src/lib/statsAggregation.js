@@ -171,6 +171,63 @@ export function resolvePlayPlayerIds({ type, activeTeam, passer, receiver, rushe
 }
 
 /**
+ * Checks a play's raw fields against the SAME per-play-type role/side rules
+ * as resolvePlayPlayerIds (must be kept in sync with that switch), but looks
+ * for a jersey number that resolves to a player explicitly marked inactive
+ * for that team (Team.players[].active === false, via a rosterMap built by
+ * the plays route's own jerseyMap(), which — unlike buildRosterMap() above —
+ * keeps inactive entries instead of dropping them, specifically so this can
+ * still find and reject them).
+ *
+ * This is the actual enforcement point for "a deactivated player can't be
+ * recorded in this team's games" — the roster GET route omitting them is
+ * only a client-side convenience a stale/cached fetch could bypass. A
+ * jersey number that isn't on the roster AT ALL is a different, pre-existing
+ * tolerant case (silently resolves to null) that this deliberately leaves
+ * alone.
+ *
+ * Returns { jerseyNumber, side } for the first conflict found, or null.
+ */
+export function findInactiveJerseyConflict({ type, activeTeam, passer, receiver, rusher, defender, flagPull }, rosterMap) {
+    const at = activeTeam;
+    const otherTeam = at === "A" ? "B" : "A";
+    const isInactive = (jerseyNumber, side) => {
+        if (!jerseyNumber) return false;
+        const entry = rosterMap[side]?.[String(jerseyNumber)];
+        return Boolean(entry && entry.active === false);
+    };
+
+    switch (type) {
+        case "completion":
+            if (isInactive(passer, at)) return { jerseyNumber: passer, side: at };
+            if (isInactive(receiver, at)) return { jerseyNumber: receiver, side: at };
+            if (isInactive(flagPull, otherTeam)) return { jerseyNumber: flagPull, side: otherTeam };
+            return null;
+        case "incomplete":
+            return isInactive(passer, at) ? { jerseyNumber: passer, side: at } : null;
+        case "interception":
+            if (isInactive(passer, at)) return { jerseyNumber: passer, side: at };
+            if (isInactive(defender, otherTeam)) return { jerseyNumber: defender, side: otherTeam };
+            if (isInactive(flagPull, at)) return { jerseyNumber: flagPull, side: at };
+            return null;
+        case "fumble":
+            if (isInactive(defender, otherTeam)) return { jerseyNumber: defender, side: otherTeam };
+            if (isInactive(flagPull, at)) return { jerseyNumber: flagPull, side: at };
+            return null;
+        case "sack":
+            if (isInactive(passer, at)) return { jerseyNumber: passer, side: at };
+            if (isInactive(defender, otherTeam)) return { jerseyNumber: defender, side: otherTeam };
+            return null;
+        case "run":
+            if (isInactive(rusher, at)) return { jerseyNumber: rusher, side: at };
+            if (isInactive(flagPull, otherTeam)) return { jerseyNumber: flagPull, side: otherTeam };
+            return null;
+        default:
+            return null;
+    }
+}
+
+/**
  * Same per-play-type "which side does this frozen field belong to" mapping
  * as resolvePlayPlayerIds, exposed on its own for callers that already have
  * the resolved `<field>Player` IDs on a play and just need to know whose

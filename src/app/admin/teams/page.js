@@ -430,6 +430,9 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
             playerName: p.player?.name || "",
             playerPhoto: p.player?.photo || "",
             jerseyNumber: p.jerseyNumber != null ? String(p.jerseyNumber) : "",
+            // Stays true for any pre-existing roster row that predates this
+            // field (schema default), rather than needing a migration.
+            active: p.active !== false,
         }))
     );
     const [selectedPlayerId, setSelectedPlayerId] = useState("");
@@ -506,7 +509,7 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    players: nextRoster.map((r) => ({ player: r.playerId, jerseyNumber: r.jerseyNumber })),
+                    players: nextRoster.map((r) => ({ player: r.playerId, jerseyNumber: r.jerseyNumber, active: r.active !== false })),
                 }),
             });
             const data = await res.json();
@@ -530,7 +533,7 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
         const retiredError = checkRetired(newJersey.trim(), selectedPlayerId);
         if (retiredError) { showError(retiredError); return; }
         const ok = await persist(
-            [...roster, { playerId: String(player._id), playerName: player.name, playerPhoto: player.photo || "", jerseyNumber: newJersey.trim() }],
+            [...roster, { playerId: String(player._id), playerName: player.name, playerPhoto: player.photo || "", jerseyNumber: newJersey.trim(), active: true }],
             `${player.name} added to the roster!`
         );
         if (ok) { setSelectedPlayerId(""); setNewJersey(""); }
@@ -560,6 +563,17 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
         await persist(roster.filter((r) => r.playerId !== entry.playerId), "Player removed from roster");
     };
 
+    // Keeps the player on the roster (no removal, no free-agent demotion —
+    // see syncAssignedPlayers) but blocks them from being recorded in this
+    // team's games until reactivated — e.g. hasn't paid for the new season
+    // yet, but is still nominally on the team. Enforced by GET
+    // /api/games/[gameId]/roster (omits inactive players) and
+    // POST/PUT /api/games/[gameId]/plays (won't resolve their jersey number).
+    const handleToggleActive = async (entry) => {
+        const next = roster.map((r) => r.playerId === entry.playerId ? { ...r, active: !r.active } : r);
+        await persist(next, entry.active ? `${entry.playerName} deactivated for this team` : `${entry.playerName} reactivated for this team`);
+    };
+
     return (
         <div className="admin-modal-backdrop" onClick={onClose}>
             <div className="admin-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 560, maxHeight: "90vh", overflowY: "auto" }}>
@@ -575,7 +589,7 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
                     ) : (
                         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                             {roster.map((entry) => (
-                                <div key={entry.playerId} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 10px", background: "#f9fafb", border: "1px solid #e8eaef", borderRadius: 6, gap: 8 }}>
+                                <div key={entry.playerId} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 10px", background: entry.active ? "#f9fafb" : "#fafafa", border: `1px solid ${entry.active ? "#e8eaef" : "#f0d9d9"}`, borderRadius: 6, gap: 8, opacity: entry.active ? 1 : 0.65 }}>
                                     <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
                                         {entry.playerPhoto && <img src={entry.playerPhoto} alt="" style={{ width: 20, height: 20, borderRadius: "50%", flexShrink: 0, objectFit: "cover" }} />}
                                         <span style={{ fontWeight: 600, fontSize: 13, color: "#1a1d26", flexShrink: 0 }}>{entry.playerName || "(unknown player)"}</span>
@@ -592,6 +606,11 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
                                         ) : (
                                             <span style={{ color: "#8b90a0", fontSize: 12 }}>#{entry.jerseyNumber}</span>
                                         )}
+                                        {!entry.active && (
+                                            <span style={{ fontSize: 11, fontWeight: 600, color: "#b91c1c", background: "#fee2e2", padding: "2px 6px", borderRadius: 4, flexShrink: 0 }}>
+                                                Inactive
+                                            </span>
+                                        )}
                                     </div>
                                     {editingId === entry.playerId ? (
                                         <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
@@ -604,6 +623,14 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
                                         </div>
                                     ) : (
                                         <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                                            <button
+                                                className="admin-btn admin-btn-ghost admin-btn-sm"
+                                                onClick={() => handleToggleActive(entry)}
+                                                disabled={saving}
+                                                title={entry.active ? "Deactivate for this team" : "Reactivate for this team"}
+                                            >
+                                                <i className={`fa-solid ${entry.active ? "fa-toggle-on" : "fa-toggle-off"}`}></i>
+                                            </button>
                                             <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => startEdit(entry)} title="Edit jersey number">
                                                 <i className="fa-solid fa-pen"></i>
                                             </button>

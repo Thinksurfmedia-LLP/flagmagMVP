@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import mongoose from "mongoose";
 import dbConnect from "@/lib/dbConnect";
 import Player from "@/models/Player";
 import GameStat from "@/models/GameStat";
@@ -148,6 +149,25 @@ export async function PUT(request, { params }) {
         const player = await Player.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
         if (!player) {
             return NextResponse.json({ success: false, error: "Player not found" }, { status: 404 });
+        }
+
+        // Deactivating/reactivating a player globally (the Active/Inactive
+        // toggle on /admin/players) cascades into every team roster they're
+        // currently on — Team.players[].active is the field actually
+        // enforced at stat-recording time (see GET .../roster and POST/PUT
+        // .../plays), so without this a global "deactivate" would just gray
+        // out a badge here without stopping anything in the stats app.
+        // Deliberately blind-overwrites every membership (not "only ones
+        // still true"), matching the direct ask — a global reactivate is
+        // meant to un-block everywhere, even a membership an organizer had
+        // separately deactivated per-team for some other reason.
+        if (body.isActive !== undefined) {
+            const TeamModel = require("@/models/Team").default || require("mongoose").models.Team;
+            await TeamModel.updateMany(
+                { "players.player": new mongoose.Types.ObjectId(id) },
+                { $set: { "players.$[elem].active": Boolean(body.isActive) } },
+                { arrayFilters: [{ "elem.player": new mongoose.Types.ObjectId(id) }] }
+            );
         }
 
         // Defense-in-depth: re-check this player's status against actual

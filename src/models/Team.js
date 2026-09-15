@@ -108,6 +108,18 @@ const TeamSchema = new mongoose.Schema(
                     type: Number,
                     required: [true, "Jersey number is required"],
                 },
+                // Stays on the roster across seasons (e.g. hasn't paid for the
+                // new season yet) without actually removing them from the
+                // team — removing would demote them to free-agent status
+                // (see syncAssignedPlayers) and lose roster history. While
+                // false, GET /api/games/[gameId]/roster omits them and
+                // POST/PUT .../plays refuses to resolve their jersey number,
+                // so a statistician can't record plays under their number
+                // until an organizer flips this back on.
+                active: {
+                    type: Boolean,
+                    default: true,
+                },
             },
         ],
         isPlaceholder: {
@@ -152,7 +164,8 @@ function getTeamModel() {
         const hasAddress = Boolean(existing.schema.path("address"));
         const hasHearAboutUs = Boolean(existing.schema.path("hearAboutUs"));
         const hasRetiredNumbers = Boolean(existing.schema.path("retiredNumbers"));
-        if (!hasPlayers || !hasDescription || !hasJerseyNumber || !hasCoachName || !hasLeagues || !hasIsPlaceholder || !hasSeedNumber || !hasManager || !hasRequestedLeague || !hasAddress || !hasHearAboutUs || !hasRetiredNumbers) {
+        const hasPlayerActive = Boolean(existing.schema.path("players.active"));
+        if (!hasPlayers || !hasDescription || !hasJerseyNumber || !hasCoachName || !hasLeagues || !hasIsPlaceholder || !hasSeedNumber || !hasManager || !hasRequestedLeague || !hasAddress || !hasHearAboutUs || !hasRetiredNumbers || !hasPlayerActive) {
             delete mongoose.models.Team;
         }
     }

@@ -35,12 +35,18 @@ export async function GET(request, { params }) {
 
         const roster = { teamA: [], teamB: [] };
         for (const team of teams) {
-            const entries = (team.players || []).map((p) => ({
-                playerId: p.player?._id || p.player,
-                playerName: p.player?.name || "",
-                playerPhoto: p.player?.photo || "",
-                jerseyNumber: p.jerseyNumber,
-            }));
+            // A player deactivated for this specific team (e.g. hasn't paid
+            // for the new season) stays on the roster in the admin, but is
+            // omitted here so the statistician's app never offers their
+            // jersey number at all — see Team.players[].active.
+            const entries = (team.players || [])
+                .filter((p) => p.active !== false)
+                .map((p) => ({
+                    playerId: p.player?._id || p.player,
+                    playerName: p.player?.name || "",
+                    playerPhoto: p.player?.photo || "",
+                    jerseyNumber: p.jerseyNumber,
+                }));
 
             if (team.name === game.teamA.name) {
                 roster.teamA = entries;

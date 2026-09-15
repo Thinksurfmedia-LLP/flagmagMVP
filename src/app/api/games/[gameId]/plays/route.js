@@ -5,17 +5,21 @@ import Play from "@/models/Play";
 import Game from "@/models/Game";
 import League from "@/models/League";
 import Team from "@/models/Team";
-import { resolvePlayPlayerIds } from "@/lib/statsAggregation";
+import { resolvePlayPlayerIds, findInactiveJerseyConflict } from "@/lib/statsAggregation";
 
 // Builds the bare jersey-number → playerId map resolvePlayPlayerIds needs,
 // straight from a Team doc's own (unpopulated) `players` array — no extra
 // populate() query, since the only thing freezing an ID onto a Play needs
 // is the ID itself, not the player's name/photo (those get looked up at
-// READ time instead, via statsAggregation's playerInfoById).
+// READ time instead, via statsAggregation's playerInfoById). Keeps every
+// entry (active AND inactive) — findInactiveJerseyConflict below needs to
+// SEE inactive players to reject them with a clear error, not just have
+// them silently vanish and fall into the pre-existing "unknown jersey
+// number" tolerant path.
 function jerseyMap(teamDoc) {
     const map = {};
     for (const p of teamDoc?.players || []) {
-        map[String(p.jerseyNumber)] = { playerId: String(p.player) };
+        map[String(p.jerseyNumber)] = { playerId: String(p.player), active: p.active !== false };
     }
     return map;
 }
@@ -120,14 +124,25 @@ export async function POST(request, { params }) {
                         { status: 400 }
                     );
                 }
-                resolvedIds = resolvePlayPlayerIds(
-                    {
-                        type: body.type, activeTeam: body.activeTeam,
-                        passer: body.passer || "", receiver: body.receiver || "",
-                        rusher: body.rusher || "", defender: body.defender || "", flagPull: body.flagPull || "",
-                    },
-                    { A: jerseyMap(teamADoc), B: jerseyMap(teamBDoc) }
-                );
+                const playFields = {
+                    type: body.type, activeTeam: body.activeTeam,
+                    passer: body.passer || "", receiver: body.receiver || "",
+                    rusher: body.rusher || "", defender: body.defender || "", flagPull: body.flagPull || "",
+                };
+                const rosterMap = { A: jerseyMap(teamADoc), B: jerseyMap(teamBDoc) };
+
+                const conflict = findInactiveJerseyConflict(playFields, rosterMap);
+                if (conflict) {
+                    return NextResponse.json(
+                        {
+                            success: false,
+                            error: `Jersey #${conflict.jerseyNumber} is deactivated for this team and can't be recorded until an organizer reactivates them.`,
+                        },
+                        { status: 409 }
+                    );
+                }
+
+                resolvedIds = resolvePlayPlayerIds(playFields, rosterMap);
             }
         }
 
@@ -283,6 +298,11 @@ export async function PUT(request, { params }) {
             defender: updates.defender ?? before.defender,
             flagPull: updates.flagPull ?? before.flagPull,
         };
+        // Unlike the resolution below, an inactive-jersey conflict is a
+        // deliberate rejection, not a best-effort lookup — it must surface
+        // as a real error to the statistician, not get swallowed by the
+        // catch below the way a transient DB/network hiccup would.
+        let inactiveConflict = null;
         try {
             const gameForResolution = await Game.findById(gameId).select("league teamA teamB").lean();
             if (gameForResolution?.league) {
@@ -292,15 +312,25 @@ export async function PUT(request, { params }) {
                         Team.findOne({ name: gameForResolution.teamA?.name, organization: leagueForResolution.organization }).select("players").lean(),
                         Team.findOne({ name: gameForResolution.teamB?.name, organization: leagueForResolution.organization }).select("players").lean(),
                     ]);
-                    Object.assign(
-                        updates,
-                        resolvePlayPlayerIds(mergedForResolution, { A: jerseyMap(teamADoc), B: jerseyMap(teamBDoc) })
-                    );
+                    const rosterMap = { A: jerseyMap(teamADoc), B: jerseyMap(teamBDoc) };
+                    inactiveConflict = findInactiveJerseyConflict(mergedForResolution, rosterMap);
+                    if (!inactiveConflict) {
+                        Object.assign(updates, resolvePlayPlayerIds(mergedForResolution, rosterMap));
+                    }
                 }
             }
         } catch {
             // Best-effort — an edit that can't re-resolve identity still
             // saves; it just keeps whatever was frozen on the play before.
+        }
+        if (inactiveConflict) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: `Jersey #${inactiveConflict.jerseyNumber} is deactivated for this team and can't be recorded until an organizer reactivates them.`,
+                },
+                { status: 409 }
+            );
         }
 
         const session = await mongoose.startSession();

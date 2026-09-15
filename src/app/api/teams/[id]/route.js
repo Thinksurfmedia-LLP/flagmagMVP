@@ -236,6 +236,10 @@ export async function PUT(request, { params }) {
             team.players = nextPlayersArray.map(p => ({
                 player: typeof p === "object" ? p.player : p,
                 jerseyNumber: typeof p === "object" ? Number(p.jerseyNumber) : 0,
+                // Defaults true (on the field's own schema default) for any
+                // caller that still sends the old {player, jerseyNumber}
+                // shape without `active` at all.
+                active: typeof p === "object" && p.active === false ? false : true,
             }));
         }
         await team.save();
