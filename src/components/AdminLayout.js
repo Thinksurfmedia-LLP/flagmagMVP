@@ -191,10 +191,6 @@ function getOrganizerNav(orgSlug) {
                     icon: "fa-solid fa-user-clock",
                     perms: ["manage_players", "player_view", "player_create", "player_update", "player_delete"],
                 },
-                // Same always-visible rule as Dashboard/Organization below —
-                // every organizer should see registrations made against
-                // their own org, the API scopes the data, not this nav.
-                { label: "Registrations", href: "/admin/registrations", icon: "fa-solid fa-clipboard-list", perm: "view_dashboard" },
                 {
                     label: "Players",
                     href: "/admin/players",
@@ -227,6 +223,13 @@ function getOrganizerNav(orgSlug) {
             section: "Settings",
             items: [
                 { label: "Organization", href: "/admin/settings", icon: "fa-solid fa-gear", perm: "view_dashboard" },
+                // Same always-visible rule as Organization above — every
+                // organizer should see registrations made against their own
+                // org, the API scopes the data, not this nav. Kept under
+                // Organization/Settings (bottom of the sidebar) rather than
+                // Management, since reviewing registrations is closer to an
+                // org-admin task than day-to-day league management.
+                { label: "Registrations", href: "/admin/registrations", icon: "fa-solid fa-clipboard-list", perm: "view_dashboard" },
             ],
         });
     }

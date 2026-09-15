@@ -984,6 +984,8 @@ export default function AdminTeamsPage() {
     // Sort + geo filter state
     const [sortField, setSortField] = useState("name");
     const [sortDir, setSortDir] = useState("asc");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filterSeason, setFilterSeason] = useState("");
     const [filterLeague, setFilterLeague] = useState("");
     const [filterState, setFilterState] = useState("");
     const [filterCounty, setFilterCounty] = useState("");
@@ -1094,10 +1096,18 @@ export default function AdminTeamsPage() {
     const regularTeams = teams.filter((t) => !t.isPlaceholder);
     const placeholderTeams = teams.filter((t) => t.isPlaceholder);
 
-    // Cascading filter options derived from loaded teams
-    const leagueOptions = [...new Map(
-        regularTeams.flatMap(t => t.leagues || []).filter(m => m.league).map(m => [m.league._id, { id: m.league._id, name: m.league.name }])
-    ).values()].sort((a, b) => a.name.localeCompare(b.name));
+    // Season options — from the full org league list (not just leagues teams
+    // already belong to), same source TeamModal's own league picker uses.
+    const seasonOptions = [...new Map(
+        leagues.filter(l => l.season?._id).map(l => [l.season._id, l.season])
+    ).values()].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    // League dropdown only makes sense once a season narrows it down — same
+    // name can now recur across seasons (e.g. "Chino" every summer), so an
+    // unscoped league list would be ambiguous/duplicated.
+    const leagueOptions = filterSeason
+        ? leagues.filter(l => l.season?._id === filterSeason).sort((a, b) => a.name.localeCompare(b.name))
+        : [];
+    const handleSeasonChange = (val) => { setFilterSeason(val); setFilterLeague(""); };
     const stateOptions = [...new Set(regularTeams.map(t => t.location?.stateName).filter(Boolean))].sort();
     const countyOptions = filterState
         ? [...new Set(regularTeams.filter(t => t.location?.stateName === filterState).map(t => t.location?.countyName).filter(Boolean))].sort()
@@ -1127,6 +1137,7 @@ export default function AdminTeamsPage() {
 
     const displayTeams = regularTeams
         .filter((t) => {
+            if (searchTerm.trim() && !t.name?.toLowerCase().includes(searchTerm.trim().toLowerCase())) return false;
             if (filterLeague && !(t.leagues || []).some(m => m.league?._id === filterLeague)) return false;
             if (!filterState) return true;
             if (t.location?.stateName !== filterState) return false;
@@ -1158,6 +1169,13 @@ export default function AdminTeamsPage() {
                         <div className="admin-card-header">
                             <h3>Teams ({displayTeams.length})</h3>
                             <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                                <input
+                                    className="admin-form-input"
+                                    placeholder="Search teams..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    style={{ width: 200, height: 36, fontSize: 13, minWidth: 120, flex: "1 1 140px" }}
+                                />
                                 {canCreate && (
                                     <button className="admin-btn admin-btn-ghost" onClick={() => setImportModalOpen(true)}>
                                         <i className="fa-solid fa-file-csv"></i> Import CSV
@@ -1173,12 +1191,22 @@ export default function AdminTeamsPage() {
 
                         {/* Filter + Sort bar */}
                         <div className="teams-filter-bar" style={{ display: "flex", justifyContent: "flex-end", flexWrap: "wrap", gap: 8, padding: "10px 16px 10px", borderBottom: "1px solid #e8eaf0", marginBottom: 4, alignItems: "center" }}>
-                            {leagueOptions.length > 0 && (
-                                <select className="admin-form-select" value={filterLeague} onChange={(e) => setFilterLeague(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
-                                    <option value="">All Leagues</option>
-                                    {leagueOptions.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
-                                </select>
-                            )}
+                            {/* Season — picking one is what unlocks the League dropdown below,
+                                since the same league name can now recur across seasons. */}
+                            <select className="admin-form-select" value={filterSeason} onChange={(e) => handleSeasonChange(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
+                                <option value="">All Seasons</option>
+                                {seasonOptions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
+                            </select>
+                            <select
+                                className="admin-form-select"
+                                value={filterLeague}
+                                onChange={(e) => setFilterLeague(e.target.value)}
+                                disabled={!filterSeason}
+                                style={{ width: 155, height: 34, fontSize: 13 }}
+                            >
+                                <option value="">{filterSeason ? "All Leagues" : "Select a season first"}</option>
+                                {leagueOptions.map((l) => <option key={l._id} value={l._id}>{l.name}</option>)}
+                            </select>
                             {stateOptions.length > 0 && (
                                 <select className="admin-form-select" value={filterState} onChange={(e) => handleStateChange(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
                                     <option value="">All States</option>
@@ -1204,8 +1232,8 @@ export default function AdminTeamsPage() {
                                 <option value="league:asc">League (A → Z)</option>
                                 <option value="league:desc">League (Z → A)</option>
                             </select>
-                            {(filterLeague || filterState || filterCounty || filterCity) && (
-                                <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setFilterLeague(""); setFilterState(""); setFilterCounty(""); setFilterCity(""); }} style={{ height: 34, whiteSpace: "nowrap" }}>
+                            {(searchTerm || filterSeason || filterLeague || filterState || filterCounty || filterCity) && (
+                                <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setSearchTerm(""); setFilterSeason(""); setFilterLeague(""); setFilterState(""); setFilterCounty(""); setFilterCity(""); }} style={{ height: 34, whiteSpace: "nowrap" }}>
                                     <i className="fa-solid fa-xmark"></i> Clear
                                 </button>
                             )}
