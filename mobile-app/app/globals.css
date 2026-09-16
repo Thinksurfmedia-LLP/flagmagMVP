@@ -631,14 +631,36 @@ p {
     display: flex;
 }
 
+.filter-dropdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border-bottom: 1px solid #3f3f3f;
+    padding-bottom: 10px;
+}
+
 .filter-dropdown h4 {
     font-family: "DM Sans", sans-serif;
     font-size: 16px;
     color: #fff;
     text-transform: capitalize;
     margin-bottom: 0;
-    border-bottom: 1px solid #3f3f3f;
-    padding-bottom: 10px;
+}
+
+.filter-dropdown-close {
+    background: transparent;
+    border: none;
+    color: #d6d6d6;
+    font-size: 18px;
+    line-height: 1;
+    padding: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.filter-dropdown-close:hover {
+    color: #ff1e00;
 }
 
 /* ===== TAB NAVIGATION ===== */
@@ -1221,7 +1243,7 @@ p {
     background-color: rgb(43, 39, 38);
     border: 1px solid rgba(126, 126, 126, 0.21);
     border-radius: 15px;
-    padding: 20px 10px;
+    padding: 15px 10px;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -1244,21 +1266,21 @@ p {
    size/aspect ratio — icons bottom-align within it so every card's label
    sits at the same height instead of drifting with icon size. */
 .control-box .icon-wrap {
-    height: 96px;
+    height: 60px;
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .control-box img {
-    width: 64px;
-    height: 64px;
+    width: 50px;
+    height: 50px;
 }
 
 .control-box h6 {
     font-family: "DM Sans", sans-serif;
-    font-size: 13px;
+    font-size: 14px;
     text-transform: capitalize;
     margin: 0;
     color: #d6d6d6;

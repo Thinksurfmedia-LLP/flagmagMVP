@@ -1865,11 +1865,7 @@ export default function AdminGamesPage() {
                 const [seasonData, leagueData, teamData, venueData, orgData, gamesData] = await Promise.all([
                     seasonRes.json(), leagueRes.json(), teamRes.json(), venueRes.json(), orgRes.json(), gamesRes.json(),
                 ]);
-                if (seasonData.success) {
-                    setSeasons(seasonData.data);
-                    const defaultSeason = seasonData.data.find(s => s.isDefault) || seasonData.data[0];
-                    if (defaultSeason) setFilterSeason(defaultSeason._id);
-                }
+                if (seasonData.success) setSeasons(seasonData.data);
                 if (orgData.success) setScheduleDays(orgData.data?.scheduleDays || []);
                 if (leagueData.success) setLeagues(leagueData.data);
                 if (teamData.success) setTeams(teamData.data);
@@ -1892,8 +1888,23 @@ export default function AdminGamesPage() {
         })();
     }, [selectedOrg]);
 
+    // Default the Season filter to this org's current default season, as
+    // soon as seasons load — kept as its own effect (not inlined in the
+    // fetch above) so a failure in any of the OTHER parallel fetches above
+    // (teams/venues/games) can never prevent this from applying. Re-armed
+    // whenever the org changes, so switching orgs re-defaults to THAT org's
+    // own current season instead of keeping whichever was picked before.
+    const [seasonDefaultApplied, setSeasonDefaultApplied] = useState(false);
+    useEffect(() => { setSeasonDefaultApplied(false); }, [selectedOrg]);
+    useEffect(() => {
+        if (seasonDefaultApplied || seasons.length === 0) return;
+        const defaultSeason = seasons.find(s => s.isDefault) || seasons[0];
+        if (defaultSeason) setFilterSeason(defaultSeason._id);
+        setSeasonDefaultApplied(true);
+    }, [seasons, seasonDefaultApplied]);
+
     // Computed and cascaded filter logic
-    const availableLeagues = filterSeason 
+    const availableLeagues = filterSeason
         ? leagues.filter(l => (l.season?._id || l.season) === filterSeason)
         : leagues;
 
@@ -1932,8 +1943,17 @@ export default function AdminGamesPage() {
     const handleGeoCountyChange = (val) => { setFilterCounty(val); setFilterCity(""); setFilterVenue(""); };
 
     const filteredGames = (() => {
-        if (!filterLeague) return [];
-        let byLeague = games.filter(g => String(g.league) === filterLeague);
+        if (!filterSeason) return [];
+        // No specific league picked — show every league in the selected
+        // season (availableLeagues is already scoped to it) instead of
+        // requiring one, matching how the Season filter alone works
+        // elsewhere (Leagues/Teams/Schedules pages).
+        let byLeague = filterLeague
+            ? games.filter(g => String(g.league) === filterLeague)
+            : (() => {
+                const seasonLeagueIds = new Set(availableLeagues.map(l => String(l._id)));
+                return games.filter(g => seasonLeagueIds.has(String(g.league)));
+            })();
         if (filterState || filterCounty || filterCity || filterVenue) {
             byLeague = byLeague.filter(g => {
                 const locStr = g.location || "";
@@ -2095,9 +2115,9 @@ export default function AdminGamesPage() {
                                 </select>
                             </div>
                             <div className="admin-form-group" style={{ marginBottom: 0 }}>
-                                <label className="admin-form-label">League *</label>
+                                <label className="admin-form-label">League</label>
                                 <select className="admin-form-select" value={filterLeague} onChange={e => setFilterLeague(e.target.value)} disabled={!filterSeason}>
-                                    <option value="">Select League...</option>
+                                    <option value="">All Leagues</option>
                                     {availableLeagues.map(l => <option key={l._id} value={l._id}>{l.name}</option>)}
                                 </select>
                             </div>
@@ -2109,11 +2129,11 @@ export default function AdminGamesPage() {
                     </div>
 
                     {/* Games List */}
-                    {!filterLeague ? (
+                    {!filterSeason ? (
                         <div className="admin-card">
                             <div className="admin-empty" style={{ padding: "60px 20px" }}>
                                 <i className="fa-solid fa-filter" style={{ fontSize: 40, color: "#cbd5e1", marginBottom: 16, display: "block" }}></i>
-                                <h3 style={{ fontSize: 18, color: "#1e293b", fontWeight: 600 }}>Please select a Season and League</h3>
+                                <h3 style={{ fontSize: 18, color: "#1e293b", fontWeight: 600 }}>Please select a Season</h3>
                                 <p style={{ color: "#6b7280" }}>Select the options above to view the scheduled games.</p>
                             </div>
                         </div>

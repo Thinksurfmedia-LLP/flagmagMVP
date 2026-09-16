@@ -1107,9 +1107,12 @@ export default function AdminTeamsPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [filterSeason, setFilterSeason] = useState("");
     const [filterLeague, setFilterLeague] = useState("");
-    const [filterState, setFilterState] = useState("");
-    const [filterCounty, setFilterCounty] = useState("");
-    const [filterCity, setFilterCity] = useState("");
+    // Applied exactly once, as soon as leagues load — after that the user is
+    // free to switch to "All Seasons" or a past one without it snapping back.
+    const [seasonDefaultApplied, setSeasonDefaultApplied] = useState(false);
+    // Single flat location filter (city + state, "|"-joined since city names
+    // can repeat across states) — no state/county/city cascade.
+    const [filterLocation, setFilterLocation] = useState("");
 
     const canView = hasAnyAccess(user, [
         "manage_teams", "team_view", "team_create", "team_update", "team_delete",
@@ -1171,6 +1174,16 @@ export default function AdminTeamsPage() {
         fetchData();
     }, [fetchData]);
 
+    // Default the Season filter to whichever season is this org's current
+    // default (mirrors the admin Leagues page and the public/mobile views)
+    // — it's what actually makes "only what's current" the default here.
+    useEffect(() => {
+        if (seasonDefaultApplied || leagues.length === 0) return;
+        const defaultLeague = leagues.find((l) => l.season?.isDefault);
+        if (defaultLeague) setFilterSeason(defaultLeague.season._id);
+        setSeasonDefaultApplied(true);
+    }, [leagues, seasonDefaultApplied]);
+
     const saveTeam = async (payload) => {
         try {
             const isEdit = Boolean(editTarget);
@@ -1228,15 +1241,13 @@ export default function AdminTeamsPage() {
         ? leagues.filter(l => l.season?._id === filterSeason).sort((a, b) => a.name.localeCompare(b.name))
         : [];
     const handleSeasonChange = (val) => { setFilterSeason(val); setFilterLeague(""); };
-    const stateOptions = [...new Set(regularTeams.map(t => t.location?.stateName).filter(Boolean))].sort();
-    const countyOptions = filterState
-        ? [...new Set(regularTeams.filter(t => t.location?.stateName === filterState).map(t => t.location?.countyName).filter(Boolean))].sort()
-        : [];
-    const cityOptions = filterState
-        ? [...new Set(regularTeams.filter(t => t.location?.stateName === filterState && (!filterCounty || t.location?.countyName === filterCounty)).map(t => t.location?.cityName).filter(Boolean))].sort()
-        : [];
-    const handleStateChange = (val) => { setFilterState(val); setFilterCounty(""); setFilterCity(""); };
-    const handleCountyChange = (val) => { setFilterCounty(val); setFilterCity(""); };
+    // Every venue a team actually PLAYS at — from the locations[] of each
+    // league it's in — not Team.location (that's the team's own registered
+    // home address/contact info from the signup form, unrelated to which
+    // venues its games are actually played at).
+    const locationOptions = [...new Set(
+        regularTeams.flatMap(t => (t.leagues || []).flatMap(m => m.league?.locations || []))
+    )].sort();
     const toggleSort = (field) => {
         if (sortField === field) setSortDir(d => d === "asc" ? "desc" : "asc");
         else { setSortField(field); setSortDir("asc"); }
@@ -1249,6 +1260,10 @@ export default function AdminTeamsPage() {
     };
 
     const leagueNames = (t) => (t.leagues || []).map(m => m.league?.name).filter(Boolean).join(", ");
+    // A team can be in several leagues (and therefore several seasons) at
+    // once — deduped since two leagues in the same season would otherwise
+    // repeat that season's name.
+    const seasonNames = (t) => [...new Set((t.leagues || []).map(m => m.league?.season?.name).filter(Boolean))].join(", ");
     // A membership with no populated league but a leagues[] entry present is
     // a dangling ref (League deleted, membership left behind) — leagueNames()
     // above silently drops it via .filter(Boolean); surface it instead so it
@@ -1258,11 +1273,9 @@ export default function AdminTeamsPage() {
     const displayTeams = regularTeams
         .filter((t) => {
             if (searchTerm.trim() && !t.name?.toLowerCase().includes(searchTerm.trim().toLowerCase())) return false;
+            if (filterSeason && !(t.leagues || []).some(m => m.league?.season?._id === filterSeason)) return false;
             if (filterLeague && !(t.leagues || []).some(m => m.league?._id === filterLeague)) return false;
-            if (!filterState) return true;
-            if (t.location?.stateName !== filterState) return false;
-            if (filterCounty && t.location?.countyName !== filterCounty) return false;
-            if (filterCity && t.location?.cityName !== filterCity) return false;
+            if (filterLocation && !(t.leagues || []).some(m => (m.league?.locations || []).includes(filterLocation))) return false;
             return true;
         })
         .sort((a, b) => {
@@ -1322,29 +1335,25 @@ export default function AdminTeamsPage() {
                                 value={filterLeague}
                                 onChange={(e) => setFilterLeague(e.target.value)}
                                 disabled={!filterSeason}
+                                title={!filterSeason ? "Select a season first" : undefined}
                                 style={{ width: 155, height: 34, fontSize: 13 }}
                             >
-                                <option value="">{filterSeason ? "All Leagues" : "Select a season first"}</option>
+                                <option value="">{filterSeason ? "All Leagues" : "League"}</option>
                                 {leagueOptions.map((l) => <option key={l._id} value={l._id}>{l.name}</option>)}
                             </select>
-                            {stateOptions.length > 0 && (
-                                <select className="admin-form-select" value={filterState} onChange={(e) => handleStateChange(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
-                                    <option value="">All States</option>
-                                    {stateOptions.map((s) => <option key={s} value={s}>{s}</option>)}
-                                </select>
-                            )}
-                            {filterState && countyOptions.length > 0 && (
-                                <select className="admin-form-select" value={filterCounty} onChange={(e) => handleCountyChange(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
-                                    <option value="">All Counties</option>
-                                    {countyOptions.map((c) => <option key={c} value={c}>{c}</option>)}
-                                </select>
-                            )}
-                            {filterState && cityOptions.length > 0 && (
-                                <select className="admin-form-select" value={filterCity} onChange={(e) => setFilterCity(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
-                                    <option value="">All Cities</option>
-                                    {cityOptions.map((c) => <option key={c} value={c}>{c}</option>)}
-                                </select>
-                            )}
+                            {/* Location — every venue a team's leagues actually play at,
+                                flat, no state/county/city cascade */}
+                            <select
+                                className="admin-form-select"
+                                value={filterLocation}
+                                onChange={(e) => setFilterLocation(e.target.value)}
+                                style={{ width: 175, height: 34, fontSize: 13 }}
+                            >
+                                <option value="">All Locations</option>
+                                {locationOptions.map((name) => (
+                                    <option key={name} value={name}>{name}</option>
+                                ))}
+                            </select>
                             <div style={{ width: 1, height: 24, background: "#e0e2ea", margin: "0 4px", flexShrink: 0 }} />
                             <select className="admin-form-select" value={`${sortField}:${sortDir}`} onChange={(e) => { const [f, d] = e.target.value.split(":"); setSortField(f); setSortDir(d); }} style={{ width: 200, height: 34, fontSize: 13 }}>
                                 <option value="name:asc">Name (A → Z)</option>
@@ -1352,8 +1361,8 @@ export default function AdminTeamsPage() {
                                 <option value="league:asc">League (A → Z)</option>
                                 <option value="league:desc">League (Z → A)</option>
                             </select>
-                            {(searchTerm || filterSeason || filterLeague || filterState || filterCounty || filterCity) && (
-                                <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setSearchTerm(""); setFilterSeason(""); setFilterLeague(""); setFilterState(""); setFilterCounty(""); setFilterCity(""); }} style={{ height: 34, whiteSpace: "nowrap" }}>
+                            {(searchTerm || filterSeason || filterLeague || filterLocation) && (
+                                <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setSearchTerm(""); setFilterSeason(""); setFilterLeague(""); setFilterLocation(""); }} style={{ height: 34, whiteSpace: "nowrap" }}>
                                     <i className="fa-solid fa-xmark"></i> Clear
                                 </button>
                             )}
@@ -1408,6 +1417,7 @@ export default function AdminTeamsPage() {
                                                             <th>Team</th>
                                                             <th>Organization</th>
                                                             <th>Leagues</th>
+                                                            <th>Season</th>
                                                             <th>Players</th>
                                                             <th style={{ width: 130 }}>Actions</th>
                                                         </tr>
@@ -1425,6 +1435,7 @@ export default function AdminTeamsPage() {
                                                                         </span>
                                                                     )}
                                                                 </td>
+                                                                <td>{seasonNames(team) || "—"}</td>
                                                                 <td>{team.players?.length || 0}</td>
                                                                 <td>
                                                                     <div style={{ display: "flex", gap: 6 }}>
@@ -1475,6 +1486,9 @@ export default function AdminTeamsPage() {
                                                         )}
                                                         {leagueNames(team) && (
                                                             <span><strong>Leagues:</strong> {leagueNames(team)}</span>
+                                                        )}
+                                                        {seasonNames(team) && (
+                                                            <span><strong>Season:</strong> {seasonNames(team)}</span>
                                                         )}
                                                         {hasDanglingLeague(team) && (
                                                             <span style={{ color: "#dc2626" }}>

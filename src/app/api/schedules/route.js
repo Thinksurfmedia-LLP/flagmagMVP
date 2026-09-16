@@ -48,7 +48,7 @@ export async function GET(request) {
 
         const schedules = await Schedule.find(filter)
             .populate("organization", "name slug")
-            .populate({ path: "leagueId", select: "name image season", populate: { path: "season", select: "name" } })
+            .populate({ path: "leagueId", select: "name image season", populate: { path: "season", select: "name isDefault" } })
             .populate("locationId", "name address")
             .populate("weeks.games.team1", "name logo")
             .populate("weeks.games.team2", "name logo")

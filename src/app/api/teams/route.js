@@ -141,7 +141,7 @@ export async function GET(request) {
 
         const teams = await Team.find(filter)
             .populate("organization", "name slug")
-            .populate("leagues.league", "name")
+            .populate({ path: "leagues.league", select: "name season locations", populate: { path: "season", select: "name" } })
             .populate("players.player", "name photo presentTeam organization")
             .populate("retiredNumbers.player", "name")
             .sort({ name: 1 })
@@ -273,7 +273,7 @@ export async function POST(request) {
 
         const created = await Team.findById(team._id)
             .populate("organization", "name slug")
-            .populate("leagues.league", "name")
+            .populate({ path: "leagues.league", select: "name season locations", populate: { path: "season", select: "name" } })
             .populate("players.player", "name photo presentTeam organization")
             .populate("retiredNumbers.player", "name")
             .lean();

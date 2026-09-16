@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import League from "@/models/League";
+import Season from "@/models/Season";
 import Game from "@/models/Game";
 import Team from "@/models/Team";
 import Schedule from "@/models/Schedule";
@@ -24,10 +25,20 @@ export async function GET(request, { params }) {
 
         // Fetch leagues, teams, and schedules in parallel
         const [leagues, teams, schedules] = await Promise.all([
-            League.find({ organization: org._id }).select("_id name category leagueType").lean(),
+            League.find({ organization: org._id }).select("_id name category leagueType season").lean(),
             Team.find({ organization: org._id }).select("name logo leagues").lean(),
             Schedule.find({ organization: org._id }).select("weeks.name weeks.games.gameRef").lean(),
         ]);
+
+        // A league name can now recur across seasons (e.g. "Chino" every
+        // summer), so the mobile app's game filters need the season to
+        // actually disambiguate which "Chino" a game belongs to — same
+        // reasoning as the admin Leagues/Schedules season columns/filters.
+        const seasonIds = [...new Set(leagues.map((l) => l.season).filter(Boolean).map(String))];
+        const seasons = seasonIds.length
+            ? await Season.find({ _id: { $in: seasonIds } }).select("name").lean()
+            : [];
+        const seasonNameById = Object.fromEntries(seasons.map((s) => [String(s._id), s.name]));
 
         // Build gameRef → sectionName map from Schedule weeks (source of truth)
         const gameRefSectionMap = {};
@@ -74,6 +85,7 @@ export async function GET(request, { params }) {
                 leagueName: league?.name || "",
                 leagueCategory: league?.category || "",
                 leagueType: league?.leagueType || "league",
+                seasonName: league?.season ? seasonNameById[String(league.season)] || "" : "",
                 teamA: {
                     ...game.teamA,
                     logo: teamAData?.logo || game.teamA?.logo || "",

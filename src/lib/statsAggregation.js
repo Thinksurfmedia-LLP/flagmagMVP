@@ -2,7 +2,7 @@ import Play from "@/models/Play";
 import Team from "@/models/Team";
 import Game from "@/models/Game";
 import League from "@/models/League";
-import "@/models/Player";
+import Player from "@/models/Player";
 
 // Passer rating — ported from the legacy Xflag system's 5-factor formula
 // (LiveGameManageController::calcscore, factors a-e) so ratings keep matching
@@ -123,6 +123,43 @@ function resolvePlayerField(play, fieldKey, teamSide, rosterMap, playerInfoById)
 // plays route, which already has each team's `players` array in hand from
 // its own roster-emptiness check and doesn't need an extra populate() query.
 export { buildRosterMap };
+
+const FROZEN_PLAYER_FIELDS = ["passerPlayer", "receiverPlayer", "rusherPlayer", "defenderPlayer", "flagPullPlayer"];
+
+/**
+ * playerInfoById (from buildRosterMap / computeSeasonStatsUncached's own
+ * roster fetch) only covers players CURRENTLY in a team's `players[]` array.
+ * A player fully unassigned from the team (not just deactivated — removed
+ * from the array entirely, e.g. via the Edit Player Info modal) drops out of
+ * that map even though old plays still carry his frozen `<field>Player` ID.
+ * Without this backfill, resolvePlayerField's "info not found" branch falls
+ * through to the legacy jersey-number lookup against the CURRENT roster,
+ * which either misattributes the play to whoever wears that number now or
+ * silently drops the row if nobody does — losing a real historical
+ * contribution instead of just showing it under an unassigned player.
+ * Mutates playerInfoById in place with name/photo for any frozen player ID
+ * referenced by `plays` that isn't already present.
+ */
+async function backfillPlayerInfo(playerInfoById, plays) {
+    const missingIds = new Set();
+    for (const play of plays) {
+        for (const field of FROZEN_PLAYER_FIELDS) {
+            const id = play[field];
+            if (id && !playerInfoById[String(id)]) missingIds.add(String(id));
+        }
+    }
+    if (missingIds.size === 0) return;
+
+    const players = await Player.find({ _id: { $in: [...missingIds] } }).select("name photo").lean();
+    for (const p of players) {
+        playerInfoById[String(p._id)] = {
+            playerId: String(p._id),
+            playerName: p.name || "",
+            playerPhoto: p.photo || "",
+            jerseyNumber: "",
+        };
+    }
+}
 
 /**
  * Given a play's raw fields (type, activeTeam, and whichever of
@@ -570,6 +607,7 @@ export async function computeGameStats(gameId) {
 
     const { rosterMap, teamNamesByAB, playerInfoById } = await buildRosterMap(game, league.organization);
     const plays = await Play.find({ game: gameId }).sort({ createdAt: 1 }).lean();
+    await backfillPlayerInfo(playerInfoById, plays);
     const rawStats = aggregateStats(plays, rosterMap, teamNamesByAB, playerInfoById);
     const stats = {
         passing: excludeNoStatsSide(rawStats.passing, game.noStatsSide, teamNamesByAB),
@@ -648,6 +686,11 @@ async function computeSeasonStatsUncached(leagueId, orgId) {
         }
         rosterByTeamName[team.name] = map;
     }
+
+    // See backfillPlayerInfo's doc comment — a player fully unassigned from
+    // a team since these plays were recorded would otherwise vanish from
+    // playerInfoById and get misattributed/dropped below.
+    await backfillPlayerInfo(playerInfoById, allPlays);
 
     // Accumulated stats across games
     const mergedPassing = {};

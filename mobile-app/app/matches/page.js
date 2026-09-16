@@ -25,9 +25,24 @@ function MatchListContent() {
     const [loadingGames, setLoadingGames] = useState(true);
     const [search, setSearch] = useState("");
     const [showFilter, setShowFilter] = useState(false);
+    const [filterSeason, setFilterSeason] = useState("");
     const [filterLeague, setFilterLeague] = useState("");
     const [filterTeam, setFilterTeam] = useState("");
     const [filterLocation, setFilterLocation] = useState("");
+    // The org's current default season — applied to filterSeason exactly
+    // once on first load (see the effect below) so the app opens scoped to
+    // "what's current" instead of every game ever played, while still
+    // letting the user pick a past season afterwards without it snapping back.
+    const [defaultSeasonName, setDefaultSeasonName] = useState("");
+    const [seasonDefaultApplied, setSeasonDefaultApplied] = useState(false);
+
+    // Picking a season is what unlocks the League dropdown — a league name
+    // can now recur across seasons (e.g. "Chino" every summer), so the
+    // league list only makes unambiguous sense once scoped to one season.
+    const handleSeasonChange = (val) => {
+        setFilterSeason(val);
+        setFilterLeague("");
+    };
 
     // Redirect if not logged in
     useEffect(() => {
@@ -50,6 +65,15 @@ function MatchListContent() {
             const res = await apiGet(`/api/organizations/${orgSlug}/games`);
             console.log("[matches] games response:", JSON.stringify(res));
             setGames(res.data || []);
+
+            // Best-effort — a failure here just means the season filter
+            // starts on "All Seasons" instead of the org's current one,
+            // not a broken game list.
+            try {
+                const seasonsRes = await apiGet(`/api/organizations/${orgSlug}/seasons`);
+                const defaultSeason = (seasonsRes.data || []).find((s) => s.isDefault);
+                if (defaultSeason) setDefaultSeasonName(defaultSeason.name);
+            } catch {}
         } catch (err) {
             console.error("[matches] Error fetching games:", err);
         } finally {
@@ -60,6 +84,16 @@ function MatchListContent() {
     useEffect(() => {
         if (user) fetchGames();
     }, [user, fetchGames]);
+
+    // Apply the org's default season to the filter exactly once — after
+    // this, the user is free to switch to "All Seasons" or a past one
+    // without it getting forced back on a later refetch.
+    useEffect(() => {
+        if (defaultSeasonName && !seasonDefaultApplied) {
+            setFilterSeason(defaultSeasonName);
+            setSeasonDefaultApplied(true);
+        }
+    }, [defaultSeasonName, seasonDefaultApplied]);
 
     // Filter games by tab + search + filters
     useEffect(() => {
@@ -110,6 +144,11 @@ function MatchListContent() {
         }
 
         // Dropdown filters
+        if (filterSeason) {
+            filtered = filtered.filter(
+                (g) => g.seasonName?.toLowerCase() === filterSeason.toLowerCase()
+            );
+        }
         if (filterTeam) {
             filtered = filtered.filter(
                 (g) =>
@@ -129,9 +168,9 @@ function MatchListContent() {
         }
 
         setFilteredGames(filtered);
-    }, [games, activeTab, search, filterTeam, filterLocation, filterLeague]);
+    }, [games, activeTab, search, filterSeason, filterTeam, filterLocation, filterLeague]);
 
-    // Derive unique teams, locations for filter dropdowns
+    // Derive unique teams, locations, seasons for filter dropdowns
     const allTeams = [
         ...new Set(
             games.flatMap((g) => [g.teamA?.name, g.teamB?.name]).filter(Boolean)
@@ -140,8 +179,18 @@ function MatchListContent() {
     const allLocations = [
         ...new Set(games.map((g) => g.location).filter(Boolean)),
     ];
+    const allSeasonNames = [
+        ...new Set(games.map((g) => g.seasonName).filter(Boolean)),
+    ];
+    // Scoped to the selected season — same reason the League filter stays
+    // disabled until a season is picked (see handleSeasonChange above).
     const allLeagueNames = [
-        ...new Set(games.map((g) => g.leagueName).filter(Boolean)),
+        ...new Set(
+            games
+                .filter((g) => !filterSeason || g.seasonName === filterSeason)
+                .map((g) => g.leagueName)
+                .filter(Boolean)
+        ),
     ];
 
     if (authLoading) {
@@ -176,7 +225,44 @@ function MatchListContent() {
                     </button>
 
                     <div className={`filter-dropdown ${showFilter ? "active" : ""}`}>
-                        <h4>Filter Games</h4>
+                        <div className="filter-dropdown-header">
+                            <h4>Filter Games</h4>
+                            <button
+                                type="button"
+                                className="filter-dropdown-close"
+                                onClick={() => setShowFilter(false)}
+                                aria-label="Close filters"
+                            >
+                                <i className="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                        <div className="form-group">
+                            <label>Season</label>
+                            <select
+                                className="form-control select-form-control"
+                                value={filterSeason}
+                                onChange={(e) => handleSeasonChange(e.target.value)}
+                            >
+                                <option value="">All Seasons</option>
+                                {allSeasonNames.map((s) => (
+                                    <option key={s} value={s}>{s}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label>League</label>
+                            <select
+                                className="form-control select-form-control"
+                                value={filterLeague}
+                                onChange={(e) => setFilterLeague(e.target.value)}
+                                disabled={!filterSeason}
+                            >
+                                <option value="">{filterSeason ? "All Leagues" : "Select a season first"}</option>
+                                {allLeagueNames.map((l) => (
+                                    <option key={l} value={l}>{l}</option>
+                                ))}
+                            </select>
+                        </div>
                         <div className="form-group">
                             <label>Team</label>
                             <select
@@ -199,19 +285,6 @@ function MatchListContent() {
                             >
                                 <option value="">All Locations</option>
                                 {allLocations.map((l) => (
-                                    <option key={l} value={l}>{l}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="form-group">
-                            <label>League</label>
-                            <select
-                                className="form-control select-form-control"
-                                value={filterLeague}
-                                onChange={(e) => setFilterLeague(e.target.value)}
-                            >
-                                <option value="">All Leagues</option>
-                                {allLeagueNames.map((l) => (
                                     <option key={l} value={l}>{l}</option>
                                 ))}
                             </select>

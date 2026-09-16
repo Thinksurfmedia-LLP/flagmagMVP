@@ -1315,15 +1315,9 @@ export default function LeaguesPage() {
     const [orgLocationKeys, setOrgLocationKeys] = useState(null);
     const [filterLocation, setFilterLocation] = useState("");
     const [filterSeason, setFilterSeason] = useState("");
-    // Defaults to "active" — League.type is now auto-derived from each
-    // league's own organization's current default season (see
-    // src/lib/leagueSeasonSync.js), so this is what actually makes "only
-    // what's current" the default view here, the same way the public org
-    // page defaults its Active Leagues tab. Works even when this list spans
-    // multiple organizations at once (each with its own default season),
-    // unlike pre-selecting one specific Season, which only makes sense
-    // scoped to a single org.
-    const [filterStatus, setFilterStatus] = useState("active");
+    // Applied exactly once, as soon as leagues load — after that the user is
+    // free to switch to "All Seasons" or a past one without it snapping back.
+    const [seasonDefaultApplied, setSeasonDefaultApplied] = useState(false);
 
     const isAdmin = user?.role === "admin";
     const effectiveRole = activeRole || user?.role;
@@ -1412,15 +1406,8 @@ export default function LeaguesPage() {
             .map((l) => [l.season._id, l.season])
     ).values()].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
 
-    const statusOptions = [
-        { value: "active", label: "Active" },
-        { value: "past", label: "Past" },
-        { value: "all", label: "All Statuses" },
-    ];
-
     // Derive filtered + sorted league list
     const displayLeagues = [...leagues]
-        .filter((league) => filterStatus === "all" || league.type === filterStatus)
         .filter((league) => !filterSeason || league.season?._id === filterSeason)
         .filter((league) => {
             if (!filterLocation) return true;
@@ -1463,6 +1450,17 @@ export default function LeaguesPage() {
     };
 
     useEffect(() => { fetchLeagues(); }, [fetchLeagues]);
+
+    // Default the Season filter to whichever season is this org's current
+    // default (mirrors the public org page / mobile stats app) — picking it
+    // already shows just the active leagues, same reasoning that made the
+    // separate Status filter redundant.
+    useEffect(() => {
+        if (seasonDefaultApplied || leagues.length === 0) return;
+        const defaultLeague = leagues.find((l) => l.season?.isDefault);
+        if (defaultLeague) setFilterSeason(defaultLeague.season._id);
+        setSeasonDefaultApplied(true);
+    }, [leagues, seasonDefaultApplied]);
 
     const handleSave = async (formData) => {
         try {
@@ -1548,21 +1546,11 @@ export default function LeaguesPage() {
 
                     {/* Filter + Sort bar */}
                     <div className="leagues-filter-bar" style={{ display: "flex", justifyContent: "flex-end", flexWrap: "wrap", gap: 8, padding: "10px 16px 10px", borderBottom: "1px solid #e8eaf0", marginBottom: 4, alignItems: "center" }}>
-                        {/* Status — defaults to Active; single source of truth is
-                            League.type, auto-derived from each league's own org's
-                            current default season (see src/lib/leagueSeasonSync.js) */}
-                        <select
-                            className="admin-form-select"
-                            value={filterStatus}
-                            onChange={(e) => setFilterStatus(e.target.value)}
-                            style={{ width: 155, height: 34, fontSize: 13 }}
-                        >
-                            {statusOptions.map((s) => (
-                                <option key={s.value} value={s.value}>{s.label}</option>
-                            ))}
-                        </select>
-
-                        {/* Season */}
+                        {/* Season — no separate Status filter: League.type is already
+                            auto-derived from whether a league's season is this org's
+                            current default (see src/lib/leagueSeasonSync.js), so
+                            picking the default season here already shows just the
+                            active leagues, and picking any other season shows past ones. */}
                         <select
                             className="admin-form-select"
                             value={filterSeason}
@@ -1571,7 +1559,7 @@ export default function LeaguesPage() {
                         >
                             <option value="">All Seasons</option>
                             {seasonOptions.map((s) => (
-                                <option key={s._id} value={s._id}>{s.name}{s.isDefault ? " (Default)" : ""}</option>
+                                <option key={s._id} value={s._id}>{s.name}</option>
                             ))}
                         </select>
 
@@ -1610,12 +1598,11 @@ export default function LeaguesPage() {
                             <option value="endDate:desc">End Date (Newest first)</option>
                         </select>
 
-                        {/* Clear filters — back to the default view (Active, All Seasons,
-                            All Locations), not an unfiltered "All Statuses" list */}
-                        {(filterStatus !== "active" || filterSeason || filterLocation) && (
+                        {/* Clear filters */}
+                        {(filterSeason || filterLocation) && (
                             <button
                                 className="admin-btn admin-btn-ghost admin-btn-sm"
-                                onClick={() => { setFilterStatus("active"); setFilterSeason(""); setFilterLocation(""); }}
+                                onClick={() => { setFilterSeason(""); setFilterLocation(""); }}
                                 style={{ height: 34, whiteSpace: "nowrap" }}
                             >
                                 <i className="fa-solid fa-xmark"></i> Clear

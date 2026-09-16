@@ -29,11 +29,11 @@ export default function SchedulesPage() {
     // (from Organization.locations) — null means "not scoped" (admin, or
     // not loaded yet), so the geo filters fall back to the full venue list.
     const [orgLocationKeys, setOrgLocationKeys] = useState(null);
-    const [filterState, setFilterState] = useState("");
-    const [filterCounty, setFilterCounty] = useState("");
-    const [filterCity, setFilterCity] = useState("");
     const [filterLocation, setFilterLocation] = useState("");
     const [filterSeason, setFilterSeason] = useState("");
+    // Applied exactly once, as soon as schedules load — after that the user
+    // is free to switch to "All Seasons" or a past one without it snapping back.
+    const [seasonDefaultApplied, setSeasonDefaultApplied] = useState(false);
 
 
 
@@ -109,6 +109,16 @@ export default function SchedulesPage() {
         fetchSchedules();
     }, [fetchSchedules]);
 
+    // Default the Season filter to whichever season is this org's current
+    // default (mirrors the admin Leagues/Teams pages) — it's what actually
+    // makes "only what's current" the default view here.
+    useEffect(() => {
+        if (seasonDefaultApplied || schedules.length === 0) return;
+        const defaultSchedule = schedules.find((s) => s.leagueId?.season?.isDefault);
+        if (defaultSchedule) setFilterSeason(defaultSchedule.leagueId.season._id);
+        setSeasonDefaultApplied(true);
+    }, [schedules, seasonDefaultApplied]);
+
     // Fetch venues once for geo filter dropdowns
     useEffect(() => {
         fetch("/api/locations")
@@ -137,17 +147,8 @@ export default function SchedulesPage() {
         ? allVenuesRaw.filter((v) => orgLocationKeys.has(`${v.countyName}|${v.stateAbbr}`))
         : allVenuesRaw;
 
-    // Geo filter derived options
-    const geoStateOptions = [...new Map(allVenues.filter(v => v.stateId).map(v => [v.stateId, { id: v.stateId, name: v.stateName }])).values()].sort((a, b) => a.name.localeCompare(b.name));
-    const geoCountyOptions = filterState ? [...new Map(allVenues.filter(v => v.stateId === filterState).map(v => [v.countyId, { id: v.countyId, name: v.countyName }])).values()].sort((a, b) => a.name.localeCompare(b.name)) : [];
-    const geoCityOptions = filterState ? [...new Set(allVenues.filter(v => (filterCounty ? v.countyId === filterCounty : v.stateId === filterState) && v.cityName).map(v => v.cityName))].sort() : [];
-    const geoVenueOptions = filterCity
-        ? allVenues.filter(v => v.cityName === filterCity && (filterCounty ? v.countyId === filterCounty : v.stateId === filterState)).sort((a, b) => a.name.localeCompare(b.name))
-        : filterCounty ? allVenues.filter(v => v.countyId === filterCounty).sort((a, b) => a.name.localeCompare(b.name))
-        : filterState ? allVenues.filter(v => v.stateId === filterState).sort((a, b) => a.name.localeCompare(b.name))
-        : [];
-    const handleGeoStateChange = (val) => { setFilterState(val); setFilterCounty(""); setFilterCity(""); setFilterLocation(""); };
-    const handleGeoCountyChange = (val) => { setFilterCounty(val); setFilterCity(""); setFilterLocation(""); };
+    // Location filter — every venue, flat, no state/county/city cascade.
+    const geoVenueOptions = [...new Map(allVenues.map(v => [v.name, v])).values()].sort((a, b) => a.name.localeCompare(b.name));
 
     // Season filter options — a league name can now recur across seasons
     // (e.g. "Chino Playoffs" every season), so this is what actually
@@ -164,18 +165,9 @@ export default function SchedulesPage() {
         const bySeason = filterSeason
             ? schedules.filter((s) => s.leagueId?.season?._id === filterSeason)
             : schedules;
-        if (!filterState && !filterCounty && !filterCity && !filterLocation) return bySeason;
-        const lookup = Object.fromEntries(allVenues.map(v => [v.name, { stateId: v.stateId, countyId: v.countyId, cityName: v.cityName || "" }]));
-        return bySeason.filter(s => {
-            const v = lookup[s.locationName];
-            if (!v) return false;
-            if (filterLocation) return s.locationName === filterLocation;
-            if (filterCity) return v.cityName === filterCity;
-            if (filterCounty) return v.countyId === filterCounty;
-            if (filterState) return v.stateId === filterState;
-            return true;
-        });
-    }, [schedules, allVenues, filterSeason, filterState, filterCounty, filterCity, filterLocation]);
+        if (!filterLocation) return bySeason;
+        return bySeason.filter((s) => s.locationName === filterLocation);
+    }, [schedules, filterSeason, filterLocation]);
 
     const sortedSchedules = useMemo(() => {
         if (!sortCol) return filteredSchedules;
@@ -196,7 +188,7 @@ export default function SchedulesPage() {
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [search, sortCol, sortDir, entriesPerPage, filterSeason, filterState, filterCounty, filterCity, filterLocation]);
+    }, [search, sortCol, sortDir, entriesPerPage, filterSeason, filterLocation]);
 
     const totalPages = Math.ceil(sortedSchedules.length / entriesPerPage);
     const paginatedSchedules = sortedSchedules.slice(
@@ -291,30 +283,14 @@ export default function SchedulesPage() {
                                     <option value="">All Seasons</option>
                                     {seasonOptions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
                                 </select>
-                                <select className="admin-form-select" value={filterState} onChange={(e) => handleGeoStateChange(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
-                                    <option value="">All States</option>
-                                    {geoStateOptions.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                {/* Location — single flat dropdown of every venue, no
+                                    state/county/city cascade */}
+                                <select className="admin-form-select" value={filterLocation} onChange={(e) => setFilterLocation(e.target.value)} style={{ width: 175, height: 34, fontSize: 13 }}>
+                                    <option value="">All Locations</option>
+                                    {geoVenueOptions.map((v) => <option key={v._id} value={v.name}>{v.name}</option>)}
                                 </select>
-                                {filterState && (
-                                    <select className="admin-form-select" value={filterCounty} onChange={(e) => handleGeoCountyChange(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
-                                        <option value="">All Counties</option>
-                                        {geoCountyOptions.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                    </select>
-                                )}
-                                {filterState && (
-                                    <select className="admin-form-select" value={filterCity} onChange={(e) => { setFilterCity(e.target.value); setFilterLocation(""); }} style={{ width: 155, height: 34, fontSize: 13 }}>
-                                        <option value="">All Cities</option>
-                                        {geoCityOptions.map((c) => <option key={c} value={c}>{c}</option>)}
-                                    </select>
-                                )}
-                                {filterState && (
-                                    <select className="admin-form-select" value={filterLocation} onChange={(e) => setFilterLocation(e.target.value)} style={{ width: 175, height: 34, fontSize: 13 }}>
-                                        <option value="">All Locations</option>
-                                        {geoVenueOptions.map((v) => <option key={v._id} value={v.name}>{v.name}</option>)}
-                                    </select>
-                                )}
-                                {(filterSeason || filterState || filterCounty || filterCity || filterLocation) && (
-                                    <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setFilterSeason(""); setFilterState(""); setFilterCounty(""); setFilterCity(""); setFilterLocation(""); }} style={{ height: 34, whiteSpace: "nowrap" }}>
+                                {(filterSeason || filterLocation) && (
+                                    <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setFilterSeason(""); setFilterLocation(""); }} style={{ height: 34, whiteSpace: "nowrap" }}>
                                         <i className="fa-solid fa-xmark"></i> Clear
                                     </button>
                                 )}
