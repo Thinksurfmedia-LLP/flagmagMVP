@@ -55,6 +55,11 @@ export default function AdminPlayersPage() {
             if (!data.success) { showError(data.error); return; }
             fetchPlayers();
             showSuccess(`Player ${actionText}d successfully!`);
+            // Reactivating can leave some team memberships still inactive if
+            // someone else picked up the player's old jersey number in the
+            // meantime — see PUT /api/players/[id]. Surface that so it isn't
+            // mistaken for a full reactivation everywhere.
+            if (data.warning) showError(data.warning);
         } catch { showError(`Failed to ${actionText} player`); }
     };
 

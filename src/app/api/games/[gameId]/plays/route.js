@@ -19,7 +19,17 @@ import { resolvePlayPlayerIds, findInactiveJerseyConflict } from "@/lib/statsAgg
 function jerseyMap(teamDoc) {
     const map = {};
     for (const p of teamDoc?.players || []) {
-        map[String(p.jerseyNumber)] = { playerId: String(p.player), active: p.active !== false };
+        const key = String(p.jerseyNumber);
+        const isActive = p.active !== false;
+        // Two roster entries can share a jersey number when at most one is
+        // active (a deactivated player keeps their old number until
+        // reactivated — see Team.players[].active, and the matching
+        // duplicate-jersey scoping in PUT /api/teams/[id]) — the active one
+        // always wins this slot, regardless of array order, so a play never
+        // accidentally resolves to whoever used to wear the number.
+        if (!map[key] || isActive) {
+            map[key] = { playerId: String(p.player), active: isActive };
+        }
     }
     return map;
 }

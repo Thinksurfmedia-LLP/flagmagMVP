@@ -59,8 +59,12 @@ export async function PUT(request, { params }) {
                 const jNum = tReq.jerseyNumber != null && tReq.jerseyNumber !== "" ? Number(tReq.jerseyNumber) : 0;
                 const targetTeam = await TeamModel.findById(tReq.teamId).select("name players").lean();
                 if (!targetTeam) continue;
+                // Only checked against ACTIVE teammates — a deactivated
+                // player's old number is free to reassign (see
+                // Team.players[].active and the same scoping in
+                // PUT /api/teams/[id]).
                 const duplicate = (targetTeam.players || []).find(
-                    (p) => p.jerseyNumber === jNum && String(p.player) !== String(id)
+                    (p) => p.jerseyNumber === jNum && String(p.player) !== String(id) && p.active !== false
                 );
                 if (duplicate) {
                     return NextResponse.json(
@@ -113,8 +117,10 @@ export async function PUT(request, { params }) {
                 newTeam = await TeamModel.findOne({ name: teamName }).select("name logo players");
                 if (newTeam) {
                     const jNum = jerseyNumber != null && jerseyNumber !== "" ? Number(jerseyNumber) : 0;
+                    // Only checked against ACTIVE teammates — see the
+                    // body.teams branch above for why.
                     const duplicate = (newTeam.players || []).find(
-                        (p) => p.jerseyNumber === jNum && String(p.player) !== String(id)
+                        (p) => p.jerseyNumber === jNum && String(p.player) !== String(id) && p.active !== false
                     );
                     if (duplicate) {
                         return NextResponse.json(
@@ -157,17 +163,51 @@ export async function PUT(request, { params }) {
         // enforced at stat-recording time (see GET .../roster and POST/PUT
         // .../plays), so without this a global "deactivate" would just gray
         // out a badge here without stopping anything in the stats app.
-        // Deliberately blind-overwrites every membership (not "only ones
-        // still true"), matching the direct ask — a global reactivate is
-        // meant to un-block everywhere, even a membership an organizer had
-        // separately deactivated per-team for some other reason.
-        if (body.isActive !== undefined) {
+        let reactivationWarning;
+        if (body.isActive === false) {
+            // Deactivating never conflicts with anything — blind-overwrite
+            // every membership.
             const TeamModel = require("@/models/Team").default || require("mongoose").models.Team;
             await TeamModel.updateMany(
                 { "players.player": new mongoose.Types.ObjectId(id) },
-                { $set: { "players.$[elem].active": Boolean(body.isActive) } },
+                { $set: { "players.$[elem].active": false } },
                 { arrayFilters: [{ "elem.player": new mongoose.Types.ObjectId(id) }] }
             );
+        } else if (body.isActive === true) {
+            // Reactivating: a team where someone else picked up this
+            // player's old jersey number while they were inactive (see
+            // PUT /api/teams/[id]'s active-only duplicate check) can't just
+            // be force-overwritten — that would silently create two active
+            // players sharing one number. Reactivate everywhere it's safe,
+            // and report back exactly which teams still need the organizer
+            // to resolve the conflict by hand (from that team's Manage
+            // Players modal, which walks them through it).
+            const TeamModel = require("@/models/Team").default || require("mongoose").models.Team;
+            const teams = await TeamModel.find({ "players.player": id }).select("name players").lean();
+            const conflicts = [];
+            for (const team of teams) {
+                const mine = (team.players || []).find((p) => String(p.player) === String(id));
+                if (!mine) continue;
+                const conflictEntry = (team.players || []).find(
+                    (p) => String(p.player) !== String(id) && p.jerseyNumber === mine.jerseyNumber && p.active !== false
+                );
+                if (conflictEntry) {
+                    conflicts.push({ teamName: team.name, jerseyNumber: mine.jerseyNumber, conflictPlayerId: conflictEntry.player });
+                } else {
+                    await TeamModel.updateOne(
+                        { _id: team._id, "players.player": id },
+                        { $set: { "players.$.active": true } }
+                    );
+                }
+            }
+            if (conflicts.length > 0) {
+                const conflictPlayers = await Player.find({ _id: { $in: conflicts.map((c) => c.conflictPlayerId) } })
+                    .select("name").lean();
+                const nameById = new Map(conflictPlayers.map((p) => [String(p._id), p.name]));
+                reactivationWarning = `Reactivated everywhere except: ${conflicts
+                    .map((c) => `${c.teamName} (#${c.jerseyNumber} now worn by ${nameById.get(String(c.conflictPlayerId)) || "another player"})`)
+                    .join(", ")}. Resolve the jersey number conflict from each team's Manage Players page.`;
+            }
         }
 
         // Defense-in-depth: re-check this player's status against actual
@@ -185,7 +225,10 @@ export async function PUT(request, { params }) {
             );
         }
 
-        return NextResponse.json({ success: true, data: player }, { status: 200 });
+        return NextResponse.json(
+            { success: true, data: player, ...(reactivationWarning ? { warning: reactivationWarning } : {}) },
+            { status: 200 }
+        );
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }

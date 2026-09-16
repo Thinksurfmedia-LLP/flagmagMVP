@@ -33,6 +33,7 @@ export default function SchedulesPage() {
     const [filterCounty, setFilterCounty] = useState("");
     const [filterCity, setFilterCity] = useState("");
     const [filterLocation, setFilterLocation] = useState("");
+    const [filterSeason, setFilterSeason] = useState("");
 
 
 
@@ -148,10 +149,24 @@ export default function SchedulesPage() {
     const handleGeoStateChange = (val) => { setFilterState(val); setFilterCounty(""); setFilterCity(""); setFilterLocation(""); };
     const handleGeoCountyChange = (val) => { setFilterCounty(val); setFilterCity(""); setFilterLocation(""); };
 
+    // Season filter options — a league name can now recur across seasons
+    // (e.g. "Chino Playoffs" every season), so this is what actually
+    // disambiguates which schedule belongs to which one. Derived from
+    // whichever schedules are already loaded, since each one's leagueId is
+    // now populated with its season (see GET /api/schedules).
+    const seasonOptions = [...new Map(
+        schedules
+            .filter((s) => s.leagueId?.season?._id)
+            .map((s) => [s.leagueId.season._id, s.leagueId.season])
+    ).values()].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+
     const filteredSchedules = useMemo(() => {
-        if (!filterState && !filterCounty && !filterCity && !filterLocation) return schedules;
+        const bySeason = filterSeason
+            ? schedules.filter((s) => s.leagueId?.season?._id === filterSeason)
+            : schedules;
+        if (!filterState && !filterCounty && !filterCity && !filterLocation) return bySeason;
         const lookup = Object.fromEntries(allVenues.map(v => [v.name, { stateId: v.stateId, countyId: v.countyId, cityName: v.cityName || "" }]));
-        return schedules.filter(s => {
+        return bySeason.filter(s => {
             const v = lookup[s.locationName];
             if (!v) return false;
             if (filterLocation) return s.locationName === filterLocation;
@@ -160,7 +175,7 @@ export default function SchedulesPage() {
             if (filterState) return v.stateId === filterState;
             return true;
         });
-    }, [schedules, allVenues, filterState, filterCounty, filterCity, filterLocation]);
+    }, [schedules, allVenues, filterSeason, filterState, filterCounty, filterCity, filterLocation]);
 
     const sortedSchedules = useMemo(() => {
         if (!sortCol) return filteredSchedules;
@@ -181,7 +196,7 @@ export default function SchedulesPage() {
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [search, sortCol, sortDir, entriesPerPage, filterState, filterCounty, filterCity, filterLocation]);
+    }, [search, sortCol, sortDir, entriesPerPage, filterSeason, filterState, filterCounty, filterCity, filterLocation]);
 
     const totalPages = Math.ceil(sortedSchedules.length / entriesPerPage);
     const paginatedSchedules = sortedSchedules.slice(
@@ -272,6 +287,10 @@ export default function SchedulesPage() {
                                     onChange={(e) => setSearchInput(e.target.value)}
                                     placeholder="Search..."
                                 />
+                                <select className="admin-form-select" value={filterSeason} onChange={(e) => setFilterSeason(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
+                                    <option value="">All Seasons</option>
+                                    {seasonOptions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
+                                </select>
                                 <select className="admin-form-select" value={filterState} onChange={(e) => handleGeoStateChange(e.target.value)} style={{ width: 155, height: 34, fontSize: 13 }}>
                                     <option value="">All States</option>
                                     {geoStateOptions.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -294,8 +313,8 @@ export default function SchedulesPage() {
                                         {geoVenueOptions.map((v) => <option key={v._id} value={v.name}>{v.name}</option>)}
                                     </select>
                                 )}
-                                {(filterState || filterCounty || filterCity || filterLocation) && (
-                                    <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setFilterState(""); setFilterCounty(""); setFilterCity(""); setFilterLocation(""); }} style={{ height: 34, whiteSpace: "nowrap" }}>
+                                {(filterSeason || filterState || filterCounty || filterCity || filterLocation) && (
+                                    <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setFilterSeason(""); setFilterState(""); setFilterCounty(""); setFilterCity(""); setFilterLocation(""); }} style={{ height: 34, whiteSpace: "nowrap" }}>
                                         <i className="fa-solid fa-xmark"></i> Clear
                                     </button>
                                 )}
@@ -321,6 +340,9 @@ export default function SchedulesPage() {
                                                     <th style={{ textTransform: "uppercase" }}>
                                                         League
                                                     </th>
+                                                    <th style={{ textTransform: "uppercase" }}>
+                                                        Season
+                                                    </th>
                                                     <th onClick={() => toggleSort("locationName")} style={{ cursor: "pointer" }}>
                                                         Location Name {sortIcon("locationName")}
                                                     </th>
@@ -345,6 +367,7 @@ export default function SchedulesPage() {
                                                                 <span style={{ color: "#8b90a0" }}>—</span>
                                                             )}
                                                         </td>
+                                                        <td>{schedule.leagueId?.season?.name || <span style={{ color: "#8b90a0" }}>—</span>}</td>
                                                         <td>{schedule.locationName}</td>
                                                         <td>
                                                             <span style={{
@@ -396,6 +419,7 @@ export default function SchedulesPage() {
                                                             : "—"
                                                     )}
                                                 </span>
+                                                {schedule.leagueId?.season?.name && <span><strong>Season:</strong> {schedule.leagueId.season.name}</span>}
                                                 {schedule.locationName && <span><strong>Location:</strong> {schedule.locationName}</span>}
                                                 <span>
                                                     <span style={{

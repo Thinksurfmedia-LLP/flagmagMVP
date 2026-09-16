@@ -440,6 +440,10 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
     const [saving, setSaving] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [editJersey, setEditJersey] = useState("");
+    // Set only while reactivating a player whose old jersey number has since
+    // been picked up by another ACTIVE teammate — see handleToggleActive.
+    // { entry, conflictEntry, choice: "reassignSelf" | "reassignOther", newJersey }
+    const [reactivateConflict, setReactivateConflict] = useState(null);
 
     // Numbers permanently off-limits on this team (e.g. retired to honor a
     // past player), independent of who's currently on the roster. Managed
@@ -570,8 +574,50 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
     // /api/games/[gameId]/roster (omits inactive players) and
     // POST/PUT /api/games/[gameId]/plays (won't resolve their jersey number).
     const handleToggleActive = async (entry) => {
-        const next = roster.map((r) => r.playerId === entry.playerId ? { ...r, active: !r.active } : r);
-        await persist(next, entry.active ? `${entry.playerName} deactivated for this team` : `${entry.playerName} reactivated for this team`);
+        // Deactivating never conflicts with anything — always allowed.
+        if (entry.active) {
+            const next = roster.map((r) => r.playerId === entry.playerId ? { ...r, active: false } : r);
+            await persist(next, `${entry.playerName} deactivated for this team`);
+            return;
+        }
+        // Reactivating: their old number may have been picked up by someone
+        // else while they were inactive (that's the whole point of freeing
+        // it up — see PUT /api/teams/[id]'s active-only duplicate check).
+        // Surface the conflict instead of letting the save fail outright.
+        const conflictEntry = roster.find(
+            (r) => r.playerId !== entry.playerId && r.jerseyNumber === entry.jerseyNumber && r.active
+        );
+        if (conflictEntry) {
+            setReactivateConflict({ entry, conflictEntry, choice: "reassignSelf", newJersey: "" });
+            return;
+        }
+        const next = roster.map((r) => r.playerId === entry.playerId ? { ...r, active: true } : r);
+        await persist(next, `${entry.playerName} reactivated for this team`);
+    };
+
+    const resolveReactivateConflict = async () => {
+        const { entry, conflictEntry, choice, newJersey } = reactivateConflict;
+        const trimmed = newJersey.trim();
+        if (!trimmed) { showError("Enter a jersey number"); return; }
+
+        const targetPlayerId = choice === "reassignSelf" ? entry.playerId : conflictEntry.playerId;
+        const retiredError = checkRetired(trimmed, targetPlayerId);
+        if (retiredError) { showError(retiredError); return; }
+
+        const next = roster.map((r) => {
+            if (choice === "reassignSelf" && r.playerId === entry.playerId) {
+                return { ...r, active: true, jerseyNumber: trimmed };
+            }
+            if (choice === "reassignOther" && r.playerId === entry.playerId) {
+                return { ...r, active: true };
+            }
+            if (choice === "reassignOther" && r.playerId === conflictEntry.playerId) {
+                return { ...r, jerseyNumber: trimmed };
+            }
+            return r;
+        });
+        const ok = await persist(next, `${entry.playerName} reactivated for this team`);
+        if (ok) setReactivateConflict(null);
     };
 
     return (
@@ -644,6 +690,53 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
                         </div>
                     )}
                 </div>
+
+                {reactivateConflict && (
+                    <div className="admin-form-group" style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8, padding: 12 }}>
+                        <div style={{ fontSize: 13, color: "#92400e", marginBottom: 10 }}>
+                            <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: 6 }}></i>
+                            #{reactivateConflict.entry.jerseyNumber} is currently worn by <strong>{reactivateConflict.conflictEntry.playerName}</strong> on this team.
+                            Reactivating <strong>{reactivateConflict.entry.playerName}</strong> needs one of these resolved first:
+                        </div>
+
+                        <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, cursor: "pointer" }}>
+                            <input
+                                type="radio"
+                                checked={reactivateConflict.choice === "reassignSelf"}
+                                onChange={() => setReactivateConflict((c) => ({ ...c, choice: "reassignSelf", newJersey: "" }))}
+                            />
+                            <span style={{ fontSize: 13 }}>Give {reactivateConflict.entry.playerName} a different number</span>
+                        </label>
+                        <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, cursor: "pointer" }}>
+                            <input
+                                type="radio"
+                                checked={reactivateConflict.choice === "reassignOther"}
+                                onChange={() => setReactivateConflict((c) => ({ ...c, choice: "reassignOther", newJersey: "" }))}
+                            />
+                            <span style={{ fontSize: 13 }}>
+                                Change {reactivateConflict.conflictEntry.playerName}&apos;s number instead — keep #{reactivateConflict.entry.jerseyNumber} for {reactivateConflict.entry.playerName}
+                            </span>
+                        </label>
+
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <input
+                                type="number"
+                                className="admin-form-input"
+                                style={{ width: 110, height: 32, fontSize: 12, padding: "4px 8px" }}
+                                placeholder={reactivateConflict.choice === "reassignSelf" ? "New #" : `${reactivateConflict.conflictEntry.playerName}'s new #`}
+                                value={reactivateConflict.newJersey}
+                                onChange={(e) => setReactivateConflict((c) => ({ ...c, newJersey: e.target.value }))}
+                                autoFocus
+                            />
+                            <button className="admin-btn admin-btn-primary admin-btn-sm" onClick={resolveReactivateConflict} disabled={saving}>
+                                Reactivate
+                            </button>
+                            <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => setReactivateConflict(null)} disabled={saving}>
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 <div className="admin-form-group">
                     <label className="admin-form-label">Assign an Existing Player</label>

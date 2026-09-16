@@ -52,8 +52,18 @@ async function buildRosterMap(game, orgId) {
                 playerPhoto: p.player?.photo || "",
                 jerseyNumber: p.jerseyNumber != null ? String(p.jerseyNumber) : "",
             };
-            map[String(p.jerseyNumber)] = info;
             playerInfoById[playerId] = info;
+
+            // Two roster entries can share a jersey number when at most one
+            // is active (a deactivated player keeps their old number until
+            // reactivated — see Team.players[].active) — the active one
+            // always wins this jersey-keyed slot, regardless of array
+            // order, so an inactive holdover can never shadow whoever
+            // actually wears the number now.
+            const key = String(p.jerseyNumber);
+            if (!map[key] || p.active !== false) {
+                map[key] = info;
+            }
         }
         if (team.name === game.teamA.name) rosterMap.A = map;
         if (team.name === game.teamB.name) rosterMap.B = map;

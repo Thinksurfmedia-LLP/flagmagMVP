@@ -154,12 +154,20 @@ export async function PUT(request, { params }) {
                     );
                 }
             }
-            // Check for duplicate jersey numbers
-            const jerseyNumbers = nextPlayersArray.map(p => typeof p === "object" ? Number(p.jerseyNumber) : null).filter(n => n !== null);
-            const uniqueJerseys = new Set(jerseyNumbers);
-            if (uniqueJerseys.size !== jerseyNumbers.length) {
+            // Check for duplicate jersey numbers — only among ACTIVE players.
+            // A deactivated player (hasn't paid for the new season, etc.)
+            // keeps their historical jersey number on the roster, but it's
+            // free for someone else to wear while they're inactive; the
+            // number only has to stay unique among whoever can actually be
+            // recorded in a game right now (see GET .../roster and
+            // POST/PUT .../plays, which already gate on `active`).
+            const activeJerseyNumbers = nextPlayersArray
+                .filter(p => typeof p === "object" && p.active !== false)
+                .map(p => Number(p.jerseyNumber));
+            const uniqueActiveJerseys = new Set(activeJerseyNumbers);
+            if (uniqueActiveJerseys.size !== activeJerseyNumbers.length) {
                 return NextResponse.json(
-                    { success: false, error: "Duplicate jersey numbers are not allowed within the same team" },
+                    { success: false, error: "Duplicate jersey numbers are not allowed among active players on the same team" },
                     { status: 400 }
                 );
             }

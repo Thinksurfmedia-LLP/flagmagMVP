@@ -1164,7 +1164,7 @@ function LiveGameContent({ gameId }) {
                                 <img
                                     src={action.icon}
                                     alt={action.label}
-                                    style={action.action === "Fumble" ? { width: 90, height: 60, objectFit: "contain" } : undefined}
+                                    style={action.action === "Fumble" ? { width: 160, height: 107, objectFit: "contain" } : undefined}
                                 />
                             </div>
                             <h6>{action.label}</h6>
