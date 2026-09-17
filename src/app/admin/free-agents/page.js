@@ -504,7 +504,7 @@ export default function AdminFreeAgentsPage() {
             }
             const team = teams.find(t => String(t._id) === tReq.teamId);
             if (team) {
-                const existing = (team.players || []).find(p => p.jerseyNumber === Number(tReq.jerseyNumber));
+                const existing = (team.players || []).find(p => p.jerseyNumber === Number(tReq.jerseyNumber) && p.active !== false);
                 if (existing) {
                     showError(`Jersey #${tReq.jerseyNumber} is already taken on ${team.name}`);
                     return;

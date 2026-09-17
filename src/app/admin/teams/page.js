@@ -705,7 +705,7 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
                                 checked={reactivateConflict.choice === "reassignSelf"}
                                 onChange={() => setReactivateConflict((c) => ({ ...c, choice: "reassignSelf", newJersey: "" }))}
                             />
-                            <span style={{ fontSize: 13 }}>Give {reactivateConflict.entry.playerName} a different number</span>
+                            <span style={{ fontSize: 13, color: "#92400e" }}>Give {reactivateConflict.entry.playerName} a different number</span>
                         </label>
                         <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, cursor: "pointer" }}>
                             <input
@@ -713,7 +713,7 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
                                 checked={reactivateConflict.choice === "reassignOther"}
                                 onChange={() => setReactivateConflict((c) => ({ ...c, choice: "reassignOther", newJersey: "" }))}
                             />
-                            <span style={{ fontSize: 13 }}>
+                            <span style={{ fontSize: 13, color: "#92400e" }}>
                                 Change {reactivateConflict.conflictEntry.playerName}&apos;s number instead — keep #{reactivateConflict.entry.jerseyNumber} for {reactivateConflict.entry.playerName}
                             </span>
                         </label>
