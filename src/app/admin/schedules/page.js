@@ -311,10 +311,7 @@ export default function SchedulesPage() {
                                             <thead>
                                                 <tr>
                                                     <th onClick={() => toggleSort("scheduleLabel")} style={{ cursor: "pointer", textTransform: "uppercase" }}>
-                                                        Schedule {sortIcon("scheduleLabel")}
-                                                    </th>
-                                                    <th style={{ textTransform: "uppercase" }}>
-                                                        League
+                                                        League {sortIcon("scheduleLabel")}
                                                     </th>
                                                     <th style={{ textTransform: "uppercase" }}>
                                                         Season
@@ -331,8 +328,7 @@ export default function SchedulesPage() {
                                             <tbody>
                                                 {paginatedSchedules.map((schedule) => (
                                                     <tr key={schedule._id}>
-                                                        <td style={{ fontWeight: 600 }}>{schedule.scheduleLabel}</td>
-                                                        <td>
+                                                        <td style={{ fontWeight: 600 }}>
                                                             {schedule.leagueId?.name ? (
                                                                 schedule.leagueId.name
                                                             ) : schedule.leagueRefBroken ? (
