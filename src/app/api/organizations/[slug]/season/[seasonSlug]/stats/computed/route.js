@@ -44,8 +44,12 @@ export async function GET(request, { params }) {
         // Playoff seed numbers are per-league-membership — attach this
         // league's number to each row by team name, only for playoffs leagues.
         if (league.leagueType === "playoffs" && rows.length > 0) {
+            // Scoped to this league — two unrelated real teams can share a
+            // name across different leagues, and without this an unrelated
+            // same-named team's (missing) membership could overwrite the
+            // correct seed number below.
             const teamNames = [...new Set(rows.map((r) => r.teamName).filter(Boolean))];
-            const teams = await Team.find({ organization: org._id, name: { $in: teamNames } })
+            const teams = await Team.find({ organization: org._id, name: { $in: teamNames }, "leagues.league": league._id })
                 .select("name leagues")
                 .lean();
             const seedByTeam = {};

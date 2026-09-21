@@ -1102,6 +1102,11 @@ export default function AdminTeamsPage() {
     const [importModalOpen, setImportModalOpen] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [deleting, setDeleting] = useState(false);
+    // A team that belongs to several leagues at once — clicking Delete on it
+    // opens a per-league picker instead of going straight to whole-team
+    // delete, since "remove this team" usually means "from THIS league".
+    const [leagueRemoveTarget, setLeagueRemoveTarget] = useState(null);
+    const [removingLeagueId, setRemovingLeagueId] = useState(null);
     const [playersTarget, setPlayersTarget] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 50;
@@ -1231,6 +1236,35 @@ export default function AdminTeamsPage() {
             setDeleting(false);
         }
     };
+    const handleUnassignLeague = async (team, leagueId) => {
+        setRemovingLeagueId(leagueId);
+        try {
+            const res = await fetch(`/api/leagues/${leagueId}/teams/${team._id}`, { method: "DELETE" });
+            const data = await res.json();
+            if (!data.success) {
+                showError(data.error || "Failed to remove team from league");
+                return;
+            }
+            showSuccess("Team removed from league");
+            setLeagueRemoveTarget(null);
+            fetchData();
+        } catch {
+            showError("Failed to remove team from league");
+        } finally {
+            setRemovingLeagueId(null);
+        }
+    };
+
+    // Multi-league teams go through the per-league picker first — deleting
+    // the whole team is still reachable from inside that picker.
+    const handleDeleteClick = (team) => {
+        if ((team.leagues || []).filter((m) => m.league).length > 1) {
+            setLeagueRemoveTarget(team);
+        } else {
+            setDeleteTarget(team);
+        }
+    };
+
     const regularTeams = teams.filter((t) => !t.isPlaceholder);
     const placeholderTeams = teams.filter((t) => t.isPlaceholder);
 
@@ -1465,7 +1499,7 @@ export default function AdminTeamsPage() {
                                                                         {canDelete && (
                                                                             <button
                                                                                 className="admin-btn admin-btn-danger admin-btn-sm"
-                                                                                onClick={() => setDeleteTarget(team)}
+                                                                                onClick={() => handleDeleteClick(team)}
                                                                                 title="Delete"
                                                                             >
                                                                                 <i className="fa-solid fa-trash"></i>
@@ -1523,7 +1557,7 @@ export default function AdminTeamsPage() {
                                                         {canDelete && (
                                                             <button
                                                                 className="admin-btn admin-btn-danger admin-btn-sm"
-                                                                onClick={() => setDeleteTarget(team)}
+                                                                onClick={() => handleDeleteClick(team)}
                                                             >
                                                                 <i className="fa-solid fa-trash"></i> Delete
                                                             </button>
@@ -1588,6 +1622,50 @@ export default function AdminTeamsPage() {
                         onConfirm={confirmDeleteTeam}
                         onCancel={() => { if (!deleting) setDeleteTarget(null); }}
                     />
+
+                    {leagueRemoveTarget && (
+                        <div className="admin-modal-backdrop" onClick={() => setLeagueRemoveTarget(null)}>
+                            <div className="admin-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480 }}>
+                                <button className="admin-modal-close" onClick={() => setLeagueRemoveTarget(null)} aria-label="Close">
+                                    <i className="fa-solid fa-xmark"></i>
+                                </button>
+                                <h3 className="admin-modal-title">Remove {leagueRemoveTarget.name} From a League</h3>
+                                <p style={{ color: "#6b7280", fontSize: 13, marginBottom: 14 }}>
+                                    This team plays in multiple leagues. Pick which one to unassign it from — it stays on every other league.
+                                </p>
+                                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                                    {(leagueRemoveTarget.leagues || []).filter((m) => m.league).map((m) => (
+                                        <div
+                                            key={m.league._id}
+                                            style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 10px", background: "#f9fafb", border: "1px solid #e8eaef", borderRadius: 6, gap: 8 }}
+                                        >
+                                            <div style={{ minWidth: 0 }}>
+                                                <div style={{ fontWeight: 600, fontSize: 13, color: "#1a1d26" }}>{m.league.name}</div>
+                                                {m.league.season?.name && <div style={{ fontSize: 12, color: "#8b90a0" }}>{m.league.season.name}</div>}
+                                            </div>
+                                            <button
+                                                className="admin-btn admin-btn-danger admin-btn-sm"
+                                                disabled={removingLeagueId === m.league._id}
+                                                onClick={() => handleUnassignLeague(leagueRemoveTarget, m.league._id)}
+                                            >
+                                                {removingLeagueId === m.league._id ? "Removing…" : "Remove"}
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid #e8eaef", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                                    <span style={{ fontSize: 12, color: "#8b90a0" }}>Want to remove the team entirely?</span>
+                                    <button
+                                        className="admin-btn admin-btn-ghost admin-btn-sm"
+                                        style={{ color: "#dc2626" }}
+                                        onClick={() => { setDeleteTarget(leagueRemoveTarget); setLeagueRemoveTarget(null); }}
+                                    >
+                                        Delete Team Entirely
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </>
             )}
         </AdminLayout>

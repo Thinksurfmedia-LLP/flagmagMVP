@@ -66,9 +66,11 @@ export async function PUT(request, { params }) {
             if (league?.organization) {
                 const teamAName = body.teamA?.name || existing.teamA?.name;
                 const teamBName = body.teamB?.name || existing.teamB?.name;
+                // League-scoped — two unrelated real teams can share a name
+                // across different leagues.
                 const [teamADoc, teamBDoc] = await Promise.all([
-                    Team.findOne({ name: teamAName, organization: league.organization }).select("players").lean(),
-                    Team.findOne({ name: teamBName, organization: league.organization }).select("players").lean(),
+                    Team.findOne({ name: teamAName, organization: league.organization, "leagues.league": existing.league }).select("players").lean(),
+                    Team.findOne({ name: teamBName, organization: league.organization, "leagues.league": existing.league }).select("players").lean(),
                 ]);
                 const empty = [];
                 if (!teamADoc || (teamADoc.players || []).length === 0) empty.push(teamAName);
@@ -105,8 +107,10 @@ export async function PUT(request, { params }) {
 
         // Sync back to Schedule
         try {
-            const teamA = await Team.findOne({ name: game.teamA?.name }).select("_id").lean();
-            const teamB = await Team.findOne({ name: game.teamB?.name }).select("_id").lean();
+            // League-scoped — two unrelated real teams can share a name
+            // across different leagues.
+            const teamA = await Team.findOne({ name: game.teamA?.name, "leagues.league": game.league }).select("_id").lean();
+            const teamB = await Team.findOne({ name: game.teamB?.name, "leagues.league": game.league }).select("_id").lean();
 
             let field = "";
             if (game.location) {

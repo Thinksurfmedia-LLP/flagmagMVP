@@ -53,8 +53,11 @@ export async function POST(request, { params }) {
         const realSide = forfeitSide === "A" ? "B" : "A";
         const realTeamSlot = original[`team${realSide}`];
 
+        // League-scoped — two unrelated real teams can share a name across
+        // different leagues (e.g. a "Warriors" in Chino and a different
+        // "Warriors" in Temecula).
         const [realTeamDoc, standInTeamDoc] = await Promise.all([
-            Team.findOne({ organization: league.organization, name: realTeamSlot.name }).select("name logo players organization").lean(),
+            Team.findOne({ organization: league.organization, name: realTeamSlot.name, "leagues.league": original.league }).select("name logo players organization").lean(),
             Team.findById(standInTeamId).select("name logo players organization").lean(),
         ]);
         if (!realTeamDoc) {

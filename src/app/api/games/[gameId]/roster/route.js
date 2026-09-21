@@ -26,9 +26,14 @@ export async function GET(request, { params }) {
             );
         }
 
+        // Scoped to this game's league too — two unrelated real teams can
+        // share a name across different leagues (e.g. a "Warriors" in Chino
+        // and a different "Warriors" in Temecula), and a name-only match
+        // could otherwise hand the statistician the wrong team's roster.
         const teams = await Team.find({
             organization: league.organization,
             name: { $in: [game.teamA.name, game.teamB.name] },
+            "leagues.league": game.league,
         })
             .populate("players.player", "name photo")
             .lean();

@@ -118,9 +118,12 @@ export async function POST(request, { params }) {
         if (gameForRosterCheck?.league) {
             const league = await League.findById(gameForRosterCheck.league).select("organization").lean();
             if (league?.organization) {
+                // League-scoped — two unrelated real teams can share a name
+                // across different leagues (e.g. a "Warriors" in Chino and a
+                // different "Warriors" in Temecula).
                 const [teamADoc, teamBDoc] = await Promise.all([
-                    Team.findOne({ name: gameForRosterCheck.teamA?.name, organization: league.organization }).select("players").lean(),
-                    Team.findOne({ name: gameForRosterCheck.teamB?.name, organization: league.organization }).select("players").lean(),
+                    Team.findOne({ name: gameForRosterCheck.teamA?.name, organization: league.organization, "leagues.league": gameForRosterCheck.league }).select("players").lean(),
+                    Team.findOne({ name: gameForRosterCheck.teamB?.name, organization: league.organization, "leagues.league": gameForRosterCheck.league }).select("players").lean(),
                 ]);
                 const empty = [];
                 if (!teamADoc || (teamADoc.players || []).length === 0) empty.push(gameForRosterCheck.teamA?.name);
@@ -318,9 +321,11 @@ export async function PUT(request, { params }) {
             if (gameForResolution?.league) {
                 const leagueForResolution = await League.findById(gameForResolution.league).select("organization").lean();
                 if (leagueForResolution?.organization) {
+                    // League-scoped — see the comment above on the same
+                    // pattern for why a name-only match is unsafe.
                     const [teamADoc, teamBDoc] = await Promise.all([
-                        Team.findOne({ name: gameForResolution.teamA?.name, organization: leagueForResolution.organization }).select("players").lean(),
-                        Team.findOne({ name: gameForResolution.teamB?.name, organization: leagueForResolution.organization }).select("players").lean(),
+                        Team.findOne({ name: gameForResolution.teamA?.name, organization: leagueForResolution.organization, "leagues.league": gameForResolution.league }).select("players").lean(),
+                        Team.findOne({ name: gameForResolution.teamB?.name, organization: leagueForResolution.organization, "leagues.league": gameForResolution.league }).select("players").lean(),
                     ]);
                     const rosterMap = { A: jerseyMap(teamADoc), B: jerseyMap(teamBDoc) };
                     inactiveConflict = findInactiveJerseyConflict(mergedForResolution, rosterMap);

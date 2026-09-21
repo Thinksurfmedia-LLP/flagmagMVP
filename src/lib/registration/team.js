@@ -70,7 +70,19 @@ export async function registerTeam({
         );
     }
 
-    const existingTeam = await Team.findOne({ organization: organizationId, name: teamName.trim() }).select("_id").lean();
+    // Two unrelated franchises can share a name across different leagues
+    // (e.g. a "Warriors" in Chino and an unrelated "Warriors" in Temecula) —
+    // only block signing up under the SAME league/division, where it would
+    // actually be ambiguous. This team isn't placed in a league yet
+    // (leagues[] starts empty, an organizer adds it later), so match on the
+    // requested league intent instead of an org-wide name scan.
+    const existingTeam = requestedLeagueId
+        ? await Team.findOne({
+            organization: organizationId,
+            name: teamName.trim(),
+            $or: [{ requestedLeague: requestedLeagueId }, { "leagues.league": requestedLeagueId }],
+        }).select("_id").lean()
+        : null;
     if (existingTeam) {
         throw new RegistrationError("TEAM_NAME_TAKEN", "A team with this name already exists for that league", 409);
     }

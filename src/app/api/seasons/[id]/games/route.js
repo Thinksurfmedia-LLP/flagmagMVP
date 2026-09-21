@@ -130,10 +130,12 @@ export async function POST(request, { params }) {
         try {
             const league = await League.findById(id).select("name organization").lean();
             if (league) {
-                // Resolve team ObjectIds by name within the org
+                // Resolve team ObjectIds by name within this league — not
+                // just the org — since two unrelated real teams can share a
+                // name across different leagues.
                 const teamNames = [body.teamA?.name, body.teamB?.name].filter(Boolean);
                 const teams = teamNames.length
-                    ? await Team.find({ organization: league.organization, name: { $in: teamNames } }).select("_id name").lean()
+                    ? await Team.find({ organization: league.organization, name: { $in: teamNames }, "leagues.league": id }).select("_id name").lean()
                     : [];
                 const teamByName = {};
                 teams.forEach((t) => { teamByName[t.name] = t._id; });

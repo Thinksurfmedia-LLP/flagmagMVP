@@ -104,15 +104,20 @@ export async function POST(request, { params }) {
                 return NextResponse.json({ success: false, error: "teamId or name is required" }, { status: 400 });
             }
 
-            // Preserve one persistent identity per team name within the org —
-            // never silently create a duplicate.
-            const existing = await Team.findOne({
+            // Two org-wide franchises can legitimately share a name (e.g. a
+            // "Warriors" in Chino and an unrelated "Warriors" in Temecula) —
+            // only block the ambiguous case: another team with this exact
+            // name already playing in THIS SAME league, where a duplicate
+            // name really would be indistinguishable in standings/stats.
+            const nameRegex = new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
+            const existingInLeague = await Team.findOne({
                 organization: league.organization,
-                name: new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i"),
+                name: nameRegex,
+                "leagues.league": id,
             });
-            if (existing) {
+            if (existingInLeague) {
                 return NextResponse.json(
-                    { success: false, error: `A team named "${name}" already exists in this organization — assign it instead of creating a new one.` },
+                    { success: false, error: `A team named "${name}" is already in this league — assign it instead of creating a new one.` },
                     { status: 409 }
                 );
             }

@@ -131,13 +131,22 @@ export async function POST(request) {
             );
         }
 
-        // Get existing team names for this org (for duplicate checking)
+        // Existing (name, league) pairs for this org, for duplicate checking.
+        // Two unrelated franchises can share a name across different
+        // leagues (e.g. a "Warriors" in Chino and an unrelated "Warriors"
+        // in Temecula) — only a name repeated within the SAME league (or
+        // with no league at all, where it'd be unresolvably ambiguous) is
+        // a real duplicate. Key "" covers teams with no league membership.
         const existingTeams = await Team.find({ organization: organizationId })
-            .select("name")
+            .select("name leagues.league")
             .lean();
-        const existingNames = new Set(
-            existingTeams.map((t) => t.name.toLowerCase().trim())
-        );
+        const existingNameLeagueKeys = new Set();
+        existingTeams.forEach((t) => {
+            const key = t.name.toLowerCase().trim();
+            const leagueIds = (t.leagues || []).map((m) => String(m.league || ""));
+            if (leagueIds.length === 0) existingNameLeagueKeys.add(`${key}::`);
+            else leagueIds.forEach((lid) => existingNameLeagueKeys.add(`${key}::${lid}`));
+        });
 
         // Build look-up maps for seasons and leagues (by lowercase name)
         const orgSeasons = await Season.find({ organization: organizationId }).select("name").lean();
@@ -170,18 +179,6 @@ export async function POST(request) {
                     name: "(empty)",
                     status: "error",
                     reason: "Team name is required",
-                });
-                continue;
-            }
-
-            // Check duplicate
-            if (existingNames.has(name.toLowerCase())) {
-                results.skipped++;
-                results.details.push({
-                    row: row._rowNum,
-                    name,
-                    status: "skipped",
-                    reason: "Team already exists in this organization",
                 });
                 continue;
             }
@@ -236,6 +233,20 @@ export async function POST(request) {
                 // (season isn't stored on the team itself) — it's simply
                 // ignored rather than treated as an error.
 
+                const dupKey = `${name.toLowerCase()}::${leagueId || ""}`;
+                if (existingNameLeagueKeys.has(dupKey)) {
+                    results.skipped++;
+                    results.details.push({
+                        row: row._rowNum,
+                        name,
+                        status: "skipped",
+                        reason: leagueId
+                            ? "A team with this name is already in that league"
+                            : "Team already exists in this organization with no league assigned",
+                    });
+                    continue;
+                }
+
                 await Team.create({
                     name,
                     logo: row.logo || "",
@@ -248,7 +259,7 @@ export async function POST(request) {
                     players: [],
                 });
 
-                existingNames.add(name.toLowerCase());
+                existingNameLeagueKeys.add(dupKey);
                 results.created++;
                 results.details.push({
                     row: row._rowNum,

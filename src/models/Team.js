@@ -146,7 +146,12 @@ const TeamSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-TeamSchema.index({ organization: 1, name: 1 }, { unique: true });
+// NOT unique — two unrelated franchises with the same name (e.g. a
+// "Warriors" in Chino and a different "Warriors" in Temecula) are a real,
+// legitimate case. Duplicate names are instead only rejected within the
+// same league (see POST /api/leagues/[id]/teams), where they'd actually be
+// ambiguous in standings/stats.
+TeamSchema.index({ organization: 1, name: 1 });
 TeamSchema.index({ organization: 1, "leagues.league": 1 });
 
 function getTeamModel() {

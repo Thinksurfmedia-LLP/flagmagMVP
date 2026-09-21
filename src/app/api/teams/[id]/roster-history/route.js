@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Team from "@/models/Team";
-import League from "@/models/League";
 import Game from "@/models/Game";
 import Play from "@/models/Play";
 import Player from "@/models/Player";
@@ -38,7 +37,7 @@ export async function GET(request, { params }) {
         await dbConnect();
         const { id } = await params;
 
-        const team = await Team.findById(id).select("name organization players").lean();
+        const team = await Team.findById(id).select("name organization players leagues").lean();
         if (!team) {
             return NextResponse.json({ success: false, error: "Team not found" }, { status: 404 });
         }
@@ -49,9 +48,14 @@ export async function GET(request, { params }) {
             }
         }
 
-        const leagues = await League.find({ organization: team.organization }).select("_id").lean();
+        // Scoped to leagues THIS team is actually a member of — not every
+        // league in the org — since two unrelated real teams can share a
+        // name across different leagues (e.g. a "Warriors" in Chino and a
+        // different "Warriors" in Temecula); an org-wide name match would
+        // otherwise merge their play histories together.
+        const teamLeagueIds = (team.leagues || []).map((m) => m.league).filter(Boolean);
         const games = await Game.find({
-            league: { $in: leagues.map((l) => l._id) },
+            league: { $in: teamLeagueIds },
             $or: [{ "teamA.name": team.name }, { "teamB.name": team.name }],
         }).select("teamA.name teamB.name").lean();
 

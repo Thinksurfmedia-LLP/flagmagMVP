@@ -6,6 +6,7 @@ import AdminLayout, { hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 import WeekdayDatePicker from "@/components/WeekdayDatePicker";
+import ConfirmModal from "@/components/ConfirmModal";
 
 function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrgId, userOrgName, userOrgSlug }) {
     const { showSuccess, showError } = useToast();
@@ -571,6 +572,8 @@ function LeagueTeamsModal({ league, onClose }) {
     const [editingId, setEditingId] = useState(null);
     const [editValue, setEditValue] = useState("");
     const [editSeedValue, setEditSeedValue] = useState("");
+    const [removeTarget, setRemoveTarget] = useState(null);
+    const [removing, setRemoving] = useState(false);
 
     const orgId = league.organization?._id || league.organization;
     const isPlayoffs = league.leagueType === "playoffs";
@@ -749,16 +752,22 @@ function LeagueTeamsModal({ league, onClose }) {
         }
     };
 
-    const handleRemove = async (team) => {
-        if (!confirm(`Remove "${team.name}" from this league?`)) return;
+    const handleRemove = (team) => setRemoveTarget(team);
+
+    const confirmRemove = async () => {
+        if (!removeTarget) return;
+        setRemoving(true);
         try {
-            const res = await fetch(`/api/leagues/${league._id}/teams/${team._id}`, { method: "DELETE" });
+            const res = await fetch(`/api/leagues/${league._id}/teams/${removeTarget._id}`, { method: "DELETE" });
             const data = await res.json();
             if (!data.success) { showError(data.error); return; }
             showSuccess("Team removed from league");
+            setRemoveTarget(null);
             load();
         } catch {
             showError("Failed to remove team");
+        } finally {
+            setRemoving(false);
         }
     };
 
@@ -1035,6 +1044,16 @@ function LeagueTeamsModal({ league, onClose }) {
                     <button className="admin-btn admin-btn-ghost" onClick={onClose}>Close</button>
                 </div>
             </div>
+
+            <ConfirmModal
+                open={Boolean(removeTarget)}
+                title="Remove team"
+                message={removeTarget ? `Remove "${removeTarget.name}" from this league?` : ""}
+                confirmLabel="Remove"
+                confirming={removing}
+                onConfirm={confirmRemove}
+                onCancel={() => { if (!removing) setRemoveTarget(null); }}
+            />
         </div>
     );
 }
@@ -1052,6 +1071,8 @@ function PlaceholderTeamsModal({ onClose, isAdmin, organizations, userOrgId }) {
     const [newName, setNewName] = useState("");
     const [newLogo, setNewLogo] = useState("");
     const [newUploading, setNewUploading] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deleting, setDeleting] = useState(false);
 
     const load = useCallback(async (orgId) => {
         if (!orgId) { setPlaceholders([]); return; }
@@ -1111,15 +1132,20 @@ function PlaceholderTeamsModal({ onClose, isAdmin, organizations, userOrgId }) {
         finally { setSaving(false); }
     };
 
-    const handleDelete = async (p) => {
-        if (!confirm(`Delete placeholder "${p.name}"? Any schedule already using it will show a missing team.`)) return;
+    const handleDelete = (p) => setDeleteTarget(p);
+
+    const confirmDelete = async () => {
+        if (!deleteTarget) return;
+        setDeleting(true);
         try {
-            const res = await fetch(`/api/placeholder-teams/${p._id}`, { method: "DELETE" });
+            const res = await fetch(`/api/placeholder-teams/${deleteTarget._id}`, { method: "DELETE" });
             const data = await res.json();
             if (!data.success) { showError(data.error); return; }
             showSuccess("Placeholder deleted");
+            setDeleteTarget(null);
             load(selectedOrgId);
         } catch { showError("Failed to delete placeholder"); }
+        finally { setDeleting(false); }
     };
 
     const handleAdd = async () => {
@@ -1291,6 +1317,16 @@ function PlaceholderTeamsModal({ onClose, isAdmin, organizations, userOrgId }) {
                     <button className="admin-btn admin-btn-ghost" onClick={onClose}>Close</button>
                 </div>
             </div>
+
+            <ConfirmModal
+                open={Boolean(deleteTarget)}
+                title="Delete placeholder"
+                message={deleteTarget ? `Delete placeholder "${deleteTarget.name}"? Any schedule already using it will show a missing team.` : ""}
+                confirmLabel="Delete"
+                confirming={deleting}
+                onConfirm={confirmDelete}
+                onCancel={() => { if (!deleting) setDeleteTarget(null); }}
+            />
         </div>
     );
 }
@@ -1308,6 +1344,8 @@ export default function LeaguesPage() {
     const [editTarget, setEditTarget] = useState(null);
     const [teamsTarget, setTeamsTarget] = useState(null);
     const [showPlaceholdersModal, setShowPlaceholdersModal] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deleting, setDeleting] = useState(false);
 
     // Sort
     const [sortField, setSortField] = useState("name"); // "name" | "startDate" | "endDate"
@@ -1498,16 +1536,23 @@ export default function LeaguesPage() {
         } catch { showError("Failed to save league"); }
     };
 
-    const deleteLeague = async (league) => {
+    const deleteLeague = (league) => {
         if (!canDelete) { showError("No permission to delete leagues."); return; }
-        if (!confirm(`Delete league "${league.name}"? This cannot be undone.`)) return;
+        setDeleteTarget(league);
+    };
+
+    const confirmDeleteLeague = async () => {
+        if (!deleteTarget) return;
+        setDeleting(true);
         try {
-            const res = await fetch(`/api/leagues/${league._id}`, { method: "DELETE" });
+            const res = await fetch(`/api/leagues/${deleteTarget._id}`, { method: "DELETE" });
             const data = await res.json();
             if (!data.success) { showError(data.error); return; }
             fetchLeagues();
             showSuccess("League deleted!");
+            setDeleteTarget(null);
         } catch { showError("Failed to delete league"); }
+        finally { setDeleting(false); }
     };
 
     return (
@@ -1822,6 +1867,16 @@ export default function LeaguesPage() {
                     onClose={() => setShowPlaceholdersModal(false)}
                 />
             )}
+
+            <ConfirmModal
+                open={Boolean(deleteTarget)}
+                title="Delete league"
+                message={deleteTarget ? `Delete league "${deleteTarget.name}"? This cannot be undone.` : ""}
+                confirmLabel="Delete"
+                confirming={deleting}
+                onConfirm={confirmDeleteLeague}
+                onCancel={() => { if (!deleting) setDeleteTarget(null); }}
+            />
         </AdminLayout>
     );
 }

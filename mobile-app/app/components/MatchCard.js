@@ -44,11 +44,15 @@ const MIN_PLAYERS_TO_START = 4;
 function isPlaceholderTeamName(name) {
     if (!name || !String(name).trim()) return true;
     const n = String(name).trim().toLowerCase();
+    // Word-boundary match — a plain .includes("winner") also matched real
+    // team names that merely CONTAIN "winner"/"loser" as a substring (e.g.
+    // "Breadwinners"), wrongly flagging them as an unresolved bracket slot
+    // and blocking the statistician from starting the game.
     return (
         n === "tbd" ||
         n === "to be decided" ||
-        n.includes("winner") ||
-        n.includes("loser")
+        /\bwinners?\b/.test(n) ||
+        /\blosers?\b/.test(n)
     );
 }
 

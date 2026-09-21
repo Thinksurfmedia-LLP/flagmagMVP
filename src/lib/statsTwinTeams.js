@@ -21,7 +21,11 @@ export async function findOrCreateStatsTwin(realTeam, leagueId) {
         jerseyNumber: p.jerseyNumber,
     }));
 
-    const existingTwin = await Team.findOne({ organization: realTeam.organization, name: twinName });
+    // Scoped to this league too — two unrelated real teams can share a name
+    // across different leagues (e.g. a "Warriors" in Chino and a different
+    // "Warriors" in Temecula), and without the league scope here their
+    // "Warriors STATS" twins would collide and steal each other's roster.
+    const existingTwin = await Team.findOne({ organization: realTeam.organization, name: twinName, "leagues.league": leagueId });
 
     if (!existingTwin) {
         return Team.create({

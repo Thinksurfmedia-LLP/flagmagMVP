@@ -153,9 +153,16 @@ export async function POST(request) {
             leagueMap[l.name.toLowerCase().trim()] = l;
         });
 
+        // Keyed by "name::leagueId" — two unrelated real teams can share a
+        // name across different leagues (e.g. a "Warriors" in Chino and a
+        // different "Warriors" in Temecula), so team resolution below must
+        // be scoped to the row's resolved league, not org-wide by name.
         const teamMap = {};
         orgTeams.forEach((t) => {
-            teamMap[t.name.toLowerCase().trim()] = t;
+            const key = t.name.toLowerCase().trim();
+            (t.leagues || []).forEach((m) => {
+                if (m.league) teamMap[`${key}::${String(m.league)}`] = t;
+            });
         });
 
         // Build venue lookup map (name -> venue doc, case-insensitive)
@@ -334,9 +341,9 @@ export async function POST(request) {
                 resolvedLocation = `${venueDoc.name} - ${matchedField.name}`;
             }
 
-            // Resolve teams (case-insensitive)
-            const teamADoc = teamMap[teamAName.toLowerCase()];
-            const teamBDoc = teamMap[teamBName.toLowerCase()];
+            // Resolve teams (case-insensitive, scoped to the resolved league)
+            const teamADoc = teamMap[`${teamAName.toLowerCase()}::${String(resolvedLeague._id)}`];
+            const teamBDoc = teamMap[`${teamBName.toLowerCase()}::${String(resolvedLeague._id)}`];
 
             if (!teamADoc) {
                 results.errors++;

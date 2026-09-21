@@ -31,9 +31,15 @@ export function computePasserRating(atts, comp, yards, tds, ints, pat) {
  * Returns { rosterMap: { A: { "12": { playerId, playerName, playerPhoto, jerseyNumber } }, B: {...} }, teamNamesByAB, playerInfoById }
  */
 async function buildRosterMap(game, orgId) {
+    // Scoped to this game's league too — two unrelated real teams can share
+    // a name across different leagues (e.g. a "Warriors" in Chino and a
+    // different "Warriors" in Temecula); without the league filter here a
+    // name-only match could pull the WRONG team's roster into this game's
+    // stats.
     const teams = await Team.find({
         organization: orgId,
         name: { $in: [game.teamA.name, game.teamB.name] },
+        "leagues.league": game.league,
     })
         .populate("players.player", "name photo")
         .lean();
@@ -662,9 +668,13 @@ async function computeSeasonStatsUncached(leagueId, orgId) {
         teamNames.add(game.teamA.name);
         teamNames.add(game.teamB.name);
     }
+    // Scoped to this league — see buildRosterMap's comment on why a
+    // name-only match is unsafe once two different leagues can have
+    // same-named teams.
     const teams = await Team.find({
         organization: orgId,
         name: { $in: [...teamNames] },
+        "leagues.league": leagueId,
     })
         .populate("players.player", "name photo")
         .lean();
