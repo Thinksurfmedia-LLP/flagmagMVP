@@ -39,7 +39,7 @@ export async function GET(request, { params }) {
         }
 
         const teams = await Team.find({ organization: league.organization, "leagues.league": id })
-            .select("name logo leagues")
+            .select("name logo location leagues")
             .sort({ name: 1 })
             .lean();
 
@@ -49,6 +49,7 @@ export async function GET(request, { params }) {
                 _id: t._id,
                 name: t.name,
                 logo: t.logo || "",
+                location: t.location || null,
                 division: membership?.division || "",
                 seedNumber: membership?.seedNumber ?? null,
             };

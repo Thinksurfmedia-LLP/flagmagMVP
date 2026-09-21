@@ -409,9 +409,14 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
         const spaceBelow = window.innerHeight - rect.bottom;
         const spaceAbove = rect.top;
         const openDownward = spaceBelow >= 200 || spaceBelow >= spaceAbove;
+        // Cap height to whatever room actually exists on the chosen side
+        // (minus margin) instead of a fixed 360 — otherwise the dropdown
+        // still gets clipped by the viewport when opening into a tight gap.
+        const maxHeight = Math.min(360, Math.max(160, (openDownward ? spaceBelow : spaceAbove) - 12));
         setPickerPos({
             left: rect.left,
             width: rect.width,
+            maxHeight,
             ...(openDownward ? { top: rect.bottom + 4 } : { bottom: window.innerHeight - rect.top + 4 }),
         });
         setPickerSearch("");
@@ -767,7 +772,7 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
                                         ...(pickerPos.top !== undefined ? { top: pickerPos.top } : { bottom: pickerPos.bottom }),
                                         zIndex: 10000,
                                         background: "#fff", border: "1px solid #d5d8e0", borderRadius: 8,
-                                        maxHeight: 360, overflow: "hidden", display: "flex", flexDirection: "column",
+                                        maxHeight: pickerPos.maxHeight || 360, overflow: "hidden", display: "flex", flexDirection: "column",
                                         boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
                                     }}
                                 >

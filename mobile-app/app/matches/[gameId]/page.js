@@ -32,7 +32,13 @@ function LiveGameContent({ gameId }) {
     const [showInterceptionPage, setShowInterceptionPage] = useState(false);
     const [showSackPage, setShowSackPage] = useState(false);
     const [showRunPage, setShowRunPage] = useState(false);
-    const [editingLogIndex, setEditingLogIndex] = useState(null);
+    // The full log entry being edited (captured at Edit-click time), or null
+    // when recording a new play. Holding the object itself — not an index
+    // into `actionLog` — means it keeps working no matter which half's log
+    // it came from (current-half `actionLog` or the frozen 1st-half
+    // snapshot), so editing an old half's play never has to guess which
+    // array to splice.
+    const [editingPlay, setEditingPlay] = useState(null);
     const [roster, setRoster] = useState({ teamA: [], teamB: [] });
     const [firstHalfCompleted, setFirstHalfCompleted] = useState(false);
     const [viewingHalf, setViewingHalf] = useState("1st"); // which half tab is selected for viewing
@@ -157,73 +163,95 @@ function LiveGameContent({ gameId }) {
         fetchRoster();
     }, [fetchGame, fetchStats, fetchRoster]);
 
+    const PLAY_TYPE_MAP = {
+        completion: "Completion",
+        incomplete: "Incompletion",
+        interception: "Interception",
+        sack: "Sack",
+        fumble: "Fumble",
+        run: "Run",
+        timeout: "Timeout",
+    };
+    const toLog = (play) => ({
+        time: new Date(play.createdAt).toLocaleTimeString(),
+        action: PLAY_TYPE_MAP[play.type] || play.type,
+        team: play.teamName || "",
+        half: play.half || "1st",
+        type: PLAY_TYPE_MAP[play.type] || play.type,
+        activeTeam: play.activeTeam || "A",
+        playId: play._id?.toString(),
+        ptsAdded: play.ptsAdded || 0,
+        targetTeam: play.targetTeam || play.activeTeam || "A",
+        idempotencyKey: play.idempotencyKey || null,
+        data: {
+            passer: play.passer || "",
+            receiver: play.receiver || "",
+            rusher: play.rusher || "",
+            defender: play.defender || "",
+            flagPull: play.flagPull || "",
+            yards: play.yards || 0,
+            points: play.points || "",
+            safety: play.safety || false,
+        },
+    });
+
+    // Split fetched plays into the two halves' logs/timeouts and push them
+    // into state. 1st-half score is summed fresh from ptsAdded every time
+    // (not read off the one-time halfOneScoreA/B snapshot) so it stays
+    // correct even after a 1st-half play gets edited post-half-change.
+    const applyPlays = (allPlays, isSecondHalfNow) => {
+        const firstHalfPlays = allPlays.filter(p => (p.half || "1st") === "1st");
+        const secondHalfPlays = allPlays.filter(p => p.half === "2nd");
+        const sumPts = (plays, team) => plays
+            .filter(p => p.targetTeam === team)
+            .reduce((sum, p) => sum + (Number(p.ptsAdded) || 0), 0);
+
+        if (isSecondHalfNow) {
+            setFirstHalfSnapshot({
+                timeoutsA: firstHalfPlays.filter(p => p.type === "timeout" && p.activeTeam === "A").length,
+                timeoutsB: firstHalfPlays.filter(p => p.type === "timeout" && p.activeTeam === "B").length,
+                scoreA: sumPts(firstHalfPlays, "A"),
+                scoreB: sumPts(firstHalfPlays, "B"),
+                actionLog: firstHalfPlays.map(toLog).reverse(),
+            });
+            setTimeoutsA(secondHalfPlays.filter(p => p.type === "timeout" && p.activeTeam === "A").length);
+            setTimeoutsB(secondHalfPlays.filter(p => p.type === "timeout" && p.activeTeam === "B").length);
+            setActionLog(secondHalfPlays.map(toLog).reverse());
+        } else {
+            setTimeoutsA(firstHalfPlays.filter(p => p.type === "timeout" && p.activeTeam === "A").length);
+            setTimeoutsB(firstHalfPlays.filter(p => p.type === "timeout" && p.activeTeam === "B").length);
+            setActionLog(allPlays.map(toLog).reverse());
+        }
+    };
+
+    // Re-fetch every persisted play from the server and rebuild both halves'
+    // logs/scores/timeouts from that truth. Called after every add/edit so a
+    // play recorded or edited on either half is reflected correctly no
+    // matter which half is currently being viewed.
+    const syncPlaysFromServer = async () => {
+        try {
+            const res = await apiGet(`/api/games/${gameId}/plays`);
+            const allPlays = res.data || []; // oldest-first (API sorts createdAt: 1)
+            const isSecondHalfNow = allPlays.some(p => p.half === "2nd") || firstHalfCompleted;
+            applyPlays(allPlays, isSecondHalfNow);
+        } catch { /* ignore */ }
+    };
+
     // Load persisted plays into action log on page load / refresh — runs once when game first loads
     useEffect(() => {
         if (!game) return;
-        const playTypeMap = {
-            completion: "Completion",
-            incomplete: "Incompletion",
-            interception: "Interception",
-            sack: "Sack",
-            fumble: "Fumble",
-            run: "Run",
-            timeout: "Timeout",
-        };
-        const toLog = (play) => ({
-            time: new Date(play.createdAt).toLocaleTimeString(),
-            action: playTypeMap[play.type] || play.type,
-            team: play.teamName || "",
-            half: play.half || "1st",
-            type: playTypeMap[play.type] || play.type,
-            activeTeam: play.activeTeam || "A",
-            playId: play._id?.toString(),
-            ptsAdded: play.ptsAdded || 0,
-            targetTeam: play.targetTeam || play.activeTeam || "A",
-            idempotencyKey: play.idempotencyKey || null,
-            data: {
-                passer: play.passer || "",
-                receiver: play.receiver || "",
-                rusher: play.rusher || "",
-                defender: play.defender || "",
-                flagPull: play.flagPull || "",
-                yards: play.yards || 0,
-                points: play.points || "",
-                safety: play.safety || false,
-            },
-        });
         const loadPlays = async () => {
             try {
                 const res = await apiGet(`/api/games/${gameId}/plays`);
-                if (!res.data || res.data.length === 0) return;
-                const allPlays = res.data; // oldest-first (API sorts createdAt: 1)
-                const firstHalfPlays = allPlays.filter(p => (p.half || "1st") === "1st");
+                const allPlays = res.data || []; // oldest-first (API sorts createdAt: 1)
                 const secondHalfPlays = allPlays.filter(p => p.half === "2nd");
                 const isInSecondHalf = game.firstHalfCompleted || secondHalfPlays.length > 0;
                 if (isInSecondHalf) {
-                    const h1TimeoutsA = firstHalfPlays.filter(p => p.type === "timeout" && p.activeTeam === "A").length;
-                    const h1TimeoutsB = firstHalfPlays.filter(p => p.type === "timeout" && p.activeTeam === "B").length;
-                    setFirstHalfSnapshot({
-                        timeoutsA: h1TimeoutsA,
-                        timeoutsB: h1TimeoutsB,
-                        scoreA: game.halfOneScoreA ?? 0,
-                        scoreB: game.halfOneScoreB ?? 0,
-                        actionLog: firstHalfPlays.map(toLog).reverse(),
-                    });
                     setFirstHalfCompleted(true);
                     setHalf("2nd");
                     setViewingHalf("2nd");
-                    const h2TimeoutsA = secondHalfPlays.filter(p => p.type === "timeout" && p.activeTeam === "A").length;
-                    const h2TimeoutsB = secondHalfPlays.filter(p => p.type === "timeout" && p.activeTeam === "B").length;
-                    setTimeoutsA(h2TimeoutsA);
-                    setTimeoutsB(h2TimeoutsB);
-                    setActionLog(secondHalfPlays.map(toLog).reverse());
-                } else {
-                    const h1TimeoutsA = firstHalfPlays.filter(p => p.type === "timeout" && p.activeTeam === "A").length;
-                    const h1TimeoutsB = firstHalfPlays.filter(p => p.type === "timeout" && p.activeTeam === "B").length;
-                    setTimeoutsA(h1TimeoutsA);
-                    setTimeoutsB(h1TimeoutsB);
-                    setActionLog(allPlays.map(toLog).reverse());
                 }
+                applyPlays(allPlays, isInSecondHalf);
             } catch { /* ignore */ }
         };
         loadPlays();
@@ -378,7 +406,11 @@ function LiveGameContent({ gameId }) {
     const teamAScore = game.teamA?.score ?? 0;
     const teamBScore = game.teamB?.score ?? 0;
     const isGameFinished = game.status === "completed" || game.status === "cancelled";
-    const isViewOnly = isGameFinished || (viewingHalf === "1st" && firstHalfCompleted);
+    // Editing an existing play is allowed on any half up until the game
+    // ends — only recording a NEW play stays locked to whichever half is
+    // currently viewed vs. actively being recorded (see canAddNewPlay).
+    const canEditPlays = !isGameFinished;
+    const canAddNewPlay = !isGameFinished && viewingHalf === half;
     const displayTimeoutsA = (viewingHalf === "1st" && firstHalfCompleted && firstHalfSnapshot) ? firstHalfSnapshot.timeoutsA : timeoutsA;
     const displayTimeoutsB = (viewingHalf === "1st" && firstHalfCompleted && firstHalfSnapshot) ? firstHalfSnapshot.timeoutsB : timeoutsB;
     const displayActionLog = (viewingHalf === "1st" && firstHalfCompleted && firstHalfSnapshot) ? firstHalfSnapshot.actionLog : actionLog;
@@ -453,8 +485,8 @@ function LiveGameContent({ gameId }) {
     ];
 
     const getInitialData = (type) => {
-        if (editingLogIndex !== null && actionLog[editingLogIndex]?.type === type) {
-            return actionLog[editingLogIndex].data;
+        if (editingPlay && editingPlay.type === type) {
+            return editingPlay.data;
         }
         return null;
     };
@@ -478,7 +510,7 @@ function LiveGameContent({ gameId }) {
                     }
 
                     const targetTeam = activeTeam;
-                    const oldLog = editingLogIndex !== null ? actionLog[editingLogIndex] : null;
+                    const oldLog = editingPlay;
 
                     const teamName = activeTeam === "A" ? game.teamA.name : game.teamB.name;
                     const logDesc = `Compl ${data.yards}yd P${data.passer}-R${data.receiver}${data.flagPull ? ` FP:${data.flagPull}` : ''}`;
@@ -486,25 +518,22 @@ function LiveGameContent({ gameId }) {
                         time: new Date().toLocaleTimeString(),
                         action: logDesc,
                         team: teamName,
-                        half,
+                        half: oldLog ? oldLog.half : half,
                         type: "Completion",
                         activeTeam,
                         data,
                         ptsAdded: ptsToAdd,
                         targetTeam,
-                        idempotencyKey: editingLogIndex === null ? generateId() : oldLog?.idempotencyKey,
+                        idempotencyKey: oldLog ? oldLog.idempotencyKey : generateId(),
                     };
 
                     // Score is derived server-side from ptsAdded/targetTeam via an
                     // atomic increment on save — never computed here from local
                     // score state, which is what let rapid-fire plays clobber
                     // each other's points.
-                    if (editingLogIndex !== null) {
-                        const newLogs = [...actionLog];
-                        newLogs[editingLogIndex] = { ...newLogs[editingLogIndex], ...logEntry };
-                        setActionLog(newLogs);
-                        updatePlay(oldLog.playId, "completion", logEntry, data).then(fetchGame);
-                        setEditingLogIndex(null);
+                    if (oldLog) {
+                        updatePlay(oldLog.playId, "completion", logEntry, data).then(() => { syncPlaysFromServer(); fetchGame(); });
+                        setEditingPlay(null);
                         showToast("Completion updated", "success");
                     } else {
                         setActionLog(prev => [logEntry, ...prev]);
@@ -527,7 +556,7 @@ function LiveGameContent({ gameId }) {
                 }}
                 onCancel={() => {
                     setShowCompletionPage(false);
-                    setEditingLogIndex(null);
+                    setEditingPlay(null);
                 }}
             />
         );
@@ -542,28 +571,25 @@ function LiveGameContent({ gameId }) {
                 onTeamChange={(team) => setActiveTeam(team)}
                 initialData={getInitialData("Incompletion")}
                 onSave={(data) => {
+                    const oldLog = editingPlay;
                     const teamName = activeTeam === "A" ? game.teamA.name : game.teamB.name;
                     const logDesc = `Inc P${data.passer}`;
                     const logEntry = {
                         time: new Date().toLocaleTimeString(),
                         action: logDesc,
                         team: teamName,
-                        half,
+                        half: oldLog ? oldLog.half : half,
                         type: "Incompletion",
                         activeTeam,
                         data,
                         ptsAdded: 0,
                         targetTeam: activeTeam,
-                        idempotencyKey: editingLogIndex === null ? generateId() : oldLog?.idempotencyKey,
+                        idempotencyKey: oldLog ? oldLog.idempotencyKey : generateId(),
                     };
-                    
-                    if (editingLogIndex !== null) {
-                        const oldLog = actionLog[editingLogIndex];
-                        const newLogs = [...actionLog];
-                        newLogs[editingLogIndex] = { ...newLogs[editingLogIndex], ...logEntry };
-                        setActionLog(newLogs);
-                        updatePlay(oldLog.playId, "incomplete", logEntry, data);
-                        setEditingLogIndex(null);
+
+                    if (oldLog) {
+                        updatePlay(oldLog.playId, "incomplete", logEntry, data).then(syncPlaysFromServer);
+                        setEditingPlay(null);
                         showToast("Incompletion updated", "success");
                     } else {
                         setActionLog(prev => [logEntry, ...prev]);
@@ -585,7 +611,7 @@ function LiveGameContent({ gameId }) {
                 }}
                 onCancel={() => {
                     setShowIncompletePassPage(false);
-                    setEditingLogIndex(null);
+                    setEditingPlay(null);
                 }}
             />
         );
@@ -609,7 +635,7 @@ function LiveGameContent({ gameId }) {
                     }
 
                     const targetTeam = activeTeam === "A" ? "B" : "A";
-                    const oldLog = editingLogIndex !== null ? actionLog[editingLogIndex] : null;
+                    const oldLog = editingPlay;
 
                     const teamName = activeTeam === "A" ? game.teamA.name : game.teamB.name;
                     const logDesc = `Fumble D${data.defender}${data.flagPull ? ` FP:${data.flagPull}` : ''}`;
@@ -617,23 +643,20 @@ function LiveGameContent({ gameId }) {
                         time: new Date().toLocaleTimeString(),
                         action: logDesc,
                         team: teamName,
-                        half,
+                        half: oldLog ? oldLog.half : half,
                         type: "Fumble",
                         activeTeam,
                         data,
                         ptsAdded: ptsToAdd,
                         targetTeam,
-                        idempotencyKey: editingLogIndex === null ? generateId() : oldLog?.idempotencyKey,
+                        idempotencyKey: oldLog ? oldLog.idempotencyKey : generateId(),
                     };
 
                     // Score is derived server-side from ptsAdded/targetTeam via an
                     // atomic increment on save — see Completion's onSave for why.
-                    if (editingLogIndex !== null) {
-                        const newLogs = [...actionLog];
-                        newLogs[editingLogIndex] = { ...newLogs[editingLogIndex], ...logEntry };
-                        setActionLog(newLogs);
-                        updatePlay(oldLog.playId, "fumble", logEntry, data).then(fetchGame);
-                        setEditingLogIndex(null);
+                    if (oldLog) {
+                        updatePlay(oldLog.playId, "fumble", logEntry, data).then(() => { syncPlaysFromServer(); fetchGame(); });
+                        setEditingPlay(null);
                         showToast("Fumble updated", "success");
                     } else {
                         setActionLog(prev => [logEntry, ...prev]);
@@ -656,7 +679,7 @@ function LiveGameContent({ gameId }) {
                 }}
                 onCancel={() => {
                     setShowFumblePage(false);
-                    setEditingLogIndex(null);
+                    setEditingPlay(null);
                 }}
             />
         );
@@ -680,7 +703,7 @@ function LiveGameContent({ gameId }) {
                     }
 
                     const targetTeam = activeTeam === "A" ? "B" : "A";
-                    const oldLog = editingLogIndex !== null ? actionLog[editingLogIndex] : null;
+                    const oldLog = editingPlay;
 
                     const teamName = activeTeam === "A" ? game.teamA.name : game.teamB.name;
                     const logDesc = `INT P${data.passer}-D${data.defender}${data.flagPull ? ` FP:${data.flagPull}` : ''}`;
@@ -688,23 +711,20 @@ function LiveGameContent({ gameId }) {
                         time: new Date().toLocaleTimeString(),
                         action: logDesc,
                         team: teamName,
-                        half,
+                        half: oldLog ? oldLog.half : half,
                         type: "Interception",
                         activeTeam,
                         data,
                         ptsAdded: ptsToAdd,
                         targetTeam,
-                        idempotencyKey: editingLogIndex === null ? generateId() : oldLog?.idempotencyKey,
+                        idempotencyKey: oldLog ? oldLog.idempotencyKey : generateId(),
                     };
 
                     // Score is derived server-side from ptsAdded/targetTeam via an
                     // atomic increment on save — see Completion's onSave for why.
-                    if (editingLogIndex !== null) {
-                        const newLogs = [...actionLog];
-                        newLogs[editingLogIndex] = { ...newLogs[editingLogIndex], ...logEntry };
-                        setActionLog(newLogs);
-                        updatePlay(oldLog.playId, "interception", logEntry, data).then(fetchGame);
-                        setEditingLogIndex(null);
+                    if (oldLog) {
+                        updatePlay(oldLog.playId, "interception", logEntry, data).then(() => { syncPlaysFromServer(); fetchGame(); });
+                        setEditingPlay(null);
                         showToast("Interception updated", "success");
                     } else {
                         setActionLog(prev => [logEntry, ...prev]);
@@ -727,7 +747,7 @@ function LiveGameContent({ gameId }) {
                 }}
                 onCancel={() => {
                     setShowInterceptionPage(false);
-                    setEditingLogIndex(null);
+                    setEditingPlay(null);
                 }}
             />
         );
@@ -746,7 +766,7 @@ function LiveGameContent({ gameId }) {
                     if (data.safety) ptsToAdd = 2;
 
                     const targetTeam = activeTeam === "A" ? "B" : "A";
-                    const oldLog = editingLogIndex !== null ? actionLog[editingLogIndex] : null;
+                    const oldLog = editingPlay;
 
                     const teamName = activeTeam === "A" ? game.teamA.name : game.teamB.name;
                     const logDesc = `Sack P${data.passer}-D${data.defender}${data.safety ? ' (Safety)' : ''}`;
@@ -754,23 +774,20 @@ function LiveGameContent({ gameId }) {
                         time: new Date().toLocaleTimeString(),
                         action: logDesc,
                         team: teamName,
-                        half,
+                        half: oldLog ? oldLog.half : half,
                         type: "Sack",
                         activeTeam,
                         data,
                         ptsAdded: ptsToAdd,
                         targetTeam,
-                        idempotencyKey: editingLogIndex === null ? generateId() : oldLog?.idempotencyKey,
+                        idempotencyKey: oldLog ? oldLog.idempotencyKey : generateId(),
                     };
 
                     // Score is derived server-side from ptsAdded/targetTeam via an
                     // atomic increment on save — see Completion's onSave for why.
-                    if (editingLogIndex !== null) {
-                        const newLogs = [...actionLog];
-                        newLogs[editingLogIndex] = { ...newLogs[editingLogIndex], ...logEntry };
-                        setActionLog(newLogs);
-                        updatePlay(oldLog.playId, "sack", logEntry, data).then(fetchGame);
-                        setEditingLogIndex(null);
+                    if (oldLog) {
+                        updatePlay(oldLog.playId, "sack", logEntry, data).then(() => { syncPlaysFromServer(); fetchGame(); });
+                        setEditingPlay(null);
                         showToast("Sack updated", "success");
                     } else {
                         setActionLog(prev => [logEntry, ...prev]);
@@ -793,7 +810,7 @@ function LiveGameContent({ gameId }) {
                 }}
                 onCancel={() => {
                     setShowSackPage(false);
-                    setEditingLogIndex(null);
+                    setEditingPlay(null);
                 }}
             />
         );
@@ -818,7 +835,7 @@ function LiveGameContent({ gameId }) {
                     }
 
                     const targetTeam = activeTeam;
-                    const oldLog = editingLogIndex !== null ? actionLog[editingLogIndex] : null;
+                    const oldLog = editingPlay;
 
                     const teamName = activeTeam === "A" ? game.teamA.name : game.teamB.name;
                     const logDesc = `Run ${data.yards}yd R${data.rusher}${data.flagPull ? ` FP:${data.flagPull}` : ''}`;
@@ -826,23 +843,20 @@ function LiveGameContent({ gameId }) {
                         time: new Date().toLocaleTimeString(),
                         action: logDesc,
                         team: teamName,
-                        half,
+                        half: oldLog ? oldLog.half : half,
                         type: "Run",
                         activeTeam,
                         data,
                         ptsAdded: ptsToAdd,
                         targetTeam,
-                        idempotencyKey: editingLogIndex === null ? generateId() : oldLog?.idempotencyKey,
+                        idempotencyKey: oldLog ? oldLog.idempotencyKey : generateId(),
                     };
 
                     // Score is derived server-side from ptsAdded/targetTeam via an
                     // atomic increment on save — see Completion's onSave for why.
-                    if (editingLogIndex !== null) {
-                        const newLogs = [...actionLog];
-                        newLogs[editingLogIndex] = { ...newLogs[editingLogIndex], ...logEntry };
-                        setActionLog(newLogs);
-                        updatePlay(oldLog.playId, "run", logEntry, data).then(fetchGame);
-                        setEditingLogIndex(null);
+                    if (oldLog) {
+                        updatePlay(oldLog.playId, "run", logEntry, data).then(() => { syncPlaysFromServer(); fetchGame(); });
+                        setEditingPlay(null);
                         showToast("Run updated", "success");
                     } else {
                         setActionLog(prev => [logEntry, ...prev]);
@@ -865,7 +879,7 @@ function LiveGameContent({ gameId }) {
                 }}
                 onCancel={() => {
                     setShowRunPage(false);
-                    setEditingLogIndex(null);
+                    setEditingPlay(null);
                 }}
             />
         );
@@ -921,7 +935,7 @@ function LiveGameContent({ gameId }) {
                                 </div>
                             </div>
                             <span style={{ color: "#ccc", fontSize: 12, fontWeight: 600, letterSpacing: 1 }}>TO: {displayTimeoutsA}/3</span>
-                            {!isViewOnly && (
+                            {canAddNewPlay && (
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -992,7 +1006,7 @@ function LiveGameContent({ gameId }) {
                                 </div>
                             </div>
                             <span style={{ color: "#ccc", fontSize: 12, fontWeight: 600, letterSpacing: 1 }}>TO: {displayTimeoutsB}/3</span>
-                            {!isViewOnly && (
+                            {canAddNewPlay && (
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -1096,7 +1110,7 @@ function LiveGameContent({ gameId }) {
                         <div className="confirm-box" onClick={(e) => e.stopPropagation()}>
                             <h4>End 1st Half?</h4>
                             <p>Are you sure you want to mark the 1st half as complete and move to the 2nd half?</p>
-                            <p style={{ color: "#999", fontSize: 12 }}>The 1st half stats will become view-only.</p>
+                            <p style={{ color: "#999", fontSize: 12 }}>You can still edit 1st half plays later — just switch back to the 1st Half tab.</p>
                             <div className="confirm-actions">
                                 <button
                                     className="btn btn-secondary"
@@ -1139,7 +1153,7 @@ function LiveGameContent({ gameId }) {
 
                 {/* Stat action buttons */}
                 {!isGameFinished && (
-                <div className="managment-box-area" style={(isViewOnly || isPaused) ? { opacity: 0.4, pointerEvents: "none" } : {}}>
+                <div className="managment-box-area" style={(!canAddNewPlay || isPaused) ? { opacity: 0.4, pointerEvents: "none" } : {}}>
                     {statActions.map((action) => (
                         <div
                             key={action.action}
@@ -1262,10 +1276,10 @@ function LiveGameContent({ gameId }) {
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, paddingTop: 2 }}>
                                             <span style={{ fontSize: 11, color: "#666" }}>{log.half}</span>
-                                            {!isViewOnly && ['Completion', 'Incompletion', 'Interception', 'Sack', 'Run', 'Fumble'].includes(log.type) && (
-                                                <button 
+                                            {canEditPlays && ['Completion', 'Incompletion', 'Interception', 'Sack', 'Run', 'Fumble'].includes(log.type) && (
+                                                <button
                                                     onClick={() => {
-                                                        setEditingLogIndex(i);
+                                                        setEditingPlay(log);
                                                         setActiveTeam(log.activeTeam);
                                                         if (log.type === "Completion") setShowCompletionPage(true);
                                                         if (log.type === "Incompletion") setShowIncompletePassPage(true);

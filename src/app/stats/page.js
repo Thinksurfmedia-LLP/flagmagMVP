@@ -44,30 +44,27 @@ function StandingsView({ orgSlug, leagueSlug }) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {group.rows.map((team, j) => {
-                                    const noGames = team.wins === 0 && team.losses === 0;
-                                    return (
-                                        <tr key={j}>
-                                            <td>
-                                                <img src={team.logo || "/assets/images/team-placeholder.svg"} alt="" />
-                                                {" "}
-                                                <Link
-                                                    href={`/organizations/${orgSlug}/season/${leagueSlug}/player-stats?team=${encodeURIComponent(team.name)}`}
-                                                    style={{ color: "#fff", textDecoration: "underline" }}
-                                                >
-                                                    {team.name}
-                                                </Link>
-                                                {team.seedNumber != null && <span style={{ opacity: 0.7 }}> #{team.seedNumber}</span>}
-                                            </td>
-                                            <td>{team.wins}-{team.losses}</td>
-                                            <td>{noGames ? "-" : team.pct.toFixed(2)}</td>
-                                            <td>{noGames ? "-" : team.pf}</td>
-                                            <td>{noGames ? "-" : team.pa}</td>
-                                            <td>{noGames ? "-" : (team.diff > 0 ? `+${team.diff}` : team.diff)}</td>
-                                        </tr>
-                                    );
-                                })}
-                                {group.rows.length === 0 && (
+                                {group.rows.filter((team) => !(team.wins === 0 && team.losses === 0)).map((team, j) => (
+                                    <tr key={j}>
+                                        <td>
+                                            <img src={team.logo || "/assets/images/team-placeholder.svg"} alt="" />
+                                            {" "}
+                                            <Link
+                                                href={`/organizations/${orgSlug}/season/${leagueSlug}/player-stats?team=${encodeURIComponent(team.name)}`}
+                                                style={{ color: "#fff", textDecoration: "underline" }}
+                                            >
+                                                {team.name}
+                                            </Link>
+                                            {team.seedNumber != null && <span style={{ opacity: 0.7 }}> #{team.seedNumber}</span>}
+                                        </td>
+                                        <td>{team.wins}-{team.losses}</td>
+                                        <td>{team.pct.toFixed(2)}</td>
+                                        <td>{team.pf}</td>
+                                        <td>{team.pa}</td>
+                                        <td>{team.diff > 0 ? `+${team.diff}` : team.diff}</td>
+                                    </tr>
+                                ))}
+                                {group.rows.filter((team) => !(team.wins === 0 && team.losses === 0)).length === 0 && (
                                     <tr><td colSpan="6" style={{ textAlign: "center", color: "#999", padding: "16px" }}>No teams found.</td></tr>
                                 )}
                             </tbody>

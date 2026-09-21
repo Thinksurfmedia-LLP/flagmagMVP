@@ -1796,6 +1796,7 @@ export default function AdminGamesPage() {
     const [scheduleDays, setScheduleDays] = useState([]);
     const [seasons, setSeasons] = useState([]);
     const [leagues, setLeagues] = useState([]);
+    const [scheduledLeagueIds, setScheduledLeagueIds] = useState(null);
     const [games, setGames] = useState([]);
     const [teams, setTeams] = useState([]);
     const [venues, setVenues] = useState([]);
@@ -1850,24 +1851,39 @@ export default function AdminGamesPage() {
 
     // Fetch seasons + teams + venues + games when org changes
     useEffect(() => {
-        if (!selectedOrg) { setSeasons([]); setLeagues([]); setGames([]); setTeams([]); setVenues([]); setScheduleDays([]); return; }
+        if (!selectedOrg) { setSeasons([]); setLeagues([]); setGames([]); setTeams([]); setVenues([]); setScheduleDays([]); setScheduledLeagueIds(null); return; }
         setLoading(true);
         (async () => {
             try {
-                const [seasonRes, leagueRes, teamRes, venueRes, orgRes, gamesRes] = await Promise.all([
+                const [seasonRes, leagueRes, teamRes, venueRes, orgRes, gamesRes, scheduleRes] = await Promise.all([
                     fetch(`/api/organizations/${selectedOrg}/seasons`),
                     fetch(`/api/organizations/${selectedOrg}/leagues`),
                     fetch("/api/teams"),
                     fetch("/api/locations"),
                     fetch(`/api/organizations/${selectedOrg}`),
                     fetch(`/api/organizations/${selectedOrg}/games`),
+                    fetch(`/api/schedules?organization=${selectedOrg}`),
                 ]);
-                const [seasonData, leagueData, teamData, venueData, orgData, gamesData] = await Promise.all([
-                    seasonRes.json(), leagueRes.json(), teamRes.json(), venueRes.json(), orgRes.json(), gamesRes.json(),
+                const [seasonData, leagueData, teamData, venueData, orgData, gamesData, scheduleData] = await Promise.all([
+                    seasonRes.json(), leagueRes.json(), teamRes.json(), venueRes.json(), orgRes.json(), gamesRes.json(), scheduleRes.json(),
                 ]);
                 if (seasonData.success) setSeasons(seasonData.data);
                 if (orgData.success) setScheduleDays(orgData.data?.scheduleDays || []);
                 if (leagueData.success) setLeagues(leagueData.data);
+                // Only leagues with at least one Active schedule show up in the
+                // filter dropdown. null (fetch failed / no schedule permission)
+                // means "unknown" — leaves the dropdown unfiltered rather than
+                // hiding every league.
+                if (scheduleData.success) {
+                    const ids = new Set(
+                        scheduleData.data
+                            .filter(s => s.status === "Active" && s.leagueId?._id)
+                            .map(s => String(s.leagueId._id))
+                    );
+                    setScheduledLeagueIds(ids);
+                } else {
+                    setScheduledLeagueIds(null);
+                }
                 if (teamData.success) setTeams(teamData.data);
                 if (venueData.success) {
                     // /api/locations returns every venue system-wide — scope the
@@ -1904,9 +1920,10 @@ export default function AdminGamesPage() {
     }, [seasons, seasonDefaultApplied]);
 
     // Computed and cascaded filter logic
-    const availableLeagues = filterSeason
+    const availableLeagues = (filterSeason
         ? leagues.filter(l => (l.season?._id || l.season) === filterSeason)
-        : leagues;
+        : leagues
+    ).filter(l => !scheduledLeagueIds || scheduledLeagueIds.has(String(l._id)));
 
     useEffect(() => {
         setFilterLeague("");

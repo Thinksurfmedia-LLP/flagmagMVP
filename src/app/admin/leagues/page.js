@@ -785,6 +785,12 @@ function LeagueTeamsModal({ league, onClose }) {
                                             <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
                                                 {t.logo && <img src={t.logo} alt="" style={{ width: 20, height: 20, borderRadius: 4, flexShrink: 0 }} />}
                                                 <span style={{ fontWeight: 600, fontSize: 13, color: "#1a1d26", flexShrink: 0 }}>{t.name}</span>
+                                                {(t.location?.cityName || t.location?.stateAbbr) && (
+                                                    <span style={{ color: "#8b90a0", fontSize: 12, flexShrink: 0 }}>
+                                                        <i className="fa-solid fa-location-dot" style={{ marginRight: 3, fontSize: 10 }}></i>
+                                                        {[t.location.cityName, t.location.stateAbbr].filter(Boolean).join(", ")}
+                                                    </span>
+                                                )}
                                                 {editingId === t._id ? (
                                                     <>
                                                         <input
