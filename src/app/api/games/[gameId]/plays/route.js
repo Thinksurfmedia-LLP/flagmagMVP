@@ -5,6 +5,7 @@ import Play from "@/models/Play";
 import Game from "@/models/Game";
 import League from "@/models/League";
 import Team from "@/models/Team";
+import { requireAdminOrStatistician } from "@/lib/apiAuth";
 import { resolvePlayPlayerIds, findInactiveJerseyConflict } from "@/lib/statsAggregation";
 
 // Builds the bare jersey-number → playerId map resolvePlayPlayerIds needs,
@@ -80,6 +81,13 @@ export async function GET(request, { params }) {
 // POST — save a single play
 export async function POST(request, { params }) {
     try {
+        // Recording/editing/deleting plays needs a signed-in statistician,
+        // organizer or admin — same rule as starting and ending the game.
+        // (It used to be open, so an expired session went unnoticed until
+        // "End Game" was the first request to fail.)
+        const auth = await requireAdminOrStatistician();
+        if (!auth.authorized) return auth.response;
+
         await dbConnect();
         const { gameId } = await params;
         const body = await request.json();
@@ -228,6 +236,9 @@ export async function POST(request, { params }) {
 // PUT — update a specific play by _id (passed as query param ?playId=xxx)
 export async function PUT(request, { params }) {
     try {
+        const auth = await requireAdminOrStatistician(); // see POST
+        if (!auth.authorized) return auth.response;
+
         await dbConnect();
         const { gameId } = await params;
         const { searchParams } = new URL(request.url);
@@ -381,6 +392,9 @@ export async function PUT(request, { params }) {
 // DELETE — delete a specific play by _id (passed as query param ?playId=xxx)
 export async function DELETE(request, { params }) {
     try {
+        const auth = await requireAdminOrStatistician(); // see POST
+        if (!auth.authorized) return auth.response;
+
         await dbConnect();
         const { gameId } = await params;
         const { searchParams } = new URL(request.url);

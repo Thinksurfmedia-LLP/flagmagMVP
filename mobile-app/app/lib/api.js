@@ -58,7 +58,18 @@ async function request(method, path, body) {
             try {
                 await fetch(`${BASE}/api/auth/logout/mobile`, { method: "POST", credentials: "include" });
             } catch { }
-            window.location.href = "/login?invalidated=true";
+            // Keep ?next so they land back where they were after signing in.
+            const here = window.location.pathname.startsWith("/login") ? "" : window.location.pathname + window.location.search;
+            window.location.href = `/login?invalidated=true${here ? `&next=${encodeURIComponent(here)}` : ""}`;
+        } else if (res.status === 401 && !path.startsWith("/api/auth/") && typeof window !== "undefined"
+            && !window.location.pathname.startsWith("/login")) {
+            // Session simply expired (not force-invalidated). Used to surface
+            // only as a bare "Authentication required" toast on End Game —
+            // plays record without auth, so that was the first call to fail.
+            // Send them to sign in and straight back to this game; nothing is
+            // lost, every play is already saved server-side.
+            const next = encodeURIComponent(window.location.pathname + window.location.search);
+            window.location.href = `/login?expired=true&next=${next}`;
         }
         const err = new Error(json.error || "Request failed");
         err.data = json;

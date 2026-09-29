@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, use } from "react";
 import { useRouter } from "next/navigation";
-import { AuthProvider, useAuth } from "../../lib/AuthContext";
+import { AuthProvider, useAuth, loginPath } from "../../lib/AuthContext";
 import { apiGet, apiPost, apiPut, generateId } from "../../lib/api";
 import MobileHeader from "../../components/MobileHeader";
 import BottomFooter from "../../components/BottomFooter";
@@ -15,7 +15,7 @@ import RunPage from "../../components/RunPage";
 
 function LiveGameContent({ gameId }) {
     const router = useRouter();
-    const { user, loading: authLoading } = useAuth();
+    const { user, loading: authLoading, sessionEnded } = useAuth();
     const [game, setGame] = useState(null);
     const [stats, setStats] = useState([]);
     const [loadingGame, setLoadingGame] = useState(true);
@@ -66,9 +66,11 @@ function LiveGameContent({ gameId }) {
 
     useEffect(() => {
         if (!authLoading && !user) {
-            router.push("/login");
+            // Must be signed in to record — come straight back to this game
+            // afterwards (e.g. the session ended while the app sat open).
+            router.push(loginPath(`/matches/${gameId}`, sessionEnded));
         }
-    }, [authLoading, user, router]);
+    }, [authLoading, user, router, gameId, sessionEnded]);
 
     // Block browser refresh / tab close / typed-URL navigation while recording.
     useEffect(() => {

@@ -4,7 +4,7 @@ import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
 import Role from "@/models/Role";
 import "@/models/Organization"; // register schema for populate
-import { signToken } from "@/lib/auth";
+import { signToken, MOBILE_COOKIE_NAME, mobileCookieOptions } from "@/lib/auth";
 
 export async function POST(request) {
     try {
@@ -92,13 +92,8 @@ export async function POST(request) {
             },
             { status: 200 }
         );
-        response.cookies.set("flagmag-mobile-token", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 60 * 60 * 24 * 7,
-            path: "/",
-        });
+        // Same options the sliding renewal in lib/auth.js reissues it with.
+        response.cookies.set(MOBILE_COOKIE_NAME, token, mobileCookieOptions());
         return response;
     } catch (error) {
         return NextResponse.json(

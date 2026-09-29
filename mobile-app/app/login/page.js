@@ -1,9 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AuthProvider, useAuth } from "../lib/AuthContext";
+
+// Where to go after signing in: the page the statistician was on when their
+// session expired (?next=/matches/abc — see lib/api.js), else /matches.
+// Only same-app paths, never "//host" or "https://…", so this can't be used
+// as an open redirect.
+function postLoginPath() {
+    if (typeof window === "undefined") return "/matches";
+    const next = new URLSearchParams(window.location.search).get("next") || "";
+    return next.startsWith("/") && !next.startsWith("//") ? next : "/matches";
+}
+
+// ?expired=true (session ran out) or ?invalidated=true (nightly / forced
+// logout — see lib/api.js) both mean "you were signed in, now you're not".
+function sessionExpired() {
+    if (typeof window === "undefined") return false;
+    const q = new URLSearchParams(window.location.search);
+    return q.get("expired") === "true" || q.get("invalidated") === "true";
+}
 
 function LoginForm() {
     const router = useRouter();
@@ -13,6 +31,9 @@ function LoginForm() {
     const [showPw, setShowPw] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [expired, setExpired] = useState(false);
+    // Read after mount — the URL isn't available during server rendering.
+    useEffect(() => { setExpired(sessionExpired()); }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -20,7 +41,7 @@ function LoginForm() {
         setLoading(true);
         try {
             await login(email, password);
-            router.push("/matches");
+            router.push(postLoginPath());
         } catch (err) {
             setError(err.message);
         } finally {
@@ -47,6 +68,11 @@ function LoginForm() {
                         <p>Sign in to start recording game stats and managing your games.</p>
                     </div>
 
+                    {expired && !error && (
+                        <div className="toast-message error">
+                            Your session has ended. Please sign in again to record games — everything already recorded is saved.
+                        </div>
+                    )}
                     {error && <div className="toast-message error">{error}</div>}
 
                     <form className="form-area" onSubmit={handleSubmit}>

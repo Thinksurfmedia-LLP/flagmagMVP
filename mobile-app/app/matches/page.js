@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { AuthProvider, useAuth } from "../lib/AuthContext";
+import { AuthProvider, useAuth, loginPath } from "../lib/AuthContext";
 import { apiGet } from "../lib/api";
 import MobileHeader from "../components/MobileHeader";
 import MatchCard from "../components/MatchCard";
@@ -18,7 +18,7 @@ const MATCH_TABS = [
 
 function MatchListContent() {
     const router = useRouter();
-    const { user, loading: authLoading } = useAuth();
+    const { user, loading: authLoading, sessionEnded } = useAuth();
     const [activeTab, setActiveTab] = useState("today");
     const [games, setGames] = useState([]);
     const [filteredGames, setFilteredGames] = useState([]);
@@ -47,9 +47,9 @@ function MatchListContent() {
     // Redirect if not logged in
     useEffect(() => {
         if (!authLoading && !user) {
-            router.push("/login");
+            router.push(loginPath("/matches", sessionEnded));
         }
-    }, [authLoading, user, router]);
+    }, [authLoading, user, router, sessionEnded]);
 
     // Fetch all games for this org in a single request (replaces leagues fetch + N games fetches)
     const fetchGames = useCallback(async () => {

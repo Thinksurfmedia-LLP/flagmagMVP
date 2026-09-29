@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { jwtVerify } from "jose";
+import { readPolicy as readSessionPolicy, lastScheduledLogout } from "@/lib/sessionPolicy";
 
 const JWT_SECRET = new TextEncoder().encode(
     process.env.JWT_SECRET || "fallback-secret-do-not-use-in-production"
@@ -45,6 +46,14 @@ async function verifyAuth(request) {
 
     try {
         const { payload } = await jwtVerify(token, JWT_SECRET);
+        // Same mandatory nightly logout lib/auth.js enforces on every API
+        // call — otherwise a pre-midnight token still looks "logged in" here
+        // and /login redirects away while every API request rejects it.
+        const policy = readSessionPolicy();
+        if (policy.enabled && typeof payload.iat === "number"
+            && payload.iat * 1000 < lastScheduledLogout(new Date(), policy).getTime()) {
+            return null;
+        }
         return payload;
     } catch {
         return null;

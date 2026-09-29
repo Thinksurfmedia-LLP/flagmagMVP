@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { AuthProvider, useAuth } from "../../lib/AuthContext";
+import { AuthProvider, useAuth, loginPath } from "../../lib/AuthContext";
 import { apiGet, apiPost } from "../../lib/api";
 import WeekdayDatePicker from "../../components/WeekdayDatePicker";
 
 function CreateMatchContent() {
     const router = useRouter();
-    const { user, loading: authLoading } = useAuth();
+    const { user, loading: authLoading, sessionEnded } = useAuth();
 
     const [seasons, setSeasons] = useState([]);
     const [allLeagues, setAllLeagues] = useState([]);
@@ -34,8 +34,8 @@ function CreateMatchContent() {
     const [scheduleDays, setScheduleDays] = useState([]); // org-wide game days, e.g. ["Saturday", "Sunday"]
 
     useEffect(() => {
-        if (!authLoading && !user) router.push("/login");
-    }, [authLoading, user, router]);
+        if (!authLoading && !user) router.push(loginPath("/matches/create", sessionEnded));
+    }, [authLoading, user, router, sessionEnded]);
 
     // Fetch seasons + leagues + teams when user is available
     useEffect(() => {

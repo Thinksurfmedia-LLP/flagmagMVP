@@ -3,14 +3,20 @@ import dbConnect from "@/lib/dbConnect";
 import Role from "@/models/Role";
 import User from "@/models/User";
 import Organization from "@/models/Organization";
-import { getMobileAuthState } from "@/lib/auth";
+import { getMobileAuthState, MOBILE_COOKIE_NAME } from "@/lib/auth";
 
 export async function GET() {
     try {
-        const { user, invalidated } = await getMobileAuthState();
+        const { user, invalidated, sessionEnded } = await getMobileAuthState();
 
         if (!user) {
-            return NextResponse.json({ success: false, error: "Not authenticated", invalidated }, { status: 401 });
+            // sessionEnded: there WAS a login but it's expired / was logged out
+            // (e.g. the mandatory nightly logout) — the app shows "your session
+            // ended, sign in again" instead of a plain login screen. The dead
+            // cookie is cleared so it isn't re-sent on every request.
+            const res = NextResponse.json({ success: false, error: "Not authenticated", invalidated, sessionEnded }, { status: 401 });
+            if (sessionEnded) res.cookies.delete(MOBILE_COOKIE_NAME);
+            return res;
         }
 
         await dbConnect();

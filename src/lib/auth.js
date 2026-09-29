@@ -4,6 +4,7 @@ import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import SiteSettings from "@/models/SiteSettings";
 import User from "@/models/User";
+import { readPolicy as readSessionPolicy, lastScheduledLogout } from "@/lib/sessionPolicy";
 
 if (!process.env.JWT_SECRET) {
     // A missing env var here means different server instances (or a
@@ -61,16 +62,24 @@ export function invalidateOrgCutoffCache(orgId) {
 const GLOBAL_CUTOFF_CACHE_MS = 5000;
 let globalCutoffCache = null; // { checkedAt, cutoff } | null
 
+// Manual "force logout everyone" (DB field) OR the mandatory nightly logout
+// (lib/sessionPolicy.js), whichever is later.
 async function getGlobalSessionsCutoff() {
     const now = Date.now();
+    let manual;
     if (globalCutoffCache && now - globalCutoffCache.checkedAt < GLOBAL_CUTOFF_CACHE_MS) {
-        return globalCutoffCache.cutoff;
+        manual = globalCutoffCache.cutoff;
+    } else {
+        await dbConnect();
+        const settings = await SiteSettings.findOne().select("globalSessionsInvalidatedAt").lean();
+        manual = settings?.globalSessionsInvalidatedAt || null;
+        globalCutoffCache = { checkedAt: now, cutoff: manual };
     }
-    await dbConnect();
-    const settings = await SiteSettings.findOne().select("globalSessionsInvalidatedAt").lean();
-    const cutoff = settings?.globalSessionsInvalidatedAt || null;
-    globalCutoffCache = { checkedAt: now, cutoff };
-    return cutoff;
+
+    const policy = readSessionPolicy();
+    if (!policy.enabled) return manual;
+    const scheduled = lastScheduledLogout(new Date(now), policy);
+    return manual && new Date(manual) > scheduled ? manual : scheduled;
 }
 
 /**
@@ -121,6 +130,32 @@ function cookieOptions() {
         maxAge: TOKEN_MAX_AGE_SECONDS,
         path: "/",
     };
+}
+
+// Stats (mobile) app session cookie — same 7-day lifetime as the web one.
+export const MOBILE_COOKIE_NAME = "flagmag-mobile-token";
+export function mobileCookieOptions() {
+    return cookieOptions();
+}
+
+// The stats app used to never renew its token, so a statistician who logged
+// in on one game day hit the hard 7-day expiry on the next — mid-game. Plays
+// are recorded without an auth check, so nothing failed until "End Game"
+// (PUT /api/games/[id]) answered "Authentication required". Renew it once it's
+// a day old on any authenticated request, so a session only expires after 7
+// days of genuinely not using the app.
+const MOBILE_REFRESH_THRESHOLD_SECONDS = 60 * 60 * 24;
+
+async function refreshMobileCookieIfStale(cookieStore, payload) {
+    try {
+        const issuedAt = typeof payload.iat === "number" ? payload.iat : 0;
+        if (!issuedAt || Date.now() / 1000 - issuedAt < MOBILE_REFRESH_THRESHOLD_SECONDS) return;
+        const { iat, exp, ...rest } = payload;
+        cookieStore.set(MOBILE_COOKIE_NAME, await signToken(rest), mobileCookieOptions());
+    } catch {
+        // Best-effort — never fail auth because the renewal itself errored
+        // (e.g. cookies are read-only in this rendering context).
+    }
 }
 
 /**
@@ -189,9 +224,9 @@ export async function getAuthState() {
         }
     }
 
-    // Don't slide the mobile-token cookie here — it's managed by its own
-    // login/logout routes and isn't ours to rewrite.
-    if (webToken) {
+    if (!webToken) {
+        await refreshMobileCookieIfStale(cookieStore, payload);
+    } else {
         try {
             const issuedAt = typeof payload.iat === "number" ? payload.iat : 0;
             const ageSeconds = Date.now() / 1000 - issuedAt;
@@ -234,14 +269,18 @@ export async function getCurrentUser() {
 export async function getMobileAuthState() {
     const cookieStore = await cookies();
     const token = cookieStore.get("flagmag-mobile-token")?.value;
-    if (!token) return { user: null, invalidated: false };
+    if (!token) return { user: null, invalidated: false, sessionEnded: false };
 
+    // A token that's present but no longer accepted (expired, or issued
+    // before the nightly / forced logout) means the session ENDED — the
+    // stats app tells the user so, instead of treating them like someone
+    // who never logged in.
     const payload = await verifyToken(token);
-    if (!payload) return { user: null, invalidated: false };
+    if (!payload) return { user: null, invalidated: false, sessionEnded: true };
 
     const globalCutoff = await getGlobalSessionsCutoff();
     if (globalCutoff && payload.iat * 1000 < new Date(globalCutoff).getTime()) {
-        return { user: null, invalidated: true };
+        return { user: null, invalidated: true, sessionEnded: true };
     }
 
     if (payload.id) {
@@ -249,11 +288,12 @@ export async function getMobileAuthState() {
         for (const orgId of orgIds) {
             const cutoff = await getOrgSessionsCutoff(orgId);
             if (cutoff && payload.iat * 1000 < new Date(cutoff).getTime()) {
-                return { user: null, invalidated: true };
+                return { user: null, invalidated: true, sessionEnded: true };
             }
         }
     }
 
+    await refreshMobileCookieIfStale(cookieStore, payload);
     return { user: payload, invalidated: false };
 }
 

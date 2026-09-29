@@ -8,16 +8,22 @@ export default function SplashPage() {
 
     useEffect(() => {
         const timer = setTimeout(async () => {
+            // Every launch checks the STATS-app session (me/mobile — the
+            // generic /api/auth/me falls back to the website cookie). If a
+            // login existed but has ended (expired / nightly logout), go
+            // straight to sign-in with a message — they can't record without it.
             try {
-                const res = await fetch("/api/auth/me", {
+                const res = await fetch("/api/auth/me/mobile", {
                     credentials: "include",
                 });
-                if (res.ok) {
-                    const json = await res.json();
-                    if (json?.data) {
-                        router.replace("/matches");
-                        return;
-                    }
+                const json = await res.json().catch(() => null);
+                if (res.ok && json?.data) {
+                    router.replace("/matches");
+                    return;
+                }
+                if (json?.sessionEnded || json?.invalidated) {
+                    router.replace("/login?expired=true");
+                    return;
                 }
             } catch {
                 // network error — fall through to welcome
