@@ -6,6 +6,7 @@ import AdminPagination from "@/components/AdminPagination";
 import AdminLayout, { hasAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
+import { teamLeagueSummary, sortTeamsForPicker } from "@/lib/teamLabel";
 
 export default function AdminPlayersPage() {
     const { user } = useAuth();
@@ -453,7 +454,7 @@ export default function AdminPlayersPage() {
                                 <div className="admin-form-group">
                                     <label className="admin-form-label">Available Teams</label>
                                     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
-                                        {allTeams.filter(t => !t.isPlaceholder && !(editForm.teams || []).find(st => st.teamId === String(t._id))).map(t => (
+                                        {sortTeamsForPicker(allTeams).filter(t => !t.isPlaceholder && !(editForm.teams || []).find(st => st.teamId === String(t._id))).map(t => (
                                             <div
                                                 key={t._id}
                                                 onClick={() => {
@@ -476,6 +477,8 @@ export default function AdminPlayersPage() {
                                                 onMouseLeave={e => { e.currentTarget.style.background = "#f0f1f5"; e.currentTarget.style.borderColor = "#d5d8e0"; }}
                                             >
                                                 + {t.name}
+                                                {/* Names repeat across leagues (e.g. two "Trojans") — show which one. */}
+                                                <span style={{ color: "#8b90a0", marginLeft: 6 }}>· {teamLeagueSummary(t)}</span>
                                             </div>
                                         ))}
                                         {allTeams.filter(t => !t.isPlaceholder && !(editForm.teams || []).find(st => st.teamId === String(t._id))).length === 0 && (
@@ -491,7 +494,14 @@ export default function AdminPlayersPage() {
                                             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                                                 {(editForm.teams || []).map((t, index) => (
                                                     <div key={t.teamId} style={{ display: "flex", alignItems: "center", background: "#fff", border: "1px solid #e5e7ef", borderRadius: 6, padding: "8px 12px", gap: 12 }}>
-                                                        <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#1a1d26" }}>{t.teamName}</div>
+                                                        <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#1a1d26" }}>
+                                                            {t.teamName}
+                                                            {allTeams.find(at => String(at._id) === t.teamId) && (
+                                                                <div style={{ fontWeight: 400, fontSize: 12, color: "#8b90a0" }}>
+                                                                    {teamLeagueSummary(allTeams.find(at => String(at._id) === t.teamId))}
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                                             <label style={{ fontSize: 12, color: "#5a5f72", fontWeight: 500 }}>Jersey #</label>
                                                             <input

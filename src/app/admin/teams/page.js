@@ -9,6 +9,8 @@ import AdminLayout, { hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 import { US_STATES, US_COUNTIES } from "@/lib/usGeoData";
+import { parseJerseyNumber, findDuplicateActiveJerseys } from "@/lib/rosterJersey";
+import { teamLeagueSummary } from "@/lib/teamLabel";
 
 function ImageUploadField({ value, onChange, placeholder, onError }) {
     const [uploading, setUploading] = useState(false);
@@ -429,17 +431,19 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
     // Local roster copy: [{ player: playerId, jerseyNumber }] — same shape
     // PUT /api/teams/[id] expects for `players` (a full-replace array, see
     // that route's PUT handler).
-    const [roster, setRoster] = useState(
-        (team.players || []).map((p) => ({
-            playerId: String(p.player?._id || p.player),
-            playerName: p.player?.name || "",
-            playerPhoto: p.player?.photo || "",
-            jerseyNumber: p.jerseyNumber != null ? String(p.jerseyNumber) : "",
-            // Stays true for any pre-existing roster row that predates this
-            // field (schema default), rather than needing a migration.
-            active: p.active !== false,
-        }))
-    );
+    const toRosterRows = (players) => (players || []).map((p) => ({
+        playerId: String(p.player?._id || p.player),
+        playerName: p.player?.name || "",
+        playerPhoto: p.player?.photo || "",
+        jerseyNumber: p.jerseyNumber != null ? String(p.jerseyNumber) : "",
+        // Stays true for any pre-existing roster row that predates this
+        // field (schema default), rather than needing a migration.
+        active: p.active !== false,
+    }));
+    const [roster, setRoster] = useState(() => toRosterRows(team.players));
+    // __v of the team `roster` was built from — sent as expectedVersion so
+    // the server rejects a save based on a roster someone else has changed.
+    const [version, setVersion] = useState(team.__v);
     const [selectedPlayerId, setSelectedPlayerId] = useState("");
     const [newJersey, setNewJersey] = useState("");
     const [saving, setSaving] = useState(false);
@@ -482,7 +486,7 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
         for (const p of t.players || []) {
             const pid = String(p.player?._id || p.player);
             if (!otherTeamsByPlayerId[pid]) otherTeamsByPlayerId[pid] = [];
-            otherTeamsByPlayerId[pid].push({ teamName: t.name, jerseyNumber: p.jerseyNumber });
+            otherTeamsByPlayerId[pid].push({ teamName: t.name, leagueSummary: teamLeagueSummary(t), jerseyNumber: p.jerseyNumber });
         }
     }
 
@@ -511,6 +515,23 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
         return `#${retired.jerseyNumber} is retired for this team${retired.playerName ? ` (${retired.playerName})` : ""}${retired.reason ? ` — ${retired.reason}` : ""}`;
     };
 
+    // Mirrors the server's active-only duplicate check (PUT /api/teams/[id])
+    // so a clash is caught with a specific message before any request.
+    // Returns an error string, or null if nobody active already wears it.
+    const checkTaken = (jerseyNumber, excludePlayerIds) => {
+        const holder = roster.find(
+            (r) => r.active && !excludePlayerIds.includes(r.playerId) && Number(r.jerseyNumber) === jerseyNumber
+        );
+        return holder ? `#${jerseyNumber} is already worn by ${holder.playerName || "another active player"} on this team` : null;
+    };
+
+    // Legacy duplicates (from before validation existed) no longer block
+    // saving, but they still need fixing — flag them so the organizer can.
+    const duplicateJerseys = findDuplicateActiveJerseys(
+        roster.map((r) => ({ player: r.playerId, jerseyNumber: r.jerseyNumber, active: r.active }))
+    );
+    const duplicatePlayerIds = new Set(duplicateJerseys.flatMap((d) => d.playerIds));
+
     const persist = async (nextRoster, successMessage) => {
         setSaving(true);
         try {
@@ -519,11 +540,24 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     players: nextRoster.map((r) => ({ player: r.playerId, jerseyNumber: r.jerseyNumber, active: r.active !== false })),
+                    expectedVersion: version,
                 }),
             });
             const data = await res.json();
-            if (!data.success) { showError(data.error || "Failed to update roster"); return false; }
+            if (!data.success) {
+                // Someone else saved this team first — the server rejected
+                // our stale copy and sent the current roster back; show that
+                // instead of letting the organizer keep editing old data.
+                if (data.code === "ROSTER_CONFLICT" && data.data) {
+                    setRoster(toRosterRows(data.data.players));
+                    setVersion(data.data.__v);
+                    if (onSave) onSave();
+                }
+                showError(data.error || "Failed to update roster");
+                return false;
+            }
             setRoster(nextRoster);
+            setVersion(data.data?.__v);
             showSuccess(successMessage);
             if (onSave) onSave();
             return true;
@@ -539,6 +573,10 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
         if (!selectedPlayerId || !newJersey.trim()) return;
         const player = availableToAdd.find((p) => String(p._id) === selectedPlayerId);
         if (!player) return;
+        const parsed = parseJerseyNumber(newJersey);
+        if (!parsed.ok) { showError(parsed.error); return; }
+        const takenError = checkTaken(parsed.value, [selectedPlayerId]);
+        if (takenError) { showError(takenError); return; }
         const retiredError = checkRetired(newJersey.trim(), selectedPlayerId);
         if (retiredError) { showError(retiredError); return; }
         const ok = await persist(
@@ -559,7 +597,11 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
     };
 
     const handleSaveEdit = async (entry) => {
-        if (!editJersey.trim()) { showError("Jersey number is required"); return; }
+        const parsed = parseJerseyNumber(editJersey);
+        if (!parsed.ok) { showError(parsed.error); return; }
+        // An inactive player's number is free to overlap (server rule).
+        const takenError = entry.active ? checkTaken(parsed.value, [entry.playerId]) : null;
+        if (takenError) { showError(takenError); return; }
         const retiredError = checkRetired(editJersey.trim(), entry.playerId);
         if (retiredError) { showError(retiredError); return; }
         const next = roster.map((r) => r.playerId === entry.playerId ? { ...r, jerseyNumber: editJersey.trim() } : r);
@@ -603,9 +645,18 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
     const resolveReactivateConflict = async () => {
         const { entry, conflictEntry, choice, newJersey } = reactivateConflict;
         const trimmed = newJersey.trim();
-        if (!trimmed) { showError("Enter a jersey number"); return; }
+        const parsed = parseJerseyNumber(trimmed);
+        if (!parsed.ok) { showError(parsed.error); return; }
 
         const targetPlayerId = choice === "reassignSelf" ? entry.playerId : conflictEntry.playerId;
+        // `entry` is still inactive in `roster`, so checkTaken can't see the
+        // number it's about to reclaim — cover that case explicitly.
+        if (choice === "reassignOther" && parsed.value === Number(entry.jerseyNumber)) {
+            showError(`#${parsed.value} is the number ${entry.playerName} is reactivating with — pick a different one`);
+            return;
+        }
+        const takenError = checkTaken(parsed.value, [targetPlayerId]);
+        if (takenError) { showError(takenError); return; }
         const retiredError = checkRetired(trimmed, targetPlayerId);
         if (retiredError) { showError(retiredError); return; }
 
@@ -632,6 +683,8 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
                     <i className="fa-solid fa-xmark"></i>
                 </button>
                 <h3 className="admin-modal-title">Manage Players — {team.name}</h3>
+                {/* Which "Trojans" this is — team names repeat across leagues. */}
+                <div style={{ marginTop: -8, marginBottom: 14, fontSize: 13, color: "#8b90a0" }}>{teamLeagueSummary(team)}</div>
 
                 <div className="admin-form-group">
                     <label className="admin-form-label">Currently Assigned ({roster.length})</label>
@@ -639,6 +692,13 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
                         <div style={{ color: "#8b90a0", fontSize: 13 }}>No players assigned yet.</div>
                     ) : (
                         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                            {duplicateJerseys.length > 0 && (
+                                <div role="alert" style={{ fontSize: 12, color: "#92400e", background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 6, padding: "8px 10px" }}>
+                                    <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: 6 }}></i>
+                                    Active players share {duplicateJerseys.map((d) => `#${d.jerseyNumber}`).join(", ")}. Stats for that number can go to the wrong player —
+                                    edit one player&apos;s number or deactivate one of them.
+                                </div>
+                            )}
                             {roster.map((entry) => (
                                 <div key={entry.playerId} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 10px", background: entry.active ? "#f9fafb" : "#fafafa", border: `1px solid ${entry.active ? "#e8eaef" : "#f0d9d9"}`, borderRadius: 6, gap: 8, opacity: entry.active ? 1 : 0.65 }}>
                                     <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
@@ -660,6 +720,11 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
                                         {!entry.active && (
                                             <span style={{ fontSize: 11, fontWeight: 600, color: "#b91c1c", background: "#fee2e2", padding: "2px 6px", borderRadius: 4, flexShrink: 0 }}>
                                                 Inactive
+                                            </span>
+                                        )}
+                                        {entry.active && duplicatePlayerIds.has(entry.playerId) && (
+                                            <span style={{ fontSize: 11, fontWeight: 600, color: "#92400e", background: "#fef3c7", padding: "2px 6px", borderRadius: 4, flexShrink: 0 }}>
+                                                Duplicate #
                                             </span>
                                         )}
                                     </div>
@@ -817,6 +882,7 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
                                                         }}
                                                     >
                                                         {ot.teamName} #{ot.jerseyNumber}
+                                                        <span style={{ fontWeight: 400, opacity: 0.8 }}>· {ot.leagueSummary}</span>
                                                     </span>
                                                 ))}
                                             </div>

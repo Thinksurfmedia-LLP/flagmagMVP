@@ -5,6 +5,15 @@ import Player from "@/models/Player";
 import GameStat from "@/models/GameStat";
 import { requireAdmin } from "@/lib/apiAuth";
 import { reconcilePlayerStatuses } from "@/lib/playerRosterSync";
+import {
+    validateTeamJerseyRequests,
+    pushPlayerAtomic,
+    renumberPlayerAtomic,
+    reactivatePlayerAtomic,
+    inTransaction,
+    RosterConflictError,
+} from "@/lib/teamJerseyGuard";
+import { deletePlayer } from "@/lib/playerDeletion";
 
 // GET single player
 export async function GET(request, { params }) {
@@ -44,8 +53,6 @@ export async function PUT(request, { params }) {
             // New parallel assignment logic
             const TeamModel = require("@/models/Team").default || require("mongoose").models.Team;
             
-            const currentTeams = await TeamModel.find({ "players.player": id });
-            const currentTeamIds = new Set(currentTeams.map(t => String(t._id)));
             const nextTeamIds = new Set(body.teams.map(t => String(t.teamId)));
 
             // Validate every requested jersey number BEFORE writing anything.
@@ -55,44 +62,55 @@ export async function PUT(request, { params }) {
             // validated this on save. Checking all requests up front (instead
             // of mid-loop) avoids leaving a half-applied assignment if a later
             // team in the list turns out to conflict.
-            for (const tReq of body.teams) {
-                const jNum = tReq.jerseyNumber != null && tReq.jerseyNumber !== "" ? Number(tReq.jerseyNumber) : 0;
-                const targetTeam = await TeamModel.findById(tReq.teamId).select("name players").lean();
-                if (!targetTeam) continue;
-                // Only checked against ACTIVE teammates — a deactivated
-                // player's old number is free to reassign (see
-                // Team.players[].active and the same scoping in
-                // PUT /api/teams/[id]).
-                const duplicate = (targetTeam.players || []).find(
-                    (p) => p.jerseyNumber === jNum && String(p.player) !== String(id) && p.active !== false
-                );
-                if (duplicate) {
-                    return NextResponse.json(
-                        { success: false, error: `Jersey number ${jNum} is already taken on team "${targetTeam.name}"` },
-                        { status: 409 }
-                    );
-                }
+            // Duplicates are only checked against ACTIVE teammates (a
+            // deactivated player's old number is free to reassign), and a
+            // team where this player keeps their existing number is skipped
+            // so a legacy duplicate doesn't block editing their profile.
+            const jerseyCheck = await validateTeamJerseyRequests(TeamModel, body.teams, id);
+            if (!jerseyCheck.ok) {
+                return NextResponse.json({ success: false, error: jerseyCheck.error }, { status: jerseyCheck.status });
             }
 
-            // Remove from teams no longer in the list
-            for (const t of currentTeams) {
-                if (!nextTeamIds.has(String(t._id))) {
-                    await TeamModel.findByIdAndUpdate(t._id, { $pull: { players: { player: id } } });
+            // All roster writes in one transaction, each an atomic
+            // check-and-write (see teamJerseyGuard.js) — if another request
+            // took a number between the validation above and here, the whole
+            // assignment rolls back with a 409 instead of saving a duplicate
+            // or leaving it half-applied.
+            const latestTeam = await inTransaction(async (session) => {
+                // Re-read membership inside the transaction — the snapshot
+                // above is only for validation messages; deciding push vs
+                // renumber from it could misfire if this player's rosters
+                // changed in between.
+                const liveTeams = await TeamModel.find({ "players.player": id }).select("name players").session(session).lean();
+                const currentById = new Map(liveTeams.map((t) => [String(t._id), t]));
+                for (const t of liveTeams) {
+                    if (!nextTeamIds.has(String(t._id))) {
+                        await TeamModel.updateOne(
+                            { _id: t._id },
+                            { $pull: { players: { player: id } }, $inc: { __v: 1 } },
+                            { session }
+                        );
+                    }
                 }
-            }
-            
-            // Add or update teams in the list
-            let latestTeam = null;
-            for (const tReq of body.teams) {
-                const jNum = tReq.jerseyNumber != null && tReq.jerseyNumber !== "" ? Number(tReq.jerseyNumber) : 0;
-                if (currentTeamIds.has(String(tReq.teamId))) {
-                    await TeamModel.updateOne({ _id: tReq.teamId, "players.player": id }, { $set: { "players.$.jerseyNumber": jNum } });
-                    if (!latestTeam) latestTeam = await TeamModel.findById(tReq.teamId);
-                } else {
-                    await TeamModel.findByIdAndUpdate(tReq.teamId, { $push: { players: { player: id, jerseyNumber: jNum } } });
-                    if (!latestTeam) latestTeam = await TeamModel.findById(tReq.teamId);
+
+                let first = null;
+                for (const tReq of body.teams) {
+                    const jNum = jerseyCheck.numbers.get(String(tReq.teamId));
+                    if (jNum === undefined) continue; // team no longer exists
+                    const current = currentById.get(String(tReq.teamId));
+                    const teamName = current?.name || tReq.teamName || "this team";
+                    if (current) {
+                        const mine = current.players.find((p) => String(p.player) === String(id));
+                        if (mine?.jerseyNumber !== jNum) {
+                            await renumberPlayerAtomic(TeamModel, { teamId: tReq.teamId, teamName, playerId: id, jerseyNumber: jNum, session });
+                        }
+                    } else {
+                        await pushPlayerAtomic(TeamModel, { teamId: tReq.teamId, teamName, playerId: id, jerseyNumber: jNum, session });
+                    }
+                    if (!first) first = await TeamModel.findById(tReq.teamId).select("name logo").session(session).lean();
                 }
-            }
+                return first;
+            });
             
             if (body.teams.length > 0) {
                 updateData.status = "player";
@@ -107,42 +125,43 @@ export async function PUT(request, { params }) {
                 await GameStat.deleteMany({ player: id, teamName: { $in: body.deleteStatsFor } });
             }
         } else if (teamName !== undefined || jerseyNumber !== undefined) {
+            // Older single-team path ({ teamName, jerseyNumber }): moves the
+            // player off every team and onto one. No admin screen sends this
+            // shape any more (they all send `teams`), but it's still reachable
+            // by API, so it gets the same rules as the `teams` branch: number
+            // required (blank used to silently become #0), unique among
+            // active teammates, not retired, written atomically.
             const TeamModel = require("@/models/Team").default || require("mongoose").models.Team;
 
-            // Resolve + validate the target team BEFORE touching any roster —
-            // same duplicate-jersey gap as the body.teams branch above, just
-            // in this endpoint's older single-team assignment path.
             let newTeam = null;
+            let jNum;
             if (teamName && teamName.trim() !== "") {
-                newTeam = await TeamModel.findOne({ name: teamName }).select("name logo players");
-                if (newTeam) {
-                    const jNum = jerseyNumber != null && jerseyNumber !== "" ? Number(jerseyNumber) : 0;
-                    // Only checked against ACTIVE teammates — see the
-                    // body.teams branch above for why.
-                    const duplicate = (newTeam.players || []).find(
-                        (p) => p.jerseyNumber === jNum && String(p.player) !== String(id) && p.active !== false
-                    );
-                    if (duplicate) {
-                        return NextResponse.json(
-                            { success: false, error: `Jersey number ${jNum} is already taken on team "${newTeam.name}"` },
-                            { status: 409 }
-                        );
-                    }
+                newTeam = await TeamModel.findOne({ name: teamName }).select("name logo").lean();
+                if (!newTeam) {
+                    // Used to silently unassign the player from every team.
+                    return NextResponse.json({ success: false, error: `Team "${teamName}" not found` }, { status: 404 });
                 }
+                const jerseyCheck = await validateTeamJerseyRequests(TeamModel, [{ teamId: newTeam._id, jerseyNumber }], id);
+                if (!jerseyCheck.ok) {
+                    return NextResponse.json({ success: false, error: jerseyCheck.error }, { status: jerseyCheck.status });
+                }
+                jNum = jerseyCheck.numbers.get(String(newTeam._id));
             }
 
-            // 1. Remove player from any team they are currently attached to
-            await TeamModel.updateMany(
-                { "players.player": id },
-                { $pull: { players: { player: id } } }
-            );
+            await inTransaction(async (session) => {
+                // 1. Remove player from any team they are currently attached to
+                await TeamModel.updateMany(
+                    { "players.player": id },
+                    { $pull: { players: { player: id } }, $inc: { __v: 1 } },
+                    { session }
+                );
+                // 2. Add player to the new team — atomic, rolls back step 1 on conflict
+                if (newTeam) {
+                    await pushPlayerAtomic(TeamModel, { teamId: newTeam._id, teamName: newTeam.name, playerId: id, jerseyNumber: jNum, session });
+                }
+            });
 
-            // 2. Add player to the new team with the provided jerseyNumber
             if (newTeam) {
-                const jNum = jerseyNumber != null && jerseyNumber !== "" ? Number(jerseyNumber) : 0;
-                await TeamModel.findByIdAndUpdate(newTeam._id, {
-                    $push: { players: { player: id, jerseyNumber: jNum } }
-                });
                 updateData.presentTeam = { name: newTeam.name, logo: newTeam.logo || "" };
 
                 // If player was a free_agent but now assigned to a team, make sure they are active as 'player'
@@ -168,9 +187,11 @@ export async function PUT(request, { params }) {
             // Deactivating never conflicts with anything — blind-overwrite
             // every membership.
             const TeamModel = require("@/models/Team").default || require("mongoose").models.Team;
+            // $inc __v so an open Manage Players modal can't overwrite this
+            // with its stale copy (see teamJerseyGuard.js).
             await TeamModel.updateMany(
                 { "players.player": new mongoose.Types.ObjectId(id) },
-                { $set: { "players.$[elem].active": false } },
+                { $set: { "players.$[elem].active": false }, $inc: { __v: 1 } },
                 { arrayFilters: [{ "elem.player": new mongoose.Types.ObjectId(id) }] }
             );
         } else if (body.isActive === true) {
@@ -188,16 +209,16 @@ export async function PUT(request, { params }) {
             for (const team of teams) {
                 const mine = (team.players || []).find((p) => String(p.player) === String(id));
                 if (!mine) continue;
-                const conflictEntry = (team.players || []).find(
-                    (p) => String(p.player) !== String(id) && p.jerseyNumber === mine.jerseyNumber && p.active !== false
-                );
-                if (conflictEntry) {
-                    conflicts.push({ teamName: team.name, jerseyNumber: mine.jerseyNumber, conflictPlayerId: conflictEntry.player });
-                } else {
-                    await TeamModel.updateOne(
-                        { _id: team._id, "players.player": id },
-                        { $set: { "players.$.active": true } }
+                // Atomic: only flips to active if nobody else wears the
+                // number at write time, so a racing assignment can't slip in
+                // between this check and the write.
+                const reactivated = await reactivatePlayerAtomic(TeamModel, { teamId: team._id, playerId: id, jerseyNumber: mine.jerseyNumber });
+                if (!reactivated) {
+                    const fresh = await TeamModel.findById(team._id).select("players").lean();
+                    const conflictEntry = (fresh?.players || []).find(
+                        (p) => String(p.player) !== String(id) && p.jerseyNumber === mine.jerseyNumber && p.active !== false
                     );
+                    conflicts.push({ teamName: team.name, jerseyNumber: mine.jerseyNumber, conflictPlayerId: conflictEntry?.player });
                 }
             }
             if (conflicts.length > 0) {
@@ -230,6 +251,9 @@ export async function PUT(request, { params }) {
             { status: 200 }
         );
     } catch (error) {
+        if (error instanceof RosterConflictError) {
+            return NextResponse.json({ success: false, code: "ROSTER_CONFLICT", error: error.message }, { status: 409 });
+        }
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }
@@ -242,9 +266,11 @@ export async function DELETE(request, { params }) {
 
         await dbConnect();
         const { id } = await params;
-        const player = await Player.findByIdAndDelete(id);
-        if (!player) {
-            return NextResponse.json({ success: false, error: "Player not found" }, { status: 404 });
+        // Also clears rosters/retired reservations and syncs the linked
+        // user's role — and refuses if the player has recorded history.
+        const result = await deletePlayer(id);
+        if (!result.ok) {
+            return NextResponse.json({ success: false, error: result.error }, { status: result.status });
         }
         return NextResponse.json({ success: true, message: "Player deleted" }, { status: 200 });
     } catch (error) {

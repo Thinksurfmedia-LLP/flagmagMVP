@@ -4,6 +4,7 @@ import Organization from "@/models/Organization";
 import League from "@/models/League";
 import Team from "@/models/Team";
 import { computeSeasonStats } from "@/lib/statsAggregation";
+import { exactRegex } from "@/lib/searchRegex";
 
 /**
  * GET /api/organizations/[slug]/season/[seasonSlug]/stats/computed?statType=passing&team=TeamName
@@ -34,10 +35,13 @@ export async function GET(request, { params }) {
 
         let rows = stats[statType] || [];
 
-        if (teamFilter) {
-            // Team filter active: return only that team's per-player rows
-            const re = new RegExp(teamFilter, "i");
-            rows = rows.filter((r) => re.test(r.teamName));
+        // Team filter active: return only that team's per-player rows.
+        // Exact, escaped match — this route is public, and the raw value used
+        // to be compiled as a regex ("HMYG (Thu)" never matched itself, and
+        // crafted input could hang the server).
+        const teamRe = exactRegex(teamFilter);
+        if (teamRe) {
+            rows = rows.filter((r) => teamRe.test(r.teamName));
         }
         // All Players: return per-player-per-team rows so multi-team players appear separately
 

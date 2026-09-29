@@ -3,6 +3,7 @@ import Team from "@/models/Team";
 import Game from "@/models/Game";
 import League from "@/models/League";
 import Player from "@/models/Player";
+import { isNoStatsTeamName } from "@/lib/noStatsTeams";
 
 // Passer rating — ported from the legacy Xflag system's 5-factor formula
 // (LiveGameManageController::calcscore, factors a-e) so ratings keep matching
@@ -164,6 +165,15 @@ async function backfillPlayerInfo(playerInfoById, plays) {
             playerPhoto: p.photo || "",
             jerseyNumber: "",
         };
+    }
+    // Frozen ID whose Player was since DELETED: keep the stat on a
+    // "Former player" row instead of letting resolvePlayerField fall back to
+    // the jersey-number lookup, which would credit it to whoever wears that
+    // number on today's roster.
+    for (const id of missingIds) {
+        if (!playerInfoById[id]) {
+            playerInfoById[id] = { playerId: id, playerName: "Former player", playerPhoto: "", jerseyNumber: "" };
+        }
     }
 }
 
@@ -596,10 +606,9 @@ function excludeNoStatsSide(rows, noStatsSide, teamNamesByAB) {
 // below — only the cross-league season leaderboard route filters them out
 // (see seasons/leaderboard/route.js), since that's the only surface where
 // stats attributed to a stand-in scrimmage team shouldn't count.
-export function isNoStatsTeamName(name) {
-    if (!name) return false;
-    return /\bstats$/i.test(name.trim());
-}
+// (Implementation moved to noStatsTeams.js — pure and unit-tested — and
+// re-exported here for existing importers.)
+export { isNoStatsTeamName };
 
 /**
  * Compute aggregated stats for a single game.

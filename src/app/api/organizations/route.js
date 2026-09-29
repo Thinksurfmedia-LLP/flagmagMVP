@@ -7,6 +7,7 @@ import Player from "@/models/Player";
 import { requireAdmin } from "@/lib/apiAuth";
 import { logActivity } from "@/lib/activityLogger";
 import { ensurePlaceholderTeams } from "@/lib/placeholderTeams";
+import { containsRegex } from "@/lib/searchRegex";
 
 export async function GET(request) {
     try {
@@ -68,9 +69,8 @@ export async function GET(request) {
         if (category) {
             filter.categories = category;
         }
-        if (search) {
-            filter.name = { $regex: search, $options: "i" };
-        }
+        const searchRe = containsRegex(search);
+        if (searchRe) filter.name = searchRe;
 
         let sortOption = {};
         switch (sort) {

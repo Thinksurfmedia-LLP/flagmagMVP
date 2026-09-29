@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import AdminLayout, { hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
+import { teamLeagueSummary, sortTeamsForPicker } from "@/lib/teamLabel";
 
 const FA_CSV_HEADERS = ["name", "email", "password", "phone"];
 const FA_CSV_SAMPLE = [
@@ -716,7 +717,7 @@ export default function AdminFreeAgentsPage() {
                                 <div className="admin-form-group">
                                     <label className="admin-form-label">Available Teams</label>
                                     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
-                                        {teams.filter(t => !t.isPlaceholder && !jerseyPrompt.selectedTeams.find(st => st.teamId === String(t._id))).map(t => (
+                                        {sortTeamsForPicker(teams).filter(t => !t.isPlaceholder && !jerseyPrompt.selectedTeams.find(st => st.teamId === String(t._id))).map(t => (
                                             <div
                                                 key={t._id}
                                                 onClick={() => {
@@ -739,6 +740,8 @@ export default function AdminFreeAgentsPage() {
                                                 onMouseLeave={e => { e.currentTarget.style.background = "#f0f1f5"; e.currentTarget.style.borderColor = "#d5d8e0"; }}
                                             >
                                                 + {t.name}
+                                                {/* Names repeat across leagues (e.g. two "Trojans") — show which one. */}
+                                                <span style={{ color: "#8b90a0", marginLeft: 6 }}>· {teamLeagueSummary(t)}</span>
                                             </div>
                                         ))}
                                         {teams.filter(t => !t.isPlaceholder && !jerseyPrompt.selectedTeams.find(st => st.teamId === String(t._id))).length === 0 && (
@@ -754,7 +757,14 @@ export default function AdminFreeAgentsPage() {
                                             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                                                 {jerseyPrompt.selectedTeams.map((st, index) => (
                                                     <div key={st.teamId} style={{ display: "flex", alignItems: "center", background: "#fff", border: "1px solid #e5e7ef", borderRadius: 6, padding: "8px 12px", gap: 12 }}>
-                                                        <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#1a1d26" }}>{st.teamName}</div>
+                                                        <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: "#1a1d26" }}>
+                                                            {st.teamName}
+                                                            {teams.find(t => String(t._id) === st.teamId) && (
+                                                                <div style={{ fontWeight: 400, fontSize: 12, color: "#8b90a0" }}>
+                                                                    {teamLeagueSummary(teams.find(t => String(t._id) === st.teamId))}
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                                             <label style={{ fontSize: 12, color: "#5a5f72", fontWeight: 500 }}>Jersey #</label>
                                                             <input

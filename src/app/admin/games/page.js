@@ -7,6 +7,7 @@ import { useToast } from "@/components/AdminToast";
 import WeekdayDatePicker from "@/components/WeekdayDatePicker";
 import AdminPagination from "@/components/AdminPagination";
 import ConfirmModal from "@/components/ConfirmModal";
+import { isNoStatsTeamName } from "@/lib/noStatsTeams";
 
 const GAMES_PER_PAGE = 20;
 // Minimum players required on each team's roster before a game can be
@@ -854,8 +855,10 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
         ? { name: liveGame.teamA?.name, logo: liveGame.teamA?.logo || "" }
         : { name: liveGame.teamB?.name, logo: liveGame.teamB?.logo || "" };
 
+    // "<Team> STATS" twins are league members too — never offer one as a
+    // stand-in (the server rejects it; see noStatsTeams.js).
     const availableSubTeams = leagueTeams.filter(
-        (t) => t.name !== liveGame.teamA?.name && t.name !== liveGame.teamB?.name
+        (t) => t.name !== liveGame.teamA?.name && t.name !== liveGame.teamB?.name && !isNoStatsTeamName(t.name)
     );
 
     const closeSubstituteFlow = () => {

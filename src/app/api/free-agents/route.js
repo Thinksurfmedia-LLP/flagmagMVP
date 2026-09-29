@@ -5,6 +5,7 @@ import Player from "@/models/Player";
 import User from "@/models/User";
 import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
 import { reconcilePlayerStatuses } from "@/lib/playerRosterSync";
+import { containsRegex } from "@/lib/searchRegex";
 
 async function getOrgIdForOrganizer(authUser) {
     if (authUser.organization?.id) return authUser.organization.id;
@@ -102,9 +103,8 @@ export async function GET(request) {
             filter.organization = orgId;
         }
 
-        if (search) {
-            filter.name = { $regex: search, $options: "i" };
-        }
+        const searchRe = containsRegex(search);
+        if (searchRe) filter.name = searchRe;
 
         const freeAgents = await Player.find(filter)
             .populate("user", "name email phone")

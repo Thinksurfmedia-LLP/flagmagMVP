@@ -7,6 +7,7 @@ import { requireAnyPermission } from "@/lib/apiAuth";
 import { logActivity } from "@/lib/activityLogger";
 import Game from "@/models/Game";
 import Team from "@/models/Team";
+import { containsRegex } from "@/lib/searchRegex";
 
 // GET all schedules
 export async function GET(request) {
@@ -39,10 +40,11 @@ export async function GET(request) {
             filter.organization = { $in: userOrgIds };
         }
 
-        if (search) {
+        const searchRe = containsRegex(search);
+        if (searchRe) {
             filter.$or = [
-                { scheduleLabel: { $regex: search, $options: "i" } },
-                { locationName: { $regex: search, $options: "i" } },
+                { scheduleLabel: searchRe },
+                { locationName: searchRe },
             ];
         }
 

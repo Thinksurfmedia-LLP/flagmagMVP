@@ -6,6 +6,7 @@ import User from "@/models/User";
 import { requireAnyPermission } from "@/lib/apiAuth";
 import { generateUniqueLeagueSlug } from "@/lib/leagueSlug";
 import { computeLeagueType } from "@/lib/leagueSeasonSync";
+import { containsRegex } from "@/lib/searchRegex";
 
 // GET all leagues (admin sees all; organizer sees own org's)
 export async function GET(request) {
@@ -39,7 +40,8 @@ export async function GET(request) {
             filter.organization = { $in: userOrgIds };
         }
 
-        if (search) filter.name = { $regex: search, $options: "i" };
+        const searchRe = containsRegex(search);
+        if (searchRe) filter.name = searchRe;
         if (type) filter.type = type;
 
         const leagues = await League.find(filter)

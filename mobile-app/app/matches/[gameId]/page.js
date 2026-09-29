@@ -345,8 +345,13 @@ function LiveGameContent({ gameId }) {
         ? { name: game?.teamA?.name, logo: game?.teamA?.logo || "" }
         : { name: game?.teamB?.name, logo: game?.teamB?.logo || "" };
 
+    // "<Team> STATS" scrimmage twins are members of the league too (so their
+    // No Stats Game can be scheduled) — never offer one as a stand-in, or a
+    // twin of a twin gets created. Same rule as isNoStatsTeamName on the
+    // server, which also rejects it.
+    const isNoStatsTeam = (name) => /\bstats$/i.test((name || "").trim());
     const availableSubTeams = leagueTeams.filter(
-        (t) => t.name !== game?.teamA?.name && t.name !== game?.teamB?.name
+        (t) => t.name !== game?.teamA?.name && t.name !== game?.teamB?.name && !isNoStatsTeam(t.name)
     );
 
     // This is two separate games, not one game reused for both: the
@@ -368,6 +373,10 @@ function LiveGameContent({ gameId }) {
                 forfeitSide: activeTeam,
                 standInTeamId: chosen._id,
             });
+            // e.g. two active players sharing a jersey number on either
+            // roster — the game still starts, but the statistician must see
+            // it before scoring (a 2s toast is lost on the navigation below).
+            if (res.warning) window.alert(res.warning);
             showToast(`No Stats Game started against ${chosen.name}`, "success");
             closeSubstituteFlow();
             router.replace(`/matches/${res.data.newGame._id}`);
@@ -477,7 +486,7 @@ function LiveGameContent({ gameId }) {
 
     const statActions = [
         { icon: "/assets/images/icon-completion.png", label: "Completion", action: "Completion" },
-        { icon: "/assets/images/inc_new.png", label: "Incompletion", action: "Incompletion" },
+        { icon: "/assets/images/inc_new.png", label: "Incomplete", action: "Incompletion" },
         { icon: "/assets/images/sack_new.png", label: "Sack", action: "Sack" },
         { icon: "/assets/images/int_new.png", label: "Interception", action: "Interception" },
         { icon: "/assets/images/icon-run.png", label: "Run", action: "Run" },

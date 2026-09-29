@@ -3,6 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import Player from "@/models/Player";
 import { requireAdmin, requireAuth, hasRole } from "@/lib/apiAuth";
 import { reconcilePlayerStatuses } from "@/lib/playerRosterSync";
+import { containsRegex } from "@/lib/searchRegex";
 
 // GET all players
 export async function GET(request) {
@@ -56,9 +57,8 @@ export async function GET(request) {
             filter.status = status;
         }
 
-        if (search) {
-            filter.name = { $regex: search, $options: "i" };
-        }
+        const searchRe = containsRegex(search);
+        if (searchRe) filter.name = searchRe;
 
         const TeamModel = mongoose.models.Team || require("@/models/Team").default;
 

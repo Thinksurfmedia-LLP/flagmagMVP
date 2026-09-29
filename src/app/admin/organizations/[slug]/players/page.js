@@ -6,6 +6,7 @@ import AdminLayout, { hasAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useImpersonation } from "@/components/ImpersonationProvider";
 import { useToast } from "@/components/AdminToast";
+import { teamLabel, teamLeagueSummary, sortTeamsForPicker } from "@/lib/teamLabel";
 
 function PlayerModal({ onClose, onSave, initial, orgUsers, allTeams }) {
     const initialTeams = initial ? allTeams.filter(t => (t.players || []).some(tp => String(tp.player?._id || tp.player) === String(initial._id))).map(t => {
@@ -65,7 +66,14 @@ function PlayerModal({ onClose, onSave, initial, orgUsers, allTeams }) {
                             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                                 {form.teams.map((t, index) => (
                                     <div key={t.teamId} style={{ display: "flex", alignItems: "center", background: "#fff", border: "1px solid #e5e7ef", borderRadius: 6, padding: "8px 12px", gap: 12 }}>
-                                        <div style={{ flex: 1, fontWeight: 600, fontSize: 14 }}>{t.teamName}</div>
+                                        <div style={{ flex: 1, fontWeight: 600, fontSize: 14 }}>
+                                            {t.teamName}
+                                            {allTeams.find(at => String(at._id) === t.teamId) && (
+                                                <div style={{ fontWeight: 400, fontSize: 12, color: "#8b90a0" }}>
+                                                    {teamLeagueSummary(allTeams.find(at => String(at._id) === t.teamId))}
+                                                </div>
+                                            )}
+                                        </div>
                                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                             <label style={{ fontSize: 12, color: "#5a5f72", fontWeight: 500 }}>Jersey #</label>
                                             <input
@@ -116,7 +124,8 @@ function PlayerModal({ onClose, onSave, initial, orgUsers, allTeams }) {
                         }} 
                     >
                         <option value="">-- Select a team to add --</option>
-                        {allTeams.filter(t => !form.teams.find(et => et.teamId === String(t._id))).map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
+                        {/* Label with league/season — names repeat across leagues (e.g. two "Trojans"). */}
+                        {sortTeamsForPicker(allTeams).filter(t => !form.teams.find(et => et.teamId === String(t._id))).map(t => <option key={t._id} value={t._id}>{teamLabel(t)}</option>)}
                     </select>
                 </div>
 

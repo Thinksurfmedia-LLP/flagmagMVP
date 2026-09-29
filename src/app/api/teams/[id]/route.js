@@ -5,6 +5,45 @@ import Player from "@/models/Player";
 import User from "@/models/User";
 import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
 import { reconcilePlayerStatuses } from "@/lib/playerRosterSync";
+import { parseJerseyNumber, findBlockingJerseyConflicts, getChangedEntries } from "@/lib/rosterJersey";
+
+function populateTeam(query) {
+    return query
+        .populate("organization", "name slug")
+        // Same league shape as GET /api/teams, so pickers that swap in this
+        // response keep their "Trojans — SD Thu (Fall 2026)" label (teamLabel.js).
+        .populate({ path: "leagues.league", select: "name season type", populate: { path: "season", select: "name" } })
+        .populate("players.player", "name photo presentTeam organization")
+        .populate("retiredNumbers.player", "name")
+        .lean();
+}
+
+// 409 carrying the team as it is NOW, so the client can show the current
+// roster instead of letting the organizer keep editing a stale copy.
+async function rosterConflictResponse(teamId) {
+    return NextResponse.json(
+        {
+            success: false,
+            code: "ROSTER_CONFLICT",
+            error: "Someone else changed this team's roster while you were editing. The latest roster has been loaded — please check it and try again.",
+            data: await populateTeam(Team.findById(teamId)),
+        },
+        { status: 409 }
+    );
+}
+
+// "Jersey #7 is already worn by Troy Cordova and Mikey Birk" — names the
+// actual clash instead of a generic message the organizer can't act on.
+async function describeJerseyConflicts(conflicts) {
+    const ids = [...new Set(conflicts.flatMap((c) => c.playerIds))];
+    const docs = await Player.find({ _id: { $in: ids } }).select("name").lean();
+    const nameById = new Map(docs.map((p) => [String(p._id), p.name]));
+    const parts = conflicts.map((c) => {
+        const names = c.playerIds.map((id) => nameById.get(id) || "another player");
+        return `#${c.jerseyNumber} (${names.join(", ")})`;
+    });
+    return `Duplicate jersey number among active players on this team: ${parts.join("; ")}`;
+}
 
 async function getOrgIdForOrganizer(authUser) {
     if (authUser.organization?.id) return authUser.organization.id;
@@ -135,6 +174,15 @@ export async function PUT(request, { params }) {
             return NextResponse.json({ success: false, error: "Placeholder teams cannot be edited" }, { status: 403 });
         }
 
+        // Stale-editor check: the Manage Players modal / retired-numbers page
+        // send the __v of the team they're showing. If the team has changed
+        // since (another admin, a player-page assignment), their full-replace
+        // arrays are based on old data — reject instead of overwriting.
+        if (body.expectedVersion !== undefined && body.expectedVersion !== null
+            && Number(body.expectedVersion) !== (team.__v ?? 0)) {
+            return rosterConflictResponse(team._id);
+        }
+
         const prevName = team.name;
         const prevPlayerIds = (team.players || []).map(p => String(p.player));
 
@@ -147,40 +195,44 @@ export async function PUT(request, { params }) {
         // Validate jersey numbers when players are provided
         if (nextPlayersArray) {
             for (const entry of nextPlayersArray) {
-                if (typeof entry === "object" && (entry.jerseyNumber === undefined || entry.jerseyNumber === null || entry.jerseyNumber === "")) {
+                if (typeof entry !== "object") continue;
+                const parsed = parseJerseyNumber(entry.jerseyNumber);
+                if (!parsed.ok) {
                     return NextResponse.json(
-                        { success: false, error: "Jersey number is required for all players" },
+                        { success: false, error: `${parsed.error} for all players` },
                         { status: 400 }
                     );
                 }
             }
-            // Check for duplicate jersey numbers — only among ACTIVE players.
-            // A deactivated player (hasn't paid for the new season, etc.)
-            // keeps their historical jersey number on the roster, but it's
-            // free for someone else to wear while they're inactive; the
-            // number only has to stay unique among whoever can actually be
-            // recorded in a game right now (see GET .../roster and
-            // POST/PUT .../plays, which already gate on `active`).
-            const activeJerseyNumbers = nextPlayersArray
-                .filter(p => typeof p === "object" && p.active !== false)
-                .map(p => Number(p.jerseyNumber));
-            const uniqueActiveJerseys = new Set(activeJerseyNumbers);
-            if (uniqueActiveJerseys.size !== activeJerseyNumbers.length) {
+            // Validate exactly what gets saved below — legacy plain-ID entries
+            // are stored as #0/active, so they must be checked as such too.
+            const objectEntries = nextPlayersArray.map(p =>
+                typeof p === "object" ? p : { player: p, jerseyNumber: 0, active: true }
+            );
+
+            // Duplicate jersey numbers — only among ACTIVE players (a
+            // deactivated player's number is free for someone else while
+            // they're inactive; GET .../roster and POST/PUT .../plays gate on
+            // `active`). And only duplicates THIS save introduces: players[]
+            // is a full replace resent on every add/remove/toggle, so a
+            // pre-existing duplicate from legacy data must not lock the whole
+            // team — see findBlockingJerseyConflicts.
+            const conflicts = findBlockingJerseyConflicts(team.players || [], objectEntries);
+            if (conflicts.length > 0) {
                 return NextResponse.json(
-                    { success: false, error: "Duplicate jersey numbers are not allowed among active players on the same team" },
+                    { success: false, error: await describeJerseyConflicts(conflicts) },
                     { status: 400 }
                 );
             }
 
             // A retired number stays off-limits for anyone except the player
             // it's reserved for (re-joining the team) — unless the caller
-            // explicitly overrides it. Checked against the number itself,
-            // not against whoever wore it before, since `players[]` is a
-            // full replacement and the old assignment is about to be gone.
+            // explicitly overrides it. Like the duplicate check, only entries
+            // this save adds/renumbers/reactivates are checked, so a legacy
+            // holder of a since-retired number doesn't block unrelated edits.
             if (!body.allowRetiredNumbers) {
-                for (const entry of nextPlayersArray) {
-                    if (typeof entry !== "object") continue;
-                    const num = Number(entry.jerseyNumber);
+                for (const entry of getChangedEntries(team.players || [], objectEntries)) {
+                    const num = entry.jerseyNumber;
                     const retired = (team.retiredNumbers || []).find((r) => r.jerseyNumber === num);
                     if (!retired) continue;
                     const reservedForThisPlayer = retired.player && String(retired.player) === String(entry.player);
@@ -250,7 +302,21 @@ export async function PUT(request, { params }) {
                 active: typeof p === "object" && p.active === false ? false : true,
             }));
         }
-        await team.save();
+
+        // Optimistic concurrency: players[]/retiredNumbers[] are full
+        // replacements computed from what THIS request loaded. increment()
+        // makes save() match on the loaded __v, so if anyone changed the
+        // team in between (another modal, a player-page assignment — those
+        // all bump __v, see teamJerseyGuard.js) this save is rejected
+        // instead of silently undoing their change or saving a duplicate
+        // that the validation above never saw.
+        team.increment();
+        try {
+            await team.save();
+        } catch (err) {
+            if (err?.name !== "VersionError") throw err;
+            return rosterConflictResponse(team._id);
+        }
 
         if (prevName !== team.name) {
             await Player.updateMany(
@@ -282,12 +348,7 @@ export async function PUT(request, { params }) {
             await reconcilePlayerStatuses(touchedPlayerIds);
         }
 
-        const updated = await Team.findById(team._id)
-            .populate("organization", "name slug")
-            .populate("leagues.league", "name")
-            .populate("players.player", "name photo presentTeam organization")
-            .populate("retiredNumbers.player", "name")
-            .lean();
+        const updated = await populateTeam(Team.findById(team._id));
 
         return NextResponse.json({ success: true, data: updated });
     } catch (error) {

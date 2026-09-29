@@ -2,40 +2,22 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Player from "@/models/Player";
 import User from "@/models/User";
-import Team from "@/models/Team";
 import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
+import { deletePlayer } from "@/lib/playerDeletion";
 
 async function getOrgIdForOrganizer(authUser) {
     if (authUser.organization?.id) return authUser.organization.id;
     const userDoc =
         (await User.findById(authUser.id).select("organization roleOrganizations").lean()) ||
         (await User.findOne({ email: authUser.email }).select("organization roleOrganizations").lean());
-        
+
     if (userDoc?.roleOrganizations?.organizer) {
         const orgs = userDoc.roleOrganizations.organizer;
         if (Array.isArray(orgs) && orgs.length > 0) return String(orgs[0]);
         if (typeof orgs === "string") return String(orgs);
     }
-    
+
     return userDoc?.organization ? String(userDoc.organization) : null;
-}
-
-// Recalculate User.role based on remaining Player docs
-async function syncUserRole(userId) {
-    const playerDocs = await Player.find({ user: userId }).select("status").lean();
-    const hasPlayer = playerDocs.some((p) => p.status === "player");
-    const hasFreeAgent = playerDocs.some((p) => p.status === "free_agent");
-
-    const user = await User.findById(userId).select("role roles").lean();
-    if (!user || ["admin", "organizer"].includes(user.role)) return;
-
-    const newRole = hasPlayer ? "player" : hasFreeAgent ? "free_agent" : "viewer";
-    const newRoles = user.roles.filter((r) => !["player", "free_agent", "viewer"].includes(r));
-    if (hasPlayer) newRoles.push("player");
-    if (hasFreeAgent) newRoles.push("free_agent");
-    if (newRoles.length === 0) newRoles.push("viewer");
-
-    await User.updateOne({ _id: userId }, { $set: { role: newRole, roles: newRoles } });
 }
 
 // DELETE free agent (remove from org)
@@ -69,18 +51,13 @@ export async function DELETE(request, { params }) {
             }
         }
 
-        // Remove from any teams (safety check)
-        await Team.updateMany(
-            { players: player._id },
-            { $pull: { players: player._id } }
-        );
-
-        const userId = player.user;
-        await Player.findByIdAndDelete(id);
-
-        // Recalculate user role
-        if (userId) {
-            await syncUserRole(userId);
+        // Shared with DELETE /api/players/[id]: clears any leftover roster
+        // entries (the old `$pull: { players: id }` here used the pre-subdoc
+        // roster shape and never matched), syncs the user's role, and refuses
+        // if this free agent has recorded plays/awards from past teams.
+        const result = await deletePlayer(id);
+        if (!result.ok) {
+            return NextResponse.json({ success: false, error: result.error }, { status: result.status });
         }
 
         return NextResponse.json({ success: true, message: "Free agent removed" });

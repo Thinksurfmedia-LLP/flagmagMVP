@@ -16,16 +16,22 @@ import Team from "@/models/Team";
  */
 export async function findOrCreateStatsTwin(realTeam, leagueId) {
     const twinName = `${realTeam.name} STATS`;
+    // `active` is carried over too — dropping it (as this used to) turned
+    // every player deactivated on the real team (e.g. unpaid) back into an
+    // active one on the twin, so they could be recorded in the scrimmage,
+    // and an inactive/active pair sharing a number became two ACTIVE
+    // players on one number, with plays landing on whichever was found first.
     const players = (realTeam.players || []).map((p) => ({
         player: p.player,
         jerseyNumber: p.jerseyNumber,
+        active: p.active !== false,
     }));
 
     // Scoped to this league too — two unrelated real teams can share a name
     // across different leagues (e.g. a "Warriors" in Chino and a different
     // "Warriors" in Temecula), and without the league scope here their
     // "Warriors STATS" twins would collide and steal each other's roster.
-    const existingTwin = await Team.findOne({ organization: realTeam.organization, name: twinName, "leagues.league": leagueId });
+    const existingTwin = await Team.findOne({ organization: realTeam.organization, name: twinName, "leagues.league": leagueId }).select("_id logo").lean();
 
     if (!existingTwin) {
         return Team.create({
@@ -37,10 +43,14 @@ export async function findOrCreateStatsTwin(realTeam, leagueId) {
         });
     }
 
-    existingTwin.players = players;
-    existingTwin.logo = realTeam.logo || existingTwin.logo;
-    const alreadyInLeague = (existingTwin.leagues || []).some((m) => String(m.league) === String(leagueId));
-    if (!alreadyInLeague) existingTwin.leagues.push({ league: leagueId });
-    await existingTwin.save();
-    return existingTwin;
+    // Single atomic update (the twin was found BY this league, so its
+    // membership is already there). Bumps __v like every other roster
+    // write, so a stale Manage Players save on the twin can't overwrite this
+    // re-sync (see teamJerseyGuard.js) — without a read-modify-save that two
+    // simultaneous No Stats starts could trip over.
+    return Team.findByIdAndUpdate(
+        existingTwin._id,
+        { $set: { players, logo: realTeam.logo || existingTwin.logo }, $inc: { __v: 1 } },
+        { new: true }
+    );
 }

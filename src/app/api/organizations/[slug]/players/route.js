@@ -4,6 +4,7 @@ import Organization from "@/models/Organization";
 import User from "@/models/User";
 import Player from "@/models/Player";
 import { requireAdmin } from "@/lib/apiAuth";
+import { validateTeamJerseyRequests, pushPlayerAtomic, inTransaction, RosterConflictError } from "@/lib/teamJerseyGuard";
 
 // GET players for an organization (through user.organization)
 export async function GET(request, { params }) {
@@ -63,26 +64,42 @@ export async function POST(request, { params }) {
             playerData.status = "player";
         }
 
-        const player = await Player.create(playerData);
-        
-        if (teams && teams.length > 0) {
-            const TeamModel = require("@/models/Team").default || require("mongoose").models.Team;
-            let latestTeam = null;
-            
-            for (const tReq of teams) {
-                const jNum = tReq.jerseyNumber != null && tReq.jerseyNumber !== "" ? Number(tReq.jerseyNumber) : 0;
-                await TeamModel.findByIdAndUpdate(tReq.teamId, { $push: { players: { player: player._id, jerseyNumber: jNum } } });
-                if (!latestTeam) latestTeam = await TeamModel.findById(tReq.teamId);
-            }
-            
-            if (latestTeam) {
-                player.presentTeam = { name: latestTeam.name, logo: latestTeam.logo || "" };
-                await player.save();
-            }
+        const TeamModel = require("@/models/Team").default || require("mongoose").models.Team;
+
+        // Validate every requested jersey number BEFORE creating the player,
+        // so a conflict doesn't leave an orphaned player behind. This push
+        // used to be unchecked (and turned a blank number into 0) — one of
+        // the paths that let duplicate jerseys into Team.players.
+        const jerseyCheck = await validateTeamJerseyRequests(TeamModel, teams, null);
+        if (!jerseyCheck.ok) {
+            return NextResponse.json({ success: false, error: jerseyCheck.error }, { status: jerseyCheck.status });
         }
-        
+
+        // Player + every roster push in one transaction, each push an atomic
+        // check-and-write — if another request takes one of these numbers in
+        // the meantime, nothing is saved (no orphaned player, no duplicate).
+        const player = await inTransaction(async (session) => {
+            const [created] = await Player.create([playerData], { session });
+            let firstTeam = null;
+            for (const tReq of teams || []) {
+                const jNum = jerseyCheck.numbers.get(String(tReq.teamId));
+                if (jNum === undefined) continue; // team no longer exists
+                const team = await TeamModel.findById(tReq.teamId).select("name logo").session(session).lean();
+                await pushPlayerAtomic(TeamModel, { teamId: tReq.teamId, teamName: team?.name || "this team", playerId: created._id, jerseyNumber: jNum, session });
+                if (!firstTeam) firstTeam = team;
+            }
+            if (firstTeam) {
+                created.presentTeam = { name: firstTeam.name, logo: firstTeam.logo || "" };
+                await created.save({ session });
+            }
+            return created;
+        });
+
         return NextResponse.json({ success: true, data: player }, { status: 201 });
     } catch (error) {
+        if (error instanceof RosterConflictError) {
+            return NextResponse.json({ success: false, code: "ROSTER_CONFLICT", error: error.message }, { status: 409 });
+        }
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }

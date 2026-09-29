@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import GameStat from "@/models/GameStat";
+import { exactRegex } from "@/lib/searchRegex";
 
 export async function GET(request, { params }) {
     try {
@@ -11,9 +12,10 @@ export async function GET(request, { params }) {
         const statType = searchParams.get("statType") || "passing";
 
         const filter = { game: gameId, statType };
-        if (team) {
-            filter.teamName = { $regex: new RegExp(`^${team}$`, "i") };
-        }
+        // Exact team name, escaped — this route is public, and the raw
+        // value used to be spliced into a RegExp (500 on "(", ReDoS risk).
+        const teamRe = exactRegex(team);
+        if (teamRe) filter.teamName = teamRe;
 
         const stats = await GameStat.find(filter)
             .populate("player", "name photo presentTeam")

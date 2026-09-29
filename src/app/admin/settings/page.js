@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import AdminLayout, { hasAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
+import { teamLabel, sortTeamsForPicker } from "@/lib/teamLabel";
 
 // Wipes local browser state so a force-logged-out user actually gets a
 // clean build on next login, not a login screen over stale cached assets.
@@ -172,10 +173,18 @@ export default function SettingsPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     retiredNumbers: nextRetired.map((r) => ({ jerseyNumber: r.jerseyNumber, player: r.playerId || null, reason: r.reason })),
+                    expectedVersion: selectedTeam?.__v,
                 }),
             });
             const data = await res.json();
-            if (!data.success) { showError(data.error || "Failed to update retired numbers"); return false; }
+            if (!data.success) {
+                // Stale copy rejected — load the team as it is now.
+                if (data.code === "ROSTER_CONFLICT" && data.data) {
+                    setTeams((prev) => prev.map((t) => String(t._id) === selectedTeamId ? data.data : t));
+                }
+                showError(data.error || "Failed to update retired numbers");
+                return false;
+            }
             setTeams((prev) => prev.map((t) => String(t._id) === selectedTeamId ? data.data : t));
             showSuccess(successMessage);
             return true;
@@ -657,8 +666,9 @@ export default function SettingsPage() {
                                     disabled={loadingTeams}
                                 >
                                     <option value="">{loadingTeams ? "Loading teams..." : "Select a team..."}</option>
-                                    {teams.map((t) => (
-                                        <option key={t._id} value={t._id}>{t.name}</option>
+                                    {/* Label with league/season — names repeat across leagues (e.g. two "Trojans"). */}
+                                    {sortTeamsForPicker(teams).map((t) => (
+                                        <option key={t._id} value={t._id}>{teamLabel(t)}</option>
                                     ))}
                                 </select>
                             </div>

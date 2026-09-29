@@ -6,6 +6,20 @@ import League from "@/models/League";
 import Schedule from "@/models/Schedule";
 import { requireAdminOrStatistician } from "@/lib/apiAuth";
 import { findOrCreateStatsTwin } from "@/lib/statsTwinTeams";
+import Player from "@/models/Player";
+import { findDuplicateActiveJerseys } from "@/lib/rosterJersey";
+import { validateNoStatsTeams } from "@/lib/noStatsTeams";
+
+// "GOAT #7 (Troy Cordova, Mikey Birk)" for every duplicate active number
+// on the given teams, or null when there are none.
+async function describeDuplicateJerseys(teams) {
+    const found = teams.flatMap((t) => findDuplicateActiveJerseys(t.players || []).map((d) => ({ team: t.name, ...d })));
+    if (found.length === 0) return null;
+    const docs = await Player.find({ _id: { $in: found.flatMap((d) => d.playerIds) } }).select("name").lean();
+    const nameById = new Map(docs.map((p) => [String(p._id), p.name]));
+    const parts = found.map((d) => `${d.team} #${d.jerseyNumber} (${d.playerIds.map((id) => nameById.get(id) || "unknown").join(", ")})`);
+    return `Shared jersey numbers: ${parts.join("; ")}. Plays on those numbers can only go to one of them — fix it from the team's Manage Players page.`;
+}
 
 // POST /api/games/[gameId]/start-no-stats-game
 // Body: { forfeitSide: "A"|"B", standInTeamId }
@@ -58,7 +72,7 @@ export async function POST(request, { params }) {
         // "Warriors" in Temecula).
         const [realTeamDoc, standInTeamDoc] = await Promise.all([
             Team.findOne({ organization: league.organization, name: realTeamSlot.name, "leagues.league": original.league }).select("name logo players organization").lean(),
-            Team.findById(standInTeamId).select("name logo players organization").lean(),
+            Team.findById(standInTeamId).select("name logo players organization isPlaceholder").lean(),
         ]);
         if (!realTeamDoc) {
             return NextResponse.json({ success: false, error: `Team "${realTeamSlot.name}" not found` }, { status: 404 });
@@ -67,18 +81,32 @@ export async function POST(request, { params }) {
             return NextResponse.json({ success: false, error: "Stand-in team not found" }, { status: 404 });
         }
 
+        // Guards against the flow being pointed at the wrong kind of team.
+        // "<Team> STATS" twins are real Team docs added to the league (so
+        // their scrimmage can be scheduled), which put them in the stand-in
+        // picker — choosing one created a twin OF a twin ("Campus Harvest
+        // STATS STATS", seen in test data). Enforced here, not just in the
+        // picker, so no client can do it.
+        const invalidStandIn = validateNoStatsTeams({ original, league, realTeamDoc, standInTeamDoc });
+        if (invalidStandIn) {
+            return NextResponse.json({ success: false, error: invalidStandIn }, { status: 400 });
+        }
+
         // Both rosters need enough players to actually field a game — check
         // this BEFORE touching anything, so a failed check leaves the
         // original fixture untouched (no forfeit without a replacement).
         const MIN_PLAYERS = 4;
         const shortRosters = [];
-        if ((realTeamDoc.players || []).length < MIN_PLAYERS) shortRosters.push(realTeamDoc.name);
-        if ((standInTeamDoc.players || []).length < MIN_PLAYERS) shortRosters.push(standInTeamDoc.name);
+        // Only ACTIVE players count — the twins now keep each player's
+        // active flag, and inactive ones can't be recorded in the scrimmage.
+        const activeCount = (t) => (t.players || []).filter((p) => p.active !== false).length;
+        if (activeCount(realTeamDoc) < MIN_PLAYERS) shortRosters.push(realTeamDoc.name);
+        if (activeCount(standInTeamDoc) < MIN_PLAYERS) shortRosters.push(standInTeamDoc.name);
         if (shortRosters.length > 0) {
             return NextResponse.json(
                 {
                     success: false,
-                    error: `${shortRosters.join(" and ")} ${shortRosters.length > 1 ? "don't" : "doesn't"} have at least ${MIN_PLAYERS} players on the roster. Add players first.`,
+                    error: `${shortRosters.join(" and ")} ${shortRosters.length > 1 ? "don't" : "doesn't"} have at least ${MIN_PLAYERS} active players on the roster. Add players first.`,
                 },
                 { status: 400 }
             );
@@ -173,8 +201,14 @@ export async function POST(request, { params }) {
             console.error("No Stats Game schedule sync failed:", scheduleErr);
         }
 
+        // The twins mirror the real rosters exactly, so a duplicate active
+        // number on a real team (legacy data) carries into the scrimmage —
+        // plays on that number would all land on one of the players. Not a
+        // reason to block a game that's about to start; tell the statistician.
+        const jerseyWarning = await describeDuplicateJerseys([realTeamDoc, standInTeamDoc]);
+
         return NextResponse.json(
-            { success: true, data: { completedOriginal, newGame } },
+            { success: true, data: { completedOriginal, newGame }, ...(jerseyWarning ? { warning: jerseyWarning } : {}) },
             { status: 200 }
         );
     } catch (error) {

@@ -6,6 +6,7 @@ import User from "@/models/User";
 import { requireAnyPermission } from "@/lib/apiAuth";
 import { logActivity } from "@/lib/activityLogger";
 import { syncLeagueTypesToDefaultSeason } from "@/lib/leagueSeasonSync";
+import { containsRegex } from "@/lib/searchRegex";
 
 // GET all seasons (admin sees all; organizer sees own org's)
 export async function GET(request) {
@@ -38,9 +39,8 @@ export async function GET(request) {
             filter.organization = { $in: userOrgIds };
         }
 
-        if (search) {
-            filter.name = { $regex: search, $options: "i" };
-        }
+        const searchRe = containsRegex(search);
+        if (searchRe) filter.name = searchRe;
 
         const seasons = await Season.find(filter)
             .populate("organization", "name slug")
