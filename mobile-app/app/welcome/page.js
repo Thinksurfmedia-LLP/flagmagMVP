@@ -8,7 +8,7 @@ export default function WelcomePage() {
     const router = useRouter();
 
     useEffect(() => {
-        fetch("/api/auth/me", { credentials: "include" })
+        fetch("/api/auth/me/mobile", { credentials: "include" })
             .then((res) => res.ok ? res.json() : null)
             .then((json) => {
                 if (json?.data) router.replace("/matches");

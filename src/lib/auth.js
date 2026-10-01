@@ -1,6 +1,7 @@
 import { SignJWT, jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import dbConnect from "@/lib/dbConnect";
+import { CLIENT_HEADER, WEB_COOKIE_NAME, MOBILE_COOKIE_NAME as STATS_COOKIE_NAME, cookieNameForClient } from "@/lib/authClient";
 import Organization from "@/models/Organization";
 import SiteSettings from "@/models/SiteSettings";
 import User from "@/models/User";
@@ -20,7 +21,7 @@ const JWT_SECRET = new TextEncoder().encode(
     process.env.JWT_SECRET || "fallback-secret-do-not-use-in-production"
 );
 
-const COOKIE_NAME = "flagmag-token";
+const COOKIE_NAME = WEB_COOKIE_NAME;
 const TOKEN_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7 days
 const TOKEN_EXPIRY = `${TOKEN_MAX_AGE_SECONDS}s`;
 // Once a token is more than half-way to expiry, reissue it on the next
@@ -133,7 +134,7 @@ function cookieOptions() {
 }
 
 // Stats (mobile) app session cookie — same 7-day lifetime as the web one.
-export const MOBILE_COOKIE_NAME = "flagmag-mobile-token";
+export const MOBILE_COOKIE_NAME = STATS_COOKIE_NAME;
 export function mobileCookieOptions() {
     return cookieOptions();
 }
@@ -197,13 +198,19 @@ export async function setAuthCookie(token) {
  * callers can react (e.g. clear client cache) without looping on visitors
  * who were never authenticated.
  *
+ * Reads ONLY the requesting app's own cookie — flagmag-mobile-token for
+ * stats-app requests (stamped by its proxy.js), flagmag-token for everything
+ * else — never falling back to the other. See lib/authClient.js.
+ *
  * Only ever called from Route Handlers / Server Actions (never Server
  * Components), so it's safe to write the refreshed cookie here directly.
  */
 export async function getAuthState() {
     const cookieStore = await cookies();
-    const webToken = cookieStore.get(COOKIE_NAME)?.value;
-    const token = webToken || cookieStore.get("flagmag-mobile-token")?.value;
+    const headerStore = await headers();
+    const cookieName = cookieNameForClient(headerStore.get(CLIENT_HEADER));
+    const isStatsRequest = cookieName === MOBILE_COOKIE_NAME;
+    const token = cookieStore.get(cookieName)?.value;
     if (!token) return { user: null, invalidated: false };
 
     const payload = await verifyToken(token);
@@ -224,7 +231,7 @@ export async function getAuthState() {
         }
     }
 
-    if (!webToken) {
+    if (isStatsRequest) {
         await refreshMobileCookieIfStale(cookieStore, payload);
     } else {
         try {
@@ -255,20 +262,14 @@ export async function getCurrentUser() {
 
 /**
  * Mobile-only variant of getAuthState — checks ONLY flagmag-mobile-token,
- * never falling back to the web cookie.
- *
- * Cookies aren't port-scoped: localhost:3000 (admin) and localhost:3001
- * (stats app) share the same browser cookie jar, by hostname alone. The two
- * apps use differently-named cookies specifically so two different accounts
- * can be logged in at once in the same browser — but getAuthState()'s web-
- * first fallback defeats that the moment both cookies are present: whoever
- * is logged into the admin dashboard silently wins identity checks in the
- * stats app too, no matter which account just logged in there. Use this for
- * anything that must answer "who is logged into the stats app" specifically.
+ * regardless of the client header, and also reports `sessionEnded` so the
+ * stats app can tell "your session ended" apart from "never logged in".
+ * Use this for anything that must answer "who is logged into the stats app"
+ * specifically (e.g. /api/auth/me/mobile).
  */
 export async function getMobileAuthState() {
     const cookieStore = await cookies();
-    const token = cookieStore.get("flagmag-mobile-token")?.value;
+    const token = cookieStore.get(MOBILE_COOKIE_NAME)?.value;
     if (!token) return { user: null, invalidated: false, sessionEnded: false };
 
     // A token that's present but no longer accepted (expired, or issued

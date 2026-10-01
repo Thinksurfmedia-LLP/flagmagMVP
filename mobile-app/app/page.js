@@ -9,7 +9,7 @@ export default function SplashPage() {
     useEffect(() => {
         const timer = setTimeout(async () => {
             // Every launch checks the STATS-app session (me/mobile — the
-            // generic /api/auth/me falls back to the website cookie). If a
+            // generic /api/auth/me doesn't report sessionEnded). If a
             // login existed but has ended (expired / nightly logout), go
             // straight to sign-in with a message — they can't record without it.
             try {
