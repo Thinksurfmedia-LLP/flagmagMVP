@@ -413,7 +413,8 @@ export default function AdminFreeAgentsPage() {
         "player_delete",
     ]);
     const canCreate = user && hasAnyAccess(user, ["manage_players", "player_create"]);
-    const canDelete = isAdmin && user && hasAnyAccess(user, ["manage_players", "player_delete"]);
+    // Organizers can delete too — the API scopes them to their own organization.
+    const canDelete = user && hasAnyAccess(user, ["manage_players", "player_delete"]);
 
     const fetchData = useCallback(async () => {
         if (!canManage) { setLoading(false); return; }
@@ -469,18 +470,18 @@ export default function AdminFreeAgentsPage() {
     };
 
     const deleteFreeAgent = async (fa) => {
-        if (!confirm(`Remove "${fa.name}" as a free agent?`)) return;
+        if (!confirm(`Permanently delete "${fa.name}"? This removes them from the system and cannot be undone.`)) return;
         try {
             const res = await fetch(`/api/free-agents/${fa._id}`, { method: "DELETE" });
             const data = await res.json();
             if (!data.success) {
-                showError(data.error || "Failed to remove free agent");
+                showError(data.error || "Failed to delete free agent");
                 return;
             }
             fetchData();
-            showSuccess("Free agent removed!");
+            showSuccess("Free agent deleted!");
         } catch {
-            showError("Failed to remove free agent");
+            showError("Failed to delete free agent");
         }
     };
 
@@ -600,7 +601,7 @@ export default function AdminFreeAgentsPage() {
                                                     {isAdmin && <th>Organization</th>}
                                                     <th>Phone</th>
                                                     <th>{isAdmin ? "Added" : "Assign to Team"}</th>
-                                                    {isAdmin && <th style={{ width: 80 }}>Actions</th>}
+                                                    {canDelete && <th style={{ width: 80 }}>Actions</th>}
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -627,17 +628,15 @@ export default function AdminFreeAgentsPage() {
                                                                 </button>
                                                             )}
                                                         </td>
-                                                        {isAdmin && (
+                                                        {canDelete && (
                                                             <td>
-                                                                {canDelete && (
-                                                                    <button
-                                                                        className="admin-btn admin-btn-danger admin-btn-sm"
-                                                                        onClick={() => deleteFreeAgent(fa)}
-                                                                        title="Remove free agent"
-                                                                    >
-                                                                        <i className="fa-solid fa-trash"></i>
-                                                                    </button>
-                                                                )}
+                                                                <button
+                                                                    className="admin-btn admin-btn-danger admin-btn-sm"
+                                                                    onClick={() => deleteFreeAgent(fa)}
+                                                                    title="Delete free agent"
+                                                                >
+                                                                    <i className="fa-solid fa-trash"></i>
+                                                                </button>
                                                             </td>
                                                         )}
                                                     </tr>
@@ -672,12 +671,12 @@ export default function AdminFreeAgentsPage() {
                                                         <i className="fa-solid fa-plus"></i> Add to Team
                                                     </button>
                                                 )}
-                                                {isAdmin && canDelete && (
+                                                {canDelete && (
                                                     <button
                                                         className="admin-btn admin-btn-danger admin-btn-sm"
                                                         onClick={() => deleteFreeAgent(fa)}
                                                     >
-                                                        <i className="fa-solid fa-trash"></i> Remove
+                                                        <i className="fa-solid fa-trash"></i> Delete
                                                     </button>
                                                 )}
                                             </div>

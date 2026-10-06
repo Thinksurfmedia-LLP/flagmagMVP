@@ -5,19 +5,19 @@ import User from "@/models/User";
 import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
 import { deletePlayer } from "@/lib/playerDeletion";
 
-async function getOrgIdForOrganizer(authUser) {
-    if (authUser.organization?.id) return authUser.organization.id;
+// Every organization this user may manage, from the live user record (the
+// JWT's org can be stale until next login, and organizers can have several).
+async function getManagedOrgIds(authUser) {
     const userDoc =
         (await User.findById(authUser.id).select("organization roleOrganizations").lean()) ||
         (await User.findOne({ email: authUser.email }).select("organization roleOrganizations").lean());
 
-    if (userDoc?.roleOrganizations?.organizer) {
-        const orgs = userDoc.roleOrganizations.organizer;
-        if (Array.isArray(orgs) && orgs.length > 0) return String(orgs[0]);
-        if (typeof orgs === "string") return String(orgs);
-    }
-
-    return userDoc?.organization ? String(userDoc.organization) : null;
+    const orgIds = new Set();
+    if (userDoc?.organization) orgIds.add(String(userDoc.organization));
+    const organizerOrgs = userDoc?.roleOrganizations?.organizer;
+    [].concat(organizerOrgs || []).filter(Boolean).forEach((id) => orgIds.add(String(id)));
+    if (!userDoc && authUser.organization?.id) orgIds.add(String(authUser.organization.id));
+    return orgIds;
 }
 
 // DELETE free agent (remove from org)
@@ -44,9 +44,11 @@ export async function DELETE(request, { params }) {
             );
         }
 
-        if (hasRole(auth.user, "organizer")) {
-            const orgId = await getOrgIdForOrganizer(auth.user);
-            if (!orgId || String(player.organization) !== orgId) {
+        // Everyone except admins (organizers, custom roles holding
+        // player_delete) is limited to free agents in their own organizations.
+        if (!hasRole(auth.user, "admin")) {
+            const orgIds = await getManagedOrgIds(auth.user);
+            if (!player.organization || !orgIds.has(String(player.organization))) {
                 return NextResponse.json({ success: false, error: "You can only manage free agents for your organization" }, { status: 403 });
             }
         }
