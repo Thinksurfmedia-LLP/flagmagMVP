@@ -1,4 +1,4 @@
-import { getAuthState } from "@/lib/auth";
+import { getAuthState, getUserOrgIds } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 const PERMISSION_COMPATIBILITY = {
@@ -69,6 +69,18 @@ export async function requireAdminOrStatistician() {
         };
     }
     return auth;
+}
+
+/**
+ * Every organization id (as strings) this user belongs to: the token's org,
+ * their primary organization, and every role-specific link (organizer,
+ * statistician, ...). Statisticians usually have no primary organization, so
+ * checking only that — or only organizer[0] — wrongly locks them out.
+ */
+export async function getUserOrganizationIds(authUser) {
+    const ids = new Set(await getUserOrgIds(authUser.id));
+    if (authUser.organization?.id) ids.add(String(authUser.organization.id));
+    return ids;
 }
 
 /**

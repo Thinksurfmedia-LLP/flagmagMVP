@@ -104,7 +104,7 @@ export function invalidateGlobalCutoffCache() {
 const USER_ORGS_CACHE_MS = 5000;
 const userOrgsCache = new Map();
 
-async function getUserOrgIds(userId) {
+export async function getUserOrgIds(userId) {
     const now = Date.now();
     const cached = userOrgsCache.get(userId);
     if (cached && now - cached.checkedAt < USER_ORGS_CACHE_MS) {

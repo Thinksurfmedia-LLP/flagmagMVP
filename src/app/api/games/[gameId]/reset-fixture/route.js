@@ -2,24 +2,8 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Game from "@/models/Game";
 import Schedule from "@/models/Schedule";
-import User from "@/models/User";
 import League from "@/models/League";
-import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
-
-async function getOrgIdForOrganizer(authUser) {
-    if (authUser.organization?.id) return authUser.organization.id;
-    const userDoc = await User.findById(authUser.id)
-        .select("organization roleOrganizations")
-        .lean();
-
-    if (userDoc?.roleOrganizations?.organizer) {
-        const orgs = userDoc.roleOrganizations.organizer;
-        if (Array.isArray(orgs) && orgs.length > 0) return String(orgs[0]);
-        if (typeof orgs === "string") return String(orgs);
-    }
-
-    return userDoc?.organization ? String(userDoc.organization) : null;
-}
+import { requireAnyPermission, hasRole, getUserOrganizationIds } from "@/lib/apiAuth";
 
 // POST /api/games/[gameId]/reset-fixture
 // Reverts teamA/teamB back to the placeholder team (e.g. "TBD") they held
@@ -39,15 +23,15 @@ export async function POST(request, { params }) {
         }
 
         if (!hasRole(auth.user, "admin")) {
-            const orgId = await getOrgIdForOrganizer(auth.user);
-            if (!orgId) {
+            const orgIds = await getUserOrganizationIds(auth.user);
+            if (orgIds.size === 0) {
                 return NextResponse.json(
-                    { success: false, error: "Organizer is not assigned to an organization" },
+                    { success: false, error: "Your account is not assigned to an organization" },
                     { status: 403 }
                 );
             }
             const league = await League.findById(game.league).select("organization").lean();
-            if (!league || String(league.organization) !== orgId) {
+            if (!league || !orgIds.has(String(league.organization))) {
                 return NextResponse.json(
                     { success: false, error: "You can only edit games within your organization" },
                     { status: 403 }
