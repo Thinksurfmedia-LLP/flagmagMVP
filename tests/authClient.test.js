@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { CLIENT_HEADER, STATS_CLIENT, WEB_COOKIE_NAME, MOBILE_COOKIE_NAME, cookieNameForClient } = require("../src/lib/authClient.js");
+const { CLIENT_HEADER, STATS_CLIENT, WEB_COOKIE_NAME, MOBILE_COOKIE_NAME, cookieNameForClient, bearerTokenFromHeader } = require("../src/lib/authClient.js");
 
 test("stats app requests use only the mobile cookie", () => {
     assert.equal(cookieNameForClient(STATS_CLIENT), MOBILE_COOKIE_NAME);
@@ -26,4 +26,18 @@ test("cookie and header names match what both apps rely on", () => {
     assert.equal(MOBILE_COOKIE_NAME, "flagmag-mobile-token");
     assert.equal(CLIENT_HEADER, "x-flagmag-client");
     assert.equal(STATS_CLIENT, "stats");
+});
+
+test("bearerTokenFromHeader extracts the token from an Authorization header", () => {
+    assert.equal(bearerTokenFromHeader("Bearer abc.def.ghi"), "abc.def.ghi");
+    assert.equal(bearerTokenFromHeader("bearer   abc.def.ghi  "), "abc.def.ghi");
+});
+
+test("bearerTokenFromHeader ignores anything that is not a Bearer credential", () => {
+    assert.equal(bearerTokenFromHeader(null), null);
+    assert.equal(bearerTokenFromHeader(undefined), null);
+    assert.equal(bearerTokenFromHeader(""), null);
+    assert.equal(bearerTokenFromHeader("Bearer"), null);
+    assert.equal(bearerTokenFromHeader("Bearer "), null);
+    assert.equal(bearerTokenFromHeader("Basic dXNlcjpwYXNz"), null);
 });

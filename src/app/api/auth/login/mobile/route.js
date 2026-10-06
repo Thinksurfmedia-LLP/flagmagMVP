@@ -17,7 +17,7 @@ export async function POST(request) {
             return NextResponse.json({ success: false, error: "Invalid JSON body" }, { status: 400 });
         }
         
-        const { email, password } = body;
+        const { email, password, includeToken } = body;
 
         if (!email || !password) {
             return NextResponse.json(
@@ -80,6 +80,10 @@ export async function POST(request) {
                     role: user.role,
                     roles,
                     permissions: perms,
+                    // Opt-in only: native apps that send it as a Bearer token
+                    // need it in the body; the web stats app keeps the
+                    // httpOnly cookie and never sees the token in JS.
+                    ...(includeToken === true ? { token } : {}),
                     organization: user.organization
                         ? {
                             id: user.organization._id,

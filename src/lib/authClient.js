@@ -21,4 +21,12 @@ function cookieNameForClient(clientHeaderValue) {
     return client === STATS_CLIENT ? MOBILE_COOKIE_NAME : WEB_COOKIE_NAME;
 }
 
-module.exports = { CLIENT_HEADER, STATS_CLIENT, WEB_COOKIE_NAME, MOBILE_COOKIE_NAME, cookieNameForClient };
+// Native stats apps can't rely on a browser cookie jar, so they may present
+// the same session JWT as `Authorization: Bearer <token>` instead. A bearer
+// token is explicit, so it needs no client header to pick a cookie.
+function bearerTokenFromHeader(authorizationValue) {
+    const match = /^Bearer\s+(\S+)\s*$/i.exec(String(authorizationValue || ""));
+    return match ? match[1] : null;
+}
+
+module.exports = { CLIENT_HEADER, STATS_CLIENT, WEB_COOKIE_NAME, MOBILE_COOKIE_NAME, cookieNameForClient, bearerTokenFromHeader };

@@ -1,7 +1,7 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies, headers } from "next/headers";
 import dbConnect from "@/lib/dbConnect";
-import { CLIENT_HEADER, WEB_COOKIE_NAME, MOBILE_COOKIE_NAME as STATS_COOKIE_NAME, cookieNameForClient } from "@/lib/authClient";
+import { CLIENT_HEADER, WEB_COOKIE_NAME, MOBILE_COOKIE_NAME as STATS_COOKIE_NAME, cookieNameForClient, bearerTokenFromHeader } from "@/lib/authClient";
 import Organization from "@/models/Organization";
 import SiteSettings from "@/models/SiteSettings";
 import User from "@/models/User";
@@ -191,6 +191,21 @@ export async function setAuthCookie(token) {
     cookieStore.set(COOKIE_NAME, token, cookieOptions());
 }
 
+// True when a (signature-valid) token was issued before the platform-wide or
+// any of the user's org-wide logout cutoffs.
+async function isCutOff(payload) {
+    const globalCutoff = await getGlobalSessionsCutoff();
+    if (globalCutoff && payload.iat * 1000 < new Date(globalCutoff).getTime()) return true;
+
+    if (!payload.id) return false;
+    const orgIds = await getUserOrgIds(payload.id);
+    for (const orgId of orgIds) {
+        const cutoff = await getOrgSessionsCutoff(orgId);
+        if (cutoff && payload.iat * 1000 < new Date(cutoff).getTime()) return true;
+    }
+    return false;
+}
+
 /**
  * Get the current user plus *why* auth failed, when it did.
  * `invalidated: true` means the cookie was otherwise valid but got cut off
@@ -208,30 +223,23 @@ export async function setAuthCookie(token) {
 export async function getAuthState() {
     const cookieStore = await cookies();
     const headerStore = await headers();
+    // An explicit Authorization: Bearer token (native stats app) wins over
+    // cookies. It can't be silently renewed — there is no cookie to rewrite —
+    // so the native app signs in again when it expires.
+    const bearerToken = bearerTokenFromHeader(headerStore.get("authorization"));
     const cookieName = cookieNameForClient(headerStore.get(CLIENT_HEADER));
     const isStatsRequest = cookieName === MOBILE_COOKIE_NAME;
-    const token = cookieStore.get(cookieName)?.value;
+    const token = bearerToken || cookieStore.get(cookieName)?.value;
     if (!token) return { user: null, invalidated: false };
 
     const payload = await verifyToken(token);
     if (!payload) return { user: null, invalidated: false };
 
-    const globalCutoff = await getGlobalSessionsCutoff();
-    if (globalCutoff && payload.iat * 1000 < new Date(globalCutoff).getTime()) {
-        return { user: null, invalidated: true };
-    }
+    if (await isCutOff(payload)) return { user: null, invalidated: true };
 
-    if (payload.id) {
-        const orgIds = await getUserOrgIds(payload.id);
-        for (const orgId of orgIds) {
-            const cutoff = await getOrgSessionsCutoff(orgId);
-            if (cutoff && payload.iat * 1000 < new Date(cutoff).getTime()) {
-                return { user: null, invalidated: true };
-            }
-        }
-    }
-
-    if (isStatsRequest) {
+    if (bearerToken) {
+        // No cookie to renew.
+    } else if (isStatsRequest) {
         await refreshMobileCookieIfStale(cookieStore, payload);
     } else {
         try {
@@ -261,15 +269,17 @@ export async function getCurrentUser() {
 }
 
 /**
- * Mobile-only variant of getAuthState — checks ONLY flagmag-mobile-token,
- * regardless of the client header, and also reports `sessionEnded` so the
+ * Mobile-only variant of getAuthState — checks ONLY flagmag-mobile-token (or
+ * an explicit Bearer token), regardless of the client header, and also reports `sessionEnded` so the
  * stats app can tell "your session ended" apart from "never logged in".
  * Use this for anything that must answer "who is logged into the stats app"
  * specifically (e.g. /api/auth/me/mobile).
  */
 export async function getMobileAuthState() {
     const cookieStore = await cookies();
-    const token = cookieStore.get(MOBILE_COOKIE_NAME)?.value;
+    const headerStore = await headers();
+    const bearerToken = bearerTokenFromHeader(headerStore.get("authorization"));
+    const token = bearerToken || cookieStore.get(MOBILE_COOKIE_NAME)?.value;
     if (!token) return { user: null, invalidated: false, sessionEnded: false };
 
     // A token that's present but no longer accepted (expired, or issued
@@ -279,22 +289,9 @@ export async function getMobileAuthState() {
     const payload = await verifyToken(token);
     if (!payload) return { user: null, invalidated: false, sessionEnded: true };
 
-    const globalCutoff = await getGlobalSessionsCutoff();
-    if (globalCutoff && payload.iat * 1000 < new Date(globalCutoff).getTime()) {
-        return { user: null, invalidated: true, sessionEnded: true };
-    }
+    if (await isCutOff(payload)) return { user: null, invalidated: true, sessionEnded: true };
 
-    if (payload.id) {
-        const orgIds = await getUserOrgIds(payload.id);
-        for (const orgId of orgIds) {
-            const cutoff = await getOrgSessionsCutoff(orgId);
-            if (cutoff && payload.iat * 1000 < new Date(cutoff).getTime()) {
-                return { user: null, invalidated: true, sessionEnded: true };
-            }
-        }
-    }
-
-    await refreshMobileCookieIfStale(cookieStore, payload);
+    if (!bearerToken) await refreshMobileCookieIfStale(cookieStore, payload);
     return { user: payload, invalidated: false };
 }
 
