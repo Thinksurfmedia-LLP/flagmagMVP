@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { collectGameRefs, hasGameHistory, describeGameHistory } = require("../src/lib/scheduleHistory.js");
+const { collectGameRefs, hasGameHistory, describeGameHistory, summarizeGameHistory } = require("../src/lib/scheduleHistory.js");
 
 test("collectGameRefs gathers every linked game id across weeks", () => {
     const schedule = {
@@ -38,4 +38,16 @@ test("describeGameHistory words the counts and pluralises correctly", () => {
         describeGameHistory({ completedGames: 12, inProgressGames: 2, plays: 340 }),
         "12 completed games, 2 in-progress games and 340 recorded plays"
     );
+});
+
+test("summarizeGameHistory maps one game's status and play count to history counts", () => {
+    assert.deepEqual(summarizeGameHistory("completed", 40), { completedGames: 1, inProgressGames: 0, plays: 40 });
+    assert.deepEqual(summarizeGameHistory("in_progress", 3), { completedGames: 0, inProgressGames: 1, plays: 3 });
+    assert.deepEqual(summarizeGameHistory("upcoming", 0), { completedGames: 0, inProgressGames: 0, plays: 0 });
+    assert.deepEqual(summarizeGameHistory("cancelled", 0), { completedGames: 0, inProgressGames: 0, plays: 0 });
+});
+
+test("an upcoming game with no plays has no history to protect; one with plays does", () => {
+    assert.equal(hasGameHistory(summarizeGameHistory("upcoming", 0)), false);
+    assert.equal(hasGameHistory(summarizeGameHistory("upcoming", 2)), true);
 });

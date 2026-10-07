@@ -1,6 +1,6 @@
-// Pure helpers for deleting a schedule safely. Deleting a schedule also
-// deletes its games, which erases any scores/stats already recorded — so the
-// API refuses unless the caller explicitly confirms. Pure CommonJS so it runs
+// Pure helpers for deleting a schedule or a game safely. Either delete erases
+// any scores/stats already recorded — so the API refuses unless the caller
+// explicitly confirms. Pure CommonJS so it runs
 // under `node --test`.
 
 /** Unique, truthy Game ids linked from a schedule's weeks (order preserved). */
@@ -32,4 +32,13 @@ function describeGameHistory({ completedGames = 0, inProgressGames = 0, plays = 
     return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
 }
 
-module.exports = { collectGameRefs, hasGameHistory, describeGameHistory };
+/** History counts for ONE game, from its status and recorded play count. */
+function summarizeGameHistory(status, plays = 0) {
+    return {
+        completedGames: status === "completed" ? 1 : 0,
+        inProgressGames: status === "in_progress" ? 1 : 0,
+        plays,
+    };
+}
+
+module.exports = { collectGameRefs, hasGameHistory, describeGameHistory, summarizeGameHistory };

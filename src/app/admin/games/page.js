@@ -2044,11 +2044,30 @@ export default function AdminGamesPage() {
         } catch { showError("Failed to save game"); }
     };
 
+    const requestDeleteGame = (gameId, confirmHistory) =>
+        fetch(`/api/games/${gameId}${confirmHistory ? "?confirmDeleteHistory=true" : ""}`, { method: "DELETE" });
+
     const deleteGame = async (gameId) => {
         if (!confirm("Delete this game?")) return;
         try {
-            const res = await fetch(`/api/games/${gameId}`, { method: "DELETE" });
-            const data = await res.json();
+            let res = await requestDeleteGame(gameId, false);
+            let data = await res.json();
+
+            // The server refuses to erase a played game / recorded stats until
+            // the user has seen exactly what will be lost.
+            if (res.status === 409 && data.code === "HAS_GAME_HISTORY") {
+                const sure = confirm(
+                    `${data.error}
+
+This cannot be undone: the score, stats and standings from this game will be lost.
+
+Delete anyway?`
+                );
+                if (!sure) return;
+                res = await requestDeleteGame(gameId, true);
+                data = await res.json();
+            }
+
             if (!data.success) { showError(data.error); return; }
             setGames(prev => prev.filter(g => g._id !== gameId));
             showSuccess("Game deleted!");

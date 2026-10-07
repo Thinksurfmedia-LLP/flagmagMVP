@@ -2,12 +2,14 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Game from "@/models/Game";
 import League from "@/models/League";
-import { requireAdmin, requireAdminOrStatistician } from "@/lib/apiAuth";
+import { requireAdmin, requireAdminOrStatistician, hasRole, getUserOrganizationIds } from "@/lib/apiAuth";
 import Schedule from "@/models/Schedule";
 import Team from "@/models/Team";
 import Play from "@/models/Play";
 import GameStat from "@/models/GameStat";
 import { isPlaceholderTeamName } from "@/lib/placeholderTeams";
+import { inTransaction } from "@/lib/teamJerseyGuard";
+import { hasGameHistory, summarizeGameHistory } from "@/lib/scheduleHistory";
 
 // GET single game
 export async function GET(request, { params }) {
@@ -150,7 +152,21 @@ export async function PUT(request, { params }) {
     }
 }
 
+// "is completed and has 12 recorded plays" — what makes a game worth protecting.
+function describeGameState(status, plays) {
+    return [
+        status === "completed" && "is completed",
+        status === "in_progress" && "is in progress",
+        plays > 0 && `has ${plays} recorded play${plays === 1 ? "" : "s"}`,
+    ].filter(Boolean).join(" and ");
+}
+
 // DELETE game (admin/organizer only)
+//
+// Organizers may only delete games in their own organizations. A game that
+// has been played (completed / in progress) or has recorded plays is refused
+// with 409 HAS_GAME_HISTORY unless the caller confirms with
+// ?confirmDeleteHistory=true — deleting it erases its score, plays and stats.
 export async function DELETE(request, { params }) {
     try {
         const auth = await requireAdmin();
@@ -158,23 +174,52 @@ export async function DELETE(request, { params }) {
 
         await dbConnect();
         const { gameId } = await params;
-        const game = await Game.findByIdAndDelete(gameId);
+        const game = await Game.findById(gameId).select("league status").lean();
         if (!game) {
             return NextResponse.json({ success: false, error: "Game not found" }, { status: 404 });
         }
 
-        // Remove the game entry from any schedule that references it
-        await Schedule.updateMany(
-            { "weeks.games.gameRef": game._id },
-            { $pull: { "weeks.$[].games": { gameRef: game._id } } }
-        );
+        if (!hasRole(auth.user, "admin")) {
+            const orgIds = await getUserOrganizationIds(auth.user);
+            const league = await League.findById(game.league).select("organization").lean();
+            if (!league || !orgIds.has(String(league.organization))) {
+                return NextResponse.json(
+                    { success: false, error: "You can only delete games within your organization" },
+                    { status: 403 }
+                );
+            }
+        }
 
-        // Cascade-delete dependent play-by-play and box-score data — a game
-        // is meaningless once gone, but leaving its Plays/GameStats behind
+        const plays = await Play.countDocuments({ game: game._id });
+        const history = summarizeGameHistory(game.status, plays);
+        const confirmedHistory = new URL(request.url).searchParams.get("confirmDeleteHistory") === "true";
+        if (hasGameHistory(history) && !confirmedHistory) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    code: "HAS_GAME_HISTORY",
+                    error: `This game ${describeGameState(game.status, plays)}. Deleting it permanently erases its score and stats.`,
+                    ...history,
+                },
+                { status: 409 }
+            );
+        }
+
+        // One transaction so a failure can't leave a half-deleted game.
+        // Dependent plays/box-score data go with it — leaving them behind
         // creates dangling refs that silently survive (see Denstar audit:
         // 614 orphaned plays DB-wide from prior deletes that skipped this).
-        await Play.deleteMany({ game: game._id });
-        await GameStat.deleteMany({ game: game._id });
+        await inTransaction(async (session) => {
+            await Play.deleteMany({ game: game._id }, { session });
+            await GameStat.deleteMany({ game: game._id }, { session });
+            await Game.deleteOne({ _id: game._id }, { session });
+            // Remove the game entry from any schedule that references it
+            await Schedule.updateMany(
+                { "weeks.games.gameRef": game._id },
+                { $pull: { "weeks.$[].games": { gameRef: game._id } } },
+                { session }
+            );
+        });
 
         return NextResponse.json({ success: true, message: "Game deleted" }, { status: 200 });
     } catch (error) {
