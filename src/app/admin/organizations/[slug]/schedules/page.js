@@ -266,12 +266,31 @@ export default function OrgSchedulesPage() {
         }
     };
 
+    const requestDelete = (schedule, confirmHistory) =>
+        fetch(`/api/schedules/${schedule._id}${confirmHistory ? "?confirmDeleteHistory=true" : ""}`, { method: "DELETE" });
+
     const handleDelete = async (schedule) => {
         if (!confirm(`Are you sure you want to delete "${schedule.scheduleLabel}"?`)) return;
 
         try {
-            const res = await fetch(`/api/schedules/${schedule._id}`, { method: "DELETE" });
-            const data = await res.json();
+            let res = await requestDelete(schedule, false);
+            let data = await res.json();
+
+            // The server refuses to erase played games / recorded stats until
+            // the user has seen exactly what will be lost.
+            if (res.status === 409 && data.code === "HAS_GAME_HISTORY") {
+                const sure = confirm(
+                    `${data.error}
+
+This cannot be undone: scores, stats and standings from these games will be lost.
+
+Delete anyway?`
+                );
+                if (!sure) return;
+                res = await requestDelete(schedule, true);
+                data = await res.json();
+            }
+
             if (data.success) {
                 showSuccess("Schedule deleted successfully");
                 fetchSchedules();

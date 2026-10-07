@@ -5,6 +5,10 @@ import User from "@/models/User";
 import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
 import { logActivity } from "@/lib/activityLogger";
 import Game from "@/models/Game";
+import Play from "@/models/Play";
+import GameStat from "@/models/GameStat";
+import { inTransaction } from "@/lib/teamJerseyGuard";
+import { collectGameRefs, hasGameHistory, describeGameHistory } from "@/lib/scheduleHistory";
 import Team from "@/models/Team";
 
 // GET single schedule
@@ -229,6 +233,18 @@ export async function PUT(request, { params }) {
 }
 
 // DELETE schedule
+// What a schedule delete would erase: games already played (or live) and any
+// recorded plays, across every game the schedule links to.
+async function countGameHistory(gameRefs) {
+    if (gameRefs.length === 0) return { completedGames: 0, inProgressGames: 0, plays: 0 };
+    const [completedGames, inProgressGames, plays] = await Promise.all([
+        Game.countDocuments({ _id: { $in: gameRefs }, status: "completed" }),
+        Game.countDocuments({ _id: { $in: gameRefs }, status: "in_progress" }),
+        Play.countDocuments({ game: { $in: gameRefs } }),
+    ]);
+    return { completedGames, inProgressGames, plays };
+}
+
 export async function DELETE(request, { params }) {
     try {
         const auth = await requireAnyPermission(["manage_schedules", "schedule_delete"]);
@@ -260,26 +276,44 @@ export async function DELETE(request, { params }) {
             }
         }
 
-        // Collect all linked Game IDs and delete them
-        const gameRefs = [];
-        if (schedule.weeks) {
-            schedule.weeks.forEach(w => {
-                w.games?.forEach(g => {
-                    if (g.gameRef) gameRefs.push(g.gameRef);
-                });
-            });
-        }
-        if (gameRefs.length > 0) {
-            await Game.deleteMany({ _id: { $in: gameRefs } });
+        const gameRefs = collectGameRefs(schedule);
+
+        // Deleting a schedule deletes its games, which erases any scores and
+        // stats already recorded. Refuse unless the caller has seen exactly
+        // what will be lost and confirmed it (the schedules page does this).
+        const history = await countGameHistory(gameRefs);
+        const confirmedHistory = new URL(request.url).searchParams.get("confirmDeleteHistory") === "true";
+        if (hasGameHistory(history) && !confirmedHistory) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    code: "HAS_GAME_HISTORY",
+                    error: `"${schedule.scheduleLabel}" has ${describeGameHistory(history)}. Deleting it permanently erases them.`,
+                    ...history,
+                },
+                { status: 409 }
+            );
         }
 
-        await Schedule.deleteOne({ _id: id });
+        // Plays and stats go with their games (same as DELETE /api/games/[id])
+        // — leaving them behind orphaned them and blocked deleting the players
+        // involved. One transaction so a failure can't half-delete.
+        await inTransaction(async (session) => {
+            if (gameRefs.length > 0) {
+                await Play.deleteMany({ game: { $in: gameRefs } }, { session });
+                await GameStat.deleteMany({ game: { $in: gameRefs } }, { session });
+                await Game.deleteMany({ _id: { $in: gameRefs } }, { session });
+            }
+            await Schedule.deleteOne({ _id: id }, { session });
+        });
 
         await logActivity({
             userId: auth.user.id,
             role: auth.user.role || auth.user.roles?.[0] || "unknown",
             action: "DELETED_SCHEDULE",
-            details: `Deleted schedule '${schedule.scheduleLabel}'`,
+            details: hasGameHistory(history)
+                ? `Deleted schedule '${schedule.scheduleLabel}' including ${describeGameHistory(history)}`
+                : `Deleted schedule '${schedule.scheduleLabel}'`,
             organization: schedule.organization
         });
 
