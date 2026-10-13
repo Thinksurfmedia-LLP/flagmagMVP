@@ -49,11 +49,13 @@ export async function POST(request, { params }) {
         const setFields = {};
         const unsetFields = {};
         if (game.originalTeamA?.name) {
+            setFields["teamA.teamId"] = game.originalTeamA.teamId || null;
             setFields["teamA.name"] = game.originalTeamA.name;
             setFields["teamA.logo"] = game.originalTeamA.logo || "";
             unsetFields.originalTeamA = "";
         }
         if (game.originalTeamB?.name) {
+            setFields["teamB.teamId"] = game.originalTeamB.teamId || null;
             setFields["teamB.name"] = game.originalTeamB.name;
             setFields["teamB.logo"] = game.originalTeamB.logo || "";
             unsetFields.originalTeamB = "";

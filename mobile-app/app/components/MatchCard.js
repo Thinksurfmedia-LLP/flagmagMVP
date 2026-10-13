@@ -96,8 +96,11 @@ export default function MatchCard({ game, onStart, onGamesChanged }) {
                 : realTeams;
             setAllTeams(leagueTeams);
 
-            const currentA = leagueTeams.find((t) => t?.name === game.teamA?.name);
-            const currentB = leagueTeams.find((t) => t?.name === game.teamB?.name);
+            // By teamId; older games without one fall back to the name
+            // (leagueTeams is already scoped to this game's league).
+            const findCurrent = (side) => leagueTeams.find((t) => (side?.teamId ? String(t?._id) === String(side.teamId) : t?.name === side?.name));
+            const currentA = findCurrent(game.teamA);
+            const currentB = findCurrent(game.teamB);
             if (currentA?._id) setTeamASelection(String(currentA._id));
             if (currentB?._id) setTeamBSelection(String(currentB._id));
 

@@ -9,7 +9,7 @@ import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import League from "@/models/League";
 import Game from "@/models/Game";
-import Team from "@/models/Team";
+import { enrichGamesWithTeams } from "@/lib/gameTeams";
 import Player from "@/models/Player";
 import Schedule from "@/models/Schedule";
 import { formatOrganizationLocations } from "@/lib/organizationLocations";
@@ -76,30 +76,13 @@ async function getData(slug, seasonSlug) {
     if (sectionMeta.length > 0) {
         const refs = sectionMeta[initialSectionIdx].gameRefs;
         if (refs.length > 0) {
-            initialGames = await Game.find({ _id: { $in: refs } }).sort({ date: 1, time: 1 }).lean();
-            const teams = await Team.find({ organization: org._id }).select("name logo leagues").lean();
-            const teamByName = {};
-            teams.forEach((t) => { teamByName[t.name] = t; });
+            const games = await Game.find({ _id: { $in: refs } }).sort({ date: 1, time: 1 }).lean();
 
-            // Playoff seed numbers live on the team's membership for this
-            // specific league — regular (non-playoffs) leagues never show one.
+            // Latest logos resolved by teamId / league (never by name
+            // org-wide). Playoff seed numbers live on the team's membership
+            // for this specific league — regular leagues never show one.
             const isPlayoffs = league.leagueType === "playoffs";
-            const seedFor = (team) => {
-                if (!isPlayoffs || !team) return null;
-                const membership = (team.leagues || []).find((m) => String(m.league) === String(league._id));
-                return membership?.seedNumber ?? null;
-            };
-
-            initialGames.forEach((game) => {
-                const teamA = teamByName[game.teamA?.name];
-                const teamB = teamByName[game.teamB?.name];
-                if (teamA) game.teamA.logo = teamA.logo || game.teamA.logo;
-                if (teamB) game.teamB.logo = teamB.logo || game.teamB.logo;
-                if (isPlayoffs) {
-                    game.teamA.seedNumber = seedFor(teamA);
-                    game.teamB.seedNumber = seedFor(teamB);
-                }
-            });
+            initialGames = await enrichGamesWithTeams(games, org._id, { isPlayoffs: () => isPlayoffs });
         }
     }
 

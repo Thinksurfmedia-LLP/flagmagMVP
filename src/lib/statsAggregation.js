@@ -4,6 +4,7 @@ import Game from "@/models/Game";
 import League from "@/models/League";
 import Player from "@/models/Player";
 import { isNoStatsTeamName } from "@/lib/noStatsTeams";
+import { findGameTeamsWithPlayers } from "@/lib/gameTeams";
 
 // Passer rating — ported from the legacy Xflag system's 5-factor formula
 // (LiveGameManageController::calcscore, factors a-e) so ratings keep matching
@@ -32,24 +33,19 @@ export function computePasserRating(atts, comp, yards, tds, ints, pat) {
  * Returns { rosterMap: { A: { "12": { playerId, playerName, playerPhoto, jerseyNumber } }, B: {...} }, teamNamesByAB, playerInfoById }
  */
 async function buildRosterMap(game, orgId) {
-    // Scoped to this game's league too — two unrelated real teams can share
-    // a name across different leagues (e.g. a "Warriors" in Chino and a
-    // different "Warriors" in Temecula); without the league filter here a
+    // By teamId (league-scoped name match for older games) — two unrelated
+    // real teams can share a name across different leagues (e.g. a
+    // "Warriors" in Chino and a different "Warriors" in Temecula); a
     // name-only match could pull the WRONG team's roster into this game's
     // stats.
-    const teams = await Team.find({
-        organization: orgId,
-        name: { $in: [game.teamA.name, game.teamB.name] },
-        "leagues.league": game.league,
-    })
-        .populate("players.player", "name photo")
-        .lean();
+    const { teamA, teamB } = await findGameTeamsWithPlayers(game, orgId);
 
     const rosterMap = {};
     const playerInfoById = {};
     const teamNamesByAB = { A: game.teamA.name, B: game.teamB.name };
 
-    for (const team of teams) {
+    for (const [side, team] of [["A", teamA], ["B", teamB]]) {
+        if (!team) continue;
         const map = {};
         for (const p of team.players || []) {
             const playerId = String(p.player?._id || p.player);
@@ -72,8 +68,7 @@ async function buildRosterMap(game, orgId) {
                 map[key] = info;
             }
         }
-        if (team.name === game.teamA.name) rosterMap.A = map;
-        if (team.name === game.teamB.name) rosterMap.B = map;
+        rosterMap[side] = map;
     }
 
     return { rosterMap, teamNamesByAB, playerInfoById };

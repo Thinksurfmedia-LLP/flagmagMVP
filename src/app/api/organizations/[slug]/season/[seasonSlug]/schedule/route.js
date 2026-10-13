@@ -3,8 +3,8 @@ import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import League from "@/models/League";
 import Game from "@/models/Game";
-import Team from "@/models/Team";
 import Schedule from "@/models/Schedule";
+import { enrichGamesWithTeams } from "@/lib/gameTeams";
 
 export async function GET(request, { params }) {
     try {
@@ -61,29 +61,12 @@ export async function GET(request, { params }) {
         // Fetch every referenced game once, then re-attach to its section —
         // avoids one query per week.
         const allGameIds = weekSections.flatMap((s) => s.gameRefs);
-        const games = await Game.find({ _id: { $in: allGameIds } }).lean();
+        // Enriched with latest team logos (and, for playoffs leagues, this
+        // league's seed number — a per-membership value, not per-team),
+        // resolved by teamId / league rather than by name org-wide.
+        const rawGames = await Game.find({ _id: { $in: allGameIds } }).lean();
+        const games = await enrichGamesWithTeams(rawGames, org._id, { isPlayoffs: () => isPlayoffs });
         const gameById = new Map(games.map((g) => [String(g._id), g]));
-
-        // Enrich with latest team logos (and, for playoffs leagues, this
-        // league's seed number — a per-membership value, not per-team).
-        const teams = await Team.find({ organization: org._id }).select("name logo leagues").lean();
-        const teamByName = {};
-        teams.forEach((t) => { teamByName[t.name] = t; });
-        const seedFor = (team) => {
-            if (!isPlayoffs || !team) return null;
-            const membership = (team.leagues || []).find((m) => String(m.league) === leagueId);
-            return membership?.seedNumber ?? null;
-        };
-        games.forEach((game) => {
-            const teamA = teamByName[game.teamA?.name];
-            const teamB = teamByName[game.teamB?.name];
-            if (teamA) game.teamA.logo = teamA.logo || game.teamA.logo;
-            if (teamB) game.teamB.logo = teamB.logo || game.teamB.logo;
-            if (isPlayoffs) {
-                game.teamA.seedNumber = seedFor(teamA);
-                game.teamB.seedNumber = seedFor(teamB);
-            }
-        });
 
         const weeks = weekSections.map(({ weekNum, weekName, gameRefs }) => {
             const weekGames = gameRefs.map((id) => gameById.get(id)).filter(Boolean)

@@ -15,12 +15,19 @@ const GameSchema = new mongoose.Schema(
             type: String,
             default: "",
         },
+        // teamA/teamB.teamId is the authoritative link to the Team; name/logo
+        // are a denormalized snapshot. Team names are NOT unique per org (a
+        // "Trojans" can exist in two leagues), so never resolve a game's team
+        // by name alone — see src/lib/gameTeamResolution.js. Writers set it
+        // via withResolvedTeamIds() in src/lib/gameTeams.js.
         teamA: {
+            teamId: { type: mongoose.Schema.Types.ObjectId, ref: "Team", default: null },
             name: { type: String, required: true },
             logo: { type: String, default: "" },
             score: { type: Number, default: null },
         },
         teamB: {
+            teamId: { type: mongoose.Schema.Types.ObjectId, ref: "Team", default: null },
             name: { type: String, required: true },
             logo: { type: String, default: "" },
             score: { type: Number, default: null },
@@ -99,6 +106,8 @@ const GameSchema = new mongoose.Schema(
 );
 
 GameSchema.index({ league: 1, date: 1 });
+GameSchema.index({ "teamA.teamId": 1 });
+GameSchema.index({ "teamB.teamId": 1 });
 
 /**
  * Safety guard: prevent any code path from accidentally wiping game scores to null.
@@ -135,7 +144,7 @@ GameSchema.pre(["findOneAndUpdate", "updateOne", "updateMany"], function () {
 function getGameModel() {
     if (mongoose.models.Game) {
         const existing = mongoose.models.Game;
-        if (!existing.schema.path("originalTeamA.name") || !existing.schema.path("originalTeamB.name") || !existing.schema.path("noStatsSide") || !existing.schema.path("noStatsBothSides")) {
+        if (!existing.schema.path("teamA.teamId") || !existing.schema.path("originalTeamA.name") || !existing.schema.path("originalTeamB.name") || !existing.schema.path("noStatsSide") || !existing.schema.path("noStatsBothSides")) {
             delete mongoose.models.Game;
             return mongoose.model("Game", GameSchema);
         }

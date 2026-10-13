@@ -67,11 +67,15 @@ export async function POST(request, { params }) {
         const realSide = forfeitSide === "A" ? "B" : "A";
         const realTeamSlot = original[`team${realSide}`];
 
-        // League-scoped — two unrelated real teams can share a name across
-        // different leagues (e.g. a "Warriors" in Chino and a different
-        // "Warriors" in Temecula).
+        // By teamId; games from before teamId existed fall back to a
+        // league-scoped name match — two unrelated real teams can share a
+        // name across different leagues (e.g. a "Warriors" in Chino and a
+        // different "Warriors" in Temecula).
+        const realTeamQuery = realTeamSlot.teamId
+            ? Team.findById(realTeamSlot.teamId)
+            : Team.findOne({ organization: league.organization, name: realTeamSlot.name, "leagues.league": original.league });
         const [realTeamDoc, standInTeamDoc] = await Promise.all([
-            Team.findOne({ organization: league.organization, name: realTeamSlot.name, "leagues.league": original.league }).select("name logo players organization").lean(),
+            realTeamQuery.select("name logo players organization").lean(),
             Team.findById(standInTeamId).select("name logo players organization isPlaceholder").lean(),
         ]);
         if (!realTeamDoc) {
@@ -131,12 +135,9 @@ export async function POST(request, { params }) {
             findOrCreateStatsTwin(standInTeamDoc, original.league),
         ]);
 
-        const newTeamA = realSide === "A"
-            ? { name: realTwin.name, logo: realTwin.logo || "", score: 0 }
-            : { name: standInTwin.name, logo: standInTwin.logo || "", score: 0 };
-        const newTeamB = realSide === "B"
-            ? { name: realTwin.name, logo: realTwin.logo || "", score: 0 }
-            : { name: standInTwin.name, logo: standInTwin.logo || "", score: 0 };
+        const sideFor = (twin) => ({ teamId: twin._id, name: twin.name, logo: twin.logo || "", score: 0 });
+        const newTeamA = sideFor(realSide === "A" ? realTwin : standInTwin);
+        const newTeamB = sideFor(realSide === "B" ? realTwin : standInTwin);
 
         const newGame = await Game.create({
             league: original.league,
