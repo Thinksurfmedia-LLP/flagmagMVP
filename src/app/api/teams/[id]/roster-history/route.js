@@ -48,20 +48,27 @@ export async function GET(request, { params }) {
             }
         }
 
-        // Scoped to leagues THIS team is actually a member of — not every
-        // league in the org — since two unrelated real teams can share a
-        // name across different leagues (e.g. a "Warriors" in Chino and a
-        // different "Warriors" in Temecula); an org-wide name match would
-        // otherwise merge their play histories together.
+        // Games linked to this team by teamId, plus older (pre-teamId) games
+        // matched by name — but only within leagues THIS team is a member
+        // of, since two unrelated real teams can share a name across
+        // different leagues (e.g. a "Warriors" in Chino and a different
+        // "Warriors" in Temecula); an org-wide name match would otherwise
+        // merge their play histories together.
         const teamLeagueIds = (team.leagues || []).map((m) => m.league).filter(Boolean);
+        const legacyNameMatch = (side) => ({ [`team${side}.teamId`]: null, [`team${side}.name`]: team.name });
         const games = await Game.find({
-            league: { $in: teamLeagueIds },
-            $or: [{ "teamA.name": team.name }, { "teamB.name": team.name }],
-        }).select("teamA.name teamB.name").lean();
+            $or: [
+                { "teamA.teamId": team._id },
+                { "teamB.teamId": team._id },
+                { league: { $in: teamLeagueIds }, ...legacyNameMatch("A") },
+                { league: { $in: teamLeagueIds }, ...legacyNameMatch("B") },
+            ],
+        }).select("teamA.teamId teamA.name teamB.teamId teamB.name").lean();
 
+        const isTeamSide = (side) => (side?.teamId ? String(side.teamId) === String(team._id) : side?.name === team.name);
         const sideByGame = new Map();
         for (const g of games) {
-            sideByGame.set(String(g._id), g.teamA.name === team.name ? "A" : "B");
+            sideByGame.set(String(g._id), isTeamSide(g.teamA) ? "A" : "B");
         }
 
         const plays = await Play.find({ game: { $in: [...sideByGame.keys()] } })

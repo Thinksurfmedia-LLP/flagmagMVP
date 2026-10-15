@@ -3,24 +3,64 @@ import Team from "@/models/Team";
 import Game from "@/models/Game";
 import League from "@/models/League";
 import Player from "@/models/Player";
+import ImportedStatLine from "@/models/ImportedStatLine";
 import { isNoStatsTeamName } from "@/lib/noStatsTeams";
+import { findGameTeamsWithPlayers } from "@/lib/gameTeams";
+import { computePasserRating, importedLinesToStatRows } from "@/lib/importedStats";
 
-// Passer rating — ported from the legacy Xflag system's 5-factor formula
-// (LiveGameManageController::calcscore, factors a-e) so ratings keep matching
-// what the old site produced. a=completion%, b=TD rate, c=INT rate, d=yards
-// per attempt — each rounded to 2 decimals and clamped to [0, 2.375]; e=PAT
-// points per touchdown minus a fixed baseline (0.66), left UNCLAMPED, same
-// as the legacy formula. Divisor 0.06 is equivalent to "/6 * 100".
-export function computePasserRating(atts, comp, yards, tds, ints, pat) {
-    if (!atts) return 0;
-    const clamp2 = (n) => Math.round(Math.max(0, Math.min(2.375, n)) * 100) / 100;
-    const a = clamp2(((comp / atts) * 100 - 30) / 20);
-    const b = clamp2((tds / atts) * 100 / (20 / 3));
-    const c = clamp2((9.5 - (ints / atts) * 100) / 4);
-    const d = clamp2(((yards / atts) - 3) / 4);
-    const e = tds ? Math.round(((pat / tds) - 0.66) * 100) / 100 : 0;
-    const sum = a + b + c + d + e;
-    return sum === 0 ? 0 : parseFloat((sum / 0.06).toFixed(1));
+// Passer rating — the legacy Xflag 5-factor formula. Implementation moved to
+// importedStats.js (pure, unit-tested) and re-exported here for existing importers.
+export { computePasserRating };
+
+/**
+ * Load the legacy-imported stat lines for the given games and convert them
+ * into aggregateStats-shaped rows, grouped by game id. Team names come from
+ * each game's current teamA/teamB snapshot via the line's side, exactly like
+ * Play-derived rows.
+ * @returns {Promise<Record<string, {passing, receiving, rushing, defensive}>>}
+ */
+async function loadImportedRowsByGame(games) {
+    const gameById = new Map(games.map((g) => [String(g._id), g]));
+    const lines = await ImportedStatLine.find({ game: { $in: [...gameById.keys()] } }).lean();
+    if (!lines.length) return {};
+
+    // Looked up separately rather than via populate(): a populated ref to a
+    // since-deleted Player comes back null, which would collapse every such
+    // line onto one "null" playerId when rows are merged per player.
+    const playerIds = [...new Set(lines.map((l) => String(l.player)))];
+    const players = await Player.find({ _id: { $in: playerIds } }).select("name photo").lean();
+    const playerById = new Map(players.map((p) => [String(p._id), p]));
+
+    const linesByGame = {};
+    for (const line of lines) {
+        const gid = String(line.game);
+        const game = gameById.get(gid);
+        const playerId = String(line.player);
+        const player = playerById.get(playerId);
+        (linesByGame[gid] ||= []).push({
+            ...line,
+            playerId,
+            playerName: player?.name || "Former player",
+            playerPhoto: player?.photo || "",
+            teamName: line.side === "A" ? game.teamA.name : game.teamB.name,
+        });
+    }
+
+    const rowsByGame = {};
+    for (const [gid, gameLines] of Object.entries(linesByGame)) {
+        rowsByGame[gid] = importedLinesToStatRows(gameLines);
+    }
+    return rowsByGame;
+}
+
+function appendImportedRows(stats, importedRows) {
+    if (!importedRows) return stats;
+    return {
+        passing: [...stats.passing, ...importedRows.passing],
+        receiving: [...stats.receiving, ...importedRows.receiving],
+        rushing: [...stats.rushing, ...importedRows.rushing],
+        defensive: [...stats.defensive, ...importedRows.defensive],
+    };
 }
 
 /**
@@ -32,24 +72,19 @@ export function computePasserRating(atts, comp, yards, tds, ints, pat) {
  * Returns { rosterMap: { A: { "12": { playerId, playerName, playerPhoto, jerseyNumber } }, B: {...} }, teamNamesByAB, playerInfoById }
  */
 async function buildRosterMap(game, orgId) {
-    // Scoped to this game's league too — two unrelated real teams can share
-    // a name across different leagues (e.g. a "Warriors" in Chino and a
-    // different "Warriors" in Temecula); without the league filter here a
+    // By teamId (league-scoped name match for older games) — two unrelated
+    // real teams can share a name across different leagues (e.g. a
+    // "Warriors" in Chino and a different "Warriors" in Temecula); a
     // name-only match could pull the WRONG team's roster into this game's
     // stats.
-    const teams = await Team.find({
-        organization: orgId,
-        name: { $in: [game.teamA.name, game.teamB.name] },
-        "leagues.league": game.league,
-    })
-        .populate("players.player", "name photo")
-        .lean();
+    const { teamA, teamB } = await findGameTeamsWithPlayers(game, orgId);
 
     const rosterMap = {};
     const playerInfoById = {};
     const teamNamesByAB = { A: game.teamA.name, B: game.teamB.name };
 
-    for (const team of teams) {
+    for (const [side, team] of [["A", teamA], ["B", teamB]]) {
+        if (!team) continue;
         const map = {};
         for (const p of team.players || []) {
             const playerId = String(p.player?._id || p.player);
@@ -72,8 +107,7 @@ async function buildRosterMap(game, orgId) {
                 map[key] = info;
             }
         }
-        if (team.name === game.teamA.name) rosterMap.A = map;
-        if (team.name === game.teamB.name) rosterMap.B = map;
+        rosterMap[side] = map;
     }
 
     return { rosterMap, teamNamesByAB, playerInfoById };
@@ -623,7 +657,11 @@ export async function computeGameStats(gameId) {
     const { rosterMap, teamNamesByAB, playerInfoById } = await buildRosterMap(game, league.organization);
     const plays = await Play.find({ game: gameId }).sort({ createdAt: 1 }).lean();
     await backfillPlayerInfo(playerInfoById, plays);
-    const rawStats = aggregateStats(plays, rosterMap, teamNamesByAB, playerInfoById);
+    const importedRowsByGame = await loadImportedRowsByGame([game]);
+    const rawStats = appendImportedRows(
+        aggregateStats(plays, rosterMap, teamNamesByAB, playerInfoById),
+        importedRowsByGame[String(game._id)]
+    );
     const stats = {
         passing: excludeNoStatsSide(rawStats.passing, game.noStatsSide, teamNamesByAB),
         receiving: excludeNoStatsSide(rawStats.receiving, game.noStatsSide, teamNamesByAB),
@@ -710,6 +748,7 @@ async function computeSeasonStatsUncached(leagueId, orgId) {
     // a team since these plays were recorded would otherwise vanish from
     // playerInfoById and get misattributed/dropped below.
     await backfillPlayerInfo(playerInfoById, allPlays);
+    const importedRowsByGame = await loadImportedRowsByGame(games);
 
     // Accumulated stats across games
     const mergedPassing = {};
@@ -726,15 +765,19 @@ async function computeSeasonStatsUncached(leagueId, orgId) {
 
     for (const game of games) {
         const gid = String(game._id);
-        const gamePlays = playsByGame[gid];
-        if (!gamePlays || gamePlays.length === 0) continue;
+        const gamePlays = playsByGame[gid] || [];
+        const importedRows = importedRowsByGame[gid];
+        if (gamePlays.length === 0 && !importedRows) continue;
 
         const rosterMap = {
             A: rosterByTeamName[game.teamA.name] || {},
             B: rosterByTeamName[game.teamB.name] || {},
         };
         const teamNamesByAB = { A: game.teamA.name, B: game.teamB.name };
-        const gameStats = aggregateStats(gamePlays, rosterMap, teamNamesByAB, playerInfoById);
+        const gameStats = appendImportedRows(
+            aggregateStats(gamePlays, rosterMap, teamNamesByAB, playerInfoById),
+            importedRows
+        );
 
         // Helper to merge rows — keyed by playerId|||teamName so each player's
         // stats remain isolated per team (fixes multi-team player aggregation bug).

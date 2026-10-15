@@ -4,8 +4,8 @@ import Organization from "@/models/Organization";
 import League from "@/models/League";
 import Season from "@/models/Season";
 import Game from "@/models/Game";
-import Team from "@/models/Team";
 import Schedule from "@/models/Schedule";
+import { enrichGamesWithTeams } from "@/lib/gameTeams";
 
 // GET /api/organizations/[slug]/games
 // Returns all games across every league for this org in a single round-trip.
@@ -23,10 +23,9 @@ export async function GET(request, { params }) {
             return NextResponse.json({ success: false, error: "Organization not found" }, { status: 404 });
         }
 
-        // Fetch leagues, teams, and schedules in parallel
-        const [leagues, teams, schedules] = await Promise.all([
+        // Fetch leagues and schedules in parallel
+        const [leagues, schedules] = await Promise.all([
             League.find({ organization: org._id }).select("_id name category leagueType season").lean(),
-            Team.find({ organization: org._id }).select("name logo leagues").lean(),
             Schedule.find({ organization: org._id }).select("weeks.name weeks.games.gameRef").lean(),
         ]);
 
@@ -57,7 +56,6 @@ export async function GET(request, { params }) {
 
         const leagueIds = leagues.map((l) => l._id);
         const leagueMap = Object.fromEntries(leagues.map((l) => [String(l._id), l]));
-        const teamMap = Object.fromEntries(teams.map((t) => [t.name, t]));
 
         // Single query for all games across all leagues (exclude practice games)
         const filter = { league: { $in: leagueIds }, gameType: { $ne: "practice" } };
@@ -65,19 +63,16 @@ export async function GET(request, { params }) {
 
         const games = await Game.find(filter).sort({ date: 1, time: 1 }).lean();
 
-        // Enrich with league info, latest team logos, schedule-derived sectionName,
-        // and (playoffs leagues only) each team's seed number for this league.
-        const seedFor = (team, leagueId, isPlayoffs) => {
-            if (!isPlayoffs || !team) return null;
-            const membership = (team.leagues || []).find((m) => String(m.league) === String(leagueId));
-            return membership?.seedNumber ?? null;
-        };
+        // Latest team logos and (playoffs leagues only) each team's seed
+        // number, resolved by teamId / league — never by name org-wide, since
+        // two leagues can each have their own same-named team.
+        const withTeams = await enrichGamesWithTeams(games, org._id, {
+            isPlayoffs: (game) => leagueMap[String(game.league)]?.leagueType === "playoffs",
+        });
 
-        const data = games.map((game) => {
+        // Enrich with league info and schedule-derived sectionName.
+        const data = withTeams.map((game) => {
             const league = leagueMap[String(game.league)];
-            const isPlayoffs = league?.leagueType === "playoffs";
-            const teamAData = teamMap[game.teamA?.name];
-            const teamBData = teamMap[game.teamB?.name];
             const sectionName = gameRefSectionMap[String(game._id)] ?? game.sectionName ?? "";
             return {
                 ...game,
@@ -86,16 +81,6 @@ export async function GET(request, { params }) {
                 leagueCategory: league?.category || "",
                 leagueType: league?.leagueType || "league",
                 seasonName: league?.season ? seasonNameById[String(league.season)] || "" : "",
-                teamA: {
-                    ...game.teamA,
-                    logo: teamAData?.logo || game.teamA?.logo || "",
-                    seedNumber: seedFor(teamAData, game.league, isPlayoffs),
-                },
-                teamB: {
-                    ...game.teamB,
-                    logo: teamBData?.logo || game.teamB?.logo || "",
-                    seedNumber: seedFor(teamBData, game.league, isPlayoffs),
-                },
             };
         });
 

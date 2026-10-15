@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Game from "@/models/Game";
-import Team from "@/models/Team";
 import League from "@/models/League";
 import Schedule from "@/models/Schedule";
 import { requireAnyPermission } from "@/lib/apiAuth";
+import { enrichGamesWithTeams, withResolvedTeamIds } from "@/lib/gameTeams";
 
 // GET games for a season
 export async function GET(request, { params }) {
@@ -47,40 +47,17 @@ export async function GET(request, { params }) {
             };
         }
 
-        const games = await Game.find(filter).sort({ date: 1, time: 1 }).lean();
+        let games = await Game.find(filter).sort({ date: 1, time: 1 }).lean();
 
-        // Populate latest team logos and details from the Team model
-        const league = await League.findById(id).lean();
-        if (league && league.organization) {
-            const teams = await Team.find({ organization: league.organization }).lean();
-            const teamMap = {};
-            teams.forEach((t) => {
-                teamMap[t.name] = t;
-            });
-
-            // Playoff seed numbers are per-league-membership, not per-team —
-            // only surface them for playoffs leagues, and only this league's number.
+        // Populate latest team logos and details from the Team model, by
+        // teamId / league — never by name org-wide. Playoff seed numbers are
+        // per-league-membership, so only playoffs leagues surface one.
+        const league = await League.findById(id).select("organization leagueType").lean();
+        if (league?.organization) {
             const isPlayoffs = league.leagueType === "playoffs";
-            const seedFor = (teamData) => {
-                if (!isPlayoffs || !teamData) return null;
-                const membership = (teamData.leagues || []).find((m) => String(m.league) === String(id));
-                return membership?.seedNumber ?? null;
-            };
-
-            games.forEach((game) => {
-                const teamAData = teamMap[game.teamA?.name];
-                if (teamAData) {
-                    game.teamA.logo = teamAData.logo || game.teamA.logo;
-                    game.teamA.details = teamAData;
-                }
-                if (isPlayoffs) game.teamA.seedNumber = seedFor(teamAData);
-
-                const teamBData = teamMap[game.teamB?.name];
-                if (teamBData) {
-                    game.teamB.logo = teamBData.logo || game.teamB.logo;
-                    game.teamB.details = teamBData;
-                }
-                if (isPlayoffs) game.teamB.seedNumber = seedFor(teamBData);
+            games = await enrichGamesWithTeams(games, league.organization, {
+                isPlayoffs: () => isPlayoffs,
+                withDetails: true,
             });
         }
 
@@ -124,22 +101,12 @@ export async function POST(request, { params }) {
             }
         }
 
-        const game = await Game.create(body);
+        const game = await Game.create(await withResolvedTeamIds(body, id));
 
         // Sync into a Schedule document so the game appears on the website schedules page
         try {
             const league = await League.findById(id).select("name organization").lean();
             if (league) {
-                // Resolve team ObjectIds by name within this league — not
-                // just the org — since two unrelated real teams can share a
-                // name across different leagues.
-                const teamNames = [body.teamA?.name, body.teamB?.name].filter(Boolean);
-                const teams = teamNames.length
-                    ? await Team.find({ organization: league.organization, name: { $in: teamNames }, "leagues.league": id }).select("_id name").lean()
-                    : [];
-                const teamByName = {};
-                teams.forEach((t) => { teamByName[t.name] = t._id; });
-
                 // Derive location / field from composed location string
                 const dashIdx = (body.location || "").indexOf(" - ");
                 const locationName = dashIdx > -1 ? body.location.slice(0, dashIdx) : (body.location || "");
@@ -162,8 +129,8 @@ export async function POST(request, { params }) {
                     : new Date(body.date).toISOString().split("T")[0];
 
                 const gameEntry = {
-                    team1: teamByName[body.teamA?.name] || null,
-                    team2: teamByName[body.teamB?.name] || null,
+                    team1: game.teamA?.teamId || null,
+                    team2: game.teamB?.teamId || null,
                     field: fieldName,
                     date: dateStr,
                     time: body.time || "",

@@ -2,12 +2,16 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Game from "@/models/Game";
 import League from "@/models/League";
-import { requireAdmin, requireAdminOrStatistician } from "@/lib/apiAuth";
+import { requireAdmin, requireAdminOrStatistician, hasRole, getUserOrganizationIds } from "@/lib/apiAuth";
 import Schedule from "@/models/Schedule";
 import Team from "@/models/Team";
 import Play from "@/models/Play";
 import GameStat from "@/models/GameStat";
+import ImportedStatLine from "@/models/ImportedStatLine";
 import { isPlaceholderTeamName } from "@/lib/placeholderTeams";
+import { inTransaction } from "@/lib/teamJerseyGuard";
+import { hasGameHistory, summarizeGameHistory } from "@/lib/scheduleHistory";
+import { enrichGamesWithTeams, resolveTeamIdsByName, withResolvedTeamIds } from "@/lib/gameTeams";
 
 // GET single game
 export async function GET(request, { params }) {
@@ -18,7 +22,13 @@ export async function GET(request, { params }) {
         if (!game) {
             return NextResponse.json({ success: false, error: "Game not found" }, { status: 404 });
         }
-        return NextResponse.json({ success: true, data: game }, { status: 200 });
+        // Current team logos (and playoff seeds), same as the schedule
+        // listings — the stored logo is only a snapshot from creation time.
+        const league = await League.findById(game.league).select("organization leagueType").lean();
+        const [data] = league?.organization
+            ? await enrichGamesWithTeams([game], league.organization, { isPlayoffs: () => league.leagueType === "playoffs" })
+            : [game];
+        return NextResponse.json({ success: true, data }, { status: 200 });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
@@ -32,9 +42,23 @@ export async function PUT(request, { params }) {
 
         await dbConnect();
         const { gameId } = await params;
-        const body = await request.json();
+        const rawBody = await request.json();
 
         const existing = await Game.findById(gameId).select("league teamA teamB originalTeamA originalTeamB").lean();
+
+        // Any team assignment in this update gets its teamId derived
+        // server-side from (league, name), so the game stays linked to the
+        // right team even when another league has a same-named one. Sides
+        // whose name didn't change keep their existing link (rename-safe).
+        const body = await withResolvedTeamIds(rawBody, rawBody.league || existing?.league, existing);
+
+        // The forfeiting team being swapped out for a stand-in keeps its link.
+        if (body.noStatsOriginalTeam && ["A", "B"].includes(body.noStatsSide)) {
+            body.noStatsOriginalTeam = {
+                ...body.noStatsOriginalTeam,
+                teamId: existing?.[`team${body.noStatsSide}`]?.teamId || null,
+            };
+        }
 
         // Validate against league start date
         if (body.date) {
@@ -64,14 +88,18 @@ export async function PUT(request, { params }) {
         if (body.status === "in_progress" && existing?.league) {
             const league = await League.findById(existing.league).select("organization").lean();
             if (league?.organization) {
-                const teamAName = body.teamA?.name || existing.teamA?.name;
-                const teamBName = body.teamB?.name || existing.teamB?.name;
-                // League-scoped — two unrelated real teams can share a name
-                // across different leagues.
-                const [teamADoc, teamBDoc] = await Promise.all([
-                    Team.findOne({ name: teamAName, organization: league.organization, "leagues.league": existing.league }).select("players").lean(),
-                    Team.findOne({ name: teamBName, organization: league.organization, "leagues.league": existing.league }).select("players").lean(),
-                ]);
+                const sideA = body.teamA?.name ? body.teamA : existing.teamA;
+                const sideB = body.teamB?.name ? body.teamB : existing.teamB;
+                const teamAName = sideA?.name;
+                const teamBName = sideB?.name;
+                // By teamId; games from before teamId existed fall back to a
+                // league-scoped name match — two unrelated real teams can
+                // share a name across different leagues.
+                const findSideTeam = (side) => (side?.teamId
+                    ? Team.findById(side.teamId)
+                    : Team.findOne({ name: side?.name, organization: league.organization, "leagues.league": existing.league })
+                ).select("players").lean();
+                const [teamADoc, teamBDoc] = await Promise.all([findSideTeam(sideA), findSideTeam(sideB)]);
                 const empty = [];
                 if (!teamADoc || (teamADoc.players || []).length === 0) empty.push(teamAName);
                 if (!teamBDoc || (teamBDoc.players || []).length === 0) empty.push(teamBName);
@@ -90,13 +118,29 @@ export async function PUT(request, { params }) {
         // Snapshot the placeholder team (e.g. "TBD") the first time it's resolved to a
         // real team, so the fixture can be reverted later via /reset-fixture.
         if (existing) {
-            if (body.teamA?.name && isPlaceholderTeamName(existing.teamA?.name) && !isPlaceholderTeamName(body.teamA.name) && !existing.originalTeamA?.name) {
-                const placeholderTeam = await Team.findOne({ name: existing.teamA.name }).select("_id").lean();
-                body.originalTeamA = { teamId: placeholderTeam?._id || null, name: existing.teamA.name, logo: existing.teamA.logo || "" };
-            }
-            if (body.teamB?.name && isPlaceholderTeamName(existing.teamB?.name) && !isPlaceholderTeamName(body.teamB.name) && !existing.originalTeamB?.name) {
-                const placeholderTeam = await Team.findOne({ name: existing.teamB.name }).select("_id").lean();
-                body.originalTeamB = { teamId: placeholderTeam?._id || null, name: existing.teamB.name, logo: existing.teamB.logo || "" };
+            const resolvingA = body.teamA?.name && isPlaceholderTeamName(existing.teamA?.name) && !isPlaceholderTeamName(body.teamA.name) && !existing.originalTeamA?.name;
+            const resolvingB = body.teamB?.name && isPlaceholderTeamName(existing.teamB?.name) && !isPlaceholderTeamName(body.teamB.name) && !existing.originalTeamB?.name;
+            if (resolvingA || resolvingB) {
+                // Placeholder ids scoped to this game's league/org — a bare
+                // name lookup could pick another organization's "TBD".
+                const placeholderIds = await resolveTeamIdsByName(existing.league, [
+                    resolvingA && !existing.teamA?.teamId ? existing.teamA.name : null,
+                    resolvingB && !existing.teamB?.teamId ? existing.teamB.name : null,
+                ]);
+                if (resolvingA) {
+                    body.originalTeamA = {
+                        teamId: existing.teamA.teamId || placeholderIds.get(existing.teamA.name) || null,
+                        name: existing.teamA.name,
+                        logo: existing.teamA.logo || "",
+                    };
+                }
+                if (resolvingB) {
+                    body.originalTeamB = {
+                        teamId: existing.teamB.teamId || placeholderIds.get(existing.teamB.name) || null,
+                        name: existing.teamB.name,
+                        logo: existing.teamB.logo || "",
+                    };
+                }
             }
         }
 
@@ -107,10 +151,14 @@ export async function PUT(request, { params }) {
 
         // Sync back to Schedule
         try {
-            // League-scoped — two unrelated real teams can share a name
-            // across different leagues.
-            const teamA = await Team.findOne({ name: game.teamA?.name, "leagues.league": game.league }).select("_id").lean();
-            const teamB = await Team.findOne({ name: game.teamB?.name, "leagues.league": game.league }).select("_id").lean();
+            // Games written before teamId existed fall back to a
+            // league-scoped name lookup.
+            const legacyIds = await resolveTeamIdsByName(game.league, [
+                game.teamA?.teamId ? null : game.teamA?.name,
+                game.teamB?.teamId ? null : game.teamB?.name,
+            ]);
+            const teamAId = game.teamA?.teamId || legacyIds.get(game.teamA?.name) || null;
+            const teamBId = game.teamB?.teamId || legacyIds.get(game.teamB?.name) || null;
 
             let field = "";
             if (game.location) {
@@ -129,8 +177,8 @@ export async function PUT(request, { params }) {
                         "weeks.$[w].games.$[g].date": gameDateStr,
                         "weeks.$[w].games.$[g].time": game.time || "",
                         "weeks.$[w].games.$[g].field": field,
-                        "weeks.$[w].games.$[g].team1": teamA ? teamA._id : null,
-                        "weeks.$[w].games.$[g].team2": teamB ? teamB._id : null
+                        "weeks.$[w].games.$[g].team1": teamAId,
+                        "weeks.$[w].games.$[g].team2": teamBId
                     }
                 },
                 {
@@ -150,7 +198,21 @@ export async function PUT(request, { params }) {
     }
 }
 
+// "is completed and has 12 recorded plays" — what makes a game worth protecting.
+function describeGameState(status, plays) {
+    return [
+        status === "completed" && "is completed",
+        status === "in_progress" && "is in progress",
+        plays > 0 && `has ${plays} recorded play${plays === 1 ? "" : "s"}`,
+    ].filter(Boolean).join(" and ");
+}
+
 // DELETE game (admin/organizer only)
+//
+// Organizers may only delete games in their own organizations. A game that
+// has been played (completed / in progress) or has recorded plays is refused
+// with 409 HAS_GAME_HISTORY unless the caller confirms with
+// ?confirmDeleteHistory=true — deleting it erases its score, plays and stats.
 export async function DELETE(request, { params }) {
     try {
         const auth = await requireAdmin();
@@ -158,23 +220,53 @@ export async function DELETE(request, { params }) {
 
         await dbConnect();
         const { gameId } = await params;
-        const game = await Game.findByIdAndDelete(gameId);
+        const game = await Game.findById(gameId).select("league status").lean();
         if (!game) {
             return NextResponse.json({ success: false, error: "Game not found" }, { status: 404 });
         }
 
-        // Remove the game entry from any schedule that references it
-        await Schedule.updateMany(
-            { "weeks.games.gameRef": game._id },
-            { $pull: { "weeks.$[].games": { gameRef: game._id } } }
-        );
+        if (!hasRole(auth.user, "admin")) {
+            const orgIds = await getUserOrganizationIds(auth.user);
+            const league = await League.findById(game.league).select("organization").lean();
+            if (!league || !orgIds.has(String(league.organization))) {
+                return NextResponse.json(
+                    { success: false, error: "You can only delete games within your organization" },
+                    { status: 403 }
+                );
+            }
+        }
 
-        // Cascade-delete dependent play-by-play and box-score data — a game
-        // is meaningless once gone, but leaving its Plays/GameStats behind
+        const plays = await Play.countDocuments({ game: game._id });
+        const history = summarizeGameHistory(game.status, plays);
+        const confirmedHistory = new URL(request.url).searchParams.get("confirmDeleteHistory") === "true";
+        if (hasGameHistory(history) && !confirmedHistory) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    code: "HAS_GAME_HISTORY",
+                    error: `This game ${describeGameState(game.status, plays)}. Deleting it permanently erases its score and stats.`,
+                    ...history,
+                },
+                { status: 409 }
+            );
+        }
+
+        // One transaction so a failure can't leave a half-deleted game.
+        // Dependent plays/box-score data go with it — leaving them behind
         // creates dangling refs that silently survive (see Denstar audit:
         // 614 orphaned plays DB-wide from prior deletes that skipped this).
-        await Play.deleteMany({ game: game._id });
-        await GameStat.deleteMany({ game: game._id });
+        await inTransaction(async (session) => {
+            await Play.deleteMany({ game: game._id }, { session });
+            await GameStat.deleteMany({ game: game._id }, { session });
+            await ImportedStatLine.deleteMany({ game: game._id }, { session });
+            await Game.deleteOne({ _id: game._id }, { session });
+            // Remove the game entry from any schedule that references it
+            await Schedule.updateMany(
+                { "weeks.games.gameRef": game._id },
+                { $pull: { "weeks.$[].games": { gameRef: game._id } } },
+                { session }
+            );
+        });
 
         return NextResponse.json({ success: true, message: "Game deleted" }, { status: 200 });
     } catch (error) {

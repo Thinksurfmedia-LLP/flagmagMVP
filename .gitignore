@@ -43,3 +43,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# legacy import plan reports (contain player names/emails)
+/scripts/legacy/reports/

@@ -379,11 +379,13 @@ export async function POST(request) {
                     date: gameDate,
                     time: timeStr,
                     teamA: {
+                        teamId: teamADoc._id,
                         name: teamADoc.name,
                         logo: teamADoc.logo || "",
                         score: null,
                     },
                     teamB: {
+                        teamId: teamBDoc._id,
                         name: teamBDoc.name,
                         logo: teamBDoc.logo || "",
                         score: null,

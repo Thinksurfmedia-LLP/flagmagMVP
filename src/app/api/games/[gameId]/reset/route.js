@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Game from "@/models/Game";
 import GameStat from "@/models/GameStat";
+import ImportedStatLine from "@/models/ImportedStatLine";
 import Play from "@/models/Play";
 import League from "@/models/League";
 import { requireAnyPermission, hasRole, getUserOrganizationIds } from "@/lib/apiAuth";
@@ -47,6 +48,7 @@ export async function POST(request, { params }) {
         await Promise.all([
             Play.deleteMany({ game: gameId }),
             GameStat.deleteMany({ game: gameId }),
+            ImportedStatLine.deleteMany({ game: gameId }),
             Game.findByIdAndUpdate(gameId, {
                 $set: {
                     "teamA.score": 0,

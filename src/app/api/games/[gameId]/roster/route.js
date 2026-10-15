@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Game from "@/models/Game";
 import League from "@/models/League";
-import Team from "@/models/Team";
+import { findGameTeamsWithPlayers } from "@/lib/gameTeams";
 
 // GET roster (players with jersey numbers) for both teams in a game
 export async function GET(request, { params }) {
@@ -26,39 +26,27 @@ export async function GET(request, { params }) {
             );
         }
 
-        // Scoped to this game's league too — two unrelated real teams can
-        // share a name across different leagues (e.g. a "Warriors" in Chino
-        // and a different "Warriors" in Temecula), and a name-only match
-        // could otherwise hand the statistician the wrong team's roster.
-        const teams = await Team.find({
-            organization: league.organization,
-            name: { $in: [game.teamA.name, game.teamB.name] },
-            "leagues.league": game.league,
-        })
-            .populate("players.player", "name photo")
-            .lean();
+        // By teamId (league-scoped name match for older games) — two
+        // unrelated real teams can share a name across different leagues
+        // (e.g. a "Warriors" in Chino and a different "Warriors" in
+        // Temecula), and a name-only match could otherwise hand the
+        // statistician the wrong team's roster.
+        const { teamA, teamB } = await findGameTeamsWithPlayers(game, league.organization);
 
-        const roster = { teamA: [], teamB: [] };
-        for (const team of teams) {
-            // A player deactivated for this specific team (e.g. hasn't paid
-            // for the new season) stays on the roster in the admin, but is
-            // omitted here so the statistician's app never offers their
-            // jersey number at all — see Team.players[].active.
-            const entries = (team.players || [])
-                .filter((p) => p.active !== false)
-                .map((p) => ({
-                    playerId: p.player?._id || p.player,
-                    playerName: p.player?.name || "",
-                    playerPhoto: p.player?.photo || "",
-                    jerseyNumber: p.jerseyNumber,
-                }));
+        // A player deactivated for this specific team (e.g. hasn't paid for
+        // the new season) stays on the roster in the admin, but is omitted
+        // here so the statistician's app never offers their jersey number at
+        // all — see Team.players[].active.
+        const activeEntries = (team) => (team?.players || [])
+            .filter((p) => p.active !== false)
+            .map((p) => ({
+                playerId: p.player?._id || p.player,
+                playerName: p.player?.name || "",
+                playerPhoto: p.player?.photo || "",
+                jerseyNumber: p.jerseyNumber,
+            }));
 
-            if (team.name === game.teamA.name) {
-                roster.teamA = entries;
-            } else if (team.name === game.teamB.name) {
-                roster.teamB = entries;
-            }
-        }
+        const roster = { teamA: activeEntries(teamA), teamB: activeEntries(teamB) };
 
         return NextResponse.json({ success: true, data: roster });
     } catch (error) {
