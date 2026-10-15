@@ -7,6 +7,7 @@ import { logActivity } from "@/lib/activityLogger";
 import Game from "@/models/Game";
 import Play from "@/models/Play";
 import GameStat from "@/models/GameStat";
+import ImportedStatLine from "@/models/ImportedStatLine";
 import { inTransaction } from "@/lib/teamJerseyGuard";
 import { collectGameRefs, hasGameHistory, describeGameHistory } from "@/lib/scheduleHistory";
 import Team from "@/models/Team";
@@ -304,6 +305,7 @@ export async function DELETE(request, { params }) {
             if (gameRefs.length > 0) {
                 await Play.deleteMany({ game: { $in: gameRefs } }, { session });
                 await GameStat.deleteMany({ game: { $in: gameRefs } }, { session });
+                await ImportedStatLine.deleteMany({ game: { $in: gameRefs } }, { session });
                 await Game.deleteMany({ _id: { $in: gameRefs } }, { session });
             }
             await Schedule.deleteOne({ _id: id }, { session });

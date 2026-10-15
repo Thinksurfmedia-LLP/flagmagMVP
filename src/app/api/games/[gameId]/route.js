@@ -7,6 +7,7 @@ import Schedule from "@/models/Schedule";
 import Team from "@/models/Team";
 import Play from "@/models/Play";
 import GameStat from "@/models/GameStat";
+import ImportedStatLine from "@/models/ImportedStatLine";
 import { isPlaceholderTeamName } from "@/lib/placeholderTeams";
 import { inTransaction } from "@/lib/teamJerseyGuard";
 import { hasGameHistory, summarizeGameHistory } from "@/lib/scheduleHistory";
@@ -257,6 +258,7 @@ export async function DELETE(request, { params }) {
         await inTransaction(async (session) => {
             await Play.deleteMany({ game: game._id }, { session });
             await GameStat.deleteMany({ game: game._id }, { session });
+            await ImportedStatLine.deleteMany({ game: game._id }, { session });
             await Game.deleteOne({ _id: game._id }, { session });
             // Remove the game entry from any schedule that references it
             await Schedule.updateMany(

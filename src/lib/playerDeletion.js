@@ -3,6 +3,7 @@ import Player from "@/models/Player";
 import Team from "@/models/Team";
 import Play from "@/models/Play";
 import Award from "@/models/Award";
+import ImportedStatLine from "@/models/ImportedStatLine";
 import { inTransaction } from "@/lib/teamJerseyGuard";
 import { syncUserRole } from "@/lib/userRoleSync";
 
@@ -16,7 +17,8 @@ const FROZEN_PLAYER_FIELDS = ["passerPlayer", "receiverPlayer", "rusherPlayer", 
  * and plays linked to them fell back to a jersey-number lookup — crediting
  * their history to whoever wears that number now.
  *
- * Refuses (409) when the player has recorded plays or awards: that history
+ * Refuses (409) when the player has recorded plays, awards or imported
+ * past-season stats (ImportedStatLine): that history
  * would be orphaned. Organizers should remove them from teams instead
  * (they then show up as a free agent with their history intact).
  *
@@ -27,13 +29,17 @@ export async function deletePlayer(playerId) {
     if (!player) return { ok: false, status: 404, error: "Player not found" };
 
     const pid = new mongoose.Types.ObjectId(String(playerId));
-    const [plays, awards] = await Promise.all([
+    const [plays, awards, importedGames] = await Promise.all([
         Play.countDocuments({ $or: FROZEN_PLAYER_FIELDS.map((f) => ({ [f]: pid })) }),
         Award.countDocuments({ player: pid }),
+        ImportedStatLine.countDocuments({ player: pid }),
     ]);
-    if (plays > 0 || awards > 0) {
-        const what = [plays && `${plays} recorded play${plays === 1 ? "" : "s"}`, awards && `${awards} award${awards === 1 ? "" : "s"}`]
-            .filter(Boolean).join(" and ");
+    if (plays > 0 || awards > 0 || importedGames > 0) {
+        const what = [
+            plays && `${plays} recorded play${plays === 1 ? "" : "s"}`,
+            awards && `${awards} award${awards === 1 ? "" : "s"}`,
+            importedGames && `stats from ${importedGames} past game${importedGames === 1 ? "" : "s"}`,
+        ].filter(Boolean).join(" and ");
         return {
             ok: false,
             status: 409,
