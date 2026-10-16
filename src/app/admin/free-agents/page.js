@@ -5,6 +5,16 @@ import AdminLayout, { hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 import { teamLeagueSummary, sortTeamsForPicker } from "@/lib/teamLabel";
+import AdminPagination from "@/components/AdminPagination";
+import {
+    validateFreeAgentFields,
+    validatePassword,
+    MAX_NAME_LENGTH,
+    MIN_PASSWORD_LENGTH,
+} from "@/lib/freeAgentValidation";
+
+const PAGE_SIZE = 50;
+const SEARCH_DEBOUNCE_MS = 300;
 
 const FA_CSV_HEADERS = ["name", "email", "password", "phone"];
 const FA_CSV_SAMPLE = [
@@ -238,40 +248,81 @@ function CsvImportModal({ onClose, onImportDone }) {
     );
 }
 
+const FIELD_ERROR_COLOR = "#dc2626";
+
+// Label + input + inline error, shared by the Add and Edit modals.
+function FormField({ id, label, required, error, children }) {
+    return (
+        <div className="admin-form-group">
+            <label className="admin-form-label" htmlFor={id}>{label}{required && " *"}</label>
+            {children}
+            {error && (
+                <div id={`${id}-error`} role="alert" style={{ color: FIELD_ERROR_COLOR, fontSize: 12, marginTop: 4 }}>
+                    <i className="fa-solid fa-circle-exclamation" style={{ marginRight: 4 }}></i>{error}
+                </div>
+            )}
+        </div>
+    );
+}
+
+// Props that mark an input invalid for both sighted and screen-reader users.
+const invalidProps = (id, error) => (error
+    ? { "aria-invalid": true, "aria-describedby": `${id}-error`, style: { borderColor: FIELD_ERROR_COLOR } }
+    : {});
+
+// Shared form state for both modals: edits clear that field's error, and
+// the server's fieldErrors (if any) land on the matching inputs.
+function useFreeAgentForm(initial) {
+    const [form, setForm] = useState(initial);
+    const [fieldErrors, setFieldErrors] = useState({});
+    const [formError, setFormError] = useState("");
+
+    const setField = (field) => (e) => {
+        const { value } = e.target;
+        setForm((prev) => ({ ...prev, [field]: value }));
+        setFieldErrors((prev) => {
+            if (!prev[field]) return prev;
+            const { [field]: _removed, ...rest } = prev;
+            return rest;
+        });
+    };
+
+    const applyResult = (result) => {
+        if (!result) return;
+        setFieldErrors(result.fieldErrors || {});
+        setFormError(result.fieldErrors ? "" : result.error || "");
+    };
+
+    return { form, setField, fieldErrors, setFieldErrors, formError, setFormError, applyResult };
+}
+
 function AddFreeAgentModal({ onClose, onSave, organizations, isAdmin }) {
     const [organization, setOrganization] = useState("");
-    const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "" });
+    const { form, setField, fieldErrors, setFieldErrors, formError, setFormError, applyResult } =
+        useFreeAgentForm({ name: "", email: "", phone: "", password: "", confirmPassword: "" });
     const [saving, setSaving] = useState(false);
-    const [formError, setFormError] = useState("");
     const [showPassword, setShowPassword] = useState(false);
 
-    const handleSave = async () => {
+    const handleSave = async (e) => {
+        e.preventDefault();
         setFormError("");
-        if (isAdmin && !organization) {
-            setFormError("Please select an organization");
-            return;
-        }
-        if (!form.name || !form.email || !form.password) {
-            setFormError("Name, email, and password are required");
-            return;
-        }
-        if (form.password.length < 6) {
-            setFormError("Password must be at least 6 characters");
-            return;
-        }
-        if (form.password !== form.confirmPassword) {
-            setFormError("Passwords do not match");
-            return;
-        }
+        const { values, errors } = validateFreeAgentFields(form, { requireEmail: true });
+        const passwordError = validatePassword(form.password);
+        const nextErrors = { ...errors };
+        if (passwordError) nextErrors.password = passwordError;
+        else if (form.password !== form.confirmPassword) nextErrors.confirmPassword = "Passwords do not match";
+        if (isAdmin && !organization) nextErrors.organization = "Please select an organization";
+        setFieldErrors(nextErrors);
+        if (Object.keys(nextErrors).length > 0) return;
+
         setSaving(true);
-        await onSave({
-            name: form.name,
-            email: form.email,
-            phone: form.phone,
+        const result = await onSave({
+            ...values,
             password: form.password,
             organization: isAdmin ? organization : undefined,
         });
         setSaving(false);
+        applyResult(result);
     };
 
     return (
@@ -288,105 +339,206 @@ function AddFreeAgentModal({ onClose, onSave, organizations, isAdmin }) {
                     </div>
                 )}
 
-                {/* Organization (admin only) */}
-                {isAdmin && (
-                    <div className="admin-form-group">
-                        <label className="admin-form-label">Organization *</label>
-                        <select
-                            className="admin-form-select"
-                            value={organization}
-                            onChange={(e) => setOrganization(e.target.value)}
-                        >
-                            <option value="">Select organization...</option>
-                            {(organizations || []).map((o) => (
-                                <option key={o._id} value={o._id}>{o.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                )}
+                <form onSubmit={handleSave} noValidate>
+                    {/* Organization (admin only) */}
+                    {isAdmin && (
+                        <FormField id="fa-add-org" label="Organization" required error={fieldErrors.organization}>
+                            <select
+                                id="fa-add-org"
+                                className="admin-form-select"
+                                value={organization}
+                                onChange={(e) => {
+                                    setOrganization(e.target.value);
+                                    setFieldErrors(({ organization: _removed, ...rest }) => rest);
+                                }}
+                                {...invalidProps("fa-add-org", fieldErrors.organization)}
+                            >
+                                <option value="">Select organization...</option>
+                                {(organizations || []).map((o) => (
+                                    <option key={o._id} value={o._id}>{o.name}</option>
+                                ))}
+                            </select>
+                        </FormField>
+                    )}
 
-                <div className="admin-form-group">
-                    <label className="admin-form-label">Name *</label>
-                    <input
-                        className="admin-form-input"
-                        autoComplete="off"
-                        value={form.name}
-                        onChange={(e) => setForm({ ...form, name: e.target.value })}
-                        placeholder="Full name"
-                    />
-                </div>
-                <div className="admin-form-group">
-                    <label className="admin-form-label">Email *</label>
-                    <input
-                        type="email"
-                        className="admin-form-input"
-                        autoComplete="off"
-                        value={form.email}
-                        onChange={(e) => setForm({ ...form, email: e.target.value })}
-                        placeholder="user@example.com"
-                    />
-                </div>
-                <div className="admin-form-group">
-                    <label className="admin-form-label">Phone</label>
-                    <input
-                        className="admin-form-input"
-                        autoComplete="off"
-                        value={form.phone}
-                        onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                        placeholder="+1-555-0000"
-                    />
-                </div>
-                <div className="admin-form-group">
-                    <label className="admin-form-label">Password *</label>
-                    <div style={{ position: "relative" }}>
+                    <FormField id="fa-add-name" label="Name" required error={fieldErrors.name}>
                         <input
+                            id="fa-add-name"
+                            className="admin-form-input"
+                            autoComplete="off"
+                            maxLength={MAX_NAME_LENGTH}
+                            value={form.name}
+                            onChange={setField("name")}
+                            placeholder="Full name"
+                            {...invalidProps("fa-add-name", fieldErrors.name)}
+                        />
+                    </FormField>
+                    <FormField id="fa-add-email" label="Email" required error={fieldErrors.email}>
+                        <input
+                            id="fa-add-email"
+                            type="email"
+                            className="admin-form-input"
+                            autoComplete="off"
+                            value={form.email}
+                            onChange={setField("email")}
+                            placeholder="user@example.com"
+                            {...invalidProps("fa-add-email", fieldErrors.email)}
+                        />
+                    </FormField>
+                    <FormField id="fa-add-phone" label="Phone" error={fieldErrors.phone}>
+                        <input
+                            id="fa-add-phone"
+                            type="tel"
+                            className="admin-form-input"
+                            autoComplete="off"
+                            value={form.phone}
+                            onChange={setField("phone")}
+                            placeholder="+1-555-0000"
+                            {...invalidProps("fa-add-phone", fieldErrors.phone)}
+                        />
+                    </FormField>
+                    <FormField id="fa-add-password" label="Password" required error={fieldErrors.password}>
+                        <div style={{ position: "relative" }}>
+                            <input
+                                id="fa-add-password"
+                                type={showPassword ? "text" : "password"}
+                                className="admin-form-input"
+                                autoComplete="new-password"
+                                value={form.password}
+                                onChange={setField("password")}
+                                placeholder={`Min ${MIN_PASSWORD_LENGTH} characters`}
+                                {...invalidProps("fa-add-password", fieldErrors.password)}
+                                style={{ paddingRight: 36, ...(fieldErrors.password && { borderColor: FIELD_ERROR_COLOR }) }}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                aria-label={showPassword ? "Hide password" : "Show password"}
+                                style={{
+                                    position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
+                                    background: "none", border: "none", cursor: "pointer", color: "#8b90a0", fontSize: 14,
+                                }}
+                            >
+                                <i className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
+                            </button>
+                        </div>
+                    </FormField>
+                    <FormField id="fa-add-confirm" label="Confirm Password" required error={fieldErrors.confirmPassword}>
+                        <input
+                            id="fa-add-confirm"
                             type={showPassword ? "text" : "password"}
                             className="admin-form-input"
                             autoComplete="new-password"
-                            value={form.password}
-                            onChange={(e) => setForm({ ...form, password: e.target.value })}
-                            placeholder="Min 6 characters"
-                            style={{ paddingRight: 36 }}
+                            value={form.confirmPassword}
+                            onChange={setField("confirmPassword")}
+                            placeholder="Re-enter password"
+                            {...invalidProps("fa-add-confirm", fieldErrors.confirmPassword)}
                         />
-                        <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            style={{
-                                position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
-                                background: "none", border: "none", cursor: "pointer", color: "#8b90a0", fontSize: 14,
-                            }}
-                        >
-                            <i className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
+                    </FormField>
+
+                    <div style={{ display: "flex", gap: 10, marginTop: 20, justifyContent: "flex-end" }}>
+                        <button type="button" className="admin-btn admin-btn-ghost" onClick={onClose}>Cancel</button>
+                        <button type="submit" className="admin-btn admin-btn-primary" disabled={saving}>
+                            {saving ? "Saving..." : "Add Free Agent"}
                         </button>
                     </div>
-                </div>
-                <div className="admin-form-group">
-                    <label className="admin-form-label">Confirm Password *</label>
-                    <input
-                        type={showPassword ? "text" : "password"}
-                        className="admin-form-input"
-                        autoComplete="new-password"
-                        value={form.confirmPassword}
-                        onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-                        placeholder="Re-enter password"
-                    />
-                </div>
-
-                <div style={{ display: "flex", gap: 10, marginTop: 20, justifyContent: "flex-end" }}>
-                    <button className="admin-btn admin-btn-ghost" onClick={onClose}>Cancel</button>
-                    <button
-                        className="admin-btn admin-btn-primary"
-                        onClick={handleSave}
-                        disabled={saving}
-                    >
-                        {saving ? "Saving..." : "Add Free Agent"}
-                    </button>
-                </div>
+                </form>
             </div>
         </div>
     );
 }
 
+// Edits the free agent's own profile only — not the linked login account
+// (see PATCH /api/free-agents/[id]).
+function EditFreeAgentModal({ freeAgent, onClose, onSave }) {
+    const { form, setField, fieldErrors, setFieldErrors, formError, setFormError, applyResult } = useFreeAgentForm({
+        name: freeAgent.name || "",
+        email: freeAgent.email || freeAgent.user?.email || "",
+        phone: freeAgent.phone || freeAgent.user?.phone || "",
+    });
+    const [saving, setSaving] = useState(false);
+
+    const handleSave = async (e) => {
+        e.preventDefault();
+        setFormError("");
+        const { values, errors } = validateFreeAgentFields(form);
+        setFieldErrors(errors);
+        if (Object.keys(errors).length > 0) return;
+
+        setSaving(true);
+        const result = await onSave(freeAgent, values);
+        setSaving(false);
+        applyResult(result);
+    };
+
+    return (
+        <div className="admin-modal-backdrop">
+            <div className="admin-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 560 }}>
+                <button className="admin-modal-close" onClick={onClose} aria-label="Close">
+                    <i className="fa-solid fa-xmark"></i>
+                </button>
+                <h3 className="admin-modal-title">Edit Free Agent</h3>
+
+                {formError && (
+                    <div className="admin-alert admin-alert-error" style={{ marginBottom: 12 }}>
+                        <i className="fa-solid fa-exclamation-circle"></i> {formError}
+                    </div>
+                )}
+
+                <form onSubmit={handleSave} noValidate>
+                    <FormField id="fa-edit-name" label="Name" required error={fieldErrors.name}>
+                        <input
+                            id="fa-edit-name"
+                            className="admin-form-input"
+                            autoComplete="off"
+                            maxLength={MAX_NAME_LENGTH}
+                            value={form.name}
+                            onChange={setField("name")}
+                            placeholder="Full name"
+                            {...invalidProps("fa-edit-name", fieldErrors.name)}
+                        />
+                    </FormField>
+                    <FormField id="fa-edit-email" label="Email" error={fieldErrors.email}>
+                        <input
+                            id="fa-edit-email"
+                            type="email"
+                            className="admin-form-input"
+                            autoComplete="off"
+                            value={form.email}
+                            onChange={setField("email")}
+                            placeholder="user@example.com"
+                            {...invalidProps("fa-edit-email", fieldErrors.email)}
+                        />
+                    </FormField>
+                    <FormField id="fa-edit-phone" label="Phone" error={fieldErrors.phone}>
+                        <input
+                            id="fa-edit-phone"
+                            type="tel"
+                            className="admin-form-input"
+                            autoComplete="off"
+                            value={form.phone}
+                            onChange={setField("phone")}
+                            placeholder="+1-555-0000"
+                            {...invalidProps("fa-edit-phone", fieldErrors.phone)}
+                        />
+                    </FormField>
+                    {freeAgent.user && (
+                        <div style={{ fontSize: 11, color: "#8b90a0", marginTop: 4 }}>
+                            This updates the free agent&apos;s profile only. Their login email and password stay the same.
+                        </div>
+                    )}
+
+                    <div style={{ display: "flex", gap: 10, marginTop: 20, justifyContent: "flex-end" }}>
+                        <button type="button" className="admin-btn admin-btn-ghost" onClick={onClose}>Cancel</button>
+                        <button type="submit" className="admin-btn admin-btn-primary" disabled={saving}>
+                            {saving ? "Saving..." : "Save Changes"}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
 
 export default function AdminFreeAgentsPage() {
     const { user, activeRole } = useAuth();
@@ -397,13 +549,19 @@ export default function AdminFreeAgentsPage() {
     const [freeAgents, setFreeAgents] = useState([]);
     const [organizations, setOrganizations] = useState([]);
     const [teams, setTeams] = useState([]);
+    const [teamsStatus, setTeamsStatus] = useState("idle"); // idle | loading | loaded
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageMeta, setPageMeta] = useState({ total: 0, totalPages: 1 });
+    const latestRequestRef = useRef(0);
     const [modalOpen, setModalOpen] = useState(false);
     const [importModalOpen, setImportModalOpen] = useState(false);
     const [assigning, setAssigning] = useState(null);
     const [jerseyPrompt, setJerseyPrompt] = useState(null);
     const [jerseyInput, setJerseyInput] = useState("");
+    const [editingAgent, setEditingAgent] = useState(null);
 
     const canManage = user && hasAnyAccess(user, [
         "manage_players",
@@ -415,40 +573,78 @@ export default function AdminFreeAgentsPage() {
     const canCreate = user && hasAnyAccess(user, ["manage_players", "player_create"]);
     // Organizers can delete too — the API scopes them to their own organization.
     const canDelete = user && hasAnyAccess(user, ["manage_players", "player_delete"]);
+    const canEdit = user && hasAnyAccess(user, ["manage_players", "player_update"]);
+    const showActions = canEdit || canDelete;
+
+    // Debounce search so typing doesn't fire a request per keystroke; a new
+    // search always starts back at page 1.
+    useEffect(() => {
+        const t = setTimeout(() => {
+            setDebouncedSearch(search.trim());
+            setCurrentPage(1);
+        }, SEARCH_DEBOUNCE_MS);
+        return () => clearTimeout(t);
+    }, [search]);
 
     const fetchData = useCallback(async () => {
         if (!canManage) { setLoading(false); return; }
+        const requestId = ++latestRequestRef.current;
+        setLoading(true);
         try {
-            const fetches = [fetch("/api/free-agents"), fetch("/api/teams")];
-            if (isAdmin) fetches.push(fetch("/api/organizations"));
+            const params = new URLSearchParams({ page: String(currentPage), limit: String(PAGE_SIZE) });
+            if (debouncedSearch) params.set("search", debouncedSearch);
+            const res = await fetch(`/api/free-agents?${params}`);
+            const faData = await res.json();
+            // A slower, older request (earlier page/search) must not clobber a newer one.
+            if (requestId !== latestRequestRef.current) return;
 
-            const responses = await Promise.all(fetches);
-            const [faData, teamsData, orgData] = await Promise.all(responses.map(r => r.json()));
-
-            if (faData.success) setFreeAgents(faData.data || []);
-            else showError(faData.error || "Failed to load free agents");
-
-            if (teamsData.success) setTeams(teamsData.data || []);
-
-            if (orgData?.success) setOrganizations(orgData.data || []);
+            if (!faData.success) {
+                showError(faData.error || "Failed to load free agents");
+                return;
+            }
+            const meta = faData.meta || { total: (faData.data || []).length, totalPages: 1 };
+            // Deleting/assigning the last row on the last page leaves it empty — step back.
+            if ((faData.data || []).length === 0 && currentPage > 1 && currentPage > meta.totalPages) {
+                setCurrentPage(meta.totalPages);
+                return;
+            }
+            setFreeAgents(faData.data || []);
+            setPageMeta({ total: meta.total, totalPages: meta.totalPages });
         } catch {
-            showError("Failed to load free agents");
+            if (requestId === latestRequestRef.current) showError("Failed to load free agents");
         } finally {
-            setLoading(false);
+            if (requestId === latestRequestRef.current) setLoading(false);
         }
-    }, [canManage, isAdmin, showError]);
+    }, [canManage, currentPage, debouncedSearch, showError]);
 
     useEffect(() => { fetchData(); }, [fetchData]);
 
-    const filtered = freeAgents.filter((fa) => {
-        const q = search.toLowerCase();
-        return (
-            fa.name?.toLowerCase().includes(q) ||
-            (fa.email || fa.user?.email)?.toLowerCase().includes(q) ||
-            fa.organization?.name?.toLowerCase().includes(q)
-        );
-    });
+    useEffect(() => {
+        if (!canManage || !isAdmin) return;
+        fetch("/api/organizations")
+            .then((r) => r.json())
+            .then((orgData) => { if (orgData?.success) setOrganizations(orgData.data || []); })
+            .catch(() => showError("Failed to load organizations"));
+    }, [canManage, isAdmin, showError]);
 
+    // Teams are only needed by the "Add to Team" modal, so load them on first
+    // open instead of on page load.
+    const loadTeams = useCallback(async () => {
+        setTeamsStatus("loading");
+        try {
+            const res = await fetch("/api/teams");
+            const teamsData = await res.json();
+            if (!teamsData.success) throw new Error(teamsData.error);
+            setTeams(teamsData.data || []);
+            setTeamsStatus("loaded");
+        } catch {
+            setTeamsStatus("idle");
+            showError("Failed to load teams");
+        }
+    }, [showError]);
+
+    // Both save handlers return null on success, or { error, fieldErrors }
+    // for the modal to show inline.
     const saveFreeAgent = async (payload) => {
         try {
             const res = await fetch("/api/free-agents", {
@@ -457,15 +653,31 @@ export default function AdminFreeAgentsPage() {
                 body: JSON.stringify(payload),
             });
             const data = await res.json();
-            if (!data.success) {
-                showError(data.error || "Failed to add free agent");
-                return;
-            }
+            if (!data.success) return { error: data.error || "Failed to add free agent", fieldErrors: data.fieldErrors };
             setModalOpen(false);
             fetchData();
             showSuccess("Free agent added!");
+            return null;
         } catch {
-            showError("Failed to add free agent");
+            return { error: "Failed to add free agent" };
+        }
+    };
+
+    const updateFreeAgent = async (fa, values) => {
+        try {
+            const res = await fetch(`/api/free-agents/${fa._id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(values),
+            });
+            const data = await res.json();
+            if (!data.success) return { error: data.error || "Failed to update free agent", fieldErrors: data.fieldErrors };
+            setFreeAgents((prev) => prev.map((p) => (p._id === fa._id ? data.data : p)));
+            setEditingAgent(null);
+            showSuccess("Free agent updated!");
+            return null;
+        } catch {
+            return { error: "Failed to update free agent" };
         }
     };
 
@@ -486,6 +698,7 @@ export default function AdminFreeAgentsPage() {
     };
 
     const openAssignModal = (fa) => {
+        if (teamsStatus === "idle") loadTeams();
         setJerseyPrompt({ fa, selectedTeams: [] });
     };
 
@@ -527,6 +740,8 @@ export default function AdminFreeAgentsPage() {
                 return;
             }
             fetchData();
+            // Rosters changed — refresh so the jersey-number check stays accurate.
+            loadTeams();
             setJerseyPrompt(null);
             showSuccess(`${fa.name} assigned successfully!`);
         } catch {
@@ -547,7 +762,7 @@ export default function AdminFreeAgentsPage() {
                 <>
                     <div className="admin-card">
                         <div className="admin-card-header" style={{ flexWrap: "wrap", gap: 10 }}>
-                            <h3>Free Agents ({filtered.length})</h3>
+                            <h3>Free Agents ({pageMeta.total})</h3>
                             <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
                                 <input
                                     type="text"
@@ -583,7 +798,7 @@ export default function AdminFreeAgentsPage() {
                                 <div className="admin-spinner"></div>
                                 Loading free agents...
                             </div>
-                        ) : filtered.length === 0 ? (
+                        ) : freeAgents.length === 0 ? (
                             <div className="admin-empty">
                                 <i className="fa-solid fa-user-clock"></i>
                                 <p>No free agents found.</p>
@@ -601,11 +816,11 @@ export default function AdminFreeAgentsPage() {
                                                     {isAdmin && <th>Organization</th>}
                                                     <th>Phone</th>
                                                     <th>{isAdmin ? "Added" : "Assign to Team"}</th>
-                                                    {canDelete && <th style={{ width: 80 }}>Actions</th>}
+                                                    {showActions && <th style={{ width: 110 }}>Actions</th>}
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {filtered.map((fa) => (
+                                                {freeAgents.map((fa) => (
                                                     <tr key={fa._id}>
                                                         <td style={{ fontWeight: 600 }}>{fa.name}</td>
                                                         <td style={{ color: "#6b7280" }}>{fa.email || fa.user?.email || "—"}</td>
@@ -628,15 +843,30 @@ export default function AdminFreeAgentsPage() {
                                                                 </button>
                                                             )}
                                                         </td>
-                                                        {canDelete && (
+                                                        {showActions && (
                                                             <td>
-                                                                <button
-                                                                    className="admin-btn admin-btn-danger admin-btn-sm"
-                                                                    onClick={() => deleteFreeAgent(fa)}
-                                                                    title="Delete free agent"
-                                                                >
-                                                                    <i className="fa-solid fa-trash"></i>
-                                                                </button>
+                                                                <div style={{ display: "flex", gap: 6 }}>
+                                                                    {canEdit && (
+                                                                        <button
+                                                                            className="admin-btn admin-btn-ghost admin-btn-sm"
+                                                                            onClick={() => setEditingAgent(fa)}
+                                                                            title="Edit free agent"
+                                                                            aria-label={`Edit ${fa.name}`}
+                                                                        >
+                                                                            <i className="fa-solid fa-pen"></i>
+                                                                        </button>
+                                                                    )}
+                                                                    {canDelete && (
+                                                                        <button
+                                                                            className="admin-btn admin-btn-danger admin-btn-sm"
+                                                                            onClick={() => deleteFreeAgent(fa)}
+                                                                            title="Delete free agent"
+                                                                            aria-label={`Delete ${fa.name}`}
+                                                                        >
+                                                                            <i className="fa-solid fa-trash"></i>
+                                                                        </button>
+                                                                    )}
+                                                                </div>
                                                             </td>
                                                         )}
                                                     </tr>
@@ -648,7 +878,7 @@ export default function AdminFreeAgentsPage() {
 
                                 {/* Mobile cards */}
                                 <div className="free-agents-card-list">
-                                    {filtered.map((fa) => (
+                                    {freeAgents.map((fa) => (
                                         <div key={fa._id} className="free-agents-card-item">
                                             <div className="free-agents-card-item-title">{fa.name}</div>
                                             <div className="free-agents-card-item-meta">
@@ -671,6 +901,14 @@ export default function AdminFreeAgentsPage() {
                                                         <i className="fa-solid fa-plus"></i> Add to Team
                                                     </button>
                                                 )}
+                                                {canEdit && (
+                                                    <button
+                                                        className="admin-btn admin-btn-ghost admin-btn-sm"
+                                                        onClick={() => setEditingAgent(fa)}
+                                                    >
+                                                        <i className="fa-solid fa-pen"></i> Edit
+                                                    </button>
+                                                )}
                                                 {canDelete && (
                                                     <button
                                                         className="admin-btn admin-btn-danger admin-btn-sm"
@@ -683,6 +921,14 @@ export default function AdminFreeAgentsPage() {
                                         </div>
                                     ))}
                                 </div>
+
+                                <AdminPagination
+                                    currentPage={currentPage}
+                                    totalPages={pageMeta.totalPages}
+                                    onPageChange={setCurrentPage}
+                                    totalItems={pageMeta.total}
+                                    itemsPerPage={PAGE_SIZE}
+                                />
                             </>
                         )}
                     </div>
@@ -693,6 +939,14 @@ export default function AdminFreeAgentsPage() {
                             onSave={saveFreeAgent}
                             organizations={organizations}
                             isAdmin={isAdmin}
+                        />
+                    )}
+
+                    {editingAgent && (
+                        <EditFreeAgentModal
+                            freeAgent={editingAgent}
+                            onClose={() => setEditingAgent(null)}
+                            onSave={updateFreeAgent}
                         />
                     )}
 
@@ -743,7 +997,12 @@ export default function AdminFreeAgentsPage() {
                                                 <span style={{ color: "#8b90a0", marginLeft: 6 }}>· {teamLeagueSummary(t)}</span>
                                             </div>
                                         ))}
-                                        {teams.filter(t => !t.isPlaceholder && !jerseyPrompt.selectedTeams.find(st => st.teamId === String(t._id))).length === 0 && (
+                                        {teamsStatus === "loading" && teams.length === 0 && (
+                                            <div style={{ fontSize: 13, color: "#8b90a0", fontStyle: "italic" }}>
+                                                <i className="fa-solid fa-spinner fa-spin" style={{ marginRight: 6 }}></i>Loading teams...
+                                            </div>
+                                        )}
+                                        {teamsStatus === "loaded" && teams.filter(t => !t.isPlaceholder && !jerseyPrompt.selectedTeams.find(st => st.teamId === String(t._id))).length === 0 && (
                                             <div style={{ fontSize: 13, color: "#8b90a0", fontStyle: "italic" }}>No more teams available.</div>
                                         )}
                                     </div>

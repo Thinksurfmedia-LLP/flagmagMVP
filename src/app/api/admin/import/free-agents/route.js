@@ -4,6 +4,7 @@ import dbConnect from "@/lib/dbConnect";
 import Player from "@/models/Player";
 import User from "@/models/User";
 import { requireAnyPermission } from "@/lib/apiAuth";
+import { validateFreeAgentFields, validatePassword } from "@/lib/freeAgentValidation";
 
 function parseCsvLine(line) {
     const result = [];
@@ -125,9 +126,10 @@ export async function POST(request) {
                 results.details.push({ row: row._rowNum, name: name || "(empty)", status: "error", reason: "Name, email, and password are required" });
                 continue;
             }
-            if (password.length < 6) {
+            const fieldError = Object.values(validateFreeAgentFields({ name, email, phone }).errors)[0] || validatePassword(password);
+            if (fieldError) {
                 results.errors++;
-                results.details.push({ row: row._rowNum, name, status: "error", reason: "Password must be at least 6 characters" });
+                results.details.push({ row: row._rowNum, name, status: "error", reason: fieldError });
                 continue;
             }
 

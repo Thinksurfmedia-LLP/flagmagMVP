@@ -164,6 +164,9 @@ const PlayerSchema = new mongoose.Schema(
 // not against a second sibling. Old index was {user,organization} alone;
 // see the migration note in getPlayerModel below.
 PlayerSchema.index({ user: 1, organization: 1, name: 1 }, { unique: true, sparse: true });
+// Paginated free-agent list: GET /api/free-agents filters by org + status
+// and sorts newest first.
+PlayerSchema.index({ organization: 1, status: 1, createdAt: -1 });
 
 function getPlayerModel() {
     const existing = mongoose.models.Player;
