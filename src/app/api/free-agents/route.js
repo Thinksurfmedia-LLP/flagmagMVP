@@ -1,4 +1,4 @@
-import { NextResponse, after } from "next/server";
+import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/dbConnect";
 import Player from "@/models/Player";
@@ -6,6 +6,7 @@ import User from "@/models/User";
 import Organization from "@/models/Organization";
 import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
 import { reconcilePlayerStatuses } from "@/lib/playerRosterSync";
+import { runAfterResponseThrottled } from "@/lib/backgroundTask";
 import { containsRegex } from "@/lib/searchRegex";
 import { validateFreeAgentFields, validatePassword } from "@/lib/freeAgentValidation";
 
@@ -101,26 +102,12 @@ async function healFreeAgentData(orgId) {
     }
 }
 
-// The heal pass takes ~10s on a large org (thousands of players against a
-// remote DB), so it runs after the response is sent and at most once per
-// org per HEAL_INTERVAL_MS. Fixes show up on the next load.
+// The heal pass takes ~10s on a large org, so it runs after the response is
+// sent, at most once per org per HEAL_INTERVAL_MS (see backgroundTask.js).
 const HEAL_INTERVAL_MS = 5 * 60 * 1000;
-const lastHealAt = new Map();
 
 function scheduleHeal(orgId) {
-    const key = orgId ? String(orgId) : "__all__";
-    const last = lastHealAt.get(key);
-    if (last && Date.now() - last < HEAL_INTERVAL_MS) return;
-    lastHealAt.set(key, Date.now());
-    after(async () => {
-        try {
-            await healFreeAgentData(orgId);
-        } catch (error) {
-            // Let the next request retry instead of waiting out the interval.
-            lastHealAt.delete(key);
-            console.error("[free-agents] heal failed:", error);
-        }
-    });
+    runAfterResponseThrottled(`free-agents-heal:${orgId || "all"}`, HEAL_INTERVAL_MS, () => healFreeAgentData(orgId));
 }
 
 // Search matches the player's name, email (own or linked account's), and —

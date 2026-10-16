@@ -41,14 +41,14 @@ const statColumns = {
         { key: "rushAvgPerGame", label: "AVG/G" },
     ],
     defensive: [
+        { key: "flagPulls", label: "FP" },
+        { key: "flagPullsPerGame", label: "FP/G" },
         { key: "dint", label: "INT" },
         { key: "dintTD", label: "INT TD" },
         { key: "dtd", label: "DTD" },
         { key: "dpat", label: "DPAT" },
         { key: "dsacks", label: "SCK" },
         { key: "dsafety", label: "SAF" },
-        { key: "flagPulls", label: "FP" },
-        { key: "flagPullsPerGame", label: "FP/G" },
     ],
 };
 

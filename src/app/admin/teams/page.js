@@ -390,7 +390,7 @@ function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, ef
     );
 }
 
-function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
+function TeamPlayersModal({ team, allPlayers, playersStatus = "loaded", onRetryPlayers, allTeams, onClose, onSave }) {
     const { showSuccess, showError } = useToast();
     const [pickerOpen, setPickerOpen] = useState(false);
     const [pickerPos, setPickerPos] = useState(null); // { left, width, top?, bottom? }
@@ -810,6 +810,19 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
 
                 <div className="admin-form-group">
                     <label className="admin-form-label">Assign an Existing Player</label>
+                    {playersStatus === "error" && availableToAdd.length === 0 && (
+                        <div role="alert" style={{ fontSize: 12, color: "#dc2626", marginBottom: 6 }}>
+                            <i className="fa-solid fa-circle-exclamation" style={{ marginRight: 4 }}></i>
+                            Couldn&apos;t load the player list.{" "}
+                            <button
+                                type="button"
+                                onClick={onRetryPlayers}
+                                style={{ background: "none", border: "none", padding: 0, color: "#FF1E00", fontWeight: 600, cursor: "pointer", textDecoration: "underline", fontSize: 12 }}
+                            >
+                                Try again
+                            </button>
+                        </div>
+                    )}
                     <div style={{ display: "flex", gap: 8 }}>
                         <div ref={pickerRef} style={{ position: "relative", flex: 1 }}>
                             <div
@@ -823,7 +836,11 @@ function TeamPlayersModal({ team, allPlayers, allTeams, onClose, onSave }) {
                                 onClick={() => availableToAdd.length > 0 && togglePicker()}
                             >
                                 <span style={{ color: selectedPlayerId ? "#1a1d26" : "#8b90a0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                    {availableToAdd.length === 0
+                                    {playersStatus === "loading" && availableToAdd.length === 0 ? (
+                                        <><i className="fa-solid fa-spinner fa-spin" style={{ marginRight: 6 }}></i>Loading players...</>
+                                    ) : playersStatus === "error" && availableToAdd.length === 0 ? (
+                                        "Couldn't load players"
+                                    ) : availableToAdd.length === 0
                                         ? "No other players in this organization"
                                         : availableToAdd.find((p) => String(p._id) === selectedPlayerId)?.name || "Select a player..."}
                                 </span>
@@ -1159,6 +1176,9 @@ export default function AdminTeamsPage() {
 
     const [teams, setTeams] = useState([]);
     const [freeAgents, setFreeAgents] = useState([]);
+    // "loading" | "loaded" | "error" — the Players modal's picker needs to
+    // tell "still loading" / "failed" apart from "genuinely no one to add".
+    const [playersStatus, setPlayersStatus] = useState("loading");
     const [organizations, setOrganizations] = useState([]);
     const [seasons, setSeasons] = useState([]);
     const [leagues, setLeagues] = useState([]);
@@ -1199,6 +1219,21 @@ export default function AdminTeamsPage() {
     const canUpdate = hasAnyAccess(user, ["manage_teams", "team_update"]);
     const canDelete = hasAnyAccess(user, ["manage_teams", "team_delete"]);
 
+    // Only the "Assign an Existing Player" picker uses this list, so it asks
+    // for the slim picker view (see GET /api/players).
+    const loadPlayers = useCallback(() => {
+        // A refetch after a save keeps showing the current list meanwhile.
+        setPlayersStatus((prev) => (prev === "loaded" ? prev : "loading"));
+        fetch("/api/players?view=picker")
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) throw new Error(data.error);
+                setFreeAgents(data.data || []);
+                setPlayersStatus("loaded");
+            })
+            .catch(() => setPlayersStatus("error"));
+    }, []);
+
     const fetchData = useCallback(() => {
         if (!canView) {
             setLoading(false);
@@ -1218,13 +1253,7 @@ export default function AdminTeamsPage() {
             .finally(() => setLoading(false));
 
         // 2) Fetch secondary data (players, organizations, seasons, leagues) in the background
-        fetch("/api/players")
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) setFreeAgents(data.data || []);
-                // Silently ignore errors for background fetch
-            })
-            .catch(() => {});
+        loadPlayers();
 
         fetch("/api/seasons")
             .then(res => res.json())
@@ -1244,7 +1273,7 @@ export default function AdminTeamsPage() {
                 })
                 .catch(() => {});
         }
-    }, [canView, showError, effectiveRole]);
+    }, [canView, showError, effectiveRole, loadPlayers]);
 
     useEffect(() => {
         fetchData();
@@ -1673,6 +1702,8 @@ export default function AdminTeamsPage() {
                         <TeamPlayersModal
                             team={playersTarget}
                             allPlayers={freeAgents}
+                            playersStatus={playersStatus}
+                            onRetryPlayers={loadPlayers}
                             allTeams={teams}
                             onClose={() => setPlayersTarget(null)}
                             onSave={fetchData}
