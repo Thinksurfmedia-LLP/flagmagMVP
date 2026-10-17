@@ -141,6 +141,33 @@ GameSchema.pre(["findOneAndUpdate", "updateOne", "updateMany"], function () {
     stripNullScores(this.getUpdate());
 });
 
+/**
+ * A team's score stays null (the schema default) until it first scores, so a
+ * team shut out in a finished game was stored as null and every consumer
+ * rendered a blank instead of 0. Once a game is completed, an unset score
+ * means 0 — fill it in on every write path that completes a game.
+ */
+const isCompletingUpdate = (update) => update?.status === "completed" || update?.$set?.status === "completed";
+
+GameSchema.pre("save", function () {
+    if (this.status !== "completed") return;
+    if (this.teamA && this.teamA.score == null) this.teamA.score = 0;
+    if (this.teamB && this.teamB.score == null) this.teamB.score = 0;
+});
+
+GameSchema.post(["findOneAndUpdate", "updateOne", "updateMany"], async function (doc) {
+    if (!isCompletingUpdate(this.getUpdate())) return;
+    const filter = { ...this.getFilter(), status: "completed" };
+    await Promise.all([
+        this.model.updateMany({ ...filter, "teamA.score": null }, { $set: { "teamA.score": 0 } }),
+        this.model.updateMany({ ...filter, "teamB.score": null }, { $set: { "teamB.score": 0 } }),
+    ]);
+    // findOneAndUpdate returns the document as written above — keep the
+    // caller's copy consistent with what's now stored.
+    if (doc?.teamA && doc.teamA.score == null) doc.teamA.score = 0;
+    if (doc?.teamB && doc.teamB.score == null) doc.teamB.score = 0;
+});
+
 function getGameModel() {
     if (mongoose.models.Game) {
         const existing = mongoose.models.Game;

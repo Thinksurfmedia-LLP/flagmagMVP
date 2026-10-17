@@ -38,13 +38,13 @@ const statColumns = {
         { key: "ypc", label: "Y/C" },
     ],
     defensive: [
+        { key: "flagPulls", label: "FP" },
         { key: "dint", label: "INT" },
         { key: "dintTD", label: "INT TD" },
         { key: "dtd", label: "DTD" },
         { key: "dpat", label: "DPAT" },
         { key: "dsacks", label: "SCK" },
         { key: "dsafety", label: "SAF" },
-        { key: "flagPulls", label: "FP" },
     ],
 };
 

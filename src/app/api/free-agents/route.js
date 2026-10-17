@@ -3,9 +3,12 @@ import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/dbConnect";
 import Player from "@/models/Player";
 import User from "@/models/User";
+import Organization from "@/models/Organization";
 import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
 import { reconcilePlayerStatuses } from "@/lib/playerRosterSync";
+import { runAfterResponseThrottled } from "@/lib/backgroundTask";
 import { containsRegex } from "@/lib/searchRegex";
+import { validateFreeAgentFields, validatePassword } from "@/lib/freeAgentValidation";
 
 async function getOrgIdForOrganizer(authUser) {
     if (authUser.organization?.id) return authUser.organization.id;
@@ -22,7 +25,105 @@ async function getOrgIdForOrganizer(authUser) {
     return userDoc?.organization ? String(userDoc.organization) : null;
 }
 
-// GET free agents
+const DEFAULT_PAGE_SIZE = 50;
+const MAX_PAGE_SIZE = 200;
+
+function parsePositiveInt(value, fallback) {
+    const n = Number.parseInt(value, 10);
+    return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
+// Sync: ensure every user with free_agent role has a Player document.
+// Scoped to one organization when orgId is given (organizers) so a single
+// org's page load doesn't walk every free agent in the system.
+async function syncFreeAgentUsers(orgId) {
+    const userFilter = orgId
+        ? { roles: "free_agent", organization: orgId }
+        : { roles: "free_agent", organization: { $ne: null } };
+    const freeAgentUsers = await User.find(userFilter)
+        .select("_id name email phone organization")
+        .lean();
+
+    if (freeAgentUsers.length === 0) return;
+
+    const userIds = freeAgentUsers.map(u => u._id);
+    const userOrgIds = [...new Set(freeAgentUsers.map(u => String(u.organization)))];
+
+    const existingPlayers = await Player.find({ user: { $in: userIds } }).select("user").lean();
+    const existingUserIds = new Set(existingPlayers.map(p => String(p.user)));
+
+    const orphans = await Player.find({ user: null, status: "free_agent", organization: { $in: userOrgIds } }).select("_id name organization").lean();
+    const orphanMap = new Map();
+    for (const o of orphans) {
+        const key = `${o.name}|${o.organization}`;
+        if (!orphanMap.has(key)) orphanMap.set(key, []);
+        orphanMap.get(key).push(o._id);
+    }
+
+    const bulkOps = [];
+
+    for (const u of freeAgentUsers) {
+        const key = `${u.name}|${u.organization}`;
+        const userOrphans = orphanMap.get(key) || [];
+
+        if (existingUserIds.has(String(u._id))) {
+            for (const orphanId of userOrphans) {
+                bulkOps.push({ deleteOne: { filter: { _id: orphanId } } });
+            }
+        } else if (userOrphans.length > 0) {
+            bulkOps.push({ updateOne: { filter: { _id: userOrphans[0] }, update: { $set: { user: u._id } } } });
+            for (let i = 1; i < userOrphans.length; i++) {
+                bulkOps.push({ deleteOne: { filter: { _id: userOrphans[i] } } });
+            }
+        } else {
+            bulkOps.push({
+                insertOne: { document: { user: u._id, name: u.name, organization: u.organization, status: "free_agent" } }
+            });
+        }
+    }
+
+    if (bulkOps.length > 0) {
+        await Player.bulkWrite(bulkOps, { ordered: false }).catch(() => {});
+    }
+}
+
+// Self-heal: correct any Player whose status/presentTeam has drifted
+// out of sync with actual team roster membership (see teams route
+// syncAssignedPlayers). Prevents a rostered player from also showing
+// up here as an available free agent. Every roster write path already
+// reconciles the players it touches, so this is only a safety net.
+async function healFreeAgentData(orgId) {
+    await syncFreeAgentUsers(orgId);
+    if (orgId) {
+        const orgPlayerIds = await Player.distinct("_id", { organization: orgId });
+        if (orgPlayerIds.length > 0) await reconcilePlayerStatuses(orgPlayerIds);
+    } else {
+        await reconcilePlayerStatuses();
+    }
+}
+
+// The heal pass takes ~10s on a large org, so it runs after the response is
+// sent, at most once per org per HEAL_INTERVAL_MS (see backgroundTask.js).
+const HEAL_INTERVAL_MS = 5 * 60 * 1000;
+
+function scheduleHeal(orgId) {
+    runAfterResponseThrottled(`free-agents-heal:${orgId || "all"}`, HEAL_INTERVAL_MS, () => healFreeAgentData(orgId));
+}
+
+// Search matches the player's name, email (own or linked account's), and —
+// for admins, who see every org — the organization name.
+async function buildSearchClause(searchRe, includeOrgName) {
+    const [matchedUserIds, matchedOrgIds] = await Promise.all([
+        User.distinct("_id", { email: searchRe }),
+        includeOrgName ? Organization.distinct("_id", { name: searchRe }) : [],
+    ]);
+    const or = [{ name: searchRe }, { email: searchRe }];
+    if (matchedUserIds.length > 0) or.push({ user: { $in: matchedUserIds } });
+    if (matchedOrgIds.length > 0) or.push({ organization: { $in: matchedOrgIds } });
+    return { $or: or };
+}
+
+// GET free agents (paginated: ?page=1&limit=50&search=...)
 export async function GET(request) {
     const auth = await requireAnyPermission([
         "manage_players",
@@ -36,81 +137,38 @@ export async function GET(request) {
         await dbConnect();
         const { searchParams } = new URL(request.url);
         const search = searchParams.get("search");
+        const page = parsePositiveInt(searchParams.get("page"), 1);
+        const limit = Math.min(parsePositiveInt(searchParams.get("limit"), DEFAULT_PAGE_SIZE), MAX_PAGE_SIZE);
 
-        // Sync: ensure every user with free_agent role has a Player document
-        const freeAgentUsers = await User.find({ roles: "free_agent", organization: { $ne: null } })
-            .select("_id name email phone organization")
-            .lean();
-
-        if (freeAgentUsers.length > 0) {
-            const userIds = freeAgentUsers.map(u => u._id);
-            const userOrgIds = [...new Set(freeAgentUsers.map(u => String(u.organization)))];
-
-            const existingPlayers = await Player.find({ user: { $in: userIds } }).select("user").lean();
-            const existingUserIds = new Set(existingPlayers.map(p => String(p.user)));
-
-            const orphans = await Player.find({ user: null, status: "free_agent", organization: { $in: userOrgIds } }).select("_id name organization").lean();
-            const orphanMap = new Map();
-            for (const o of orphans) {
-                const key = `${o.name}|${o.organization}`;
-                if (!orphanMap.has(key)) orphanMap.set(key, []);
-                orphanMap.get(key).push(o._id);
-            }
-
-            const bulkOps = [];
-
-            for (const u of freeAgentUsers) {
-                const key = `${u.name}|${u.organization}`;
-                const userOrphans = orphanMap.get(key) || [];
-
-                if (existingUserIds.has(String(u._id))) {
-                    for (const orphanId of userOrphans) {
-                        bulkOps.push({ deleteOne: { filter: { _id: orphanId } } });
-                    }
-                } else {
-                    if (userOrphans.length > 0) {
-                        const orphanToClaim = userOrphans[0];
-                        bulkOps.push({ updateOne: { filter: { _id: orphanToClaim }, update: { $set: { user: u._id } } } });
-                        for (let i = 1; i < userOrphans.length; i++) {
-                            bulkOps.push({ deleteOne: { filter: { _id: userOrphans[i] } } });
-                        }
-                    } else {
-                        bulkOps.push({
-                            insertOne: { document: { user: u._id, name: u.name, organization: u.organization, status: "free_agent" } }
-                        });
-                    }
-                }
-            }
-
-            if (bulkOps.length > 0) {
-                await Player.bulkWrite(bulkOps, { ordered: false }).catch(() => {});
-            }
-        }
-
-        // Self-heal: correct any Player whose status/presentTeam has drifted
-        // out of sync with actual team roster membership (see teams route
-        // syncAssignedPlayers). Prevents a rostered player from also showing
-        // up here as an available free agent.
-        await reconcilePlayerStatuses();
-
-        const filter = { status: "free_agent" };
-
-        if (hasRole(auth.user, "organizer")) {
-            const orgId = await getOrgIdForOrganizer(auth.user);
+        const isOrganizer = hasRole(auth.user, "organizer");
+        let orgId = null;
+        if (isOrganizer) {
+            orgId = await getOrgIdForOrganizer(auth.user);
             if (!orgId) {
                 return NextResponse.json({ success: false, error: "Organizer is not assigned to an organization" }, { status: 400 });
             }
-            filter.organization = orgId;
         }
 
         const searchRe = containsRegex(search);
-        if (searchRe) filter.name = searchRe;
 
-        const freeAgents = await Player.find(filter)
-            .populate("user", "name email phone")
-            .populate("organization", "name slug")
-            .sort({ createdAt: -1 })
-            .lean();
+        // Only the initial unfiltered load kicks off a heal, not every page
+        // flip / keystroke.
+        if (page === 1 && !searchRe) scheduleHeal(orgId);
+
+        const filter = { status: "free_agent" };
+        if (orgId) filter.organization = orgId;
+        if (searchRe) Object.assign(filter, await buildSearchClause(searchRe, !isOrganizer));
+
+        const [total, freeAgents] = await Promise.all([
+            Player.countDocuments(filter),
+            Player.find(filter)
+                .populate("user", "name email phone")
+                .populate("organization", "name slug")
+                .sort({ createdAt: -1, _id: -1 })
+                .skip((page - 1) * limit)
+                .limit(limit)
+                .lean(),
+        ]);
 
         // Ensure email/phone are available even if populate didn't resolve
         const missingUserRefs = freeAgents.filter(fa => !fa.user);
@@ -157,7 +215,11 @@ export async function GET(request) {
             });
         }
 
-        return NextResponse.json({ success: true, data: freeAgents });
+        return NextResponse.json({
+            success: true,
+            data: freeAgents,
+            meta: { total, page, limit, totalPages: Math.max(1, Math.ceil(total / limit)) },
+        });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
@@ -173,7 +235,7 @@ export async function POST(request) {
 
     try {
         await dbConnect();
-        const body = await request.json();
+        let body = await request.json();
 
         // Determine organization
         let organizationId;
@@ -226,12 +288,13 @@ export async function POST(request) {
             }
         } else {
             // Create new user
-            if (!body.name || !body.email || !body.password) {
-                return NextResponse.json({ success: false, error: "Name, email, and password are required" }, { status: 400 });
+            const { values, errors } = validateFreeAgentFields(body, { requireEmail: true });
+            const passwordError = validatePassword(body.password);
+            const firstError = Object.values(errors)[0] || passwordError;
+            if (firstError) {
+                return NextResponse.json({ success: false, error: firstError, fieldErrors: { ...errors, ...(passwordError && { password: passwordError }) } }, { status: 400 });
             }
-            if (body.password.length < 6) {
-                return NextResponse.json({ success: false, error: "Password must be at least 6 characters" }, { status: 400 });
-            }
+            body = { ...body, ...values };
 
             const existingUser = await User.findOne({ email: body.email.toLowerCase().trim() });
             if (existingUser) {

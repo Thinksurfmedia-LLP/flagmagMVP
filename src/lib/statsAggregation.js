@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Play from "@/models/Play";
 import Team from "@/models/Team";
 import Game from "@/models/Game";
@@ -7,6 +8,8 @@ import ImportedStatLine from "@/models/ImportedStatLine";
 import { isNoStatsTeamName } from "@/lib/noStatsTeams";
 import { findGameTeamsWithPlayers } from "@/lib/gameTeams";
 import { computePasserRating, importedLinesToStatRows } from "@/lib/importedStats";
+import { createFingerprintCache } from "@/lib/fingerprintCache";
+import { fingerprintOf } from "@/lib/dataFingerprint";
 
 // Passer rating — the legacy Xflag 5-factor formula. Implementation moved to
 // importedStats.js (pure, unit-tested) and re-exported here for existing importers.
@@ -680,21 +683,66 @@ export async function computeGameStats(gameId) {
 // (passing/receiving/rushing/defensive), all four arriving concurrently for
 // the same leagueId — computeSeasonStats always returns all four categories
 // anyway, so without coalescing that's 4x redundant DB work per request.
-// This cache shares the in-flight promise across those calls and keeps the
-// result around briefly for the next page load.
-const seasonStatsCache = new Map();
-const SEASON_STATS_TTL_MS = 10_000;
+// This cache shares one computation across those calls and reuses it until
+// the league's underlying data changes (see computeLeagueFingerprint): the
+// Atlas link is bandwidth-bound, and pulling a busy league's plays costs
+// ~10s, while the fingerprint check returns four tiny documents in <100ms.
+//
+// When a league does change, the previous result is served while the new
+// one computes in the background (fingerprintCache's stale-while-
+// revalidate) — blocking on it would time out callers (xFlag's leaderboard)
+// during exactly the live games that keep changing it. Results lag by at
+// most one recompute; the old fixed 10s TTL already accepted similar lag.
+const seasonStatsCache = createFingerprintCache({
+    // Player name/photo edits don't touch the fingerprinted collections, so
+    // cap how long a result can live even when nothing else changed.
+    maxAgeMs: 5 * 60 * 1000,
+    maxEntries: 200,
+    onBackgroundError: (error, key) => console.error(`[statsAggregation] background refresh failed for ${key}:`, error),
+});
+
+// noStatsBothSides games (see start-no-stats-game/route.js) are excluded
+// outright — neither side's plays should feed league/season player stats or
+// the season leaderboard, unlike noStatsSide which only strips one side's
+// rows via excludeNoStatsSide.
+const seasonGameFilter = (leagueId) => ({ league: leagueId, gameType: { $ne: "practice" }, noStatsBothSides: { $ne: true } });
+
+// Only the fields aggregateStats / resolvePlayerField / backfillPlayerInfo /
+// loadImportedRowsByGame read. Fetching whole documents was the main cost of
+// this function (bandwidth, not query time) — keep this list in sync if
+// aggregateStats starts reading another Play or Game field.
+const PLAY_STATS_FIELDS = [
+    "game", "createdAt", "type", "activeTeam", "yards", "points", "safety",
+    "passer", "receiver", "rusher", "defender", "flagPull",
+    ...FROZEN_PLAYER_FIELDS,
+].join(" ");
+const GAME_STATS_FIELDS = "teamA.name teamB.name noStatsSide";
+
+const toObjectId = (id) => new mongoose.Types.ObjectId(String(id));
+
+/**
+ * Cheap "has anything this league's stats depend on changed?" check: row
+ * count + latest updatedAt for its games, their plays and imported stat
+ * lines, and its teams' rosters (see dataFingerprint.js).
+ */
+async function computeLeagueFingerprint(leagueId, orgId) {
+    const games = await fingerprintOf(Game, seasonGameFilter(toObjectId(leagueId)), { ids: { $push: "$_id" } });
+    const gameIds = games.row?.ids || [];
+    const [plays, imported, teams] = await Promise.all([
+        fingerprintOf(Play, { game: { $in: gameIds } }),
+        fingerprintOf(ImportedStatLine, { game: { $in: gameIds } }),
+        fingerprintOf(Team, { organization: toObjectId(orgId), "leagues.league": toObjectId(leagueId) }),
+    ]);
+    return [games.part, plays.part, imported.part, teams.part].join("|");
+}
 
 async function computeSeasonStatsUncached(leagueId, orgId) {
-    // noStatsBothSides games (see start-no-stats-game/route.js) are excluded
-    // outright here — neither side's plays should feed league/season player
-    // stats or the season leaderboard, unlike noStatsSide which only strips
-    // one side's rows via excludeNoStatsSide below.
-    const games = await Game.find({ league: leagueId, gameType: { $ne: "practice" }, noStatsBothSides: { $ne: true } }).lean();
+    const games = await Game.find(seasonGameFilter(leagueId)).select(GAME_STATS_FIELDS).lean();
     if (!games.length) return { passing: [], receiving: [], rushing: [], defensive: [] };
 
     // Build roster maps for all unique team pairs
     const allPlays = await Play.find({ game: { $in: games.map((g) => g._id) } })
+        .select(PLAY_STATS_FIELDS)
         .sort({ createdAt: 1 })
         .lean();
 
@@ -856,23 +904,15 @@ async function computeSeasonStatsUncached(leagueId, orgId) {
 
 /**
  * Same as computeSeasonStatsUncached, but coalesces concurrent calls for the
- * same league and caches the result briefly, since the leaderboard route
- * fires 4 requests (one per stat type) at once that all need the same data.
+ * same league (the leaderboard fires 4 requests, one per stat type, that all
+ * need the same data) and reuses the result until the league's data changes.
+ * The returned rows are shared across callers — copy before modifying.
  */
-export async function computeSeasonStats(leagueId, orgId) {
-    const key = String(leagueId);
-    const cached = seasonStatsCache.get(key);
-    if (cached && cached.expiresAt > Date.now()) {
-        return cached.promise;
-    }
-
-    const promise = computeSeasonStatsUncached(leagueId, orgId);
-    seasonStatsCache.set(key, { promise, expiresAt: Date.now() + SEASON_STATS_TTL_MS });
-
-    // Don't let a failed computation poison the cache for subsequent requests.
-    promise.catch(() => seasonStatsCache.delete(key));
-
-    return promise;
+export function computeSeasonStats(leagueId, orgId) {
+    return seasonStatsCache.get(`${leagueId}|${orgId}`, {
+        fingerprint: () => computeLeagueFingerprint(leagueId, orgId),
+        compute: () => computeSeasonStatsUncached(leagueId, orgId),
+    });
 }
 
 // ---------------------------------------------------------------------------

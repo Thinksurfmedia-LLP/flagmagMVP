@@ -4,6 +4,7 @@ import Player from "@/models/Player";
 import User from "@/models/User";
 import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
 import { deletePlayer } from "@/lib/playerDeletion";
+import { validateFreeAgentFields } from "@/lib/freeAgentValidation";
 
 // Every organization this user may manage, from the live user record (the
 // JWT's org can be stale until next login, and organizers can have several).
@@ -18,6 +19,60 @@ async function getManagedOrgIds(authUser) {
     [].concat(organizerOrgs || []).filter(Boolean).forEach((id) => orgIds.add(String(id)));
     if (!userDoc && authUser.organization?.id) orgIds.add(String(authUser.organization.id));
     return orgIds;
+}
+
+// PATCH free agent — edits this free agent's own profile (name/email/phone)
+// on the Player doc only. The linked User login is deliberately left alone:
+// one parent account can hold several kids' profiles, so editing one kid
+// must not change the parent's sign-in email.
+export async function PATCH(request, { params }) {
+    const auth = await requireAnyPermission([
+        "manage_players",
+        "player_update",
+    ]);
+    if (!auth.authorized) return auth.response;
+
+    try {
+        await dbConnect();
+        const { id } = await params;
+
+        // Email stays optional on edit: some imported profiles never had one.
+        const { values: value, errors } = validateFreeAgentFields(await request.json().catch(() => null));
+        const firstError = Object.values(errors)[0];
+        if (firstError) {
+            return NextResponse.json({ success: false, error: firstError, fieldErrors: errors }, { status: 400 });
+        }
+
+        const player = await Player.findById(id).select("status organization").lean();
+        if (!player) {
+            return NextResponse.json({ success: false, error: "Free agent not found" }, { status: 404 });
+        }
+        if (player.status !== "free_agent") {
+            return NextResponse.json({ success: false, error: "This player is no longer a free agent" }, { status: 400 });
+        }
+
+        if (!hasRole(auth.user, "admin")) {
+            const orgIds = await getManagedOrgIds(auth.user);
+            if (!player.organization || !orgIds.has(String(player.organization))) {
+                return NextResponse.json({ success: false, error: "You can only manage free agents for your organization" }, { status: 403 });
+            }
+        }
+
+        const updated = await Player.findByIdAndUpdate(id, { $set: value }, { new: true, runValidators: true })
+            .populate("user", "name email phone")
+            .populate("organization", "name slug")
+            .lean();
+
+        return NextResponse.json({ success: true, data: updated });
+    } catch (error) {
+        if (error.code === 11000) {
+            return NextResponse.json(
+                { success: false, error: "A free agent with this name already exists under the same account" },
+                { status: 409 }
+            );
+        }
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    }
 }
 
 // DELETE free agent (remove from org)
