@@ -1553,3 +1553,20 @@
         gap: 8px;
     }
 }
+
+/* Live Stats modal — stronger text contrast than the admin defaults */
+.live-stats-modal .admin-btn-ghost {
+    color: #1f2330;
+    font-weight: 600;
+    border-color: #c9cdd6;
+}
+
+.live-stats-modal .admin-form-label {
+    color: #1f2330;
+}
+
+.live-stats-modal .admin-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+}

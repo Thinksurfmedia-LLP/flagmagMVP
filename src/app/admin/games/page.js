@@ -5,6 +5,9 @@ import AdminLayout, { hasAccess, hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 import WeekdayDatePicker from "@/components/WeekdayDatePicker";
+import LiveScoreboard from "@/components/LiveScoreboard";
+import { MAX_TIMEOUTS_PER_HALF, TimeoutControls, TimeoutPausedBanner } from "@/components/LiveTimeouts";
+import LiveGameFooter from "@/components/LiveGameFooter";
 import AdminPagination from "@/components/AdminPagination";
 import ConfirmModal from "@/components/ConfirmModal";
 import { isNoStatsTeamName } from "@/lib/noStatsTeams";
@@ -451,10 +454,64 @@ const PLAY_FORMS = {
 const POINTS_OPTIONS = ["None", "Touch Down", "1 Pt.", "2 Pt."];
 const POINTS_OPTIONS_NO_1PT = ["None", "Touch Down", "2 Pt."];
 
-function PlayFormInline({ type, roster, activeTeam, onSave, onCancel }) {
+// Which team each player field is picked from — mirrors resolvePlayPlayerIds
+// in src/lib/statsAggregation.js. On interceptions/fumbles the defense has the
+// ball on the return, so the flag puller comes from the original offense.
+const OFFENSE_FIELDS = ["passer", "receiver", "rusher"];
+const FLAG_PULL_BY_OFFENSE = ["Interception", "Fumble"];
+
+function fieldSide(type, field) {
+    if (OFFENSE_FIELDS.includes(field)) return "offense";
+    if (field === "flagPull" && FLAG_PULL_BY_OFFENSE.includes(type)) return "offense";
+    return "defense";
+}
+
+// Yards are never negative; blank stays blank so the field can be cleared.
+function toNonNegativeYards(value) {
+    if (value === "") return "";
+    const n = Math.trunc(Number(value));
+    return Number.isFinite(n) && n > 0 ? String(n) : "0";
+}
+
+const SAFETY_OPTIONS = [
+    { value: false, label: "No Safety" },
+    { value: true, label: "Safety (+2)" },
+];
+
+const blockNonDigitKeys = (e) => {
+    if (["-", "+", "e", "E", "."].includes(e.key)) e.preventDefault();
+};
+
+function PlayerSelect({ label, value, players, teamName, onChange, flex = "1 1 140px" }) {
+    return (
+        <div className="admin-form-group" style={{ flex, marginBottom: 0, minWidth: 0 }}>
+            {/* One line only — a long team name truncates instead of wrapping and pushing this select below its neighbours. */}
+            <label className="admin-form-label" title={teamName ? `${label} (${teamName})` : label} style={{ fontSize: 12, display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {label}
+                {teamName && <span style={{ fontWeight: 500, color: "#6b7280", textTransform: "none", marginLeft: 4 }}>({teamName})</span>}
+            </label>
+            <select className="admin-form-select" style={{ fontSize: 13 }} value={value} onChange={e => onChange(e.target.value)}>
+                <option value="">{players.length ? "Select..." : "No active players"}</option>
+                {players.map(p => {
+                    const jersey = String(p.jerseyNumber ?? "");
+                    return (
+                        <option key={`${jersey}-${p.playerId}`} value={jersey}>
+                            #{jersey}{p.playerName ? ` — ${p.playerName}` : ""}
+                        </option>
+                    );
+                })}
+            </select>
+        </div>
+    );
+}
+
+function PlayFormInline({ type, roster, activeTeam, teamNames, onSave, onCancel }) {
     const config = PLAY_FORMS[type];
-    const players = activeTeam === "A" ? (roster.teamA || []) : (roster.teamB || []);
-    const playerNames = players.map(p => p.name || p.jerseyNumber || "Unknown");
+    const defenseTeam = activeTeam === "A" ? "B" : "A";
+    const playersFor = (field) => {
+        const side = fieldSide(type, field) === "offense" ? activeTeam : defenseTeam;
+        return { players: (side === "A" ? roster.teamA : roster.teamB) || [], teamName: teamNames?.[side] };
+    };
 
     const [form, setForm] = useState({
         passer: "", receiver: "", rusher: "", defender: "",
@@ -463,6 +520,10 @@ function PlayFormInline({ type, roster, activeTeam, onSave, onCancel }) {
 
     const set = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
     const pointsOpts = ["Completion", "Run"].includes(type) ? POINTS_OPTIONS : POINTS_OPTIONS_NO_1PT;
+    const playerField = (field, label, flex) => config.fields.includes(field) && (
+        <PlayerSelect label={label} value={form[field]} {...playersFor(field)} flex={flex} onChange={v => set(field, v)} />
+    );
+    const showFlagPull = config.fields.includes("flagPull") && form.points === "None";
 
     return (
         <div style={{ background: "#f8f9fb", border: "1px solid #e0e3ea", borderRadius: 8, padding: 16, marginTop: 12 }}>
@@ -471,46 +532,14 @@ function PlayFormInline({ type, roster, activeTeam, onSave, onCancel }) {
                 <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={onCancel} style={{ fontSize: 12 }}>Cancel</button>
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                {config.fields.includes("passer") && (
-                    <div className="admin-form-group" style={{ flex: "1 1 140px", marginBottom: 0 }}>
-                        <label className="admin-form-label" style={{ fontSize: 12 }}>Passer</label>
-                        <select className="admin-form-select" style={{ fontSize: 13 }} value={form.passer} onChange={e => set("passer", e.target.value)}>
-                            <option value="">Select...</option>
-                            {playerNames.map(n => <option key={n} value={n}>{n}</option>)}
-                        </select>
-                    </div>
-                )}
-                {config.fields.includes("receiver") && (
-                    <div className="admin-form-group" style={{ flex: "1 1 140px", marginBottom: 0 }}>
-                        <label className="admin-form-label" style={{ fontSize: 12 }}>Receiver</label>
-                        <select className="admin-form-select" style={{ fontSize: 13 }} value={form.receiver} onChange={e => set("receiver", e.target.value)}>
-                            <option value="">Select...</option>
-                            {playerNames.map(n => <option key={n} value={n}>{n}</option>)}
-                        </select>
-                    </div>
-                )}
-                {config.fields.includes("rusher") && (
-                    <div className="admin-form-group" style={{ flex: "1 1 140px", marginBottom: 0 }}>
-                        <label className="admin-form-label" style={{ fontSize: 12 }}>Rusher</label>
-                        <select className="admin-form-select" style={{ fontSize: 13 }} value={form.rusher} onChange={e => set("rusher", e.target.value)}>
-                            <option value="">Select...</option>
-                            {playerNames.map(n => <option key={n} value={n}>{n}</option>)}
-                        </select>
-                    </div>
-                )}
-                {config.fields.includes("defender") && (
-                    <div className="admin-form-group" style={{ flex: "1 1 140px", marginBottom: 0 }}>
-                        <label className="admin-form-label" style={{ fontSize: 12 }}>Defender</label>
-                        <select className="admin-form-select" style={{ fontSize: 13 }} value={form.defender} onChange={e => set("defender", e.target.value)}>
-                            <option value="">Select...</option>
-                            {playerNames.map(n => <option key={n} value={n}>{n}</option>)}
-                        </select>
-                    </div>
-                )}
+                {playerField("passer", "Passer")}
+                {playerField("receiver", "Receiver")}
+                {playerField("rusher", "Rusher")}
+                {playerField("defender", "Defender")}
                 {config.fields.includes("yards") && (
                     <div className="admin-form-group" style={{ flex: "0 1 90px", marginBottom: 0 }}>
                         <label className="admin-form-label" style={{ fontSize: 12 }}>Yards</label>
-                        <input type="number" className="admin-form-input" style={{ fontSize: 13 }} value={form.yards} onChange={e => set("yards", e.target.value)} />
+                        <input type="number" min={0} step={1} inputMode="numeric" className="admin-form-input" style={{ fontSize: 13 }} value={form.yards} onKeyDown={blockNonDigitKeys} onChange={e => set("yards", toNonNegativeYards(e.target.value))} />
                     </div>
                 )}
                 {config.fields.includes("points") && (
@@ -524,21 +553,42 @@ function PlayFormInline({ type, roster, activeTeam, onSave, onCancel }) {
                         </select>
                     </div>
                 )}
-                {config.fields.includes("flagPull") && form.points === "None" && (
-                    <div className="admin-form-group" style={{ flex: "1 1 140px", marginBottom: 0 }}>
-                        <label className="admin-form-label" style={{ fontSize: 12 }}>Flag Pull By</label>
-                        <select className="admin-form-select" style={{ fontSize: 13 }} value={form.flagPull} onChange={e => set("flagPull", e.target.value)}>
-                            <option value="">Select...</option>
-                            {playerNames.map(n => <option key={n} value={n}>{n}</option>)}
-                        </select>
-                    </div>
-                )}
+                {/* Flag pull sits on its own row, below the play details. */}
+                {showFlagPull && <div aria-hidden="true" style={{ flexBasis: "100%", height: 0 }} />}
+                {showFlagPull && playerField("flagPull", "Flag Pull By", "0 1 280px")}
+                {/* Safety choice sits on its own row below the dropdowns; "No Safety" is the default. */}
+                {config.fields.includes("safety") && <div aria-hidden="true" style={{ flexBasis: "100%", height: 0 }} />}
                 {config.fields.includes("safety") && (
-                    <div className="admin-form-group" style={{ flex: "0 1 120px", marginBottom: 0, display: "flex", alignItems: "flex-end", gap: 6 }}>
-                        <label style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 4, cursor: "pointer" }}>
-                            <input type="checkbox" checked={form.safety} onChange={e => set("safety", e.target.checked)} />
-                            Safety
-                        </label>
+                    <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                        <label className="admin-form-label" style={{ fontSize: 12 }}>Result</label>
+                        <div role="radiogroup" aria-label="Safety" style={{ display: "flex" }}>
+                            {SAFETY_OPTIONS.map((opt, i) => {
+                                const selected = form.safety === opt.value;
+                                return (
+                                    <button
+                                        key={opt.label}
+                                        type="button"
+                                        role="radio"
+                                        aria-checked={selected}
+                                        onClick={() => set("safety", opt.value)}
+                                        style={{
+                                            padding: "7px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer",
+                                            // Buttons overlap by 1px instead of dropping a border side, so
+                                            // only the `border` shorthand is ever set (React warns on mixing).
+                                            border: `1px solid ${selected ? "#ff1e00" : "#d0d5dd"}`,
+                                            marginLeft: i > 0 ? -1 : 0,
+                                            position: "relative",
+                                            zIndex: selected ? 1 : 0,
+                                            borderRadius: i === 0 ? "6px 0 0 6px" : "0 6px 6px 0",
+                                            background: selected ? "#ff1e00" : "#fff",
+                                            color: selected ? "#fff" : "#4b5563",
+                                        }}
+                                    >
+                                        {opt.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
                 )}
             </div>
@@ -572,6 +622,7 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
     // resumes — same behavior as the stats app: no further action, offense
     // switch, or timeout can be logged while paused.
     const [isPaused, setIsPaused] = useState(false);
+    const [pausedBy, setPausedBy] = useState(null); // { teamName, used } for the paused banner
     const [showForfeitConfirm, setShowForfeitConfirm] = useState(false);
     const [showNoStatsPrompt, setShowNoStatsPrompt] = useState(false);
     const [forfeiting, setForfeiting] = useState(false);
@@ -644,7 +695,7 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
                     rusher: playData.rusher || "",
                     defender: playData.defender || "",
                     flagPull: playData.flagPull || "",
-                    yards: Number(playData.yards) || 0,
+                    yards: Math.max(0, Number(playData.yards) || 0),
                     points: playData.points || "",
                     safety: Boolean(playData.safety),
                     ptsAdded: logEntry.ptsAdded,
@@ -701,7 +752,7 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
         }
         const count = team === "A" ? timeoutsCountA : timeoutsCountB;
         const teamName = team === "A" ? liveGame.teamA.name : liveGame.teamB.name;
-        if (count >= 3) {
+        if (count >= MAX_TIMEOUTS_PER_HALF) {
             showError(`${teamName} has no timeouts left this half`);
             return;
         }
@@ -714,11 +765,19 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
             const data = await res.json();
             if (!data.success) { showError(data.error || "Failed to record timeout"); return; }
             fetchPlays();
+            setCurrentPlay(null);
             setIsPaused(true);
-            showSuccess(`Timeout taken by ${teamName} (${count + 1}/3 this half)`);
+            setPausedBy({ teamName, used: count + 1 });
+            showSuccess(`Timeout taken by ${teamName} — ${MAX_TIMEOUTS_PER_HALF - count - 1} of ${MAX_TIMEOUTS_PER_HALF} left this half`);
         } catch {
             showError("Failed to record timeout");
         }
+    };
+
+    const handleResume = () => {
+        setIsPaused(false);
+        setPausedBy(null);
+        showSuccess("Game resumed");
     };
 
     const handleStartGame = async () => {
@@ -915,6 +974,7 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
             setTimeoutsA(0);
             setTimeoutsB(0);
             setIsPaused(false);
+            setPausedBy(null);
             refreshGame();
             if (onGameUpdate) onGameUpdate();
         } catch {
@@ -1074,7 +1134,7 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
 
     return (
         <div className="admin-modal-backdrop">
-            <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 900, maxHeight: "90vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+            <div className="admin-modal live-stats-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 900, maxHeight: "90vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
                 <button className="admin-modal-close" onClick={onClose} aria-label="Close">
                     <i className="fa-solid fa-xmark"></i>
                 </button>
@@ -1089,29 +1149,26 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
                 </div>
 
                 {/* Score display */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 24, padding: "12px 0", background: "#f0f2f5", borderRadius: 8, marginBottom: 12 }}>
-                    <div style={{ textAlign: "center", minWidth: 100 }}>
-                        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4, color: "#1a1d26" }}>{liveGame.teamA.name}</div>
-                        <div style={{ fontSize: 28, fontWeight: 800, color: "#1a1d26" }}>{teamAScore}</div>
-                    </div>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: "#6b7280" }}>VS</div>
-                    <div style={{ textAlign: "center", minWidth: 100 }}>
-                        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4, color: "#1a1d26" }}>{liveGame.teamB.name}</div>
-                        <div style={{ fontSize: 28, fontWeight: 800, color: "#1a1d26" }}>{teamBScore}</div>
-                    </div>
-                </div>
+                <LiveScoreboard
+                    teamA={liveGame.teamA}
+                    teamB={liveGame.teamB}
+                    teamAScore={teamAScore}
+                    teamBScore={teamBScore}
+                    activeTeam={activeTeam}
+                    half={half}
+                />
 
                 {/* Tabs: Record Stats | Game Plays */}
                 <div style={{ display: "flex", gap: 0, marginBottom: 12, borderBottom: "2px solid #e8eaef" }}>
                     <button
                         onClick={() => setActiveTab("record")}
-                        style={{ padding: "8px 20px", fontSize: 13, fontWeight: 600, border: "none", background: "none", cursor: "pointer", color: activeTab === "record" ? "#ff1e00" : "#6b7280", borderBottom: activeTab === "record" ? "2px solid #ff1e00" : "2px solid transparent", marginBottom: -2 }}
+                        style={{ padding: "8px 20px", fontSize: 13, fontWeight: 600, border: "none", background: "none", cursor: "pointer", color: activeTab === "record" ? "#ff1e00" : "#374151", borderBottom: activeTab === "record" ? "2px solid #ff1e00" : "2px solid transparent", marginBottom: -2 }}
                     >
                         <i className="fa-solid fa-plus-circle" style={{ marginRight: 6 }}></i>Record Stats
                     </button>
                     <button
                         onClick={() => setActiveTab("plays")}
-                        style={{ padding: "8px 20px", fontSize: 13, fontWeight: 600, border: "none", background: "none", cursor: "pointer", color: activeTab === "plays" ? "#ff1e00" : "#6b7280", borderBottom: activeTab === "plays" ? "2px solid #ff1e00" : "2px solid transparent", marginBottom: -2 }}
+                        style={{ padding: "8px 20px", fontSize: 13, fontWeight: 600, border: "none", background: "none", cursor: "pointer", color: activeTab === "plays" ? "#ff1e00" : "#374151", borderBottom: activeTab === "plays" ? "2px solid #ff1e00" : "2px solid transparent", marginBottom: -2 }}
                     >
                         <i className="fa-solid fa-list" style={{ marginRight: 6 }}></i>Game Plays ({persistedPlays.length})
                     </button>
@@ -1121,10 +1178,10 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
                     {/* ──── Record Stats Tab ──── */}
                     {activeTab === "record" && (
                         <>
-                            {/* Active team selector + timeout + half */}
+                            {/* Active team selector + half */}
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
                                 <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                                    <span style={{ fontSize: 12, color: "#6b7280", marginRight: 4 }}>Offense:</span>
+                                    <span style={{ fontSize: 13, fontWeight: 600, color: "#1f2330", marginRight: 4 }}>Offense:</span>
                                     <button className={`admin-btn admin-btn-sm ${activeTeam === "A" ? "admin-btn-primary" : "admin-btn-ghost"}`} onClick={() => { if (isPaused) { showError("Resume the game first"); return; } setActiveTeam("A"); }}>
                                         {liveGame.teamA.name}
                                     </button>
@@ -1133,36 +1190,14 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
                                     </button>
                                 </div>
 
-                                {/* Timeout — acts on whichever team is selected as Offense above; max 3 per team per half */}
-                                {liveGame.status === "in_progress" && (() => {
-                                    const activeTeamCount = activeTeam === "A" ? timeoutsCountA : timeoutsCountB;
-                                    const blocked = activeTeamCount >= 3 || isPaused;
-                                    return (
-                                        <button
-                                            onClick={() => handleTimeout(activeTeam)}
-                                            disabled={blocked}
-                                            style={{
-                                                padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: 700, letterSpacing: 0.5,
-                                                background: blocked ? "#f3f4f6" : "rgba(255,100,30,0.12)",
-                                                color: blocked ? "#9ca3af" : "#ff6b1a",
-                                                border: `1.5px solid ${blocked ? "#e5e7eb" : "rgba(255,120,40,0.4)"}`,
-                                                cursor: blocked ? "not-allowed" : "pointer",
-                                            }}
-                                        >
-                                            <i className="fa-solid fa-hand" style={{ marginRight: 6 }}></i>
-                                            Timeout ({activeTeamCount}/3)
-                                        </button>
-                                    );
-                                })()}
-
                                 <div style={{ display: "flex", gap: 0 }}>
                                     <button
                                         onClick={() => setHalf("1st")}
-                                        style={{ padding: "4px 14px", fontSize: 12, fontWeight: 600, border: "1px solid #d0d5dd", borderRadius: "6px 0 0 6px", cursor: "pointer", background: half === "1st" ? "#ff1e00" : "#fff", color: half === "1st" ? "#fff" : "#6b7280" }}
+                                        style={{ padding: "4px 14px", fontSize: 12, fontWeight: 600, border: "1px solid #d0d5dd", borderRadius: "6px 0 0 6px", cursor: "pointer", background: half === "1st" ? "#ff1e00" : "#fff", color: half === "1st" ? "#fff" : "#1f2330" }}
                                     >1st Half</button>
                                     <button
                                         onClick={() => setHalf("2nd")}
-                                        style={{ padding: "4px 14px", fontSize: 12, fontWeight: 600, border: "1px solid #d0d5dd", borderLeft: "none", borderRadius: "0 6px 6px 0", cursor: "pointer", background: half === "2nd" ? "#ff1e00" : "#fff", color: half === "2nd" ? "#fff" : "#6b7280" }}
+                                        style={{ padding: "4px 14px", fontSize: 12, fontWeight: 600, border: "1px solid #d0d5dd", borderLeft: "none", borderRadius: "0 6px 6px 0", cursor: "pointer", background: half === "2nd" ? "#ff1e00" : "#fff", color: half === "2nd" ? "#fff" : "#1f2330" }}
                                     >2nd Half</button>
                                 </div>
                             </div>
@@ -1176,22 +1211,21 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
                                 </div>
                             )}
 
-                            {/* Resume Game banner — shown while paused for a timeout; blocks every
-                                action below until dismissed, same as the stats app */}
-                            {isPaused && liveGame.status === "in_progress" && (
-                                <button
-                                    onClick={() => { setIsPaused(false); showSuccess("Game resumed"); }}
-                                    style={{
-                                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                                        width: "100%", padding: 12, marginBottom: 12, borderRadius: 8, border: "none",
-                                        background: "#22c55e", color: "#fff", fontSize: 13, fontWeight: 700,
-                                        letterSpacing: 0.6, textTransform: "uppercase", cursor: "pointer",
-                                        boxShadow: "0 4px 16px rgba(34,197,94,0.35)",
-                                    }}
-                                >
-                                    <i className="fa-solid fa-play"></i> Resume Game
-                                </button>
+                            {/* Timeouts — max 3 per team per half; taking one pauses recording */}
+                            {liveGame.status !== "upcoming" && (
+                                <TimeoutControls
+                                    teams={[
+                                        { key: "A", name: liveGame.teamA.name, used: timeoutsCountA },
+                                        { key: "B", name: liveGame.teamB.name, used: timeoutsCountB },
+                                    ]}
+                                    disabled={isPaused}
+                                    onTimeout={handleTimeout}
+                                />
                             )}
+
+                            {/* While paused every action below is locked until Resume Game
+                                (modal footer) is pressed, same as the stats app */}
+                            {isPaused && <TimeoutPausedBanner teamName={pausedBy?.teamName} used={pausedBy?.used} />}
 
                             {/* Stat action buttons */}
                             {liveGame.status !== "upcoming" && (
@@ -1212,8 +1246,10 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
 
                                     {currentPlay && (
                                         <PlayFormInline
+                                            key={`${currentPlay}-${activeTeam}`}
                                             type={currentPlay}
                                             roster={roster}
+                                            teamNames={{ A: liveGame.teamA.name, B: liveGame.teamB.name }}
                                             activeTeam={activeTeam}
                                             onSave={(data) => handlePlaySave(currentPlay, data)}
                                             onCancel={() => setCurrentPlay(null)}
@@ -1291,7 +1327,7 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
                                                             </select>
                                                         </td>
                                                         <td>
-                                                            <input type="number" style={{ width: 50, fontSize: 11, padding: "2px 4px", border: "1px solid #d0d5dd", borderRadius: 4, textAlign: "center" }} value={editForm.yards} onChange={e => setEditForm(prev => ({ ...prev, yards: e.target.value }))} />
+                                                            <input type="number" style={{ width: 50, fontSize: 11, padding: "2px 4px", border: "1px solid #d0d5dd", borderRadius: 4, textAlign: "center" }} value={editForm.yards} min={0} onKeyDown={blockNonDigitKeys} onChange={e => setEditForm(prev => ({ ...prev, yards: toNonNegativeYards(e.target.value) }))} />
                                                         </td>
                                                         <td>
                                                             <select style={{ fontSize: 11, padding: "2px 4px", border: "1px solid #d0d5dd", borderRadius: 4 }} value={editForm.points} onChange={e => setEditForm(prev => ({ ...prev, points: e.target.value }))}>
@@ -1347,26 +1383,17 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
                     )}
                 </div>
 
-                {/* Footer */}
-                <div style={{ display: "flex", gap: 10, marginTop: 16, justifyContent: "space-between", borderTop: "1px solid #e8eaef", paddingTop: 16, flexWrap: "wrap" }}>
-                    <button className="admin-btn admin-btn-ghost" onClick={onClose}>Close</button>
-                    {liveGame.status === "in_progress" && (
-                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                            <button className="admin-btn admin-btn-ghost" onClick={handleCancelGame} style={{ color: "#dc2626" }}>
-                                <i className="fa-solid fa-ban"></i> Cancel Game
-                            </button>
-                            <button className="admin-btn admin-btn-ghost" onClick={() => setShowForfeitConfirm(true)} style={{ color: "#dc2626" }}>
-                                <i className="fa-solid fa-flag"></i> Forfeit
-                            </button>
-                            <button className="admin-btn admin-btn-ghost" onClick={() => setShowResetConfirm(true)} style={{ color: "#5a5f72" }}>
-                                <i className="fa-solid fa-rotate-right"></i> Reset Stats
-                            </button>
-                            <button className="admin-btn admin-btn-danger" onClick={handleCompleteGame}>
-                                <i className="fa-solid fa-flag-checkered"></i> End Game
-                            </button>
-                        </div>
-                    )}
-                </div>
+                {/* Footer — game actions are always available; Resume Game replaces End Game during a timeout */}
+                <LiveGameFooter
+                    status={liveGame.status}
+                    isPaused={isPaused}
+                    onClose={onClose}
+                    onCancelGame={handleCancelGame}
+                    onForfeit={() => setShowForfeitConfirm(true)}
+                    onResetStats={() => setShowResetConfirm(true)}
+                    onEndGame={handleCompleteGame}
+                    onResume={handleResume}
+                />
             </div>
 
             <ConfirmModal
