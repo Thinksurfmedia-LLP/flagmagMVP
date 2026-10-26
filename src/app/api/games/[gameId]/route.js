@@ -9,6 +9,7 @@ import Play from "@/models/Play";
 import GameStat from "@/models/GameStat";
 import ImportedStatLine from "@/models/ImportedStatLine";
 import { isPlaceholderTeamName } from "@/lib/placeholderTeams";
+import { MIN_PLAYERS_TO_START, findStartBlockers } from "@/lib/gameStartRules";
 import { inTransaction } from "@/lib/teamJerseyGuard";
 import { hasGameHistory, summarizeGameHistory } from "@/lib/scheduleHistory";
 import { enrichGamesWithTeams, resolveTeamIdsByName, withResolvedTeamIds } from "@/lib/gameTeams";
@@ -80,46 +81,66 @@ export async function PUT(request, { params }) {
             }
         }
 
-        // Block starting a match when either team has no players — there's
-        // nothing on the field to attribute a play to, and any scores/stats
-        // recorded against an empty roster are meaningless (root cause of
-        // the "Rampage vs Iron Hawks" case: both teams had 0 players and the
-        // mobile app still let the match start and plays get recorded).
-        if (body.status === "in_progress" && existing?.league) {
-            const league = await League.findById(existing.league).select("organization").lean();
-            if (league?.organization) {
-                const sideA = body.teamA?.name ? body.teamA : existing.teamA;
-                const sideB = body.teamB?.name ? body.teamB : existing.teamB;
-                const teamAName = sideA?.name;
-                const teamBName = sideB?.name;
-                // By teamId; games from before teamId existed fall back to a
-                // league-scoped name match — two unrelated real teams can
-                // share a name across different leagues.
-                const findSideTeam = (side) => (side?.teamId
-                    ? Team.findById(side.teamId)
-                    : Team.findOne({ name: side?.name, organization: league.organization, "leagues.league": existing.league })
-                ).select("players").lean();
-                const [teamADoc, teamBDoc] = await Promise.all([findSideTeam(sideA), findSideTeam(sideB)]);
-                const empty = [];
-                if (!teamADoc || (teamADoc.players || []).length === 0) empty.push(teamAName);
-                if (!teamBDoc || (teamBDoc.players || []).length === 0) empty.push(teamBName);
-                if (empty.length > 0) {
-                    return NextResponse.json(
-                        {
-                            success: false,
-                            error: `Can't start this match — ${empty.join(" and ")} ${empty.length > 1 ? "have" : "has"} no players on the roster. Add players to both teams first.`,
-                        },
-                        { status: 400 }
-                    );
-                }
+        const league = existing?.league
+            ? await League.findById(existing.league).select("organization").lean()
+            : null;
+        // The Team occupying a game side: by teamId; games from before
+        // teamId existed fall back to a league-scoped name match (or an org
+        // placeholder team) — two unrelated real teams can share a name
+        // across different leagues.
+        const findSideTeam = (side) => {
+            if (!side?.name && !side?.teamId) return null;
+            return (side.teamId
+                ? Team.findById(side.teamId)
+                : Team.findOne({
+                    name: side.name,
+                    organization: league?.organization,
+                    $or: [{ "leagues.league": existing.league }, { isPlaceholder: true }],
+                })
+            ).select("name players isPlaceholder").lean();
+        };
+        // Placeholder detection goes by Team.isPlaceholder — org placeholder
+        // names like "D1 Championship" don't match the name heuristic.
+        const isPlaceholderSide = (side, team) => Boolean(team?.isPlaceholder) || isPlaceholderTeamName(side?.name);
+
+        const sideA = body.teamA?.name ? body.teamA : existing?.teamA;
+        const sideB = body.teamB?.name ? body.teamB : existing?.teamB;
+        const needsSideTeams = league?.organization && (body.status === "in_progress" || body.teamA?.name || body.teamB?.name);
+        const [teamADoc, teamBDoc, existingTeamADoc, existingTeamBDoc] = needsSideTeams
+            ? await Promise.all([findSideTeam(sideA), findSideTeam(sideB), findSideTeam(existing.teamA), findSideTeam(existing.teamB)])
+            : [null, null, null, null];
+
+        // Block starting a match while either side is still a placeholder
+        // (bracket slot, not a real team), or when either team has fewer than
+        // MIN_PLAYERS_TO_START active players — scores/stats recorded against
+        // an empty roster are meaningless (the "Rampage vs Iron Hawks" case).
+        if (body.status === "in_progress" && league?.organization) {
+            const { placeholders, shortRosters } = findStartBlockers(sideA, teamADoc, sideB, teamBDoc);
+            if (placeholders.length > 0) {
+                return NextResponse.json(
+                    {
+                        success: false,
+                        error: `Can't start this match — ${placeholders.join(" and ")} ${placeholders.length > 1 ? "are placeholders" : "is a placeholder"}. Select real teams first.`,
+                    },
+                    { status: 400 }
+                );
+            }
+            if (shortRosters.length > 0) {
+                return NextResponse.json(
+                    {
+                        success: false,
+                        error: `Can't start this match — ${shortRosters.join(" and ")} ${shortRosters.length > 1 ? "need" : "needs"} at least ${MIN_PLAYERS_TO_START} active players on the roster.`,
+                    },
+                    { status: 400 }
+                );
             }
         }
 
         // Snapshot the placeholder team (e.g. "TBD") the first time it's resolved to a
         // real team, so the fixture can be reverted later via /reset-fixture.
         if (existing) {
-            const resolvingA = body.teamA?.name && isPlaceholderTeamName(existing.teamA?.name) && !isPlaceholderTeamName(body.teamA.name) && !existing.originalTeamA?.name;
-            const resolvingB = body.teamB?.name && isPlaceholderTeamName(existing.teamB?.name) && !isPlaceholderTeamName(body.teamB.name) && !existing.originalTeamB?.name;
+            const resolvingA = body.teamA?.name && isPlaceholderSide(existing.teamA, existingTeamADoc) && !isPlaceholderSide(body.teamA, teamADoc) && !existing.originalTeamA?.name;
+            const resolvingB = body.teamB?.name && isPlaceholderSide(existing.teamB, existingTeamBDoc) && !isPlaceholderSide(body.teamB, teamBDoc) && !existing.originalTeamB?.name;
             if (resolvingA || resolvingB) {
                 // Placeholder ids scoped to this game's league/org — a bare
                 // name lookup could pick another organization's "TBD".

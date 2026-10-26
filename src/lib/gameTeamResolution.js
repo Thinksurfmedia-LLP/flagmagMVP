@@ -89,6 +89,7 @@ function enrichSide(side, team, leagueId, { isPlayoffs, withDetails }) {
         teamId: team?._id ?? side?.teamId ?? null,
         logo: team?.logo || side?.logo || "",
         seedNumber: isPlayoffs ? seedNumberFor(team, leagueId) : null,
+        isPlaceholder: Boolean(team?.isPlaceholder),
     };
     if (withDetails && team) enriched.details = team;
     return enriched;

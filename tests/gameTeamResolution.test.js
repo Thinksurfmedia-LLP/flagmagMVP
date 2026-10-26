@@ -158,3 +158,12 @@ test("teamIdToKeep re-resolves when the name, league or link changes", () => {
     assert.equal(teamIdToKeep(existing, "B", "GOAT", SD_THU), undefined, "never linked");
     assert.equal(teamIdToKeep(null, "A", "Trojans", SD_THU), undefined, "create, no existing game");
 });
+
+test("enrichGameTeams flags sides that resolve to a placeholder team, by flag not name", () => {
+    const d1Champ = { _id: "t-d1c", name: "D1 Championship", logo: "", isPlaceholder: true, leagues: [] };
+    const index = buildTeamIndex([...TEAMS, d1Champ]);
+    const game = { league: SD_THU, teamA: { name: "D1 Championship" }, teamB: { name: "GOAT" } };
+    const out = enrichGameTeams(game, index);
+    assert.equal(out.teamA.isPlaceholder, true);
+    assert.equal(out.teamB.isPlaceholder, false);
+});

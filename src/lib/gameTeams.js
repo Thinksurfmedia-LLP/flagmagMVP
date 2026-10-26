@@ -1,5 +1,6 @@
 import Team from "@/models/Team";
 import League from "@/models/League";
+import "@/models/Player"; // register schema for populate("players.player")
 import { buildTeamIndex, resolveByLeagueAndName, resolveGameSide, teamIdToKeep, enrichGameTeams } from "@/lib/gameTeamResolution";
 
 // DB-backed helpers around gameTeamResolution.js — the ONE place game routes

@@ -41,6 +41,12 @@ function formatCountdown(ms) {
 
 const MIN_PLAYERS_TO_START = 4;
 
+// Players not deactivated for this team (Team.players[].active) — the same
+// set the statistician's roster offers.
+function activePlayerCount(team) {
+    return (team?.players || []).filter((p) => p?.active !== false).length;
+}
+
 function isPlaceholderTeamName(name) {
     if (!name || !String(name).trim()) return true;
     const n = String(name).trim().toLowerCase();
@@ -72,9 +78,12 @@ export default function MatchCard({ game, onStart, onGamesChanged }) {
     const countdown = game.status === "upcoming" ? formatCountdown(msLeft) : null;
     const formatDate = (dateStr) => formatDatePST(dateStr);
     const formatTime = (timeStr) => formatTimePDT(timeStr);
-    const needsTeamEdit =
-        game.status === "upcoming" &&
-        (isPlaceholderTeamName(game.teamA?.name) || isPlaceholderTeamName(game.teamB?.name));
+    // Org placeholder teams ("D1 Championship", "TBD", …) are flagged by the
+    // API (isPlaceholder); the name heuristic only covers older payloads.
+    const isPlaceholderSide = (side) => Boolean(side?.isPlaceholder) || isPlaceholderTeamName(side?.name);
+    const editA = game.status === "upcoming" && isPlaceholderSide(game.teamA);
+    const editB = game.status === "upcoming" && isPlaceholderSide(game.teamB);
+    const needsTeamEdit = editA || editB;
     const hasOriginalFixture = !!(game.originalTeamA?.name || game.originalTeamB?.name);
 
     const statusLabel = {
@@ -99,11 +108,16 @@ export default function MatchCard({ game, onStart, onGamesChanged }) {
             // By teamId; older games without one fall back to the name
             // (leagueTeams is already scoped to this game's league).
             const findCurrent = (side) => leagueTeams.find((t) => (side?.teamId ? String(t?._id) === String(side.teamId) : t?.name === side?.name));
-            const currentA = findCurrent(game.teamA);
-            const currentB = findCurrent(game.teamB);
+            // Only a real (non-placeholder) side is preselected — and stays fixed.
+            const currentA = editA ? null : findCurrent(game.teamA);
+            const currentB = editB ? null : findCurrent(game.teamB);
             if (currentA?._id) setTeamASelection(String(currentA._id));
             if (currentB?._id) setTeamBSelection(String(currentB._id));
 
+            const missingFixed = [!editA && !currentA ? game.teamA?.name : null, !editB && !currentB ? game.teamB?.name : null].filter(Boolean);
+            if (missingFixed.length > 0) {
+                setStartError(`${missingFixed.join(" and ")} couldn't be found in this league.`);
+            }
             if (leagueTeams.length === 0) {
                 setStartError("No teams are available to assign for this game.");
             }
@@ -129,7 +143,7 @@ export default function MatchCard({ game, onStart, onGamesChanged }) {
 
             if (needsTeamEdit) {
                 if (!teamASelection || !teamBSelection) {
-                    setStartError("Please select both teams before starting.");
+                    setStartError(editA && editB ? "Please select both teams before starting." : "Please select a team before starting.");
                     setStarting(false);
                     return;
                 }
@@ -147,16 +161,20 @@ export default function MatchCard({ game, onStart, onGamesChanged }) {
                     return;
                 }
 
-                payload.teamA = {
-                    name: teamA.name,
-                    logo: teamA.logo || "",
-                    score: game.teamA?.score ?? 0,
-                };
-                payload.teamB = {
-                    name: teamB.name,
-                    logo: teamB.logo || "",
-                    score: game.teamB?.score ?? 0,
-                };
+                if (editA) {
+                    payload.teamA = {
+                        name: teamA.name,
+                        logo: teamA.logo || "",
+                        score: game.teamA?.score ?? 0,
+                    };
+                }
+                if (editB) {
+                    payload.teamB = {
+                        name: teamB.name,
+                        logo: teamB.logo || "",
+                        score: game.teamB?.score ?? 0,
+                    };
+                }
             }
 
             // Both teams need a minimum roster before a game can be started.
@@ -168,8 +186,8 @@ export default function MatchCard({ game, onStart, onGamesChanged }) {
             if (needsTeamEdit) {
                 const teamA = allTeams.find((t) => String(t._id) === teamASelection);
                 const teamB = allTeams.find((t) => String(t._id) === teamBSelection);
-                countA = (teamA?.players || []).length;
-                countB = (teamB?.players || []).length;
+                countA = activePlayerCount(teamA);
+                countB = activePlayerCount(teamB);
                 nameA = teamA?.name;
                 nameB = teamB?.name;
             } else {
@@ -317,8 +335,11 @@ export default function MatchCard({ game, onStart, onGamesChanged }) {
                         {needsTeamEdit && (
                             <>
                                 <p className="confirm-detail" style={{ color: "#ff9f43" }}>
-                                    This game has placeholder teams. Select the final teams before starting.
+                                    {editA && editB
+                                        ? "Both sides are placeholders. Select the teams before starting."
+                                        : `${(editA ? game.teamA?.name : game.teamB?.name) || "One side"} is a placeholder. Select the team before starting.`}
                                 </p>
+                                {editA && (
                                 <div className="form-group" style={{ textAlign: "left" }}>
                                     <label>Team 1</label>
                                     <select
@@ -335,6 +356,8 @@ export default function MatchCard({ game, onStart, onGamesChanged }) {
                                             ))}
                                     </select>
                                 </div>
+                                )}
+                                {editB && (
                                 <div className="form-group" style={{ textAlign: "left" }}>
                                     <label>Team 2</label>
                                     <select
@@ -351,6 +374,7 @@ export default function MatchCard({ game, onStart, onGamesChanged }) {
                                             ))}
                                     </select>
                                 </div>
+                                )}
                             </>
                         )}
                         {startError && (

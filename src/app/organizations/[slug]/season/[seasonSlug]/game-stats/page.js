@@ -11,6 +11,7 @@ import Player from "@/models/Player";
 import Team from "@/models/Team";
 import Game from "@/models/Game";
 import { formatOrganizationLocations } from "@/lib/organizationLocations";
+import { compareStandings } from "@/lib/standingsSort";
 
 async function getData(slug, seasonSlug) {
     await dbConnect();
@@ -79,12 +80,12 @@ async function getData(slug, seasonSlug) {
         else { a.wins += 0; b.wins += 0; } // tie — no change (can adjust if needed)
     }
 
-    // Sort: by win %, then pf
+    // Sort: by win %, then +/- (see standingsSort.js)
     const rows = Object.values(stats).map(r => ({
         ...r,
         pct: (r.wins + r.losses) > 0 ? (r.wins / (r.wins + r.losses)) * 100 : 0,
         diff: r.pf - r.pa,
-    })).sort((a, b) => b.pct - a.pct || b.pf - a.pf);
+    })).sort(compareStandings);
 
     // Group by division
     const divisionNames = [...new Set(rows.map(r => r.division).filter(Boolean))];
