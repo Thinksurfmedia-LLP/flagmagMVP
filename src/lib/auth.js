@@ -104,11 +104,14 @@ export function invalidateGlobalCutoffCache() {
 const USER_ORGS_CACHE_MS = 5000;
 const userOrgsCache = new Map();
 
-export async function getUserOrgIds(userId) {
+// Same lookup also tells us whether the user still exists — a deleted
+// account's tokens on other devices must stop working, and this already
+// runs on every authenticated request.
+async function getUserSessionInfo(userId) {
     const now = Date.now();
     const cached = userOrgsCache.get(userId);
     if (cached && now - cached.checkedAt < USER_ORGS_CACHE_MS) {
-        return cached.orgIds;
+        return cached;
     }
     await dbConnect();
     const userDoc = await User.findById(userId).select("organization roleOrganizations").lean();
@@ -118,9 +121,21 @@ export async function getUserOrgIds(userId) {
         .flatMap((v) => (Array.isArray(v) ? v : [v]))
         .filter(Boolean)
         .forEach((id) => orgIds.add(String(id)));
-    const result = [...orgIds];
-    userOrgsCache.set(userId, { checkedAt: now, orgIds: result });
-    return result;
+    const info = { checkedAt: now, exists: Boolean(userDoc), orgIds: [...orgIds] };
+    userOrgsCache.set(userId, info);
+    return info;
+}
+
+export async function getUserOrgIds(userId) {
+    return (await getUserSessionInfo(userId)).orgIds;
+}
+
+/**
+ * Call right after deleting a user so their remaining sessions are refused
+ * on the very next request instead of after the cache TTL.
+ */
+export function forgetUserSessionInfo(userId) {
+    userOrgsCache.delete(String(userId));
 }
 
 function cookieOptions() {
@@ -192,13 +207,14 @@ export async function setAuthCookie(token) {
 }
 
 // True when a (signature-valid) token was issued before the platform-wide or
-// any of the user's org-wide logout cutoffs.
+// any of the user's org-wide logout cutoffs, or its user has been deleted.
 async function isCutOff(payload) {
     const globalCutoff = await getGlobalSessionsCutoff();
     if (globalCutoff && payload.iat * 1000 < new Date(globalCutoff).getTime()) return true;
 
     if (!payload.id) return false;
-    const orgIds = await getUserOrgIds(payload.id);
+    const { exists, orgIds } = await getUserSessionInfo(payload.id);
+    if (!exists) return true;
     for (const orgId of orgIds) {
         const cutoff = await getOrgSessionsCutoff(orgId);
         if (cutoff && payload.iat * 1000 < new Date(cutoff).getTime()) return true;

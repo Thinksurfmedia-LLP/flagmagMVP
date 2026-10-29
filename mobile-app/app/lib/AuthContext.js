@@ -63,8 +63,14 @@ export function AuthProvider({ children }) {
         setUser(null);
     };
 
+    // Permanently deletes the account; the server also clears the session cookie.
+    const deleteAccount = async (password) => {
+        await apiPost("/api/auth/delete-account", { password });
+        setUser(null);
+    };
+
     return (
-        <AuthContext.Provider value={{ user, loading, sessionEnded, login, signup, logout, refetch: fetchUser }}>
+        <AuthContext.Provider value={{ user, loading, sessionEnded, login, signup, logout, deleteAccount, refetch: fetchUser }}>
             {children}
         </AuthContext.Provider>
     );

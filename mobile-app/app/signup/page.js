@@ -83,10 +83,9 @@ function SignupForm() {
                         <input
                             type="tel"
                             className="form-control icon-phone"
-                            placeholder="Phone Number"
+                            placeholder="Phone Number (optional)"
                             value={form.phone}
                             onChange={update("phone")}
-                            required
                         />
                         <input
                             type="email"
@@ -128,6 +127,7 @@ function SignupForm() {
                         </button>
                     </form>
 
+                    {/* Social sign-up hidden until Facebook/Google OAuth is wired up.
                     <div className="social-login-area">
                         <h5>or sign up with</h5>
                         <ul>
@@ -135,6 +135,7 @@ function SignupForm() {
                             <li><a href="#"><img src="/assets/images/go.png" alt="Google" /></a></li>
                         </ul>
                     </div>
+                    */}
 
                     <div className="auth-link">
                         <h6>Already have an account? <Link href="/login">Log In</Link></h6>

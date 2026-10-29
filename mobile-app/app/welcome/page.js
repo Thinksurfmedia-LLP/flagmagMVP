@@ -1,8 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+
+// ?deleted=true — just came from /account/delete.
+function AccountDeletedNotice() {
+    const searchParams = useSearchParams();
+    if (searchParams.get("deleted") !== "true") return null;
+    return <div className="toast-message success">Your account has been deleted.</div>;
+}
 
 export default function WelcomePage() {
     const router = useRouter();
@@ -24,6 +31,9 @@ export default function WelcomePage() {
                 </div>
 
                 <div className="content-wrapper">
+                    <Suspense fallback={null}>
+                        <AccountDeletedNotice />
+                    </Suspense>
                     <div className="content-area">
                         <h1>Welcome</h1>
                         <p>

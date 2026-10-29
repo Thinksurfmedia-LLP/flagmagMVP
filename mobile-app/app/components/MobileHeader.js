@@ -153,6 +153,13 @@ export default function MobileHeader({ showSearch, showFilter, onSearch, onFilte
                     </li>
                     {user && (
                         <li>
+                            <Link href="/account/delete" onClick={handleNavClick}>
+                                Delete Account
+                            </Link>
+                        </li>
+                    )}
+                    {user && (
+                        <li>
                             <button
                                 onClick={() => {
                                     if (navLocked) {
