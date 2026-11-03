@@ -10,7 +10,7 @@ import Team from "@/models/Team";
 import { enrichGamesWithTeams } from "@/lib/gameTeams";
 import { createFingerprintCache } from "@/lib/fingerprintCache";
 import { fingerprintOf } from "@/lib/dataFingerprint";
-import { parseGameListQuery, applyGameListQuery } from "@/lib/gameListQuery";
+import { parseGameListQuery, applyGameListQuery, gameListFindOptions } from "@/lib/gameListQuery";
 
 // Every game an org has ever had is ~3.5k documents for XFlagFootball, and
 // pulling them over the Atlas link takes ~25s — so the full, enriched list
@@ -40,8 +40,9 @@ async function computeOrgGamesFingerprint(orgId) {
 /**
  * Every non-practice game for the org (optionally only `onlyLeagueIds`),
  * ascending by date/time, enriched with league, season, section and team info.
+ * `find` (from gameListFindOptions) narrows/orders/limits the game query.
  */
-async function buildOrgGames(orgId, onlyLeagueIds = null) {
+async function buildOrgGames(orgId, onlyLeagueIds = null, find = { filter: {}, sort: { date: 1, time: 1 }, limit: null }) {
     const leagueFilter = { organization: orgId };
     if (onlyLeagueIds) leagueFilter._id = { $in: onlyLeagueIds };
 
@@ -78,9 +79,10 @@ async function buildOrgGames(orgId, onlyLeagueIds = null) {
     const leagueMap = Object.fromEntries(leagues.map((l) => [String(l._id), l]));
 
     // Single query for all games across all leagues (exclude practice games)
-    const games = await Game.find({ league: { $in: leagues.map((l) => l._id) }, gameType: { $ne: "practice" } })
-        .sort({ date: 1, time: 1 })
-        .lean();
+    const gameQuery = Game.find({ ...find.filter, league: { $in: leagues.map((l) => l._id) }, gameType: { $ne: "practice" } })
+        .sort(find.sort);
+    if (find.limit) gameQuery.limit(find.limit);
+    const games = await gameQuery.lean();
 
     // Latest team logos and (playoffs leagues only) each team's seed
     // number, resolved by teamId / league — never by name org-wide, since
@@ -145,28 +147,22 @@ export async function GET(request, { params }) {
             return NextResponse.json({ success: true, count: 0, data: [] });
         }
 
-        let games;
-        if (seasonLeagueIds && !orgGamesCache.has(cacheKey)) {
-            // Cold cache (first request after a server start) and the caller
-            // only wants one season: build just that slice now rather than
-            // making it wait ~25s for every game ever, and warm the full
-            // cache in the background for the next request.
-            orgGamesCache
-                .get(cacheKey, {
-                    fingerprint: () => computeOrgGamesFingerprint(org._id),
-                    compute: () => buildOrgGames(org._id),
-                })
-                .catch((error) => console.error(`[org games] cache warm failed for ${cacheKey}:`, error));
-            games = await buildOrgGames(org._id, seasonLeagueIds);
-        } else {
-            games = await orgGamesCache.get(cacheKey, {
-                fingerprint: () => computeOrgGamesFingerprint(org._id),
-                compute: () => buildOrgGames(org._id),
-            });
+        // A season slice (e.g. xFlag's results ticker on every page) is
+        // queried straight from the DB with status/order/limit applied there.
+        // It must never go through the full-org cache: since the legacy
+        // imports that's ~21k games (~13MB), and every rebuild (server start,
+        // any data change, every maxAgeMs) saturates the Atlas link for
+        // minutes, timing out every other request meanwhile.
+        if (seasonLeagueIds) {
+            const data = await buildOrgGames(org._id, seasonLeagueIds, gameListFindOptions(query));
+            return NextResponse.json({ success: true, count: data.length, data });
         }
 
-        const leagueIdSet = seasonLeagueIds ? new Set(seasonLeagueIds.map(String)) : null;
-        const data = applyGameListQuery(games, query, leagueIdSet);
+        const games = await orgGamesCache.get(cacheKey, {
+            fingerprint: () => computeOrgGamesFingerprint(org._id),
+            compute: () => buildOrgGames(org._id),
+        });
+        const data = applyGameListQuery(games, query, null);
         return NextResponse.json({ success: true, count: data.length, data });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });

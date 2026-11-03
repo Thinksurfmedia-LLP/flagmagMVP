@@ -14,6 +14,10 @@
 //   { "teams":   { "<team match key>": "<FlagMag Team _id>" | "NEW" },
 //     "players": { "<legacy users.id>": "<FlagMag Player _id>" | "NEW" } }
 //
+// --sync (with --apply) re-imports a season from a NEWER export: it also
+// updates scores and stat lines of games imported earlier and removes stat
+// lines whose legacy row no longer exists.
+//
 // Every document the import creates (or team membership it adds) is recorded
 // in the `legacyimports` collection, so re-running is idempotent and
 // scripts/legacy/rollback-season.mjs can undo exactly this import.
@@ -49,6 +53,9 @@ import { loadEnv, REGISTRY, SYSTEM } from "./common.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ORG_SLUG = "xflagfootball";
+// Non-default registry namespaces (e.g. xflag-sgs) get their own report and
+// override files, since their season ids overlap the Laravel-era ones.
+const FILE_PREFIX = SYSTEM === "xflag-legacy" ? "" : `${SYSTEM}-`;
 
 function parseArgs(argv) {
     const args = { apply: false, verify: false };
@@ -57,6 +64,7 @@ function parseArgs(argv) {
         if (a === "--apply") args.apply = true;
         else if (a === "--ambiguous-as-new") args.ambiguousAsNew = true;
         else if (a === "--verify") args.verify = true;
+        else if (a === "--sync") args.sync = true;
         else if (a === "--db") args.db = argv[++i];
         else if (a === "--season") args.season = Number(argv[++i]);
     }
@@ -94,13 +102,21 @@ function readLegacySeason(dbPath, seasonId) {
     // two seasons, and sldt_new's season/team ids don't line up with the
     // games, so the save time is the only rule that works for every season.
     // (For Fall 2025, where sldt survives, it agrees on all 257 games.)
-    const { start, end } = seasonWindow(all("SELECT id, created_at FROM seasons ORDER BY created_at, id"), seasonId);
-    const games = all(
-        `SELECT g.* FROM sgs_games g
-         WHERE g.created_at >= ? AND (? IS NULL OR g.created_at < ?)
-         ORDER BY g.date, g.time, g.id`,
-        start, end, end
-    );
+    // The Joomla-era SGS data (sgs-to-legacy-sqlite.mjs) carries the season
+    // on every game, so it is used directly when present.
+    const hasSeasonColumn = all("PRAGMA table_info(sgs_games)").some((c) => c.name === "season_id");
+    let games;
+    if (hasSeasonColumn) {
+        games = all("SELECT g.* FROM sgs_games g WHERE g.season_id = ? ORDER BY g.date, g.time, g.id", seasonId);
+    } else {
+        const { start, end } = seasonWindow(all("SELECT id, created_at FROM seasons ORDER BY created_at, id"), seasonId);
+        games = all(
+            `SELECT g.* FROM sgs_games g
+             WHERE g.created_at >= ? AND (? IS NULL OR g.created_at < ?)
+             ORDER BY g.date, g.time, g.id`,
+            start, end, end
+        );
+    }
     const sldt = all(
         `SELECT s.*, d.name AS division_name, t.name AS team_name
          FROM sldt s LEFT JOIN divisions d ON d.id = s.division_id LEFT JOIN teams t ON t.id = s.team_id
@@ -136,7 +152,7 @@ function readLegacySeason(dbPath, seasonId) {
 // ---------------------------------------------------------------------------
 
 function loadOverrides(seasonId) {
-    const file = path.join(__dirname, "overrides", `season-${seasonId}.json`);
+    const file = path.join(__dirname, "overrides", `${FILE_PREFIX}season-${seasonId}.json`);
     if (!fs.existsSync(file)) return { teams: {}, players: {} };
     const data = JSON.parse(fs.readFileSync(file, "utf8"));
     return { teams: data.teams || {}, players: data.players || {} };
@@ -532,10 +548,17 @@ async function availablePlayerName(orgId, name) {
     return candidate;
 }
 
-async function applyPlan({ legacy, orgId, plan }) {
+/**
+ * sync: re-running against a NEWER export of the same legacy DB. The old site
+ * kept editing after earlier exports, so besides adding new rows, bring the
+ * already-imported games' scores and stat lines up to date and delete stat
+ * lines whose legacy row was removed (re-entered rows get a new id).
+ */
+async function applyPlan({ legacy, orgId, plan, sync = false }) {
     const reg = makeRegistry(legacy.season.id);
     await reg.ensureIndex();
     const counts = { season: 0, leagues: 0, teams: 0, memberships: 0, players: 0, games: 0, schedules: 0, statLines: 0 };
+    if (sync) Object.assign(counts, { scoresUpdated: 0, statLinesUpdated: 0, staleStatLinesRemoved: 0 });
     const renamedPlayers = [];
 
     // Season
@@ -646,6 +669,15 @@ async function applyPlan({ legacy, orgId, plan }) {
                     sectionName: week.name,
                 }));
                 if (game.created) counts.games++;
+                if (sync && !game.created) {
+                    const scoreA = Number(g.team1_score) || 0;
+                    const scoreB = Number(g.team2_score) || 0;
+                    const res = await Game.updateOne(
+                        { _id: game.docId, $or: [{ "teamA.score": { $ne: scoreA } }, { "teamB.score": { $ne: scoreB } }] },
+                        { $set: { "teamA.score": scoreA, "teamB.score": scoreB } }
+                    );
+                    counts.scoresUpdated += res.modifiedCount;
+                }
                 gameIdByLegacy.set(g.id, game.docId);
                 weekGames.push({ team1: a._id, team2: b._id, field: "", date: g.date, time: String(g.time || "").slice(0, 5), gameType: "main", gameRef: game.docId });
             }
@@ -660,29 +692,42 @@ async function applyPlan({ legacy, orgId, plan }) {
     }
 
     // Stat lines (unique source.recordId makes this idempotent)
-    const ops = plan.statLines.map((line) => ({
-        updateOne: {
-            filter: { "source.system": SYSTEM, "source.recordId": line.legacyStatId },
-            update: {
-                $setOnInsert: {
-                    game: gameIdByLegacy.get(line.legacyGameId),
-                    league: leagueIdByLoc.get(legacy.games.find((g) => g.id === line.legacyGameId).location_id),
-                    player: playerIdByUser.get(line.legacyUserId),
-                    side: line.side,
-                    jerseyNumber: line.jerseyNumber,
-                    passing: line.passing,
-                    receiving: line.receiving,
-                    rushing: line.rushing,
-                    defensive: line.defensive,
-                    source: { system: SYSTEM, recordId: line.legacyStatId },
-                },
+    const ops = plan.statLines.map((line) => {
+        const fields = {
+            game: gameIdByLegacy.get(line.legacyGameId),
+            league: leagueIdByLoc.get(legacy.games.find((g) => g.id === line.legacyGameId).location_id),
+            player: playerIdByUser.get(line.legacyUserId),
+            side: line.side,
+            jerseyNumber: line.jerseyNumber,
+            passing: line.passing,
+            receiving: line.receiving,
+            rushing: line.rushing,
+            defensive: line.defensive,
+        };
+        const source = { system: SYSTEM, recordId: line.legacyStatId };
+        return {
+            updateOne: {
+                filter: { "source.system": SYSTEM, "source.recordId": line.legacyStatId },
+                update: sync ? { $set: fields, $setOnInsert: { source } } : { $setOnInsert: { ...fields, source } },
+                upsert: true,
             },
-            upsert: true,
-        },
-    }));
-    if (ops.length) {
-        const res = await ImportedStatLine.bulkWrite(ops, { ordered: false });
-        counts.statLines = res.upsertedCount;
+        };
+    });
+    // Chunked: one ~9k-op bulkWrite exceeded Atlas's write-concern time limit
+    // (MaxTimeMSExpired) on the larger 2008-2011 seasons.
+    const STAT_LINE_BATCH = 500;
+    for (let i = 0; i < ops.length; i += STAT_LINE_BATCH) {
+        const res = await ImportedStatLine.bulkWrite(ops.slice(i, i + STAT_LINE_BATCH), { ordered: false });
+        counts.statLines += res.upsertedCount;
+        if (sync) counts.statLinesUpdated += res.modifiedCount;
+    }
+    if (sync) {
+        const res = await ImportedStatLine.deleteMany({
+            "source.system": SYSTEM,
+            game: { $in: [...gameIdByLegacy.values()] },
+            "source.recordId": { $nin: plan.statLines.map((l) => l.legacyStatId) },
+        });
+        counts.staleStatLinesRemoved = res.deletedCount;
     }
     return { ...counts, renamedPlayers };
 }
@@ -740,7 +785,13 @@ async function verifyImport(legacy, statLines) {
         if (r) gameDocIds.push(r.docId);
     }
     const lines = await ImportedStatLine.find({ game: { $in: gameDocIds } })
-        .select("game side receiving rushing defensive").lean();
+        .select("game side receiving rushing defensive source").lean();
+
+    // 2c. Nothing extra: a line whose legacy row is gone (deleted or re-keyed
+    //     in a later export) still counts on the site. --sync removes these.
+    const plannedIds = new Set(statLines.map((l) => String(l.legacyStatId)));
+    const stale = lines.filter((l) => l.source?.system === SYSTEM && !plannedIds.has(String(l.source.recordId)));
+    if (stale.length) problems.push(`${stale.length} stat lines no longer in the legacy data (re-run with --apply --sync)`);
     const pts = new Map();
     for (const l of lines) {
         const k = `${l.game}|${l.side}`;
@@ -801,7 +852,7 @@ async function main() {
 
     const reportDir = path.join(__dirname, "reports");
     fs.mkdirSync(reportDir, { recursive: true });
-    const reportFile = path.join(reportDir, `season-${args.season}-plan.json`);
+    const reportFile = path.join(reportDir, `${FILE_PREFIX}season-${args.season}-plan.json`);
     fs.writeFileSync(reportFile, JSON.stringify({ summary, teams, players, leagues: leagues.map(({ weeks, ...l }) => ({ ...l, weeks: weeks.map((w) => ({ name: w.name, games: w.games.length })) })), memberships }, null, 2));
     console.log(`Plan written to ${path.relative(process.cwd(), reportFile)}`);
 
@@ -818,8 +869,8 @@ async function main() {
     }
     const ambiguous = [...teams, ...players].filter((x) => x.action === "ambiguous");
     if (args.apply) {
-        if (ambiguous.length) throw new Error(`${ambiguous.length} ambiguous team/player matches — resolve them in overrides/season-${args.season}.json first`);
-        const counts = await applyPlan({ legacy, orgId: org._id, plan });
+        if (ambiguous.length) throw new Error(`${ambiguous.length} ambiguous team/player matches — resolve them in overrides/${FILE_PREFIX}season-${args.season}.json first`);
+        const counts = await applyPlan({ legacy, orgId: org._id, plan, sync: args.sync });
         console.log("Applied:", counts);
     } else {
         console.log("Dry run — nothing written. Re-run with --apply to import.");

@@ -38,6 +38,25 @@ function buildTeamIndex(teams) {
     return { byId, byLeagueAndName, placeholderByName };
 }
 
+/**
+ * Team query matching every team resolveGameSide() can return for `games`:
+ * teams linked by teamId, members of the games' leagues, and placeholders.
+ * Indexing only these instead of the whole organization gives identical
+ * results — an org with thousands of imported legacy teams took ~10s to load.
+ *
+ * @param {Array<{league?, teamA?, teamB?}>} games
+ * @param {*} organizationId
+ */
+function teamFilterForGames(games, organizationId) {
+    const uniq = (values) => [...new Map(values.filter(Boolean).map((v) => [key(v), v])).values()];
+    const teamIds = uniq((games || []).flatMap((g) => [g.teamA?.teamId, g.teamB?.teamId]));
+    const leagueIds = uniq((games || []).map((g) => g.league));
+    const or = [{ isPlaceholder: true }];
+    if (teamIds.length) or.push({ _id: { $in: teamIds } });
+    if (leagueIds.length) or.push({ "leagues.league": { $in: leagueIds } });
+    return { organization: organizationId, $or: or };
+}
+
 /** True when `team` is a legitimate occupant of a game in `leagueId`. */
 function belongsToLeague(team, leagueId) {
     if (team.isPlaceholder) return true;
@@ -162,6 +181,7 @@ function planTeamIdBackfill(games, index, scheduleTeamsByGame = new Map()) {
 
 module.exports = {
     buildTeamIndex,
+    teamFilterForGames,
     resolveByLeagueAndName,
     resolveGameSide,
     teamIdToKeep,

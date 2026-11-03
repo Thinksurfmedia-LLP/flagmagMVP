@@ -5,7 +5,7 @@ import League from "@/models/League";
 import Venue from "@/models/Location";
 import "@/models/County";
 import "@/models/State";
-import "@/models/Season";
+import Season from "@/models/Season";
 import User from "@/models/User";
 import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
 import { generateUniqueLeagueSlug } from "@/lib/leagueSlug";
@@ -19,6 +19,7 @@ export async function GET(request, { params }) {
         const { searchParams } = new URL(request.url);
         const type = searchParams.get("type");
         const showOnSignup = searchParams.get("showOnSignup");
+        const leagueSlug = searchParams.get("slug");
 
         const organization = await Organization.findOne({ slug }).lean();
         if (!organization) {
@@ -34,6 +35,15 @@ export async function GET(request, { params }) {
         // calls this route (admin games/teams/seasons/stats pickers) still
         // gets the full list regardless of the organizer's signup toggle.
         if (showOnSignup === "true") filter.showOnSignup = true;
+        // Single-league lookup for public league pages — the full list is
+        // ~900 leagues (~600KB) once legacy seasons are imported.
+        if (leagueSlug) filter.slug = String(leagueSlug);
+        // ?season=default — only the default season's leagues (xFlag's results
+        // ticker, rendered on every page). No default season → no filter.
+        if (searchParams.get("season") === "default") {
+            const defaultSeason = await Season.findOne({ organization: organization._id, isDefault: true }).select("_id").lean();
+            if (defaultSeason) filter.season = defaultSeason._id;
+        }
 
         const leagues = await League.find(filter)
             .populate("season", "name isDefault")

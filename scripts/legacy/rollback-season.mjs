@@ -22,12 +22,15 @@ const args = process.argv.slice(2);
 const apply = args.includes("--apply");
 const season = Number(args[args.indexOf("--season") + 1]);
 if (!Number.isInteger(season)) {
-    console.error("Usage: rollback-season.mjs --season <legacySeasonId> [--apply]");
+    console.error("Usage: [LEGACY_SYSTEM=xflag-sgs] rollback-season.mjs --season <legacySeasonId> [--apply]");
     process.exit(1);
 }
 
 async function main() {
     loadEnv();
+    // Season ids overlap between the Laravel-era (xflag-legacy) and Joomla-era
+    // (xflag-sgs) imports, so always say which one this run would undo.
+    console.log(`Registry system: ${SYSTEM}${process.env.LEGACY_SYSTEM ? "" : " (default — set LEGACY_SYSTEM=xflag-sgs for the 2008-2011 import)"}, season ${season}`);
     await mongoose.connect(process.env.MONGODB_URI);
     const reg = mongoose.connection.db.collection(REGISTRY);
     const entries = await reg.find({ system: SYSTEM, legacySeasonId: season }).toArray();

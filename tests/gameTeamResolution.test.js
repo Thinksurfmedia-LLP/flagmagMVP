@@ -2,6 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
     buildTeamIndex,
+    teamFilterForGames,
     resolveGameSide,
     teamIdToKeep,
     seedNumberFor,
@@ -166,4 +167,25 @@ test("enrichGameTeams flags sides that resolve to a placeholder team, by flag no
     const out = enrichGameTeams(game, index);
     assert.equal(out.teamA.isPlaceholder, true);
     assert.equal(out.teamB.isPlaceholder, false);
+});
+
+test("teamFilterForGames scopes the team query to linked teams, the games' leagues and placeholders", () => {
+    const games = [
+        { league: SD_THU, teamA: { name: "Trojans", teamId: "t-sd" }, teamB: { name: "GOAT" } },
+        { league: SD_THU, teamA: { name: "GOAT", teamId: "t-goat" }, teamB: { name: "Trojans", teamId: "t-sd" } },
+        { league: TEMECULA, teamA: { name: "Trojans", teamId: "t-tem" }, teamB: { name: "TBD" } },
+    ];
+    assert.deepEqual(teamFilterForGames(games, "org-1"), {
+        organization: "org-1",
+        $or: [
+            { isPlaceholder: true },
+            { _id: { $in: ["t-sd", "t-goat", "t-tem"] } },
+            { "leagues.league": { $in: [SD_THU, TEMECULA] } },
+        ],
+    });
+});
+
+test("teamFilterForGames with no linked teams still matches league members and placeholders", () => {
+    const filter = teamFilterForGames([{ league: SD_THU, teamA: { name: "GOAT" }, teamB: { name: "TBD" } }], "org-1");
+    assert.deepEqual(filter.$or, [{ isPlaceholder: true }, { "leagues.league": { $in: [SD_THU] } }]);
 });

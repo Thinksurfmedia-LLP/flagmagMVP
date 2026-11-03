@@ -6,7 +6,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..", "..");
 
 export const REGISTRY = "legacyimports";
-export const SYSTEM = "xflag-legacy";
+// Registry/provenance namespace. The Joomla-era SGS import runs with
+// LEGACY_SYSTEM=xflag-sgs because its ids overlap the Laravel-era ones.
+export const SYSTEM = process.env.LEGACY_SYSTEM || "xflag-legacy";
 
 // Minimal .env parser (same as scripts/backup-db.mjs) — no dotenv dependency.
 export function loadEnv(envPath = path.join(rootDir, ".env")) {

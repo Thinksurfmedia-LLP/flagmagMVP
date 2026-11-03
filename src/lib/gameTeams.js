@@ -1,7 +1,7 @@
 import Team from "@/models/Team";
 import League from "@/models/League";
 import "@/models/Player"; // register schema for populate("players.player")
-import { buildTeamIndex, resolveByLeagueAndName, resolveGameSide, teamIdToKeep, enrichGameTeams } from "@/lib/gameTeamResolution";
+import { buildTeamIndex, teamFilterForGames, resolveByLeagueAndName, resolveGameSide, teamIdToKeep, enrichGameTeams } from "@/lib/gameTeamResolution";
 
 // DB-backed helpers around gameTeamResolution.js — the ONE place game routes
 // go from a Game's teamA/teamB to the Team it refers to (reads), and the one
@@ -11,13 +11,15 @@ import { buildTeamIndex, resolveByLeagueAndName, resolveGameSide, teamIdToKeep, 
 const INDEX_FIELDS = "name logo leagues isPlaceholder";
 
 /**
- * Loads every team in an organization into a resolution index.
+ * Loads the organization's teams that `games` can resolve to into a
+ * resolution index.
+ * @param {Array<object>} games  lean Games, all from `organizationId`
  * @param {string|import("mongoose").Types.ObjectId} organizationId
  * @param {{fullDocs?: boolean}} [options] fullDocs: load whole Team docs
  *   (for callers that expose them as `details`).
  */
-export async function loadTeamIndex(organizationId, { fullDocs = false } = {}) {
-    const query = Team.find({ organization: organizationId });
+export async function loadTeamIndex(games, organizationId, { fullDocs = false } = {}) {
+    const query = Team.find(teamFilterForGames(games, organizationId));
     if (!fullDocs) query.select(INDEX_FIELDS);
     return buildTeamIndex(await query.lean());
 }
@@ -32,7 +34,7 @@ export async function loadTeamIndex(organizationId, { fullDocs = false } = {}) {
  */
 export async function enrichGamesWithTeams(games, organizationId, { isPlayoffs = () => false, withDetails = false } = {}) {
     if (!games.length) return [];
-    const index = await loadTeamIndex(organizationId, { fullDocs: withDetails });
+    const index = await loadTeamIndex(games, organizationId, { fullDocs: withDetails });
     return games.map((game) => enrichGameTeams(game, index, { isPlayoffs: isPlayoffs(game), withDetails }));
 }
 

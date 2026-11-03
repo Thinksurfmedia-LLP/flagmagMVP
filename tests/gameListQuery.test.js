@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { parseGameListQuery, applyGameListQuery, MAX_LIMIT } = require("../src/lib/gameListQuery.js");
+const { parseGameListQuery, applyGameListQuery, gameListFindOptions, MAX_LIMIT } = require("../src/lib/gameListQuery.js");
 
 const params = (q) => new URLSearchParams(q);
 const game = (id, league, status) => ({ _id: id, league, status });
@@ -44,4 +44,15 @@ test("league ids match whether stored as strings or ObjectId-like values", () =>
     const objectIdLike = { toString: () => "L2" };
     const out = applyGameListQuery([game("x", objectIdLike, "completed")], parseGameListQuery(params("")), new Set(["L2"]));
     assert.equal(out.length, 1);
+});
+
+test("gameListFindOptions pushes status, order and limit into the DB query", () => {
+    assert.deepEqual(
+        gameListFindOptions(parseGameListQuery(params("status=completed&season=default&order=desc&limit=20"))),
+        { filter: { status: "completed" }, sort: { date: -1, time: -1 }, limit: 20 }
+    );
+    assert.deepEqual(
+        gameListFindOptions(parseGameListQuery(params("season=default"))),
+        { filter: {}, sort: { date: 1, time: 1 }, limit: null }
+    );
 });

@@ -41,4 +41,19 @@ function applyGameListQuery(games, query, leagueIds) {
     return out;
 }
 
-module.exports = { parseGameListQuery, applyGameListQuery, MAX_LIMIT };
+/**
+ * The same narrowing as applyGameListQuery, expressed as Game.find() parts,
+ * for season slices queried straight from the DB (no full-org cache).
+ * @param {ReturnType<typeof parseGameListQuery>} query
+ * @returns {{ filter: object, sort: object, limit: number|null }}
+ */
+function gameListFindOptions(query) {
+    const dir = query.order === "desc" ? -1 : 1;
+    return {
+        filter: query.status ? { status: query.status } : {},
+        sort: { date: dir, time: dir },
+        limit: query.limit,
+    };
+}
+
+module.exports = { parseGameListQuery, applyGameListQuery, gameListFindOptions, MAX_LIMIT };
