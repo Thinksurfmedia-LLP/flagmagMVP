@@ -24,7 +24,11 @@ export { computePasserRating };
  */
 async function loadImportedRowsByGame(games) {
     const gameById = new Map(games.map((g) => [String(g._id), g]));
-    const lines = await ImportedStatLine.find({ game: { $in: [...gameById.keys()] } }).lean();
+    // Only what importedLinesToStatRows reads — the rest (source, timestamps,
+    // league) is ~30% of each document and this query is bandwidth-bound.
+    const lines = await ImportedStatLine.find({ game: { $in: [...gameById.keys()] } })
+        .select("game player side jerseyNumber passing receiving rushing defensive")
+        .lean();
     if (!lines.length) return {};
 
     // Looked up separately rather than via populate(): a populated ref to a
@@ -54,6 +58,112 @@ async function loadImportedRowsByGame(games) {
         rowsByGame[gid] = importedLinesToStatRows(gameLines);
     }
     return rowsByGame;
+}
+
+const IMPORTED_CATEGORY_FIELDS = {
+    passing: ["atts", "comp", "yards", "tds", "pat", "ints", "sacks", "safety"],
+    receiving: ["receptions", "yards", "tds", "pat"],
+    rushing: ["atts", "yards", "tds", "pat"],
+    defensive: ["dint", "dintTD", "dtd", "dpat", "dsacks", "dsafety", "fumbles", "flagPulls"],
+};
+
+// importedStats.hasCategoryStats, as an aggregation expression.
+const importedCategoryHasStats = (cat) => ({
+    $gt: [{ $add: IMPORTED_CATEGORY_FIELDS[cat].map((f) => ({ $abs: { $ifNull: [`$${cat}.${f}`, 0] } })) }, 0],
+});
+
+/**
+ * A league's imported stat lines summed per player and team inside MongoDB —
+ * the same rows loadImportedRowsByGame + per-game merging would produce, but
+ * one document per player-team instead of one per player per game. Season
+ * stats pull every line of every game, and the Atlas link is bandwidth-bound
+ * (Fall 2010's 4S Poway: 1,100 lines, ~5s), so this is the cold-compute cost.
+ *
+ * Returns, per category, rows keyed like computeSeasonStatsUncached's merge
+ * (`playerId|||teamName`) plus the ids of the games each row has stats in,
+ * so games-played can still be unioned with play-derived games exactly.
+ * @returns {Promise<Record<"passing"|"receiving"|"rushing"|"defensive", Array<{key, row, gameIds: string[]}>>>}
+ */
+async function loadImportedTotals(gameIds) {
+    const gameOrder = new Map(gameIds.map((id, i) => [String(id), i]));
+    const sums = (cat) => Object.fromEntries(
+        IMPORTED_CATEGORY_FIELDS[cat].map((f) => [`${cat}_${f}`, { $sum: { $ifNull: [`$${cat}.${f}`, 0] } }])
+    );
+    // Each game the row has stats in, with the jersey worn there: per-game
+    // merging took a row's jersey from its first game in league game order.
+    const games = (cat) => ({
+        $addToSet: { $cond: [importedCategoryHasStats(cat), { g: "$game", j: "$jerseyNumber" }, "$$REMOVE"] },
+    });
+    const totals = await ImportedStatLine.aggregate([
+        { $match: { game: { $in: gameIds } } },
+        {
+            $lookup: {
+                from: Game.collection.name,
+                localField: "game",
+                foreignField: "_id",
+                as: "g",
+                pipeline: [{ $project: { _id: 0, a: "$teamA.name", b: "$teamB.name", noStatsSide: 1 } }],
+            },
+        },
+        { $unwind: "$g" },
+        // Team name comes from the game's current snapshot via the line's side
+        // (as in loadImportedRowsByGame), and the noStatsSide team's rows are
+        // dropped by that name (as excludeNoStatsSide does).
+        { $addFields: { teamName: { $cond: [{ $eq: ["$side", "A"] }, "$g.a", "$g.b"] } } },
+        {
+            $match: {
+                $expr: {
+                    $not: [{
+                        $and: [
+                            { $in: ["$g.noStatsSide", ["A", "B"]] },
+                            { $eq: ["$teamName", { $cond: [{ $eq: ["$g.noStatsSide", "A"] }, "$g.a", "$g.b"] }] },
+                        ],
+                    }],
+                },
+            },
+        },
+        {
+            $group: {
+                _id: { player: "$player", teamName: "$teamName" },
+                ...sums("passing"), ...sums("receiving"), ...sums("rushing"), ...sums("defensive"),
+                passingGames: games("passing"),
+                receivingGames: games("receiving"),
+                rushingGames: games("rushing"),
+                defensiveGames: games("defensive"),
+            },
+        },
+    ]);
+    if (!totals.length) return { passing: [], receiving: [], rushing: [], defensive: [] };
+
+    // Looked up separately rather than via $lookup for the same reason as in
+    // loadImportedRowsByGame: a since-deleted Player must keep its own id.
+    const playerIds = [...new Set(totals.map((t) => String(t._id.player)))];
+    const players = await Player.find({ _id: { $in: playerIds } }).select("name photo").lean();
+    const playerById = new Map(players.map((p) => [String(p._id), p]));
+
+    const out = { passing: [], receiving: [], rushing: [], defensive: [] };
+    for (const t of totals) {
+        const playerId = String(t._id.player);
+        const player = playerById.get(playerId);
+        const base = {
+            playerId,
+            playerName: player?.name || "Former player",
+            playerPhoto: player?.photo || "",
+            teamName: t._id.teamName || "",
+        };
+        for (const cat of Object.keys(IMPORTED_CATEGORY_FIELDS)) {
+            const played = (t[`${cat}Games`] || [])
+                .map(({ g, j }) => ({ gid: String(g), jersey: j }))
+                .sort((a, b) => gameOrder.get(a.gid) - gameOrder.get(b.gid));
+            if (!played.length) continue;
+            const gameIdsForCat = played.map((p) => p.gid);
+            const firstJersey = played[0].jersey;
+            const row = { ...base, jerseyNumber: firstJersey != null ? String(firstJersey) : "" };
+            for (const f of IMPORTED_CATEGORY_FIELDS[cat]) row[f] = t[`${cat}_${f}`] || 0;
+            out[cat].push({ key: `${playerId}|||${base.teamName}`, row, gameIds: gameIdsForCat });
+        }
+    }
+    return out;
 }
 
 function appendImportedRows(stats, importedRows) {
@@ -693,11 +803,34 @@ export async function computeGameStats(gameId) {
 // revalidate) — blocking on it would time out callers (xFlag's leaderboard)
 // during exactly the live games that keep changing it. Results lag by at
 // most one recompute; the old fixed 10s TTL already accepted similar lag.
+// Computed results are also saved to MongoDB, because the memory cache starts
+// empty after every restart/deploy: a cold league otherwise has to pull all
+// its raw plays / imported stat lines over the Atlas link (Fall 2010's twelve
+// leagues: >20s, past xFlag's timeout), while its computed per-player rows
+// are a fraction of that size. Bump STATS_CACHE_VERSION whenever the shape or
+// meaning of computeSeasonStatsUncached's result changes.
+const STATS_CACHE_COLLECTION = "statscaches";
+const STATS_CACHE_VERSION = 1;
+const statsCachePersist = {
+    async load(key) {
+        const doc = await mongoose.connection.db
+            .collection(STATS_CACHE_COLLECTION)
+            .findOne({ _id: `v${STATS_CACHE_VERSION}:${key}` });
+        return doc && { value: doc.value, fingerprint: doc.fingerprint, savedAt: doc.savedAt };
+    },
+    async save(key, value, fingerprint, savedAt) {
+        await mongoose.connection.db
+            .collection(STATS_CACHE_COLLECTION)
+            .replaceOne({ _id: `v${STATS_CACHE_VERSION}:${key}` }, { value, fingerprint, savedAt }, { upsert: true });
+    },
+};
+
 const seasonStatsCache = createFingerprintCache({
     // Player name/photo edits don't touch the fingerprinted collections, so
     // cap how long a result can live even when nothing else changed.
     maxAgeMs: 5 * 60 * 1000,
     maxEntries: 200,
+    persist: statsCachePersist,
     onBackgroundError: (error, key) => console.error(`[statsAggregation] background refresh failed for ${key}:`, error),
 });
 
@@ -740,20 +873,6 @@ async function computeSeasonStatsUncached(leagueId, orgId) {
     const games = await Game.find(seasonGameFilter(leagueId)).select(GAME_STATS_FIELDS).lean();
     if (!games.length) return { passing: [], receiving: [], rushing: [], defensive: [] };
 
-    // Build roster maps for all unique team pairs
-    const allPlays = await Play.find({ game: { $in: games.map((g) => g._id) } })
-        .select(PLAY_STATS_FIELDS)
-        .sort({ createdAt: 1 })
-        .lean();
-
-    // Group plays by game and aggregate per game, then merge
-    const playsByGame = {};
-    for (const play of allPlays) {
-        const gid = String(play.game);
-        if (!playsByGame[gid]) playsByGame[gid] = [];
-        playsByGame[gid].push(play);
-    }
-
     // Fetch every team roster referenced by this league's games in ONE query,
     // instead of one Team.find().populate() round-trip per game — the same
     // two teams usually play each other multiple times in a season, so the
@@ -763,16 +882,34 @@ async function computeSeasonStatsUncached(leagueId, orgId) {
         teamNames.add(game.teamA.name);
         teamNames.add(game.teamB.name);
     }
-    // Scoped to this league — see buildRosterMap's comment on why a
-    // name-only match is unsafe once two different leagues can have
-    // same-named teams.
-    const teams = await Team.find({
-        organization: orgId,
-        name: { $in: [...teamNames] },
-        "leagues.league": leagueId,
-    })
-        .populate("players.player", "name photo")
-        .lean();
+    const gameIds = games.map((g) => g._id);
+    // Plays, rosters and imported totals only depend on the game list — fetch
+    // them concurrently rather than as three sequential Atlas round trips.
+    const [allPlays, teams, importedTotals] = await Promise.all([
+        Play.find({ game: { $in: gameIds } })
+            .select(PLAY_STATS_FIELDS)
+            .sort({ createdAt: 1 })
+            .lean(),
+        // Scoped to this league — see buildRosterMap's comment on why a
+        // name-only match is unsafe once two different leagues can have
+        // same-named teams.
+        Team.find({
+            organization: orgId,
+            name: { $in: [...teamNames] },
+            "leagues.league": leagueId,
+        })
+            .populate("players.player", "name photo")
+            .lean(),
+        loadImportedTotals(gameIds),
+    ]);
+
+    // Group plays by game and aggregate per game, then merge
+    const playsByGame = {};
+    for (const play of allPlays) {
+        const gid = String(play.game);
+        if (!playsByGame[gid]) playsByGame[gid] = [];
+        playsByGame[gid].push(play);
+    }
 
     const rosterByTeamName = {};
     const playerInfoById = {};
@@ -796,7 +933,6 @@ async function computeSeasonStatsUncached(leagueId, orgId) {
     // a team since these plays were recorded would otherwise vanish from
     // playerInfoById and get misattributed/dropped below.
     await backfillPlayerInfo(playerInfoById, allPlays);
-    const importedRowsByGame = await loadImportedRowsByGame(games);
 
     // Accumulated stats across games
     const mergedPassing = {};
@@ -814,18 +950,14 @@ async function computeSeasonStatsUncached(leagueId, orgId) {
     for (const game of games) {
         const gid = String(game._id);
         const gamePlays = playsByGame[gid] || [];
-        const importedRows = importedRowsByGame[gid];
-        if (gamePlays.length === 0 && !importedRows) continue;
+        if (gamePlays.length === 0) continue;
 
         const rosterMap = {
             A: rosterByTeamName[game.teamA.name] || {},
             B: rosterByTeamName[game.teamB.name] || {},
         };
         const teamNamesByAB = { A: game.teamA.name, B: game.teamB.name };
-        const gameStats = appendImportedRows(
-            aggregateStats(gamePlays, rosterMap, teamNamesByAB, playerInfoById),
-            importedRows
-        );
+        const gameStats = aggregateStats(gamePlays, rosterMap, teamNamesByAB, playerInfoById);
 
         // Helper to merge rows — keyed by playerId|||teamName so each player's
         // stats remain isolated per team (fixes multi-team player aggregation bug).
@@ -852,6 +984,28 @@ async function computeSeasonStatsUncached(leagueId, orgId) {
         mergeRows(mergedRushing, excludeNoStatsSide(gameStats.rushing, game.noStatsSide, teamNamesByAB), ["atts", "yards", "tds", "pat"], rushingGamesByPlayer);
         mergeRows(mergedDefensive, excludeNoStatsSide(gameStats.defensive, game.noStatsSide, teamNamesByAB), ["dint", "dintTD", "dtd", "dpat", "dsacks", "dsafety", "fumbles", "flagPulls"], defensiveGamesByPlayer);
     }
+
+    // Imported lines arrive already summed per player-team (loadImportedTotals)
+    // — fold them in the same way, unioning their game ids into games-played.
+    const mergeTotals = (target, entries, fields, gamesByPlayer) => {
+        for (const { key, row, gameIds: rowGameIds } of entries) {
+            if (!target[key]) {
+                target[key] = { ...row };
+            } else {
+                for (const f of fields) {
+                    target[key][f] = (target[key][f] || 0) + (row[f] || 0);
+                }
+            }
+            if (gamesByPlayer) {
+                if (!gamesByPlayer[key]) gamesByPlayer[key] = new Set();
+                for (const gid of rowGameIds) gamesByPlayer[key].add(gid);
+            }
+        }
+    };
+    mergeTotals(mergedPassing, importedTotals.passing, IMPORTED_CATEGORY_FIELDS.passing);
+    mergeTotals(mergedReceiving, importedTotals.receiving, IMPORTED_CATEGORY_FIELDS.receiving);
+    mergeTotals(mergedRushing, importedTotals.rushing, IMPORTED_CATEGORY_FIELDS.rushing, rushingGamesByPlayer);
+    mergeTotals(mergedDefensive, importedTotals.defensive, IMPORTED_CATEGORY_FIELDS.defensive, defensiveGamesByPlayer);
 
     // Recalculate derived fields
     const passingRows = Object.values(mergedPassing).map((p) => {

@@ -27,7 +27,7 @@ export async function GET(request, { params }) {
         const leagues = await League.find({
             organization: org._id,
             season: { $in: seasonIds },
-        }).select("_id leagueType").lean();
+        }).select("_id leagueType name").lean();
 
         if (leagues.length === 0) return NextResponse.json({ players: [] });
 
@@ -45,7 +45,12 @@ export async function GET(request, { params }) {
             regularSeasonLeagues.map((league) => computeSeasonStats(league._id, org._id))
         );
 
-        for (const stats of perLeagueStats) {
+        // League name(s) each player-team row's stats came from — usually one,
+        // but a team entered in two leagues of the season merges into one row.
+        const leagueNamesById = {};
+
+        perLeagueStats.forEach((stats, leagueIdx) => {
+            const leagueName = regularSeasonLeagues[leagueIdx].name || "";
             const rows = stats[statType] || [];
             for (const row of rows) {
                 // Ad-hoc "<Team> STATS" scrimmage rosters (see isNoStatsTeamName)
@@ -53,6 +58,8 @@ export async function GET(request, { params }) {
                 // cross-league season leaderboard excludes them.
                 if (isNoStatsTeamName(row.teamName)) continue;
                 const id = `${row.playerId}|||${row.teamName}`;
+                if (!leagueNamesById[id]) leagueNamesById[id] = new Set();
+                if (leagueName) leagueNamesById[id].add(leagueName);
                 if (!merged[id]) {
                     merged[id] = { ...row };
                 } else {
@@ -65,10 +72,13 @@ export async function GET(request, { params }) {
                     }
                 }
             }
-        }
+        });
 
         // Recalculate derived fields for passing
-        const rows = Object.values(merged);
+        const rows = Object.entries(merged).map(([id, row]) => ({
+            ...row,
+            leagueName: [...leagueNamesById[id]].join(", "),
+        }));
 
         // No seed number here — this leaderboard is regular-season only, and
         // seeds are a playoffs concept; showing one next to a team's name on

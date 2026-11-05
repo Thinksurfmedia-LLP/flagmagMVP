@@ -121,3 +121,71 @@ test("evicts the least recently refreshed key past maxEntries", async () => {
     assert.equal(computes.a, 2, "a was evicted and recomputed");
     assert.equal(computes.c, 1);
 });
+
+// --- persist: a second-level store that survives process restarts ----------
+
+function memoryStore(initial = {}) {
+    const rows = new Map(Object.entries(initial));
+    return {
+        rows,
+        saves: [],
+        async load(key) { return rows.get(key) || null; },
+        async save(key, value, fingerprint, savedAt) {
+            this.saves.push(key);
+            rows.set(key, { value, fingerprint, savedAt });
+        },
+    };
+}
+
+test("persist: a cold cache answers from the store without computing when the fingerprint matches", async () => {
+    const persist = memoryStore({ k: { value: "saved", fingerprint: "v1", savedAt: 0 } });
+    const { cache } = setup({ persist });
+    let computes = 0;
+    const opts = { fingerprint: async () => "v1", compute: async () => { computes++; return "fresh"; } };
+    assert.equal(await cache.get("k", opts), "saved");
+    assert.equal(computes, 0);
+    assert.equal(await cache.get("k", opts), "saved", "loaded entry is kept in memory");
+});
+
+test("persist: a stored entry with an old fingerprint is served while a recompute runs, then replaced", async () => {
+    const persist = memoryStore({ k: { value: "old", fingerprint: "v1", savedAt: 0 } });
+    const { cache } = setup({ persist });
+    const slow = deferred();
+    const opts = { fingerprint: async () => "v2", compute: () => slow.promise };
+    assert.equal(await cache.get("k", opts), "old", "stale stored value returned without waiting");
+    slow.resolve("new");
+    await tick(); await tick();
+    assert.equal(await cache.get("k", opts), "new");
+    assert.deepEqual(persist.rows.get("k").value, "new", "recomputed value is saved");
+});
+
+test("persist: a stored entry past maxAgeMs is served, then refreshed in the background", async () => {
+    const persist = memoryStore({ k: { value: "aged", fingerprint: "v1", savedAt: 0 } });
+    const { cache, advance } = setup({ persist });
+    advance(5000);
+    let computes = 0;
+    const opts = { fingerprint: async () => "v1", compute: async () => { computes++; return "renewed"; } };
+    assert.equal(await cache.get("k", opts), "aged");
+    await tick(); await tick();
+    assert.equal(computes, 1);
+    assert.equal(await cache.get("k", opts), "renewed");
+});
+
+test("persist: every compute is saved; nothing stored means the caller waits for the compute", async () => {
+    const persist = memoryStore();
+    const { cache } = setup({ persist });
+    assert.equal(await cache.get("k", { fingerprint: async () => "v1", compute: async () => "computed" }), "computed");
+    await tick();
+    assert.deepEqual(persist.rows.get("k"), { value: "computed", fingerprint: "v1", savedAt: 0 });
+});
+
+test("persist: load/save failures fall back to computing and are reported, never thrown", async () => {
+    const persist = {
+        async load() { throw new Error("load down"); },
+        async save() { throw new Error("save down"); },
+    };
+    const { cache, errors } = setup({ persist });
+    assert.equal(await cache.get("k", { fingerprint: async () => "v1", compute: async () => "computed" }), "computed");
+    await tick();
+    assert.deepEqual(errors.map((e) => e.message).sort(), ["load down", "save down"]);
+});

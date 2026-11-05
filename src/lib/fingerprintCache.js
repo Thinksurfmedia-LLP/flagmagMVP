@@ -11,6 +11,12 @@
 // Lives in process memory, so it suits a long-running server (PM2), not
 // serverless. Values are shared between callers — treat them as read-only.
 // Pure CommonJS so it runs under `node --test`.
+//
+// Optional `persist` adds a second level that survives restarts: on a memory
+// miss the stored entry is loaded and treated exactly like a memory entry
+// (fresh → returned; stale → returned while recomputing), and every compute
+// is saved. Persistence is best-effort — its failures go to onBackgroundError
+// and the cache falls back to computing.
 
 /**
  * @param {{
@@ -18,18 +24,42 @@
  *   maxEntries: number,
  *   onBackgroundError?: (error: unknown, key: string) => void,
  *   now?: () => number,
+ *   persist?: {
+ *     load: (key: string) => Promise<{ value: unknown, fingerprint: string, savedAt: number } | null>,
+ *     save: (key: string, value: unknown, fingerprint: string, savedAt: number) => Promise<void>,
+ *   },
  * }} options
  */
-function createFingerprintCache({ maxAgeMs, maxEntries, onBackgroundError = () => {}, now = Date.now }) {
+function createFingerprintCache({ maxAgeMs, maxEntries, onBackgroundError = () => {}, now = Date.now, persist = null }) {
     const entries = new Map(); // key -> { value, fingerprint, createdAt }
     const refreshes = new Map(); // key -> { fingerprint, promise }
     const pending = new Map(); // key -> promise of an in-progress get()
 
-    function store(key, value, fingerprint) {
+    function store(key, value, fingerprint, createdAt = now()) {
         // Re-insert so Map order tracks recency; evict the oldest past the cap.
         entries.delete(key);
-        entries.set(key, { value, fingerprint, createdAt: now() });
+        entries.set(key, { value, fingerprint, createdAt });
         if (entries.size > maxEntries) entries.delete(entries.keys().next().value);
+    }
+
+    async function loadPersisted(key) {
+        if (!persist) return null;
+        try {
+            const saved = await persist.load(key);
+            if (!saved) return null;
+            store(key, saved.value, saved.fingerprint, saved.savedAt);
+            return entries.get(key);
+        } catch (error) {
+            onBackgroundError(error, key);
+            return null;
+        }
+    }
+
+    function savePersisted(key, value, fingerprint) {
+        if (!persist) return;
+        Promise.resolve()
+            .then(() => persist.save(key, value, fingerprint, now()))
+            .catch((error) => onBackgroundError(error, key));
     }
 
     function refresh(key, fingerprint, compute) {
@@ -40,6 +70,7 @@ function createFingerprintCache({ maxAgeMs, maxEntries, onBackgroundError = () =
             .then(compute)
             .then((value) => {
                 store(key, value, fingerprint);
+                savePersisted(key, value, fingerprint);
                 return value;
             })
             .finally(() => {
@@ -50,8 +81,10 @@ function createFingerprintCache({ maxAgeMs, maxEntries, onBackgroundError = () =
     }
 
     async function resolve(key, fingerprintFn, compute) {
-        const fingerprint = await fingerprintFn();
-        const cached = entries.get(key);
+        const [fingerprint, cached] = await Promise.all([
+            fingerprintFn(),
+            entries.get(key) || loadPersisted(key),
+        ]);
         if (cached && cached.fingerprint === fingerprint && now() - cached.createdAt < maxAgeMs) {
             return cached.value;
         }
