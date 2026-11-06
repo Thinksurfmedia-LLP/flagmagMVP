@@ -28,6 +28,56 @@ function computePasserRating(atts, comp, yards, tds, ints, pat) {
     return sum === 0 ? 0 : parseFloat((sum / 0.06).toFixed(1));
 }
 
+/**
+ * PHP round(): half away from zero, after first rounding away float noise to
+ * 15 significant digits (so 51/80*100 = 63.74999999999999 rounds to 63.8,
+ * where JS toFixed gives 63.7).
+ */
+function phpRound(value, decimals) {
+    const scale = 10 ** decimals;
+    const scaled = Number((Math.abs(value) * scale).toPrecision(15));
+    return (Math.sign(value) * Math.round(scaled)) / scale;
+}
+
+/**
+ * QB rating EXACTLY as the old XFlag site displayed it — for stats imported
+ * from it only (seasons through Winter 2026). Live FlagMag games keep using
+ * computePasserRating above. Ported from the old PHP (Laravel
+ * FrontController.php:530-535, Joomla com_xstats totals.php:276-281), which
+ * differs from computePasserRating in three ways:
+ *   - c is exactly 2.375 (not rounded to 2.38) when there are no INTs or attempts
+ *   - e is 0 (not -0.66) when there are no PAT points or no TDs
+ *   - a row with no attempts still rates (2.375 / 0.06 = 39.6)
+ */
+function legacyPasserRating(atts, comp, yards, tds, ints, pat) {
+    const clamp2 = (n) => phpRound(Math.max(0, Math.min(2.375, n)), 2);
+    const a = comp === 0 || atts === 0 ? 0 : clamp2(((comp / atts) * 100 - 30) / 20);
+    const b = tds === 0 || atts === 0 ? 0 : clamp2((tds / atts) * 100 / (20 / 3));
+    const c = ints === 0 || atts === 0 ? 2.375 : clamp2((9.5 - (ints / atts) * 100) / 4);
+    const d = yards === 0 || atts === 0 ? 0 : clamp2(((yards / atts) - 3) / 4);
+    const e = pat === 0 || tds === 0 ? 0 : phpRound((pat / tds) - 0.66, 2);
+    const sum = a + b + c + d + e;
+    return sum === 0 ? 0 : phpRound(sum / 0.06, 1);
+}
+
+/** Completion % as the old XFlag site displayed it (PHP round, 1 decimal). */
+function legacyCompletionPct(comp, atts) {
+    return comp === 0 || atts === 0 ? 0 : phpRound((comp / atts) * 100, 1);
+}
+
+/**
+ * Derived passing columns from summed totals. `legacy` rows (built only from
+ * imported old-site stats) use the old site's formulas; everything else uses
+ * FlagMag's own.
+ */
+function passingDerived({ atts = 0, comp = 0, yards = 0, tds = 0, ints = 0, pat = 0 }, legacy) {
+    return {
+        pct: legacy ? legacyCompletionPct(comp, atts) : atts > 0 ? parseFloat(((comp / atts) * 100).toFixed(1)) : 0,
+        ypc: comp > 0 ? parseFloat((yards / comp).toFixed(1)) : 0,
+        rate: legacy ? legacyPasserRating(atts, comp, yards, tds, ints, pat) : computePasserRating(atts, comp, yards, tds, ints, pat),
+    };
+}
+
 const num = (v) => {
     const n = Number(v);
     return Number.isFinite(n) ? n : 0;
@@ -104,6 +154,9 @@ function importedLinesToStatRows(lines) {
             playerPhoto: line.playerPhoto || "",
             jerseyNumber: line.jerseyNumber != null ? String(line.jerseyNumber) : "",
             teamName: line.teamName || "",
+            // Marks rows that came from the old site, so derived columns use
+            // its formulas (see passingDerived) — also after merging.
+            legacy: true,
         };
 
         const p = line.passing;
@@ -115,9 +168,7 @@ function importedLinesToStatRows(lines) {
                 atts, comp, yards, tds, pat, ints,
                 sacks: num(p.sacks),
                 safety: num(p.safety),
-                pct: atts > 0 ? parseFloat(((comp / atts) * 100).toFixed(1)) : 0,
-                ypc: oneDecimal(yards, comp),
-                rate: computePasserRating(atts, comp, yards, tds, ints, pat),
+                ...passingDerived({ atts, comp, yards, tds, ints, pat }, true),
             });
         }
 
@@ -166,6 +217,9 @@ function importedLinesToStatRows(lines) {
 
 module.exports = {
     computePasserRating,
+    legacyPasserRating,
+    legacyCompletionPct,
+    passingDerived,
     legacyStatsToCategories,
     hasCategoryStats,
     importedLinesToStatRows,

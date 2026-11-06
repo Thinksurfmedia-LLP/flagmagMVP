@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Organization from "@/models/Organization";
 import League from "@/models/League";
-import { computeSeasonStats, isNoStatsTeamName, computePasserRating } from "@/lib/statsAggregation";
+import { computeSeasonStats, isNoStatsTeamName } from "@/lib/statsAggregation";
+import { passingDerived } from "@/lib/importedStats";
 
 /**
  * GET /api/organizations/[slug]/seasons/leaderboard?seasons=id1,id2&statType=passing
@@ -70,6 +71,7 @@ export async function GET(request, { params }) {
                             merged[id][key] = (merged[id][key] || 0) + row[key];
                         }
                     }
+                    merged[id].legacy = Boolean(merged[id].legacy && row.legacy);
                 }
             }
         });
@@ -85,17 +87,8 @@ export async function GET(request, { params }) {
         // a regular-season table implies playoff stats fed the row, which
         // they don't. (Per-league pages that do include playoffs still show it.)
         if (statType === "passing") {
-            for (const p of rows) {
-                const atts = p.atts || 0;
-                const comp = p.comp || 0;
-                const yards = p.yards || 0;
-                const tds = p.tds || 0;
-                const ints = p.ints || 0;
-                const pat = p.pat || 0;
-                p.pct = atts > 0 ? parseFloat(((comp / atts) * 100).toFixed(1)) : 0;
-                p.ypc = comp > 0 ? parseFloat((yards / comp).toFixed(1)) : 0;
-                p.rate = computePasserRating(atts, comp, yards, tds, ints, pat);
-            }
+            // Old-site (imported) rows keep the old site's % and rating formulas.
+            for (const p of rows) Object.assign(p, passingDerived(p, p.legacy === true));
         } else if (statType === "receiving") {
             for (const r of rows) {
                 r.ypr = r.receptions > 0 ? parseFloat((r.yards / r.receptions).toFixed(1)) : 0;

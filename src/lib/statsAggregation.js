@@ -7,7 +7,7 @@ import Player from "@/models/Player";
 import ImportedStatLine from "@/models/ImportedStatLine";
 import { isNoStatsTeamName } from "@/lib/noStatsTeams";
 import { findGameTeamsWithPlayers } from "@/lib/gameTeams";
-import { computePasserRating, importedLinesToStatRows } from "@/lib/importedStats";
+import { computePasserRating, importedLinesToStatRows, passingDerived } from "@/lib/importedStats";
 import { createFingerprintCache } from "@/lib/fingerprintCache";
 import { fingerprintOf } from "@/lib/dataFingerprint";
 
@@ -150,6 +150,7 @@ async function loadImportedTotals(gameIds) {
             playerName: player?.name || "Former player",
             playerPhoto: player?.photo || "",
             teamName: t._id.teamName || "",
+            legacy: true, // old-site stats: derived columns use its formulas
         };
         for (const cat of Object.keys(IMPORTED_CATEGORY_FIELDS)) {
             const played = (t[`${cat}Games`] || [])
@@ -810,7 +811,9 @@ export async function computeGameStats(gameId) {
 // are a fraction of that size. Bump STATS_CACHE_VERSION whenever the shape or
 // meaning of computeSeasonStatsUncached's result changes.
 const STATS_CACHE_COLLECTION = "statscaches";
-const STATS_CACHE_VERSION = 1;
+// v2: imported (old-site) passing rows carry `legacy` and use the old site's
+// % and QB rating formulas.
+const STATS_CACHE_VERSION = 2;
 const statsCachePersist = {
     async load(key) {
         const doc = await mongoose.connection.db
@@ -995,6 +998,8 @@ async function computeSeasonStatsUncached(leagueId, orgId) {
                 for (const f of fields) {
                     target[key][f] = (target[key][f] || 0) + (row[f] || 0);
                 }
+                // Mixed with live-play stats: FlagMag's own formulas apply.
+                target[key].legacy = Boolean(target[key].legacy && row.legacy);
             }
             if (gamesByPlayer) {
                 if (!gamesByPlayer[key]) gamesByPlayer[key] = new Set();
@@ -1008,24 +1013,11 @@ async function computeSeasonStatsUncached(leagueId, orgId) {
     mergeTotals(mergedDefensive, importedTotals.defensive, IMPORTED_CATEGORY_FIELDS.defensive, defensiveGamesByPlayer);
 
     // Recalculate derived fields
-    const passingRows = Object.values(mergedPassing).map((p) => {
-        const atts = p.atts || 0;
-        const comp = p.comp || 0;
-        const yards = p.yards || 0;
-        const tds = p.tds || 0;
-        const ints = p.ints || 0;
-        const pat = p.pat || 0;
-
-        const pct = atts > 0 ? ((comp / atts) * 100).toFixed(1) : "0.0";
-        const ypc = comp > 0 ? (yards / comp).toFixed(1) : "0.0";
-
-        return {
-            ...p,
-            pct: parseFloat(pct),
-            ypc: parseFloat(ypc),
-            rate: computePasserRating(atts, comp, yards, tds, ints, pat),
-        };
-    });
+    // Legacy (old-site-only) rows use the old site's % and rating formulas.
+    const passingRows = Object.values(mergedPassing).map((p) => ({
+        ...p,
+        ...passingDerived(p, p.legacy === true),
+    }));
 
     const receivingRows = Object.values(mergedReceiving).map((r) => {
         const ypr = r.receptions > 0 ? (r.yards / r.receptions).toFixed(1) : "0.0";
@@ -1083,20 +1075,7 @@ const RAW_FIELDS = {
 
 function recalcDerivedFields(p, statType) {
     if (statType === "passing") {
-        const atts = p.atts || 0;
-        const comp = p.comp || 0;
-        const yards = p.yards || 0;
-        const tds = p.tds || 0;
-        const ints = p.ints || 0;
-        const pat = p.pat || 0;
-        const pct = atts > 0 ? ((comp / atts) * 100).toFixed(1) : "0.0";
-        const ypc = comp > 0 ? (yards / comp).toFixed(1) : "0.0";
-        return {
-            ...p,
-            pct: parseFloat(pct),
-            ypc: parseFloat(ypc),
-            rate: computePasserRating(atts, comp, yards, tds, ints, pat),
-        };
+        return { ...p, ...passingDerived(p, p.legacy === true) };
     }
     if (statType === "receiving") {
         const ypr = (p.receptions || 0) > 0 ? (p.yards / p.receptions).toFixed(1) : "0.0";
@@ -1139,6 +1118,7 @@ export function mergeStatRowsByPlayer(rows, statType) {
             for (const f of rawFields) {
                 merged[row.playerId][f] = (merged[row.playerId][f] || 0) + (row[f] || 0);
             }
+            merged[row.playerId].legacy = Boolean(merged[row.playerId].legacy && row.legacy);
         }
     }
 
