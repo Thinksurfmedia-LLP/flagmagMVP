@@ -139,6 +139,18 @@ export async function GET(request) {
             await ensurePlaceholderTeams(filter.organization);
         }
 
+        // `?fields=basic` — lightweight id/name list for pickers (e.g. the
+        // league "Manage Teams" modal). Large orgs have 1,800+ teams, and the
+        // fully populated payload below is several MB, which was timing out
+        // on mobile and leaving the picker silently empty.
+        if (searchParams.get("fields") === "basic") {
+            const basicTeams = await Team.find(filter)
+                .select("name logo isPlaceholder")
+                .sort({ name: 1 })
+                .lean();
+            return NextResponse.json({ success: true, data: basicTeams });
+        }
+
         const teams = await Team.find(filter)
             .populate("organization", "name slug")
             .populate({ path: "leagues.league", select: "name season locations type", populate: { path: "season", select: "name" } })

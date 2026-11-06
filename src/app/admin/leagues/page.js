@@ -583,10 +583,12 @@ function LeagueTeamsModal({ league, onClose }) {
         try {
             const [assignedRes, teamsRes] = await Promise.all([
                 fetch(`/api/leagues/${league._id}/teams`).then((r) => r.json()),
-                fetch(`/api/teams?organization=${orgId}`).then((r) => r.json()),
+                fetch(`/api/teams?organization=${orgId}&fields=basic`).then((r) => r.json()),
             ]);
             if (assignedRes.success) setAssigned(assignedRes.data);
+            else showError(assignedRes.error || "Failed to load assigned teams");
             if (teamsRes.success) setOrgTeams(teamsRes.data.filter((t) => !t.isPlaceholder));
+            else showError(teamsRes.error || "Failed to load organization teams");
         } catch {
             showError("Failed to load teams");
         } finally {
