@@ -31,6 +31,28 @@ export async function GET(request, { params }) {
             },
         });
     } catch {
+        // Dev convenience: a local server pointed at the live database lists
+        // uploads that only exist on the production server's disk. When
+        // UPLOADS_FALLBACK_URL is set (never in production), send the browser
+        // there instead of 404-ing. `safe` is a bare basename, so the redirect
+        // can only ever land under that origin's /api/uploads/.
+        const fallbackOrigin = getFallbackOrigin();
+        if (fallbackOrigin) {
+            return NextResponse.redirect(`${fallbackOrigin}/api/uploads/${encodeURIComponent(safe)}`, 302);
+        }
         return NextResponse.json({ success: false, error: "File not found" }, { status: 404 });
+    }
+}
+
+/** Origin of UPLOADS_FALLBACK_URL, or null when unset, invalid, or not http(s). */
+function getFallbackOrigin() {
+    const raw = process.env.UPLOADS_FALLBACK_URL;
+    if (!raw) return null;
+    try {
+        const url = new URL(raw);
+        if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+        return url.origin;
+    } catch {
+        return null;
     }
 }
