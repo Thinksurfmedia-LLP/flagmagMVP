@@ -41,12 +41,6 @@ function formatCountdown(ms) {
 
 const MIN_PLAYERS_TO_START = 4;
 
-// Players not deactivated for this team (Team.players[].active) — the same
-// set the statistician's roster offers.
-function activePlayerCount(team) {
-    return (team?.players || []).filter((p) => p?.active !== false).length;
-}
-
 function isPlaceholderTeamName(name) {
     if (!name || !String(name).trim()) return true;
     const n = String(name).trim().toLowerCase();
@@ -97,7 +91,11 @@ export default function MatchCard({ game, onStart, onGamesChanged }) {
         setLoadingTeams(true);
         setStartError("");
         try {
-            const res = await apiGet("/api/teams");
+            // Only this game's league (+ org placeholders, filtered out
+            // below), slim fields — loading every team in the org took
+            // ~30s+ and timed out on phones, leaving the pickers empty.
+            const params = new URLSearchParams({ league: String(game.league || ""), fields: "basic" });
+            const res = await apiGet(`/api/teams?${params}`);
             const teams = Array.isArray(res.data) ? res.data : [];
             const realTeams = teams.filter((t) => !t.isPlaceholder && !isPlaceholderTeamName(t?.name));
             const leagueTeams = game.league
@@ -163,6 +161,7 @@ export default function MatchCard({ game, onStart, onGamesChanged }) {
 
                 if (editA) {
                     payload.teamA = {
+                        teamId: teamA._id,
                         name: teamA.name,
                         logo: teamA.logo || "",
                         score: game.teamA?.score ?? 0,
@@ -170,6 +169,7 @@ export default function MatchCard({ game, onStart, onGamesChanged }) {
                 }
                 if (editB) {
                     payload.teamB = {
+                        teamId: teamB._id,
                         name: teamB.name,
                         logo: teamB.logo || "",
                         score: game.teamB?.score ?? 0,
@@ -178,30 +178,21 @@ export default function MatchCard({ game, onStart, onGamesChanged }) {
             }
 
             // Both teams need a minimum roster before a game can be started.
-            // With placeholder teams being reassigned, check the freshly
-            // selected teams' own player lists (already loaded in allTeams)
-            // instead of the game's roster, which still reflects the old
-            // placeholder matchup at this point.
-            let countA, countB, nameA, nameB;
-            if (needsTeamEdit) {
-                const teamA = allTeams.find((t) => String(t._id) === teamASelection);
-                const teamB = allTeams.find((t) => String(t._id) === teamBSelection);
-                countA = activePlayerCount(teamA);
-                countB = activePlayerCount(teamB);
-                nameA = teamA?.name;
-                nameB = teamB?.name;
-            } else {
+            // When a placeholder is being replaced, the game's roster still
+            // reflects the placeholder (no players), so the server checks
+            // the chosen teams' rosters on start and its error is shown.
+            if (!needsTeamEdit) {
                 const rosterRes = await apiGet(`/api/games/${game._id}/roster`);
-                countA = (rosterRes.data?.teamA || []).length;
-                countB = (rosterRes.data?.teamB || []).length;
-                nameA = game.teamA?.name;
-                nameB = game.teamB?.name;
-            }
-            const shortTeams = [nameA && countA < MIN_PLAYERS_TO_START ? nameA : null, nameB && countB < MIN_PLAYERS_TO_START ? nameB : null].filter(Boolean);
-            if (shortTeams.length > 0) {
-                setStartError(`${shortTeams.join(" and ")} ${shortTeams.length > 1 ? "need" : "needs"} at least ${MIN_PLAYERS_TO_START} players before starting.`);
-                setStarting(false);
-                return;
+                const countA = (rosterRes.data?.teamA || []).length;
+                const countB = (rosterRes.data?.teamB || []).length;
+                const nameA = game.teamA?.name;
+                const nameB = game.teamB?.name;
+                const shortTeams = [nameA && countA < MIN_PLAYERS_TO_START ? nameA : null, nameB && countB < MIN_PLAYERS_TO_START ? nameB : null].filter(Boolean);
+                if (shortTeams.length > 0) {
+                    setStartError(`${shortTeams.join(" and ")} ${shortTeams.length > 1 ? "need" : "needs"} at least ${MIN_PLAYERS_TO_START} players before starting.`);
+                    setStarting(false);
+                    return;
+                }
             }
 
             await apiPut(`/api/games/${game._id}`, payload);

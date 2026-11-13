@@ -68,7 +68,7 @@ function ImageUploadField({ value, onChange, placeholder, onError }) {
     );
 }
 
-function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, effectiveRole, onClose, onSave }) {
+function TeamModal({ team, organizations, seasons, leagues, user, effectiveRole, onClose, onSave }) {
     const { showError, showSuccess } = useToast();
     const [removedMembershipIds, setRemovedMembershipIds] = useState(new Set());
     const [removingMembershipId, setRemovingMembershipId] = useState(null);
@@ -390,11 +390,21 @@ function TeamModal({ team, freeAgents, organizations, seasons, leagues, user, ef
     );
 }
 
-function TeamPlayersModal({ team, allPlayers, playersStatus = "loaded", onRetryPlayers, allTeams, onClose, onSave }) {
+// The picker searches the server instead of loading the org's whole player
+// list — XFlagFootball has ~55k players, which took over a minute to pull.
+const PICKER_PAGE_SIZE = 50;
+const PICKER_DEBOUNCE_MS = 250;
+const PICKER_TIMEOUT_MS = 20000;
+
+function TeamPlayersModal({ team, allTeams, onClose, onSave }) {
     const { showSuccess, showError } = useToast();
     const [pickerOpen, setPickerOpen] = useState(false);
     const [pickerPos, setPickerPos] = useState(null); // { left, width, top?, bottom? }
     const [pickerSearch, setPickerSearch] = useState("");
+    const [pickerResults, setPickerResults] = useState([]);
+    const [pickerHasMore, setPickerHasMore] = useState(false);
+    const [pickerStatus, setPickerStatus] = useState("idle"); // idle | loading | loaded | error
+    const [pickerRetry, setPickerRetry] = useState(0);
     const pickerRef = React.useRef(null);
     const pickerTriggerRef = React.useRef(null);
     const pickerSearchRef = React.useRef(null);
@@ -444,7 +454,10 @@ function TeamPlayersModal({ team, allPlayers, playersStatus = "loaded", onRetryP
     // __v of the team `roster` was built from — sent as expectedVersion so
     // the server rejects a save based on a roster someone else has changed.
     const [version, setVersion] = useState(team.__v);
-    const [selectedPlayerId, setSelectedPlayerId] = useState("");
+    // The whole picked player, not just its id — search results get replaced
+    // as the organizer keeps typing, so the pick can't be looked up later.
+    const [selectedPlayer, setSelectedPlayer] = useState(null);
+    const selectedPlayerId = selectedPlayer ? String(selectedPlayer._id) : "";
     const [newJersey, setNewJersey] = useState("");
     const [saving, setSaving] = useState(false);
     const [editingId, setEditingId] = useState(null);
@@ -468,13 +481,37 @@ function TeamPlayersModal({ team, allPlayers, playersStatus = "loaded", onRetryP
     const orgId = String(team.organization?._id || team.organization || "");
     const rosterIds = new Set(roster.map((r) => r.playerId));
 
-    // Only players in this team's own org, not already on this team's roster.
-    const availableToAdd = (allPlayers || []).filter(
-        (p) => !rosterIds.has(String(p._id)) && (!orgId || String(p.organization?._id || p.organization || "") === orgId)
-    );
-    const searchedAvailable = pickerSearch.trim()
-        ? availableToAdd.filter((p) => p.name?.toLowerCase().includes(pickerSearch.trim().toLowerCase()))
-        : availableToAdd;
+    // Search this team's org on the server while the picker is open
+    // (debounced; a newer keystroke aborts the older request).
+    useEffect(() => {
+        if (!pickerOpen) return undefined;
+        const controller = new AbortController();
+        let timedOut = false;
+        const timeoutId = setTimeout(() => { timedOut = true; controller.abort(); }, PICKER_TIMEOUT_MS);
+        const debounceId = setTimeout(async () => {
+            setPickerStatus("loading");
+            const params = new URLSearchParams({ view: "picker", limit: String(PICKER_PAGE_SIZE) });
+            if (orgId) params.set("organization", orgId);
+            if (pickerSearch.trim()) params.set("search", pickerSearch.trim());
+            try {
+                const res = await fetch(`/api/players?${params}`, { signal: controller.signal });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || "Failed to load players");
+                setPickerResults(data.data || []);
+                setPickerHasMore(Boolean(data.hasMore));
+                setPickerStatus("loaded");
+            } catch (err) {
+                if (err?.name === "AbortError" && !timedOut) return; // superseded
+                setPickerStatus("error");
+            } finally {
+                clearTimeout(timeoutId);
+            }
+        }, PICKER_DEBOUNCE_MS);
+        return () => { clearTimeout(debounceId); clearTimeout(timeoutId); controller.abort(); };
+    }, [pickerOpen, pickerSearch, orgId, pickerRetry]);
+
+    // Matches not already on this team's roster.
+    const searchedAvailable = pickerResults.filter((p) => !rosterIds.has(String(p._id)));
 
     // A player can be rostered on several teams at once — surface every OTHER
     // team (name + jersey #) they're already on next to their name in the
@@ -570,9 +607,9 @@ function TeamPlayersModal({ team, allPlayers, playersStatus = "loaded", onRetryP
     };
 
     const handleAssign = async () => {
-        if (!selectedPlayerId || !newJersey.trim()) return;
-        const player = availableToAdd.find((p) => String(p._id) === selectedPlayerId);
-        if (!player) return;
+        const player = selectedPlayer;
+        if (!player || !newJersey.trim()) return;
+        if (rosterIds.has(selectedPlayerId)) { showError(`${player.name} is already on this roster`); return; }
         const parsed = parseJerseyNumber(newJersey);
         if (!parsed.ok) { showError(parsed.error); return; }
         const takenError = checkTaken(parsed.value, [selectedPlayerId]);
@@ -583,7 +620,7 @@ function TeamPlayersModal({ team, allPlayers, playersStatus = "loaded", onRetryP
             [...roster, { playerId: String(player._id), playerName: player.name, playerPhoto: player.photo || "", jerseyNumber: newJersey.trim(), active: true }],
             `${player.name} added to the roster!`
         );
-        if (ok) { setSelectedPlayerId(""); setNewJersey(""); }
+        if (ok) { setSelectedPlayer(null); setNewJersey(""); }
     };
 
     const startEdit = (entry) => {
@@ -810,19 +847,6 @@ function TeamPlayersModal({ team, allPlayers, playersStatus = "loaded", onRetryP
 
                 <div className="admin-form-group">
                     <label className="admin-form-label">Assign an Existing Player</label>
-                    {playersStatus === "error" && availableToAdd.length === 0 && (
-                        <div role="alert" style={{ fontSize: 12, color: "#dc2626", marginBottom: 6 }}>
-                            <i className="fa-solid fa-circle-exclamation" style={{ marginRight: 4 }}></i>
-                            Couldn&apos;t load the player list.{" "}
-                            <button
-                                type="button"
-                                onClick={onRetryPlayers}
-                                style={{ background: "none", border: "none", padding: 0, color: "#FF1E00", fontWeight: 600, cursor: "pointer", textDecoration: "underline", fontSize: 12 }}
-                            >
-                                Try again
-                            </button>
-                        </div>
-                    )}
                     <div style={{ display: "flex", gap: 8 }}>
                         <div ref={pickerRef} style={{ position: "relative", flex: 1 }}>
                             <div
@@ -830,23 +854,17 @@ function TeamPlayersModal({ team, allPlayers, playersStatus = "loaded", onRetryP
                                 className="admin-form-select"
                                 style={{
                                     display: "flex", alignItems: "center", justifyContent: "space-between",
-                                    cursor: availableToAdd.length === 0 ? "not-allowed" : "pointer",
+                                    cursor: "pointer",
                                     userSelect: "none",
                                 }}
-                                onClick={() => availableToAdd.length > 0 && togglePicker()}
+                                onClick={togglePicker}
                             >
-                                <span style={{ color: selectedPlayerId ? "#1a1d26" : "#8b90a0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                    {playersStatus === "loading" && availableToAdd.length === 0 ? (
-                                        <><i className="fa-solid fa-spinner fa-spin" style={{ marginRight: 6 }}></i>Loading players...</>
-                                    ) : playersStatus === "error" && availableToAdd.length === 0 ? (
-                                        "Couldn't load players"
-                                    ) : availableToAdd.length === 0
-                                        ? "No other players in this organization"
-                                        : availableToAdd.find((p) => String(p._id) === selectedPlayerId)?.name || "Select a player..."}
+                                <span style={{ color: selectedPlayer ? "#1a1d26" : "#8b90a0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                    {selectedPlayer?.name || "Search for a player..."}
                                 </span>
                                 <i className={`fa-solid fa-chevron-${pickerOpen ? "up" : "down"}`} style={{ fontSize: 11, color: "#8b90a0", flexShrink: 0, marginLeft: 8 }}></i>
                             </div>
-                            {pickerOpen && availableToAdd.length > 0 && pickerPos && typeof document !== "undefined" && createPortal(
+                            {pickerOpen && pickerPos && typeof document !== "undefined" && createPortal(
                                 <div
                                     ref={pickerDropdownRef}
                                     style={{
@@ -864,24 +882,42 @@ function TeamPlayersModal({ team, allPlayers, playersStatus = "loaded", onRetryP
                                         value={pickerSearch}
                                         onChange={(e) => setPickerSearch(e.target.value)}
                                         onClick={(e) => e.stopPropagation()}
-                                        placeholder="Search players..."
+                                        placeholder="Type a player's name..."
                                         style={{
                                             border: "none", borderBottom: "1px solid #e8eaef", padding: "10px 12px",
-                                            fontSize: 13, outline: "none", flexShrink: 0,
+                                            fontSize: 16, outline: "none", flexShrink: 0,
                                         }}
                                     />
                                     <div style={{ overflowY: "auto" }}>
-                                    {searchedAvailable.length === 0 && (
-                                        <div style={{ padding: "12px 10px", fontSize: 13, color: "#8b90a0", fontStyle: "italic" }}>
-                                            No players match &quot;{pickerSearch}&quot;
+                                    {pickerStatus === "loading" && (
+                                        <div style={{ padding: "12px 10px", fontSize: 13, color: "#8b90a0" }}>
+                                            <i className="fa-solid fa-spinner fa-spin" style={{ marginRight: 6 }}></i>Searching...
                                         </div>
                                     )}
-                                    {searchedAvailable.map((p) => {
+                                    {pickerStatus === "error" && (
+                                        <div role="alert" style={{ padding: "12px 10px", fontSize: 13, color: "#dc2626" }}>
+                                            <i className="fa-solid fa-circle-exclamation" style={{ marginRight: 4 }}></i>
+                                            Couldn&apos;t search players.{" "}
+                                            <button
+                                                type="button"
+                                                onClick={() => setPickerRetry((n) => n + 1)}
+                                                style={{ background: "none", border: "none", padding: 0, color: "#FF1E00", fontWeight: 600, cursor: "pointer", textDecoration: "underline", fontSize: 13 }}
+                                            >
+                                                Try again
+                                            </button>
+                                        </div>
+                                    )}
+                                    {pickerStatus === "loaded" && searchedAvailable.length === 0 && (
+                                        <div style={{ padding: "12px 10px", fontSize: 13, color: "#8b90a0", fontStyle: "italic" }}>
+                                            {pickerSearch.trim() ? <>No players match &quot;{pickerSearch}&quot;</> : "No other players in this organization"}
+                                        </div>
+                                    )}
+                                    {pickerStatus === "loaded" && searchedAvailable.map((p) => {
                                         const otherTeams = otherTeamsByPlayerId[String(p._id)] || [];
                                         return (
                                             <div
                                                 key={p._id}
-                                                onClick={() => { setSelectedPlayerId(String(p._id)); setPickerOpen(false); }}
+                                                onClick={() => { setSelectedPlayer(p); setPickerOpen(false); }}
                                                 style={{
                                                     display: "flex", alignItems: "center", flexWrap: "wrap", gap: 6, padding: "8px 10px",
                                                     fontSize: 13, color: "#1a1d26", cursor: "pointer", borderBottom: "1px solid #f1f2f5",
@@ -905,6 +941,11 @@ function TeamPlayersModal({ team, allPlayers, playersStatus = "loaded", onRetryP
                                             </div>
                                         );
                                     })}
+                                    {pickerStatus === "loaded" && pickerHasMore && (
+                                        <div style={{ padding: "10px", fontSize: 12, color: "#8b90a0", textAlign: "center" }}>
+                                            Showing the first {PICKER_PAGE_SIZE} — type more of the name to narrow it down.
+                                        </div>
+                                    )}
                                     </div>
                                 </div>,
                                 document.body
@@ -1175,10 +1216,6 @@ export default function AdminTeamsPage() {
     const { showSuccess, showError } = useToast();
 
     const [teams, setTeams] = useState([]);
-    const [freeAgents, setFreeAgents] = useState([]);
-    // "loading" | "loaded" | "error" — the Players modal's picker needs to
-    // tell "still loading" / "failed" apart from "genuinely no one to add".
-    const [playersStatus, setPlayersStatus] = useState("loading");
     const [organizations, setOrganizations] = useState([]);
     const [seasons, setSeasons] = useState([]);
     const [leagues, setLeagues] = useState([]);
@@ -1219,21 +1256,6 @@ export default function AdminTeamsPage() {
     const canUpdate = hasAnyAccess(user, ["manage_teams", "team_update"]);
     const canDelete = hasAnyAccess(user, ["manage_teams", "team_delete"]);
 
-    // Only the "Assign an Existing Player" picker uses this list, so it asks
-    // for the slim picker view (see GET /api/players).
-    const loadPlayers = useCallback(() => {
-        // A refetch after a save keeps showing the current list meanwhile.
-        setPlayersStatus((prev) => (prev === "loaded" ? prev : "loading"));
-        fetch("/api/players?view=picker")
-            .then(res => res.json())
-            .then(data => {
-                if (!data.success) throw new Error(data.error);
-                setFreeAgents(data.data || []);
-                setPlayersStatus("loaded");
-            })
-            .catch(() => setPlayersStatus("error"));
-    }, []);
-
     const fetchData = useCallback(() => {
         if (!canView) {
             setLoading(false);
@@ -1252,9 +1274,9 @@ export default function AdminTeamsPage() {
             .catch(() => showError("Failed to load teams"))
             .finally(() => setLoading(false));
 
-        // 2) Fetch secondary data (players, organizations, seasons, leagues) in the background
-        loadPlayers();
-
+        // 2) Fetch secondary data (organizations, seasons, leagues) in the
+        // background. Players aren't preloaded — the Manage Players picker
+        // searches the server on demand.
         fetch("/api/seasons")
             .then(res => res.json())
             .then(data => { if (data.success) setSeasons(data.data || []); })
@@ -1273,7 +1295,7 @@ export default function AdminTeamsPage() {
                 })
                 .catch(() => {});
         }
-    }, [canView, showError, effectiveRole, loadPlayers]);
+    }, [canView, showError, effectiveRole]);
 
     useEffect(() => {
         fetchData();
@@ -1680,7 +1702,6 @@ export default function AdminTeamsPage() {
                     {modalOpen && (
                         <TeamModal
                             team={editTarget}
-                            freeAgents={freeAgents}
                             organizations={organizations}
                             seasons={seasons}
                             leagues={leagues}
@@ -1701,9 +1722,6 @@ export default function AdminTeamsPage() {
                     {playersTarget && (
                         <TeamPlayersModal
                             team={playersTarget}
-                            allPlayers={freeAgents}
-                            playersStatus={playersStatus}
-                            onRetryPlayers={loadPlayers}
                             allTeams={teams}
                             onClose={() => setPlayersTarget(null)}
                             onSave={fetchData}

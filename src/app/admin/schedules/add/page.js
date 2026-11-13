@@ -7,6 +7,8 @@ import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 import SearchableSelect from "@/components/SearchableSelect";
 import RestrictedDatePicker from "@/components/RestrictedDatePicker";
+import LeagueTeamsNotice from "@/components/LeagueTeamsNotice";
+import { useLeagueTeams } from "@/lib/useLeagueTeams";
 
 
 export default function AddSchedulePage() {
@@ -17,10 +19,10 @@ export default function AddSchedulePage() {
     const [seasons, setSeasons] = useState([]);
     const [leagues, setLeagues] = useState([]);
     const [locations, setLocations] = useState([]);
-    const [teams, setTeams] = useState([]);
 
     const [seasonId, setSeasonId] = useState("");
     const [leagueId, setLeagueId] = useState("");
+    const { teams, status: teamsStatus, retry: retryTeams } = useLeagueTeams(leagueId);
     const [locationId, setLocationId] = useState("");
     const [status, setStatus] = useState("Active");
 
@@ -74,8 +76,7 @@ export default function AddSchedulePage() {
             fetch("/api/seasons").then(r => r.json()),
             fetch("/api/leagues").then(r => r.json()),
             fetch("/api/locations").then(r => r.json()),
-            fetch("/api/teams").then(r => r.json())
-        ]).then(([seasonsData, leaguesData, locationsData, teamsData]) => {
+        ]).then(([seasonsData, leaguesData, locationsData]) => {
             if (seasonsData.success) {
                 setSeasons(seasonsData.data);
                 const defaultSeason = seasonsData.data.find(s => s.isDefault) || seasonsData.data[0];
@@ -83,7 +84,6 @@ export default function AddSchedulePage() {
             }
             if (leaguesData.success) setLeagues(leaguesData.data);
             if (locationsData.success) setLocations(locationsData.data);
-            if (teamsData.success) setTeams(teamsData.data);
         }).catch(() => {
             showError("Failed to load necessary data");
         });
@@ -402,6 +402,7 @@ export default function AddSchedulePage() {
                                 <option key={l._id} value={l._id}>{l.name}</option>
                             ))}
                         </select>
+                        <LeagueTeamsNotice status={teamsStatus} onRetry={retryTeams} />
                     </div>
                     
                     <div className="admin-form-group" style={{ marginBottom: 0 }}>

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import mongoose from "mongoose";
 import dbConnect from "@/lib/dbConnect";
 import Player from "@/models/Player";
 import Team from "@/models/Team";
@@ -11,9 +12,18 @@ import { containsRegex } from "@/lib/searchRegex";
 const RECONCILE_INTERVAL_MS = 5 * 60 * 1000;
 
 // ?view=picker — just what the Teams page "Assign an Existing Player" picker
-// reads. The full documents (stats arrays etc.) for an org of ~3.4k players
-// are ~2.6MB and took ~30s to pull over the Atlas link.
+// reads, as a search: one page of name matches, never the whole org. After
+// the legacy imports XFlagFootball alone has ~55k players; pulling them all
+// (even slimmed to these fields) took ~67s and tripped the proxy timeout.
 const PICKER_FIELDS = "name organization status";
+const PICKER_DEFAULT_LIMIT = 50;
+const PICKER_MAX_LIMIT = 100;
+
+function parsePickerLimit(raw) {
+    const n = Number.parseInt(raw, 10);
+    if (!Number.isFinite(n) || n < 1) return PICKER_DEFAULT_LIMIT;
+    return Math.min(n, PICKER_MAX_LIMIT);
+}
 
 // Organizer's org from the live user record (the JWT's can be stale).
 async function getUserOrgId(authUser) {
@@ -78,8 +88,21 @@ export async function GET(request) {
         scheduleReconcile(orgId);
 
         if (isPicker) {
-            const players = await Player.find(filter).select(PICKER_FIELDS).sort({ name: 1 }).lean();
-            return NextResponse.json({ success: true, count: players.length, data: players }, { status: 200 });
+            // Narrow to the team's own org. ANDed with the organizer scope
+            // above, so it can only shrink what the caller may already see.
+            const pickerOrg = searchParams.get("organization");
+            if (pickerOrg) {
+                if (!mongoose.isValidObjectId(pickerOrg)) {
+                    return NextResponse.json({ success: false, error: "Invalid organization" }, { status: 400 });
+                }
+                filter.organization = pickerOrg;
+            }
+            const limit = parsePickerLimit(searchParams.get("limit"));
+            // One extra row tells the picker whether to say "keep typing".
+            const rows = await Player.find(filter).select(PICKER_FIELDS).sort({ name: 1 }).limit(limit + 1).lean();
+            const hasMore = rows.length > limit;
+            const players = hasMore ? rows.slice(0, limit) : rows;
+            return NextResponse.json({ success: true, count: players.length, hasMore, data: players }, { status: 200 });
         }
 
         const players = await Player.find(filter)

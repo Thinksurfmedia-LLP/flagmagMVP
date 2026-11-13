@@ -7,8 +7,9 @@ import { useAuth } from "@/components/AuthProvider";
 import { useImpersonation } from "@/components/ImpersonationProvider";
 import { useToast } from "@/components/AdminToast";
 import { teamLabel, teamLeagueSummary, sortTeamsForPicker } from "@/lib/teamLabel";
+import { playerTeamsPayload } from "@/lib/playerTeamsPayload";
 
-function PlayerModal({ onClose, onSave, initial, orgUsers, allTeams }) {
+function PlayerModal({ onClose, onSave, initial, orgUsers, allTeams, teamsKnown }) {
     const initialTeams = initial ? allTeams.filter(t => (t.players || []).some(tp => String(tp.player?._id || tp.player) === String(initial._id))).map(t => {
         const tp = (t.players || []).find(tp => String(tp.player?._id || tp.player) === String(initial._id));
         return { teamId: String(t._id), teamName: t.name, jerseyNumber: tp.jerseyNumber };
@@ -22,13 +23,21 @@ function PlayerModal({ onClose, onSave, initial, orgUsers, allTeams }) {
         about: initial?.about || "",
     });
     const [saving, setSaving] = useState(false);
+    // Rosters as they were when the modal opened — only known if the team
+    // list had loaded by then. An unloaded list means "unknown", not "no
+    // teams": saving it as-is used to take the player off every team.
+    const [baseline] = useState(() => ({ teams: initialTeams, teamsKnown: Boolean(teamsKnown) }));
+    const canEditTeams = !initial || baseline.teamsKnown;
 
     const handleSave = async () => {
         setSaving(true);
+        const teamsPart = initial
+            ? playerTeamsPayload({ initial: baseline.teams, current: form.teams, teamsKnown: baseline.teamsKnown })
+            : { teams: form.teams };
         const payload = {
             name: form.name,
             location: form.location,
-            teams: form.teams,
+            ...teamsPart,
             about: form.about,
         };
         if (form.user) payload.user = form.user;
@@ -57,6 +66,15 @@ function PlayerModal({ onClose, onSave, initial, orgUsers, allTeams }) {
                     </div>
                 )}
                 
+                {!canEditTeams ? (
+                <div className="admin-form-group">
+                    <label className="admin-form-label">Manage Teams</label>
+                    <div style={{ background: "#f9fafb", border: "1px solid #e8eaef", borderRadius: 8, padding: 12, fontSize: 13, color: "#5a5f72" }}>
+                        Teams weren&apos;t loaded when you opened this, so team changes are off for this edit.
+                        The player&apos;s teams will not be changed — close and reopen to change teams.
+                    </div>
+                </div>
+                ) : (
                 <div className="admin-form-group">
                     <label className="admin-form-label">Manage Teams</label>
                     <div style={{ background: "#f9fafb", border: "1px solid #e8eaef", borderRadius: 8, padding: 12, marginBottom: 16 }}>
@@ -81,9 +99,8 @@ function PlayerModal({ onClose, onSave, initial, orgUsers, allTeams }) {
                                                 className="admin-form-input"
                                                 value={t.jerseyNumber}
                                                 onChange={(e) => {
-                                                    const newTeams = [...form.teams];
-                                                    newTeams[index].jerseyNumber = e.target.value;
-                                                    setForm(prev => ({ ...prev, teams: newTeams }));
+                                                    const jerseyNumber = e.target.value;
+                                                    setForm(prev => ({ ...prev, teams: prev.teams.map((pt, i) => (i === index ? { ...pt, jerseyNumber } : pt)) }));
                                                 }}
                                                 placeholder="0-99"
                                                 min="0"
@@ -128,6 +145,7 @@ function PlayerModal({ onClose, onSave, initial, orgUsers, allTeams }) {
                         {sortTeamsForPicker(allTeams).filter(t => !form.teams.find(et => et.teamId === String(t._id))).map(t => <option key={t._id} value={t._id}>{teamLabel(t)}</option>)}
                     </select>
                 </div>
+                )}
 
                 <div className="admin-form-group">
                     <label className="admin-form-label">Location</label>
@@ -162,6 +180,7 @@ export default function OrgPlayersPage() {
     const [editTarget, setEditTarget] = useState(null);
 
     const [allTeams, setAllTeams] = useState([]);
+    const [teamsLoaded, setTeamsLoaded] = useState(false);
 
     useEffect(() => {
         if (!impersonatedOrg && slug) {
@@ -180,7 +199,7 @@ export default function OrgPlayersPage() {
             
             const tRes = await fetch("/api/teams");
             const tData = await tRes.json();
-            if (tData.success) setAllTeams(tData.data);
+            if (tData.success) { setAllTeams(tData.data); setTeamsLoaded(true); }
         } catch { showError("Failed to load players"); }
         finally { setLoading(false); }
     }, [slug, showError]);
@@ -364,6 +383,7 @@ export default function OrgPlayersPage() {
                     initial={editTarget}
                     orgUsers={orgUsers}
                     allTeams={allTeams}
+                    teamsKnown={teamsLoaded}
                     onClose={() => { setShowModal(false); setEditTarget(null); }}
                     onSave={handleSave}
                 />

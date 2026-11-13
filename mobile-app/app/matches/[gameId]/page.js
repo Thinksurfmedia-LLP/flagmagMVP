@@ -318,7 +318,9 @@ function LiveGameContent({ gameId }) {
             // granted league-management permissions, only team/game/stats
             // ones, so this is the one team-list endpoint they can actually
             // call (same one MatchCard.js already relies on for this reason).
-            const res = await apiGet("/api/teams");
+            // League-scoped + slim: the full org list took ~30s+ on phones.
+            const params = new URLSearchParams({ league: String(game.league), fields: "basic" });
+            const res = await apiGet(`/api/teams?${params}`);
             const teams = Array.isArray(res.data) ? res.data : [];
             const inLeague = teams.filter(
                 (t) => !t.isPlaceholder && (t.leagues || []).some((m) => String(m.league?._id || m.league || "") === String(game.league))

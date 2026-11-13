@@ -11,6 +11,8 @@ import LiveGameFooter from "@/components/LiveGameFooter";
 import AdminPagination from "@/components/AdminPagination";
 import ConfirmModal from "@/components/ConfirmModal";
 import { isNoStatsTeamName } from "@/lib/noStatsTeams";
+import LeagueTeamsNotice from "@/components/LeagueTeamsNotice";
+import { useLeagueTeams } from "@/lib/useLeagueTeams";
 
 const GAMES_PER_PAGE = 20;
 // Minimum players required on each team's roster before a game can be
@@ -20,7 +22,7 @@ const MIN_PLAYERS_TO_START = 4;
 const STAT_FIELDS = ["rate", "atts", "comp", "tds", "pct", "xp2", "yards", "ten", "twenty", "forty", "ints", "intOpen", "intXp"];
 const STAT_LABELS = { rate: "Rate", atts: "Atts", comp: "Comp", tds: "TDs", pct: "%", xp2: "XP2", yards: "Yards", ten: "10+", twenty: "20+", forty: "40+", ints: "INTs", intOpen: "Int Open", intXp: "Int XP" };
 
-function GameModal({ onClose, onSave, initial, seasons = [], leagues = [], venues = [], teams = [], pageSelectedSeason = "", pageSelectedLeague = "", scheduleDays = [] }) {
+function GameModal({ onClose, onSave, initial, seasons = [], leagues = [], venues = [], pageSelectedSeason = "", pageSelectedLeague = "", scheduleDays = [] }) {
     // Cascading selection state
     const [selectedSeasonId, setSelectedSeasonId] = useState(() => {
         if (initial) {
@@ -73,9 +75,17 @@ function GameModal({ onClose, onSave, initial, seasons = [], leagues = [], venue
         return leagueSeasonId === selectedSeasonId;
     });
     const selectedLeague = leagues.find(l => l._id === selectedLeagueId);
-    // Only show teams assigned to the selected league
+    // Only the selected league's teams plus its org's placeholders are
+    // fetched (see useLeagueTeams) — not every team in every org.
+    const { teams, status: teamsStatus, retry: retryTeams } = useLeagueTeams(selectedLeagueId);
+    // Teams assigned to the selected league, plus placeholder (TBD/Winner/
+    // bracket-slot) teams when the league allows them — same rule as the
+    // schedule builder. Placeholders are org-level and normally have no
+    // league membership, so the membership check alone hid them here.
     const leagueTeams = selectedLeagueId
-        ? teams.filter(t => (t.leagues || []).some(m => String(m.league?._id || m.league || "") === selectedLeagueId))
+        ? teams.filter(t =>
+            (selectedLeague?.allowPlaceholderTeams && t.isPlaceholder) ||
+            (t.leagues || []).some(m => String(m.league?._id || m.league || "") === selectedLeagueId))
         : [];
     const leagueVenueNames = selectedLeague?.locations || [];
     const leagueVenues = leagueVenueNames
@@ -163,6 +173,7 @@ function GameModal({ onClose, onSave, initial, seasons = [], leagues = [], venue
                         <option value="">Select league...</option>
                         {filteredLeagues.map(l => <option key={l._id} value={l._id}>{l.name}</option>)}
                     </select>
+                    <LeagueTeamsNotice status={teamsStatus} onRetry={retryTeams} />
                 </div>
 
                 {/* Team A & Team B */}
@@ -1499,15 +1510,55 @@ function LiveStatsModal({ game, onClose, onGameUpdate }) {
     );
 }
 
+// Real (non-placeholder) teams of the game's league, for swapping a bracket
+// slot ("D1 Championship", "TBD", …) for the team that actually plays.
+function realLeagueTeams(teams, leagueId) {
+    return teams.filter((t) => !t.isPlaceholder
+        && (t.leagues || []).some((m) => String(m.league?._id || m.league || "") === leagueId));
+}
+
+// One placeholder side's "who's actually playing" dropdown.
+function PlaceholderTeamSelect({ label, placeholderName, teams, value, excludeId, onChange, disabled }) {
+    return (
+        <div className="admin-form-group" style={{ marginBottom: 12 }}>
+            <label className="admin-form-label">{label} — replaces &ldquo;{placeholderName}&rdquo;</label>
+            <select className="admin-form-select" value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled}>
+                <option value="">Select team...</option>
+                {teams.filter((t) => String(t._id) !== excludeId).map((t) => (
+                    <option key={t._id} value={String(t._id)}>{t.name}</option>
+                ))}
+            </select>
+        </div>
+    );
+}
+
 // Gates the actual "Start Game" action behind a roster check — a game can't
 // be started at all if either team has no players assigned, and the person
 // starting it always gets one last confirmation prompt either way.
+//
+// A side that is still an org placeholder ("D1 Championship", "TBD", …) is a
+// bracket slot, not a team: instead of counting its (empty) roster, the
+// modal asks which real team is playing and starts the game with that team
+// in the slot. The server checks the chosen team's roster and snapshots the
+// placeholder so the fixture can be reset later.
 function StartGameConfirmModal({ game, onClose, onConfirm }) {
     const [loading, setLoading] = useState(true);
     const [teamACount, setTeamACount] = useState(0);
     const [teamBCount, setTeamBCount] = useState(0);
     const [error, setError] = useState("");
     const [confirming, setConfirming] = useState(false);
+    const [startError, setStartError] = useState("");
+    const [pickA, setPickA] = useState("");
+    const [pickB, setPickB] = useState("");
+
+    const editA = Boolean(game.teamA?.isPlaceholder);
+    const editB = Boolean(game.teamB?.isPlaceholder);
+    const needsTeamPick = editA || editB;
+    const leagueId = String(game.league?._id || game.league || "");
+    const { teams, status: teamsStatus, retry: retryTeams } = useLeagueTeams(needsTeamPick ? leagueId : "");
+    const realTeams = needsTeamPick ? realLeagueTeams(teams, leagueId) : [];
+    const fixedAId = editA ? "" : String(game.teamA?.teamId || "");
+    const fixedBId = editB ? "" : String(game.teamB?.teamId || "");
 
     useEffect(() => {
         let cancelled = false;
@@ -1531,15 +1582,32 @@ function StartGameConfirmModal({ game, onClose, onConfirm }) {
         return () => { cancelled = true; };
     }, [game._id]);
 
+    // Placeholder sides have no roster of their own — the chosen real team's
+    // roster is checked by the server when the game starts.
     const missingTeams = [];
-    if (!loading && teamACount < MIN_PLAYERS_TO_START) missingTeams.push({ name: game.teamA.name, count: teamACount });
-    if (!loading && teamBCount < MIN_PLAYERS_TO_START) missingTeams.push({ name: game.teamB.name, count: teamBCount });
-    const canStart = !loading && !error && missingTeams.length === 0;
+    if (!loading && !editA && teamACount < MIN_PLAYERS_TO_START) missingTeams.push({ name: game.teamA.name, count: teamACount });
+    if (!loading && !editB && teamBCount < MIN_PLAYERS_TO_START) missingTeams.push({ name: game.teamB.name, count: teamBCount });
+    const picksDone = (!editA || pickA) && (!editB || pickB);
+    const canStart = !loading && !error && missingTeams.length === 0 && picksDone;
+
+    const sideFor = (teamId, current) => {
+        const team = realTeams.find((t) => String(t._id) === teamId);
+        return team ? { teamId: team._id, name: team.name, logo: team.logo || "", score: current?.score ?? 0 } : null;
+    };
 
     const handleConfirm = async () => {
+        setStartError("");
+        const sides = {};
+        if (editA) sides.teamA = sideFor(pickA, game.teamA);
+        if (editB) sides.teamB = sideFor(pickB, game.teamB);
+        if (Object.values(sides).some((s) => !s)) {
+            setStartError("Select the team for each placeholder first.");
+            return;
+        }
         setConfirming(true);
         try {
-            await onConfirm();
+            const err = await onConfirm(sides);
+            if (err) setStartError(err);
         } finally {
             setConfirming(false);
         }
@@ -1573,10 +1641,42 @@ function StartGameConfirmModal({ game, onClose, onConfirm }) {
                         ))}
                         . Each team needs at least {MIN_PLAYERS_TO_START} players before starting.
                     </div>
+                ) : needsTeamPick ? (
+                    <div style={{ fontSize: 13, color: "#5a5f72" }}>
+                        <i className="fa-solid fa-circle-info" style={{ color: "#d97706", marginRight: 6 }}></i>
+                        {editA && editB
+                            ? "Both sides are placeholders. Pick the teams that are playing."
+                            : `${editA ? game.teamA.name : game.teamB.name} is a placeholder. Pick the team that is playing.`}
+                    </div>
                 ) : (
                     <div style={{ fontSize: 13, color: "#5a5f72" }}>
                         <i className="fa-solid fa-circle-check" style={{ color: "#16a34a", marginRight: 6 }}></i>
                         Both teams have at least {MIN_PLAYERS_TO_START} players assigned.
+                    </div>
+                )}
+
+                {needsTeamPick && !loading && !error && missingTeams.length === 0 && (
+                    <div style={{ marginTop: 14 }}>
+                        <LeagueTeamsNotice status={teamsStatus} onRetry={retryTeams} />
+                        {teamsStatus === "loaded" && realTeams.length === 0 && (
+                            <p style={{ fontSize: 13, color: "#dc2626", margin: "0 0 8px" }}>This league has no teams to pick from.</p>
+                        )}
+                        {editA && (
+                            <PlaceholderTeamSelect label="Team A" placeholderName={game.teamA.name} teams={realTeams}
+                                value={pickA} excludeId={pickB || fixedBId} onChange={setPickA}
+                                disabled={teamsStatus !== "loaded" || confirming} />
+                        )}
+                        {editB && (
+                            <PlaceholderTeamSelect label="Team B" placeholderName={game.teamB.name} teams={realTeams}
+                                value={pickB} excludeId={pickA || fixedAId} onChange={setPickB}
+                                disabled={teamsStatus !== "loaded" || confirming} />
+                        )}
+                    </div>
+                )}
+
+                {startError && (
+                    <div role="alert" style={{ marginTop: 12, background: "rgba(220,38,38,0.08)", border: "1px solid rgba(220,38,38,0.3)", borderRadius: 8, padding: 12, fontSize: 13, color: "#dc2626" }}>
+                        <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: 6 }}></i>{startError}
                     </div>
                 )}
 
@@ -1586,7 +1686,7 @@ function StartGameConfirmModal({ game, onClose, onConfirm }) {
                         className="admin-btn admin-btn-danger"
                         onClick={handleConfirm}
                         disabled={!canStart || confirming}
-                        title={!canStart && !loading && !error ? `Both teams need at least ${MIN_PLAYERS_TO_START} players assigned` : undefined}
+                        title={!canStart && !loading && !error ? (picksDone ? `Both teams need at least ${MIN_PLAYERS_TO_START} players assigned` : "Pick the team for each placeholder") : undefined}
                     >
                         {confirming ? "Starting..." : "Yes, Start Game"}
                     </button>
@@ -1828,7 +1928,6 @@ export default function AdminGamesPage() {
     const [leagues, setLeagues] = useState([]);
     const [scheduledLeagueIds, setScheduledLeagueIds] = useState(null);
     const [games, setGames] = useState([]);
-    const [teams, setTeams] = useState([]);
     const [venues, setVenues] = useState([]);
     const [loading, setLoading] = useState(false);
     const [gamePage, setGamePage] = useState(1);
@@ -1879,23 +1978,23 @@ export default function AdminGamesPage() {
         finally { setLoading(false); }
     }, [selectedOrg]);
 
-    // Fetch seasons + teams + venues + games when org changes
+    // Fetch seasons + venues + games when org changes. Teams aren't loaded
+    // here — the game modal fetches just the selected league's (useLeagueTeams).
     useEffect(() => {
-        if (!selectedOrg) { setSeasons([]); setLeagues([]); setGames([]); setTeams([]); setVenues([]); setScheduleDays([]); setScheduledLeagueIds(null); return; }
+        if (!selectedOrg) { setSeasons([]); setLeagues([]); setGames([]); setVenues([]); setScheduleDays([]); setScheduledLeagueIds(null); return; }
         setLoading(true);
         (async () => {
             try {
-                const [seasonRes, leagueRes, teamRes, venueRes, orgRes, gamesRes, scheduleRes] = await Promise.all([
+                const [seasonRes, leagueRes, venueRes, orgRes, gamesRes, scheduleRes] = await Promise.all([
                     fetch(`/api/organizations/${selectedOrg}/seasons`),
                     fetch(`/api/organizations/${selectedOrg}/leagues`),
-                    fetch("/api/teams"),
                     fetch("/api/locations"),
                     fetch(`/api/organizations/${selectedOrg}`),
                     fetch(`/api/organizations/${selectedOrg}/games`),
                     fetch(`/api/schedules?organization=${selectedOrg}`),
                 ]);
-                const [seasonData, leagueData, teamData, venueData, orgData, gamesData, scheduleData] = await Promise.all([
-                    seasonRes.json(), leagueRes.json(), teamRes.json(), venueRes.json(), orgRes.json(), gamesRes.json(), scheduleRes.json(),
+                const [seasonData, leagueData, venueData, orgData, gamesData, scheduleData] = await Promise.all([
+                    seasonRes.json(), leagueRes.json(), venueRes.json(), orgRes.json(), gamesRes.json(), scheduleRes.json(),
                 ]);
                 if (seasonData.success) setSeasons(seasonData.data);
                 if (orgData.success) setScheduleDays(orgData.data?.scheduleDays || []);
@@ -1914,7 +2013,6 @@ export default function AdminGamesPage() {
                 } else {
                     setScheduledLeagueIds(null);
                 }
-                if (teamData.success) setTeams(teamData.data);
                 if (venueData.success) {
                     // /api/locations returns every venue system-wide — scope the
                     // geo filters down to just the counties this org operates in
@@ -2113,28 +2211,30 @@ Delete anyway?`
         }
     };
 
-    const confirmStartGame = async () => {
+    // `sides` holds the real team picked for each placeholder side
+    // ({ teamA?, teamB? }). Returns an error message for the modal to show,
+    // or null once the game has started.
+    const confirmStartGame = async (sides = {}) => {
         const target = startConfirmTarget;
         try {
             const res = await fetch(`/api/games/${target._id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status: "in_progress" }),
+                body: JSON.stringify({ status: "in_progress", ...sides }),
             });
             const data = await res.json();
-            if (!data.success) {
-                showError(data.error || "Failed to start game");
-                return;
-            }
+            if (!data.success) return data.error || "Failed to start game";
             // Open Live Stats already showing in_progress so its own "Start
             // Game" button — gated on status === "upcoming" — doesn't render
             // a second time.
-            setLiveStatsTarget({ ...target, status: "in_progress" });
+            const swapped = (key) => (sides[key] ? { ...target[key], ...sides[key], isPlaceholder: false } : target[key]);
+            setLiveStatsTarget({ ...target, teamA: swapped("teamA"), teamB: swapped("teamB"), status: "in_progress" });
             setShowLiveStats(true);
             setStartConfirmTarget(null);
             fetchAllGames();
+            return null;
         } catch {
-            showError("Failed to start game");
+            return "Failed to start game";
         }
     };
 
@@ -2375,7 +2475,6 @@ Delete anyway?`
                     seasons={seasons}
                     leagues={leagues}
                     venues={venues}
-                    teams={teams}
                     scheduleDays={scheduleDays}
                     pageSelectedSeason={filterSeason}
                     pageSelectedLeague={filterLeague}

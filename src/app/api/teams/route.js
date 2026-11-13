@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import mongoose from "mongoose";
 import dbConnect from "@/lib/dbConnect";
 import Team from "@/models/Team";
+import League from "@/models/League";
 import Player from "@/models/Player";
 import User from "@/models/User";
 import { requireAnyPermission } from "@/lib/apiAuth";
@@ -132,6 +134,26 @@ export async function GET(request) {
             filter.organization = organization;
         }
 
+        // `?league=<id>` — only that league's teams plus the org's placeholder
+        // (TBD/Winner/bracket-slot) teams: exactly what the schedule builder's
+        // team dropdowns offer. Loading every XFlag team (~1,800, fully
+        // populated) took ~30s on the Atlas link and failed on phones,
+        // leaving the dropdowns — placeholders included — empty.
+        const leagueParam = searchParams.get("league");
+        if (leagueParam) {
+            if (!mongoose.isValidObjectId(leagueParam)) {
+                return NextResponse.json({ success: false, error: "Invalid league" }, { status: 400 });
+            }
+            if (!filter.organization) {
+                const league = await League.findById(leagueParam).select("organization").lean();
+                if (!league) {
+                    return NextResponse.json({ success: false, error: "League not found" }, { status: 404 });
+                }
+                filter.organization = league.organization;
+            }
+            filter.$or = [{ "leagues.league": leagueParam }, { isPlaceholder: true }];
+        }
+
         // Self-heals the TBD/Winner/Losers/bracket-slot placeholder teams for
         // whichever single organization this request is scoped to, so they
         // show up in schedule builders without a separate migration step.
@@ -145,7 +167,7 @@ export async function GET(request) {
         // on mobile and leaving the picker silently empty.
         if (searchParams.get("fields") === "basic") {
             const basicTeams = await Team.find(filter)
-                .select("name logo isPlaceholder")
+                .select(leagueParam ? "name logo isPlaceholder leagues.league" : "name logo isPlaceholder")
                 .sort({ name: 1 })
                 .lean();
             return NextResponse.json({ success: true, data: basicTeams });

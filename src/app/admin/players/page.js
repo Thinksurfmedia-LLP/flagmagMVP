@@ -7,6 +7,8 @@ import AdminLayout, { hasAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 import { teamLeagueSummary, sortTeamsForPicker } from "@/lib/teamLabel";
+import { playerTeamsPayload } from "@/lib/playerTeamsPayload";
+import { compressImageForUpload } from "@/lib/compressImage";
 
 export default function AdminPlayersPage() {
     const { user } = useAuth();
@@ -24,6 +26,12 @@ export default function AdminPlayersPage() {
     const [editForm, setEditForm] = useState({ name: "", photo: "", teamName: "", jerseyNumber: "" });
     const [saving, setSaving] = useState(false);
     const [teamRemovalPrompt, setTeamRemovalPrompt] = useState(null); // { team, index }
+    // Rosters come from the (slow) full team list. Until it has loaded, a
+    // player's teams are unknown — not empty — so the edit form must not
+    // treat them as "no teams" (that wiped Julian Noble off Inferno).
+    const [teamsStatus, setTeamsStatus] = useState("loading"); // loading | loaded | error
+    const [editBaseline, setEditBaseline] = useState({ teams: [], teamsKnown: false });
+    const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
     const fetchPlayers = useCallback(async () => {
         try {
@@ -39,8 +47,12 @@ export default function AdminPlayersPage() {
         // Fetch all teams for the reassignment dropdown
         fetch("/api/teams")
             .then(res => res.json())
-            .then(data => { if (data.success) setAllTeams(data.data); })
-            .catch(() => {});
+            .then(data => {
+                if (!data.success) throw new Error(data.error);
+                setAllTeams(data.data);
+                setTeamsStatus("loaded");
+            })
+            .catch(() => setTeamsStatus("error"));
     }, [fetchPlayers]);
 
     const togglePlayerStatus = async (id, name, currentActiveState) => {
@@ -75,14 +87,27 @@ export default function AdminPlayersPage() {
         } catch { showError("Failed to delete player"); }
     };
 
+    const openEdit = (p, playerTeams) => {
+        const teamsKnown = teamsStatus === "loaded";
+        setEditPlayer(p);
+        setEditForm({ name: p.name, photo: p.photo || "", teams: playerTeams, deleteStatsFor: [] });
+        setEditBaseline({ teams: playerTeams, teamsKnown });
+        setTeamRemovalPrompt(null);
+    };
+
     const handleSaveEdit = async () => {
         if (!editPlayer) return;
+        // Team data only goes out when the teams were actually changed —
+        // a photo/name edit must never touch the player's rosters.
+        const teamsPart = playerTeamsPayload({ initial: editBaseline.teams, current: editForm.teams, teamsKnown: editBaseline.teamsKnown });
+        const payload = { name: editForm.name, photo: editForm.photo, ...teamsPart };
+        if (teamsPart.teams && editForm.deleteStatsFor?.length > 0) payload.deleteStatsFor = editForm.deleteStatsFor;
         setSaving(true);
         try {
             const res = await fetch(`/api/players/${editPlayer._id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(editForm),
+                body: JSON.stringify(payload),
             });
             const data = await res.json();
             if (data.success) {
@@ -233,16 +258,7 @@ export default function AdminPlayersPage() {
                                                                 <button
                                                                     className="admin-btn admin-btn-ghost admin-btn-sm"
                                                                     title="Edit Info"
-                                                                    onClick={() => {
-                                                                        setEditPlayer(p);
-                                                                        setEditForm({
-                                                                            name: p.name,
-                                                                            photo: p.photo || "",
-                                                                            teams: playerTeams,
-                                                                            deleteStatsFor: []
-                                                                        });
-                                                                        setTeamRemovalPrompt(null);
-                                                                    }}
+                                                                    onClick={() => openEdit(p, playerTeams)}
                                                                 >
                                                                     <i className="fa-solid fa-pen"></i>
                                                                 </button>
@@ -312,16 +328,7 @@ export default function AdminPlayersPage() {
                                                 <div className="players-card-item-actions">
                                                     <button
                                                         className="admin-btn admin-btn-ghost admin-btn-sm"
-                                                        onClick={() => {
-                                                            setEditPlayer(p);
-                                                            setEditForm({
-                                                                name: p.name,
-                                                                photo: p.photo || "",
-                                                                teams: playerTeams,
-                                                                deleteStatsFor: []
-                                                            });
-                                                            setTeamRemovalPrompt(null);
-                                                        }}
+                                                        onClick={() => openEdit(p, playerTeams)}
                                                     >
                                                         <i className="fa-solid fa-pen"></i> Edit
                                                     </button>
@@ -420,12 +427,17 @@ export default function AdminPlayersPage() {
                                             type="file"
                                             accept="image/*"
                                             className="admin-form-input"
+                                            disabled={uploadingPhoto}
                                             onChange={async (e) => {
-                                                const file = e.target.files[0];
-                                                if (!file) return;
-                                                const fd = new FormData();
-                                                fd.append("file", file);
+                                                const picked = e.target.files[0];
+                                                if (!picked) return;
+                                                setUploadingPhoto(true);
                                                 try {
+                                                    // Phone photos are usually over the 1MB limit — shrink first.
+                                                    const file = await compressImageForUpload(picked).catch((err) => { showError(err.message); return null; });
+                                                    if (!file) return;
+                                                    const fd = new FormData();
+                                                    fd.append("file", file);
                                                     const res = await fetch("/api/upload", { method: "POST", body: fd });
                                                     // A file over the server's upload limit never reaches our
                                                     // API route at all — nginx rejects it with a raw 413 HTML
@@ -435,10 +447,13 @@ export default function AdminPlayersPage() {
                                                     if (data.url) setEditForm(prev => ({ ...prev, photo: data.url }));
                                                     else showError(data.error || "Upload failed");
                                                 } catch { showError("Upload failed"); }
+                                                finally { setUploadingPhoto(false); e.target.value = ""; }
                                             }}
                                         />
                                     </div>
-                                    <div style={{ marginTop: 6, fontSize: 12, color: "#dc2626" }}>Max file size: 1MB</div>
+                                    <div style={{ marginTop: 6, fontSize: 12, color: uploadingPhoto ? "#5a5f72" : "#8b90a0" }}>
+                                        {uploadingPhoto ? "Uploading photo..." : "Large photos are shrunk automatically to fit the 1MB limit."}
+                                    </div>
                                 </div>
 
                                 <div className="admin-form-group">
@@ -451,6 +466,16 @@ export default function AdminPlayersPage() {
                                     />
                                 </div>
                                 
+                                {!editBaseline.teamsKnown ? (
+                                <div className="admin-form-group">
+                                    <label className="admin-form-label">Teams</label>
+                                    <div style={{ background: "#f9fafb", border: "1px solid #e8eaef", borderRadius: 8, padding: 12, fontSize: 13, color: "#5a5f72" }}>
+                                        <i className="fa-solid fa-circle-info" style={{ marginRight: 6 }}></i>
+                                        {teamsStatus === "error" ? "Teams couldn't be loaded" : "Teams were still loading when you opened this"}, so team changes are off for this edit.
+                                        The player&apos;s teams will not be changed. Name and photo save normally — close and reopen to change teams.
+                                    </div>
+                                </div>
+                                ) : (
                                 <div className="admin-form-group">
                                     <label className="admin-form-label">Available Teams</label>
                                     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
@@ -509,9 +534,8 @@ export default function AdminPlayersPage() {
                                                                 className="admin-form-input"
                                                                 value={t.jerseyNumber}
                                                                 onChange={(e) => {
-                                                                    const newTeams = [...editForm.teams];
-                                                                    newTeams[index].jerseyNumber = e.target.value;
-                                                                    setEditForm(prev => ({ ...prev, teams: newTeams }));
+                                                                    const jerseyNumber = e.target.value;
+                                                                    setEditForm(prev => ({ ...prev, teams: prev.teams.map((pt, i) => (i === index ? { ...pt, jerseyNumber } : pt)) }));
                                                                 }}
                                                                 placeholder="0-99"
                                                                 min="0"
@@ -534,13 +558,14 @@ export default function AdminPlayersPage() {
                                         )}
                                     </div>
                                 </div>
+                                )}
 
                                 </div>
 
                                 <div style={{ display: "flex", gap: 10, marginTop: 16, paddingTop: 16, borderTop: "1px solid #e8eaef", justifyContent: "flex-end", flexShrink: 0 }}>
                                     <button className="admin-btn admin-btn-ghost" onClick={() => setEditPlayer(null)}>Cancel</button>
-                                    <button className="admin-btn admin-btn-primary" onClick={handleSaveEdit} disabled={saving || !editForm.name}>
-                                        {saving ? "Saving..." : "Save Changes"}
+                                    <button className="admin-btn admin-btn-primary" onClick={handleSaveEdit} disabled={saving || uploadingPhoto || !editForm.name}>
+                                        {saving ? "Saving..." : uploadingPhoto ? "Uploading photo..." : "Save Changes"}
                                     </button>
                                 </div>
                             </div>

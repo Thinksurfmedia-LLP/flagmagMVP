@@ -8,6 +8,8 @@ import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 import SearchableSelect from "@/components/SearchableSelect";
 import RestrictedDatePicker from "@/components/RestrictedDatePicker";
+import LeagueTeamsNotice from "@/components/LeagueTeamsNotice";
+import { useLeagueTeams } from "@/lib/useLeagueTeams";
 
 
 export default function EditSchedulePage({ params }) {
@@ -19,10 +21,10 @@ export default function EditSchedulePage({ params }) {
     const [seasons, setSeasons] = useState([]);
     const [leagues, setLeagues] = useState([]);
     const [locations, setLocations] = useState([]);
-    const [teams, setTeams] = useState([]);
 
     const [seasonId, setSeasonId] = useState("");
     const [leagueId, setLeagueId] = useState("");
+    const { teams, status: teamsStatus, retry: retryTeams } = useLeagueTeams(leagueId);
     const [locationId, setLocationId] = useState("");
     const [status, setStatus] = useState("Active");
     const [leagueRefBroken, setLeagueRefBroken] = useState(false);
@@ -80,14 +82,12 @@ export default function EditSchedulePage({ params }) {
             fetch("/api/seasons").then(r => r.json()),
             fetch("/api/leagues").then(r => r.json()),
             fetch("/api/locations").then(r => r.json()),
-            fetch("/api/teams").then(r => r.json()),
             fetch(`/api/schedules/${id}`).then(r => r.json())
-        ]).then(([seasonsData, leaguesData, locationsData, teamsData, scheduleData]) => {
+        ]).then(([seasonsData, leaguesData, locationsData, scheduleData]) => {
             if (seasonsData.success) setSeasons(seasonsData.data);
             if (leaguesData.success) setLeagues(leaguesData.data);
             if (locationsData.success) setLocations(locationsData.data);
-            if (teamsData.success) setTeams(teamsData.data);
-            
+
             if (scheduleData.success && scheduleData.data) {
                 const schedule = scheduleData.data;
                 const schedLeagueId = schedule.leagueId?._id || schedule.leagueId || "";
@@ -448,8 +448,9 @@ export default function EditSchedulePage({ params }) {
                             disabled
                             style={{ padding: "10px 14px", border: "1px solid #e5e7ef", borderRadius: 8, background: "#f3f4f6", color: "#6b7280", cursor: "not-allowed" }}
                         />
+                        <LeagueTeamsNotice status={teamsStatus} onRetry={retryTeams} />
                     </div>
-                    
+
                     <div className="admin-form-group" style={{ marginBottom: 0 }}>
                         <label className="admin-form-label" style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#8b90a0" }}>Location</label>
                         <input 

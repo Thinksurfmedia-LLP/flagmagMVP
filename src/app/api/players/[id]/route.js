@@ -14,6 +14,7 @@ import {
     RosterConflictError,
 } from "@/lib/teamJerseyGuard";
 import { deletePlayer } from "@/lib/playerDeletion";
+import { wouldRemoveFromAllTeams } from "@/lib/playerTeamsPayload";
 
 // GET single player
 export async function GET(request, { params }) {
@@ -46,13 +47,30 @@ export async function PUT(request, { params }) {
         const body = await request.json();
 
         // Handle Team changes explicitly
-        const { teamName, jerseyNumber, teams, ...playerUpdates } = body;
+        const { teamName, jerseyNumber, teams, removeFromAllTeams, deleteStatsFor, ...playerUpdates } = body;
         let updateData = { ...playerUpdates };
 
         if (body.teams !== undefined) {
+            if (!Array.isArray(body.teams)) {
+                return NextResponse.json({ success: false, error: "teams must be a list" }, { status: 400 });
+            }
             // New parallel assignment logic
             const TeamModel = require("@/models/Team").default || require("mongoose").models.Team;
-            
+
+            // `teams` is the player's COMPLETE roster list, so an empty one
+            // takes them off every team. An edit form that opened before its
+            // team list loaded sends exactly that on a photo-only save — it
+            // wiped Julian Noble off Inferno. Refuse unless the client says
+            // the removal is deliberate (see playerTeamsPayload.js).
+            const onTeams = await TeamModel.find({ "players.player": id }).select("name").lean();
+            if (wouldRemoveFromAllTeams(body, onTeams.length)) {
+                return NextResponse.json({
+                    success: false,
+                    code: "WOULD_REMOVE_ALL_TEAMS",
+                    error: `Nothing was saved: this would have removed the player from ${onTeams.map((t) => t.name).join(", ")}. Reload the page and try again.`,
+                }, { status: 409 });
+            }
+
             const nextTeamIds = new Set(body.teams.map(t => String(t.teamId)));
 
             // Validate every requested jersey number BEFORE writing anything.
