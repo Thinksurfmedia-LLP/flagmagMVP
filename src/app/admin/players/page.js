@@ -9,6 +9,7 @@ import { useToast } from "@/components/AdminToast";
 import { teamLeagueSummary, sortTeamsForPicker } from "@/lib/teamLabel";
 import { playerTeamsPayload } from "@/lib/playerTeamsPayload";
 import { uploadImage } from "@/lib/uploadImage";
+import MergePlayersModal from "@/components/MergePlayersModal";
 
 export default function AdminPlayersPage() {
     const { user } = useAuth();
@@ -23,6 +24,7 @@ export default function AdminPlayersPage() {
 
     // Edit modal states
     const [editPlayer, setEditPlayer] = useState(null);
+    const [mergePlayer, setMergePlayer] = useState(null);
     const [editForm, setEditForm] = useState({ name: "", photo: "", teamName: "", jerseyNumber: "" });
     const [saving, setSaving] = useState(false);
     const [teamRemovalPrompt, setTeamRemovalPrompt] = useState(null); // { team, index }
@@ -256,6 +258,14 @@ export default function AdminPlayersPage() {
                                                                 >
                                                                     <i className="fa-solid fa-pen"></i>
                                                                 </button>
+                                                                <button
+                                                                    className="admin-btn admin-btn-ghost admin-btn-sm"
+                                                                    title="Merge old records into this player"
+                                                                    aria-label={`Merge records into ${p.name}`}
+                                                                    onClick={() => setMergePlayer(p)}
+                                                                >
+                                                                    <i className="fa-solid fa-code-merge"></i>
+                                                                </button>
                                                                 {/* <Link href={`/players/${p._id}`} className="admin-btn admin-btn-ghost admin-btn-sm" title="View Profile">
                                                                     <i className="fa-solid fa-eye"></i>
                                                                 </Link> */}
@@ -322,6 +332,12 @@ export default function AdminPlayersPage() {
                                                         onClick={() => openEdit(p, playerTeams)}
                                                     >
                                                         <i className="fa-solid fa-pen"></i> Edit
+                                                    </button>
+                                                    <button
+                                                        className="admin-btn admin-btn-ghost admin-btn-sm"
+                                                        onClick={() => setMergePlayer(p)}
+                                                    >
+                                                        <i className="fa-solid fa-code-merge"></i> Merge
                                                     </button>
                                                     {isInactive ? (
                                                         <button className="admin-btn admin-btn-success admin-btn-sm" onClick={() => togglePlayerStatus(p._id, p.name, p.isActive)}>
@@ -556,6 +572,14 @@ export default function AdminPlayersPage() {
                                 </div>
                             </div>
                         </div>
+                    )}
+
+                    {mergePlayer && (
+                        <MergePlayersModal
+                            player={mergePlayer}
+                            onClose={() => setMergePlayer(null)}
+                            onChanged={() => fetchPlayers()}
+                        />
                     )}
                 </>
             )}

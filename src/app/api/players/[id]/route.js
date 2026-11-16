@@ -15,6 +15,7 @@ import {
 } from "@/lib/teamJerseyGuard";
 import { deletePlayer } from "@/lib/playerDeletion";
 import { wouldRemoveFromAllTeams } from "@/lib/playerTeamsPayload";
+import { refreshPlayerStatsDisplay } from "@/lib/playerStatsRefresh";
 
 // GET single player
 export async function GET(request, { params }) {
@@ -253,6 +254,10 @@ export async function PUT(request, { params }) {
         // roster membership, in case a concurrent edit raced with this one.
         if (body.teams !== undefined || teamName !== undefined || jerseyNumber !== undefined) {
             await reconcilePlayerStatuses([id]);
+        }
+
+        if (updateData.name !== undefined || updateData.photo !== undefined) {
+            await refreshPlayerStatsDisplay(id);
         }
 
         // Keep associated User record in sync if name was updated

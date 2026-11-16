@@ -58,6 +58,10 @@ const PlaySchema = new mongoose.Schema(
 );
 
 PlaySchema.index({ game: 1 });
+// "Which plays involve this player?" (player history, merge, delete guard).
+["passerPlayer", "receiverPlayer", "rusherPlayer", "defenderPlayer", "flagPullPlayer"].forEach((field) => {
+    PlaySchema.index({ [field]: 1 });
+});
 PlaySchema.index({ game: 1, type: 1 });
 PlaySchema.index({ idempotencyKey: 1 }, { sparse: true, unique: true });
 

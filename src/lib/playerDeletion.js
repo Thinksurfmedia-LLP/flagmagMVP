@@ -7,7 +7,7 @@ import ImportedStatLine from "@/models/ImportedStatLine";
 import { inTransaction } from "@/lib/teamJerseyGuard";
 import { syncUserRole } from "@/lib/userRoleSync";
 
-const FROZEN_PLAYER_FIELDS = ["passerPlayer", "receiverPlayer", "rusherPlayer", "defenderPlayer", "flagPullPlayer"];
+export const FROZEN_PLAYER_FIELDS = ["passerPlayer", "receiverPlayer", "rusherPlayer", "defenderPlayer", "flagPullPlayer"];
 
 /**
  * Delete a player profile without leaving anything dangling.

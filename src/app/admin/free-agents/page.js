@@ -6,6 +6,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 import { teamLeagueSummary, sortTeamsForPicker } from "@/lib/teamLabel";
 import AdminPagination from "@/components/AdminPagination";
+import MergePlayersModal from "@/components/MergePlayersModal";
 import {
     validateFreeAgentFields,
     validatePassword,
@@ -562,6 +563,7 @@ export default function AdminFreeAgentsPage() {
     const [jerseyPrompt, setJerseyPrompt] = useState(null);
     const [jerseyInput, setJerseyInput] = useState("");
     const [editingAgent, setEditingAgent] = useState(null);
+    const [mergingAgent, setMergingAgent] = useState(null);
 
     const canManage = user && hasAnyAccess(user, [
         "manage_players",
@@ -816,7 +818,7 @@ export default function AdminFreeAgentsPage() {
                                                     {isAdmin && <th>Organization</th>}
                                                     <th>Phone</th>
                                                     <th>{isAdmin ? "Added" : "Assign to Team"}</th>
-                                                    {showActions && <th style={{ width: 110 }}>Actions</th>}
+                                                    {showActions && <th style={{ width: 150 }}>Actions</th>}
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -854,6 +856,16 @@ export default function AdminFreeAgentsPage() {
                                                                             aria-label={`Edit ${fa.name}`}
                                                                         >
                                                                             <i className="fa-solid fa-pen"></i>
+                                                                        </button>
+                                                                    )}
+                                                                    {canEdit && (
+                                                                        <button
+                                                                            className="admin-btn admin-btn-ghost admin-btn-sm"
+                                                                            onClick={() => setMergingAgent(fa)}
+                                                                            title="Merge with the real player's record"
+                                                                            aria-label={`Merge ${fa.name}`}
+                                                                        >
+                                                                            <i className="fa-solid fa-code-merge"></i>
                                                                         </button>
                                                                     )}
                                                                     {canDelete && (
@@ -909,6 +921,14 @@ export default function AdminFreeAgentsPage() {
                                                         <i className="fa-solid fa-pen"></i> Edit
                                                     </button>
                                                 )}
+                                                {canEdit && (
+                                                    <button
+                                                        className="admin-btn admin-btn-ghost admin-btn-sm"
+                                                        onClick={() => setMergingAgent(fa)}
+                                                    >
+                                                        <i className="fa-solid fa-code-merge"></i> Merge
+                                                    </button>
+                                                )}
                                                 {canDelete && (
                                                     <button
                                                         className="admin-btn admin-btn-danger admin-btn-sm"
@@ -947,6 +967,14 @@ export default function AdminFreeAgentsPage() {
                             freeAgent={editingAgent}
                             onClose={() => setEditingAgent(null)}
                             onSave={updateFreeAgent}
+                        />
+                    )}
+
+                    {mergingAgent && (
+                        <MergePlayersModal
+                            player={mergingAgent}
+                            onClose={() => setMergingAgent(null)}
+                            onChanged={() => fetchData()}
                         />
                     )}
 

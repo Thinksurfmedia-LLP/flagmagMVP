@@ -39,6 +39,7 @@ const GameStatSchema = new mongoose.Schema(
 );
 
 GameStatSchema.index({ game: 1, player: 1, statType: 1 }, { unique: true });
+GameStatSchema.index({ player: 1 });
 GameStatSchema.index({ game: 1, teamName: 1, statType: 1 });
 
 export default mongoose.models.GameStat ||

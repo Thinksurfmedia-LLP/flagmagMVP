@@ -78,6 +78,9 @@ const ImportedStatLineSchema = new mongoose.Schema(
 
 ImportedStatLineSchema.index({ game: 1 });
 ImportedStatLineSchema.index({ league: 1 });
+// A player's own history (merge records, delete guard, profile) — without it
+// each lookup scanned all ~270k imported lines.
+ImportedStatLineSchema.index({ player: 1 });
 ImportedStatLineSchema.index(
     { "source.system": 1, "source.recordId": 1 },
     { unique: true, partialFilterExpression: { "source.recordId": { $type: "number" } } }

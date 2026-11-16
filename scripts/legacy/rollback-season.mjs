@@ -50,6 +50,16 @@ async function main() {
     if (otherLeagueTeams) blockers.push(`${otherLeagueTeams} created teams joined other leagues`);
     const rosteredPlayers = await Team.countDocuments({ "players.player": { $in: playerIds } });
     if (rosteredPlayers) blockers.push(`${rosteredPlayers} teams have created players on their roster`);
+    // A created player that other records were merged into (admin "Merge
+    // Player Records") now holds history from outside this import.
+    const mergeTargets = await mongoose.connection.db.collection("playermerges")
+        .countDocuments({ target: { $in: playerIds }, undone: false });
+    if (mergeTargets) blockers.push(`${mergeTargets} player merges involve created players — undo them first`);
+    // Records merged INTO a real player re-point their registry row at it,
+    // so a real player can appear here as "created" too.
+    const mergedAway = await mongoose.connection.db.collection("playermerges")
+        .countDocuments({ "sources.registryRows": { $in: entries.filter((e) => e.entity === "player").map((e) => e._id) }, undone: false });
+    if (mergedAway) blockers.push(`${mergedAway} player merges moved records from this import — undo them first`);
     const otherLines = await ImportedStatLine.countDocuments({ player: { $in: playerIds }, game: { $nin: gameIds } });
     if (otherLines) blockers.push(`${otherLines} stat lines from other seasons use created players`);
     const otherLeagues = await League.countDocuments({ season: { $in: ids("season") }, _id: { $nin: leagueIds } });

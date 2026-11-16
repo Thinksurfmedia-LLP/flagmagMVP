@@ -26,4 +26,6 @@ const AwardSchema = new mongoose.Schema(
     }
 );
 
+AwardSchema.index({ player: 1 });
+
 export default mongoose.models.Award || mongoose.model("Award", AwardSchema);

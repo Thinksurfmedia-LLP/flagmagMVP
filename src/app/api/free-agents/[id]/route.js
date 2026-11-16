@@ -1,25 +1,11 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Player from "@/models/Player";
-import User from "@/models/User";
 import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
 import { deletePlayer } from "@/lib/playerDeletion";
 import { validateFreeAgentFields } from "@/lib/freeAgentValidation";
-
-// Every organization this user may manage, from the live user record (the
-// JWT's org can be stale until next login, and organizers can have several).
-async function getManagedOrgIds(authUser) {
-    const userDoc =
-        (await User.findById(authUser.id).select("organization roleOrganizations").lean()) ||
-        (await User.findOne({ email: authUser.email }).select("organization roleOrganizations").lean());
-
-    const orgIds = new Set();
-    if (userDoc?.organization) orgIds.add(String(userDoc.organization));
-    const organizerOrgs = userDoc?.roleOrganizations?.organizer;
-    [].concat(organizerOrgs || []).filter(Boolean).forEach((id) => orgIds.add(String(id)));
-    if (!userDoc && authUser.organization?.id) orgIds.add(String(authUser.organization.id));
-    return orgIds;
-}
+import { getManagedOrgIds } from "@/lib/managedOrgs";
+import { refreshPlayerStatsDisplay } from "@/lib/playerStatsRefresh";
 
 // PATCH free agent — edits this free agent's own profile (name/email/phone)
 // on the Player doc only. The linked User login is deliberately left alone:
@@ -43,7 +29,7 @@ export async function PATCH(request, { params }) {
             return NextResponse.json({ success: false, error: firstError, fieldErrors: errors }, { status: 400 });
         }
 
-        const player = await Player.findById(id).select("status organization").lean();
+        const player = await Player.findById(id).select("name status organization").lean();
         if (!player) {
             return NextResponse.json({ success: false, error: "Free agent not found" }, { status: 404 });
         }
@@ -62,6 +48,8 @@ export async function PATCH(request, { params }) {
             .populate("user", "name email phone")
             .populate("organization", "name slug")
             .lean();
+
+        if (updated && updated.name !== player.name) await refreshPlayerStatsDisplay(id);
 
         return NextResponse.json({ success: true, data: updated });
     } catch (error) {

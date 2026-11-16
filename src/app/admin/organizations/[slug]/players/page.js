@@ -8,6 +8,7 @@ import { useImpersonation } from "@/components/ImpersonationProvider";
 import { useToast } from "@/components/AdminToast";
 import { teamLabel, teamLeagueSummary, sortTeamsForPicker } from "@/lib/teamLabel";
 import { playerTeamsPayload } from "@/lib/playerTeamsPayload";
+import MergePlayersModal from "@/components/MergePlayersModal";
 
 function PlayerModal({ onClose, onSave, initial, orgUsers, allTeams, teamsLoaded }) {
     // The player's own teams arrive with the player list (`rosterTeams`).
@@ -177,6 +178,7 @@ export default function OrgPlayersPage() {
     const [search, setSearch] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [editTarget, setEditTarget] = useState(null);
+    const [mergeTarget, setMergeTarget] = useState(null);
 
     const [allTeams, setAllTeams] = useState([]);
     const [teamsLoaded, setTeamsLoaded] = useState(false);
@@ -365,6 +367,9 @@ export default function OrgPlayersPage() {
                                                     <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => { setEditTarget(p); setShowModal(true); }} title="Edit">
                                                         <i className="fa-solid fa-pen"></i>
                                                     </button>
+                                                    <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => setMergeTarget({ ...p, organization: p.organization || orgId })} title="Merge old records into this player" aria-label={`Merge records into ${p.name}`}>
+                                                        <i className="fa-solid fa-code-merge"></i>
+                                                    </button>
                                                     <button className="admin-btn admin-btn-danger admin-btn-sm" onClick={() => deletePlayer(p)} title="Delete">
                                                         <i className="fa-solid fa-trash"></i>
                                                     </button>
@@ -377,6 +382,13 @@ export default function OrgPlayersPage() {
                         </div>
                     )}
                 </div>
+            )}
+            {mergeTarget && (
+                <MergePlayersModal
+                    player={mergeTarget}
+                    onClose={() => setMergeTarget(null)}
+                    onChanged={() => fetchPlayers()}
+                />
             )}
             {showModal && (
                 <PlayerModal

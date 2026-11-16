@@ -9,6 +9,8 @@ import { reconcileOrgPlayerStatuses } from "@/lib/playerRosterSync";
 import { runAfterResponseThrottled } from "@/lib/backgroundTask";
 import { containsRegex } from "@/lib/searchRegex";
 import { withRosterTeams } from "@/lib/playerRosterTeams";
+import { STAND_IN_NAME_RE } from "@/lib/playerMergePlan";
+import { playerIdentifiers } from "@/lib/playerMerge";
 
 const RECONCILE_INTERVAL_MS = 5 * 60 * 1000;
 
@@ -94,11 +96,23 @@ export async function GET(request) {
                 }
                 filter.organization = pickerOrg;
             }
+            // ?standIns=exclude — skip the old-site jersey-only records
+            // ("Team #56 (Season)") when looking for a real person.
+            if (searchParams.get("standIns") === "exclude") {
+                filter.$and = [...(filter.$and || []), { name: { $not: STAND_IN_NAME_RE } }];
+            }
             const limit = parsePickerLimit(searchParams.get("limit"));
             // One extra row tells the picker whether to say "keep typing".
             const rows = await Player.find(filter).select(PICKER_FIELDS).sort({ name: 1 }).limit(limit + 1).lean();
             const hasMore = rows.length > limit;
-            const players = hasMore ? rows.slice(0, limit) : rows;
+            const page = hasMore ? rows.slice(0, limit) : rows;
+            // ?details=1 — add current teams and last team/season played, so
+            // two players with the same name can be told apart.
+            let players = page;
+            if (searchParams.get("details") === "1") {
+                const identifiers = await playerIdentifiers(page);
+                players = page.map((p) => ({ ...p, ...identifiers.get(String(p._id)) }));
+            }
             return NextResponse.json({ success: true, count: players.length, hasMore, data: players }, { status: 200 });
         }
 
