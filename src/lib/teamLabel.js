@@ -8,6 +8,8 @@
 // "past") and season { name } — as GET /api/teams returns it. Pure CommonJS
 // so it runs under `node --test`.
 
+const { seasonSortKey } = require("./seasonOrder");
+
 const MAX_LEAGUES_SHOWN = 2;
 
 function leagueText(league) {
@@ -16,8 +18,14 @@ function leagueText(league) {
     return season && !league.name.includes(season) ? `${league.name} (${season})` : league.name;
 }
 
+// Newest season first, so a summary cut to two leagues shows the latest ones.
 function populatedLeagues(team) {
-    return (team.leagues || []).map((m) => m.league).filter((l) => l && typeof l === "object" && l.name);
+    return (team.leagues || [])
+        .map((m) => m.league)
+        .filter((l) => l && typeof l === "object" && l.name)
+        .map((l, i) => ({ l, i, key: seasonSortKey(l.season?.name || l.name) }))
+        .sort((a, b) => b.key - a.key || a.i - b.i)
+        .map(({ l }) => l);
 }
 
 function shorten(parts) {

@@ -6,7 +6,8 @@ import AdminPagination from "@/components/AdminPagination";
 import AdminLayout, { hasAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
-import { teamLeagueSummary, sortTeamsForPicker } from "@/lib/teamLabel";
+import { teamLeagueSummary } from "@/lib/teamLabel";
+import TeamPicker from "@/components/TeamPicker";
 import { playerTeamsPayload } from "@/lib/playerTeamsPayload";
 import { uploadImage } from "@/lib/uploadImage";
 import MergePlayersModal from "@/components/MergePlayersModal";
@@ -474,46 +475,19 @@ export default function AdminPlayersPage() {
                                 </div>
                                 ) : (
                                 <div className="admin-form-group">
-                                    <label className="admin-form-label">Available Teams</label>
-                                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
-                                        {teamsStatus !== "loaded" && (
-                                            <div style={{ fontSize: 13, color: "#8b90a0", fontStyle: "italic" }}>
-                                                {teamsStatus === "error" ? "Team list couldn't be loaded. Reload the page to add teams." : "Loading teams..."}
-                                            </div>
-                                        )}
-                                        {sortTeamsForPicker(allTeams).filter(t => !t.isPlaceholder && !(editForm.teams || []).find(st => st.teamId === String(t._id))).map(t => (
-                                            <div
-                                                key={t._id}
-                                                onClick={() => {
-                                                    setEditForm(prev => ({
-                                                        ...prev,
-                                                        teams: [...(prev.teams || []), { teamId: String(t._id), teamName: t.name, jerseyNumber: "" }]
-                                                    }));
-                                                }}
-                                                style={{
-                                                    padding: "6px 12px",
-                                                    background: "#f0f1f5",
-                                                    border: "1px solid #d5d8e0",
-                                                    borderRadius: 16,
-                                                    fontSize: 13,
-                                                    cursor: "pointer",
-                                                    color: "#1a1d26",
-                                                    transition: "all 0.2s"
-                                                }}
-                                                onMouseEnter={e => { e.currentTarget.style.background = "#e5e7ef"; e.currentTarget.style.borderColor = "#c5c8d0"; }}
-                                                onMouseLeave={e => { e.currentTarget.style.background = "#f0f1f5"; e.currentTarget.style.borderColor = "#d5d8e0"; }}
-                                            >
-                                                + {t.name}
-                                                {/* Names repeat across leagues (e.g. two "Trojans") — show which one. */}
-                                                <span style={{ color: "#8b90a0", marginLeft: 6 }}>· {teamLeagueSummary(t)}</span>
-                                            </div>
-                                        ))}
-                                        {teamsStatus === "loaded" && allTeams.filter(t => !t.isPlaceholder && !(editForm.teams || []).find(st => st.teamId === String(t._id))).length === 0 && (
-                                            <div style={{ fontSize: 13, color: "#8b90a0", fontStyle: "italic" }}>No more teams available.</div>
-                                        )}
-                                    </div>
+                                    <label className="admin-form-label">Add to a team</label>
+                                    <TeamPicker
+                                        teams={allTeams}
+                                        status={teamsStatus}
+                                        excludeIds={(editForm.teams || []).map((st) => st.teamId)}
+                                        idPrefix="player-edit"
+                                        onPick={(t) => setEditForm((prev) => ({
+                                            ...prev,
+                                            teams: [...(prev.teams || []), { teamId: String(t._id), teamName: t.name, jerseyNumber: "" }],
+                                        }))}
+                                    />
 
-                                    <label className="admin-form-label">Team Pool (Selected)</label>
+                                    <label className="admin-form-label">Selected teams</label>
                                     <div style={{ background: "#f9fafb", border: "1px solid #e8eaef", borderRadius: 8, padding: 12 }}>
                                         {editForm.teams?.length === 0 ? (
                                             <div style={{ fontSize: 13, color: "#8b90a0", fontStyle: "italic", padding: "8px 0" }}>Not assigned to any teams.</div>

@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import AdminLayout, { hasAnyAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
-import { teamLeagueSummary, sortTeamsForPicker } from "@/lib/teamLabel";
+import { teamLeagueSummary } from "@/lib/teamLabel";
+import TeamPicker from "@/components/TeamPicker";
 import AdminPagination from "@/components/AdminPagination";
 import MergePlayersModal from "@/components/MergePlayersModal";
 import {
@@ -987,7 +988,7 @@ export default function AdminFreeAgentsPage() {
 
                     {jerseyPrompt && (
                         <div className="admin-modal-backdrop">
-                            <div className="admin-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 400 }}>
+                            <div className="admin-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 600, maxHeight: "90vh", overflowY: "auto" }}>
                                 <button className="admin-modal-close" onClick={() => setJerseyPrompt(null)} aria-label="Close">
                                     <i className="fa-solid fa-xmark"></i>
                                 </button>
@@ -996,49 +997,22 @@ export default function AdminFreeAgentsPage() {
                                     Assign <strong>{jerseyPrompt.fa.name}</strong> to a team.
                                 </p>
                                 <div className="admin-form-group">
-                                    <label className="admin-form-label">Available Teams</label>
-                                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
-                                        {sortTeamsForPicker(teams).filter(t => !t.isPlaceholder && !jerseyPrompt.selectedTeams.find(st => st.teamId === String(t._id))).map(t => (
-                                            <div
-                                                key={t._id}
-                                                onClick={() => {
-                                                    setJerseyPrompt(prev => ({
-                                                        ...prev,
-                                                        selectedTeams: [...prev.selectedTeams, { teamId: String(t._id), teamName: t.name, jerseyNumber: "" }]
-                                                    }));
-                                                }}
-                                                style={{
-                                                    padding: "6px 12px",
-                                                    background: "#f0f1f5",
-                                                    border: "1px solid #d5d8e0",
-                                                    borderRadius: 16,
-                                                    fontSize: 13,
-                                                    cursor: "pointer",
-                                                    color: "#1a1d26",
-                                                    transition: "all 0.2s"
-                                                }}
-                                                onMouseEnter={e => { e.currentTarget.style.background = "#e5e7ef"; e.currentTarget.style.borderColor = "#c5c8d0"; }}
-                                                onMouseLeave={e => { e.currentTarget.style.background = "#f0f1f5"; e.currentTarget.style.borderColor = "#d5d8e0"; }}
-                                            >
-                                                + {t.name}
-                                                {/* Names repeat across leagues (e.g. two "Trojans") — show which one. */}
-                                                <span style={{ color: "#8b90a0", marginLeft: 6 }}>· {teamLeagueSummary(t)}</span>
-                                            </div>
-                                        ))}
-                                        {teamsStatus === "loading" && teams.length === 0 && (
-                                            <div style={{ fontSize: 13, color: "#8b90a0", fontStyle: "italic" }}>
-                                                <i className="fa-solid fa-spinner fa-spin" style={{ marginRight: 6 }}></i>Loading teams...
-                                            </div>
-                                        )}
-                                        {teamsStatus === "loaded" && teams.filter(t => !t.isPlaceholder && !jerseyPrompt.selectedTeams.find(st => st.teamId === String(t._id))).length === 0 && (
-                                            <div style={{ fontSize: 13, color: "#8b90a0", fontStyle: "italic" }}>No more teams available.</div>
-                                        )}
-                                    </div>
-                                    
-                                    <label className="admin-form-label">Team Pool (Selected)</label>
+                                    <label className="admin-form-label">Add to a team</label>
+                                    <TeamPicker
+                                        teams={teams}
+                                        status={teamsStatus === "loaded" ? "loaded" : "loading"}
+                                        excludeIds={jerseyPrompt.selectedTeams.map((st) => st.teamId)}
+                                        idPrefix="fa-assign"
+                                        onPick={(t) => setJerseyPrompt((prev) => ({
+                                            ...prev,
+                                            selectedTeams: [...prev.selectedTeams, { teamId: String(t._id), teamName: t.name, jerseyNumber: "" }],
+                                        }))}
+                                    />
+
+                                    <label className="admin-form-label">Selected teams</label>
                                     <div style={{ background: "#f9fafb", border: "1px solid #e8eaef", borderRadius: 8, padding: 12 }}>
                                         {jerseyPrompt.selectedTeams.length === 0 ? (
-                                            <div style={{ fontSize: 13, color: "#8b90a0", fontStyle: "italic", padding: "8px 0" }}>Click a team above to add it to the pool.</div>
+                                            <div style={{ fontSize: 13, color: "#8b90a0", fontStyle: "italic", padding: "8px 0" }}>Pick a team above, then enter the jersey number.</div>
                                         ) : (
                                             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                                                 {jerseyPrompt.selectedTeams.map((st, index) => (

@@ -6,7 +6,8 @@ import AdminLayout, { hasAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useImpersonation } from "@/components/ImpersonationProvider";
 import { useToast } from "@/components/AdminToast";
-import { teamLabel, teamLeagueSummary, sortTeamsForPicker } from "@/lib/teamLabel";
+import { teamLeagueSummary } from "@/lib/teamLabel";
+import TeamPicker from "@/components/TeamPicker";
 import { playerTeamsPayload } from "@/lib/playerTeamsPayload";
 import MergePlayersModal from "@/components/MergePlayersModal";
 
@@ -125,25 +126,17 @@ function PlayerModal({ onClose, onSave, initial, orgUsers, allTeams, teamsLoaded
                         )}
                     </div>
                     <label className="admin-form-label">Add to another team</label>
-                    <select 
-                        className="admin-form-select" 
-                        value=""
-                        onChange={e => {
-                            const selectedTeamId = e.target.value;
-                            if (!selectedTeamId) return;
-                            const team = allTeams.find(t => String(t._id) === selectedTeamId);
-                            if (team && !form.teams.find(t => t.teamId === selectedTeamId)) {
-                                setForm(prev => ({
-                                    ...prev,
-                                    teams: [...prev.teams, { teamId: selectedTeamId, teamName: team.name, jerseyNumber: "" }]
-                                }));
-                            }
-                        }} 
-                    >
-                        <option value="">{teamsLoaded ? "-- Select a team to add --" : "Loading teams..."}</option>
-                        {/* Label with league/season — names repeat across leagues (e.g. two "Trojans"). */}
-                        {sortTeamsForPicker(allTeams).filter(t => !form.teams.find(et => et.teamId === String(t._id))).map(t => <option key={t._id} value={t._id}>{teamLabel(t)}</option>)}
-                    </select>
+                    <TeamPicker
+                        teams={allTeams}
+                        status={teamsLoaded ? "loaded" : "loading"}
+                        excludeIds={form.teams.map((t) => t.teamId)}
+                        idPrefix="org-player"
+                        onPick={(team) => setForm((prev) => (
+                            prev.teams.some((t) => t.teamId === String(team._id))
+                                ? prev
+                                : { ...prev, teams: [...prev.teams, { teamId: String(team._id), teamName: team.name, jerseyNumber: "" }] }
+                        ))}
+                    />
                 </div>
                 )}
 

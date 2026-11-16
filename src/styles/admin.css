@@ -1570,3 +1570,47 @@
     cursor: not-allowed;
     pointer-events: none;
 }
+
+/* ── Team picker (components/TeamPicker.js) ───────────────────────────── */
+.team-picker { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.team-picker-search { position: relative; }
+.team-picker-search i {
+    position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+    color: #a0a4b2; font-size: 13px; pointer-events: none;
+}
+.team-picker-search .admin-form-input { padding-left: 32px; }
+.team-picker-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.team-picker-controls .admin-form-select { flex: 1 1 140px; min-width: 0; width: auto; font-size: 13px; padding: 6px 8px; }
+.team-picker-scope {
+    display: inline-flex; border: 1px solid #d5d8e0; border-radius: 6px; overflow: hidden; flex-shrink: 0;
+}
+.team-picker-scope button {
+    border: 0; background: #fff; color: #5a5f72; font-size: 12px; font-weight: 600;
+    padding: 6px 10px; cursor: pointer; transition: background 0.15s ease, color 0.15s ease;
+}
+.team-picker-scope button + button { border-left: 1px solid #d5d8e0; }
+.team-picker-scope button:hover { background: #f4f5f8; }
+.team-picker-scope button.is-active { background: #1a1d26; color: #fff; }
+.team-picker-scope button:focus-visible { outline: 2px solid #FF1E00; outline-offset: -2px; }
+.team-picker-count { font-size: 12px; color: #8b90a0; }
+.team-picker-list {
+    list-style: none; margin: 0; padding: 0; max-height: 280px; overflow-y: auto;
+    border: 1px solid #e8eaef; border-radius: 8px; background: #fff;
+}
+.team-picker-list li + li { border-top: 1px solid #f0f1f4; }
+.team-picker-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    width: 100%; padding: 8px 12px; border: 0; background: transparent; text-align: left; cursor: pointer;
+    transition: background 0.12s ease;
+}
+.team-picker-row:hover { background: #f7f8fa; }
+.team-picker-row:focus-visible { outline: 2px solid #FF1E00; outline-offset: -2px; }
+.team-picker-row-text { display: flex; flex-direction: column; min-width: 0; }
+.team-picker-row-name { font-size: 14px; font-weight: 600; color: #1a1d26; }
+.team-picker-row-meta { font-size: 12px; color: #8b90a0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.team-picker-row-add {
+    flex-shrink: 0; font-size: 12px; font-weight: 600; color: #FF1E00;
+    padding: 4px 10px; border: 1px solid rgba(255, 30, 0, 0.35); border-radius: 6px;
+}
+.team-picker-row:hover .team-picker-row-add { background: #FF1E00; color: #fff; border-color: #FF1E00; }
+.team-picker-note { font-size: 13px; color: #8b90a0; font-style: italic; padding: 6px 0; }

@@ -44,3 +44,10 @@ test("sortTeamsForPicker doesn't mutate its input", () => {
     sortTeamsForPicker(input);
     assert.deepEqual(input.map((t) => t._id), ["b", "s"]);
 });
+
+test("summary lists the newest leagues first", () => {
+    const { teamLeagueSummary } = require("../src/lib/teamLabel");
+    const lg = (name, season) => ({ league: { name, type: "past", season: { name: season } } });
+    const team = { leagues: [lg("Riverside", "Fall 2021"), lg("Chino", "Winter 2026"), lg("Riverside", "Summer 2024")] };
+    assert.equal(teamLeagueSummary(team), "Chino (Winter 2026), Riverside (Summer 2024) +1 more (past)");
+});

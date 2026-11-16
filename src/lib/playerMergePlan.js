@@ -1,6 +1,8 @@
 // Pure rules for "merge player records into one player" (lib/playerMerge.js
 // does the database work). CommonJS so it runs under `node --test`.
 
+const { seasonSortKey } = require("./seasonOrder");
+
 const MAX_MERGE_SOURCES = 200;
 
 // Names the old-site import gave players it only knew by jersey number:
@@ -13,18 +15,6 @@ function isStandInName(name) {
 }
 
 const OBJECT_ID_RE = /^[0-9a-f]{24}$/i;
-
-// Order of a season name within its year ("Winter 2024" < "Summer 2024" <
-// "Fall 2024" < "Holiday 2024"); unknown names sort after them.
-const SEASON_TERMS = ["winter", "spring", "summer", "fall", "holiday"];
-
-/** @param {string} name @returns {number} sortable key, e.g. 20243 for "Fall 2024" */
-function seasonSortKey(name) {
-    const text = String(name || "").toLowerCase();
-    const year = Number((text.match(/\d{4}/) || [0])[0]);
-    const term = SEASON_TERMS.findIndex((t) => text.includes(t));
-    return year * 10 + (term === -1 ? SEASON_TERMS.length : term);
-}
 
 /**
  * Normalize and validate a merge request.
