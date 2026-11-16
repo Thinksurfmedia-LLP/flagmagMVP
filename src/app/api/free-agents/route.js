@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
 import dbConnect from "@/lib/dbConnect";
 import Player from "@/models/Player";
 import User from "@/models/User";
 import Organization from "@/models/Organization";
 import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
-import { reconcilePlayerStatuses } from "@/lib/playerRosterSync";
+import { reconcileOrgPlayerStatuses } from "@/lib/playerRosterSync";
 import { runAfterResponseThrottled } from "@/lib/backgroundTask";
 import { containsRegex } from "@/lib/searchRegex";
 import { validateFreeAgentFields, validatePassword } from "@/lib/freeAgentValidation";
@@ -33,6 +34,28 @@ function parsePositiveInt(value, fallback) {
     return Number.isFinite(n) && n > 0 ? n : fallback;
 }
 
+// Account-less free-agent Player docs that a free-agent user could be the
+// owner of (same name, same org). Only names that actually belong to a
+// free-agent user are fetched — the legacy import added ~54k account-less
+// historical players, and loading all of them on every pass took seconds.
+// Imported historical players are never "orphans": they carry years of old
+// stats, and treating one as a duplicate would delete or hijack it the day a
+// new free agent signs up with the same name.
+async function findLinkableOrphans(freeAgentUsers, userOrgIds) {
+    const names = [...new Set(freeAgentUsers.map((u) => u.name).filter(Boolean))];
+    if (names.length === 0) return [];
+    const candidates = await Player.find({ user: null, status: "free_agent", organization: { $in: userOrgIds }, name: { $in: names } })
+        .select("_id name organization")
+        .lean();
+    if (candidates.length === 0) return [];
+    const imported = await mongoose.connection.db.collection("legacyimports")
+        .find({ entity: "player", docId: { $in: candidates.map((c) => c._id) } })
+        .project({ docId: 1 })
+        .toArray();
+    const importedIds = new Set(imported.map((r) => String(r.docId)));
+    return candidates.filter((c) => !importedIds.has(String(c._id)));
+}
+
 // Sync: ensure every user with free_agent role has a Player document.
 // Scoped to one organization when orgId is given (organizers) so a single
 // org's page load doesn't walk every free agent in the system.
@@ -52,7 +75,7 @@ async function syncFreeAgentUsers(orgId) {
     const existingPlayers = await Player.find({ user: { $in: userIds } }).select("user").lean();
     const existingUserIds = new Set(existingPlayers.map(p => String(p.user)));
 
-    const orphans = await Player.find({ user: null, status: "free_agent", organization: { $in: userOrgIds } }).select("_id name organization").lean();
+    const orphans = await findLinkableOrphans(freeAgentUsers, userOrgIds);
     const orphanMap = new Map();
     for (const o of orphans) {
         const key = `${o.name}|${o.organization}`;
@@ -94,12 +117,7 @@ async function syncFreeAgentUsers(orgId) {
 // reconciles the players it touches, so this is only a safety net.
 async function healFreeAgentData(orgId) {
     await syncFreeAgentUsers(orgId);
-    if (orgId) {
-        const orgPlayerIds = await Player.distinct("_id", { organization: orgId });
-        if (orgPlayerIds.length > 0) await reconcilePlayerStatuses(orgPlayerIds);
-    } else {
-        await reconcilePlayerStatuses();
-    }
+    await reconcileOrgPlayerStatuses(orgId);
 }
 
 // The heal pass takes ~10s on a large org, so it runs after the response is
