@@ -18,7 +18,11 @@ import { parseGameListQuery, applyGameListQuery, gameListFindOptions } from "@/l
 // changes (stale-while-revalidate; see fingerprintCache.js).
 const orgGamesCache = createFingerprintCache({
     // Safety net for edits the fingerprint can't see (e.g. a raw DB write).
-    maxAgeMs: 5 * 60 * 1000,
+    // Every expiry rebuilds all ~21k games (~16MB over Atlas, ~8-10s) even
+    // when nothing changed, slowing every other request while it runs — so
+    // this is 30 minutes rather than 5; real changes are caught by the
+    // fingerprint on every request regardless.
+    maxAgeMs: 30 * 60 * 1000,
     maxEntries: 50,
     onBackgroundError: (error, key) => console.error(`[org games] background refresh failed for ${key}:`, error),
 });
@@ -122,6 +126,17 @@ async function resolveSeasonLeagueIds(orgId, season) {
     return League.distinct("_id", { organization: orgId, season: seasonId });
 }
 
+/**
+ * The ?season= slice of the org's games, or null when the season filter
+ * doesn't apply (?season=default with no default season set).
+ */
+async function buildSeasonGames(orgId, query) {
+    const seasonLeagueIds = await resolveSeasonLeagueIds(orgId, query.season);
+    if (!seasonLeagueIds) return null;
+    if (seasonLeagueIds.length === 0) return [];
+    return buildOrgGames(orgId, seasonLeagueIds, gameListFindOptions(query));
+}
+
 // GET /api/organizations/[slug]/games
 // Returns all games across every league for this org in a single round-trip.
 // Replaces the N sequential /api/seasons/[id]/games calls the mobile app was making.
@@ -142,8 +157,8 @@ export async function GET(request, { params }) {
         }
 
         const cacheKey = String(org._id);
-        const seasonLeagueIds = await resolveSeasonLeagueIds(org._id, query.season);
-        if (seasonLeagueIds && seasonLeagueIds.length === 0) {
+        // Not a season id → no leagues, without touching the DB again.
+        if (query.season && query.season !== "default" && !mongoose.isValidObjectId(query.season)) {
             return NextResponse.json({ success: true, count: 0, data: [] });
         }
 
@@ -153,9 +168,14 @@ export async function GET(request, { params }) {
         // imports that's ~21k games (~13MB), and every rebuild (server start,
         // any data change, every maxAgeMs) saturates the Atlas link for
         // minutes, timing out every other request meanwhile.
-        if (seasonLeagueIds) {
-            const data = await buildOrgGames(org._id, seasonLeagueIds, gameListFindOptions(query));
-            return NextResponse.json({ success: true, count: data.length, data });
+        if (query.season) {
+            // Not cached: a cache keyed on the org-wide fingerprint re-checked
+            // all ~21k games on every request (this runs on every xFlag page)
+            // and was invalidated by any edit anywhere in the org. A season
+            // slice is a few hundred games and always fresh this way.
+            // null: ?season=default with no default season → every game, below.
+            const slice = await buildSeasonGames(org._id, query);
+            if (slice) return NextResponse.json({ success: true, count: slice.length, data: slice });
         }
 
         const games = await orgGamesCache.get(cacheKey, {

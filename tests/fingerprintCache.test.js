@@ -189,3 +189,50 @@ test("persist: load/save failures fall back to computing and are reported, never
     await tick();
     assert.deepEqual(errors.map((e) => e.message).sort(), ["load down", "save down"]);
 });
+
+test("serveStaleOnChange: false waits for the recompute when the fingerprint changed", async () => {
+    const { cache } = setup({ serveStaleOnChange: false });
+    let version = "v1";
+    let computes = 0;
+    const opts = { fingerprint: async () => version, compute: async () => `${version}#${++computes}` };
+    assert.equal(await cache.get("k", opts), "v1#1");
+    version = "v2";
+    assert.equal(await cache.get("k", opts), "v2#2");
+    assert.equal(await cache.get("k", opts), "v2#2");
+    assert.equal(computes, 2);
+});
+
+test("serveStaleOnChange: false still serves an aged entry with an unchanged fingerprint while refreshing", async () => {
+    const { cache, advance } = setup({ serveStaleOnChange: false });
+    let computes = 0;
+    const opts = { fingerprint: async () => "v1", compute: async () => ++computes };
+    assert.equal(await cache.get("k", opts), 1);
+    advance(1000);
+    assert.equal(await cache.get("k", opts), 1);
+    await tick(); await tick();
+    assert.equal(await cache.get("k", opts), 2);
+});
+
+test("serveStaleOnChange: false never hands a caller another caller's pre-write result", async () => {
+    const { cache } = setup({ serveStaleOnChange: false });
+    let version = "v1";
+    let releaseFirst;
+    const firstCompute = new Promise((r) => { releaseFirst = r; });
+    let computes = 0;
+    const opts = {
+        fingerprint: async () => version,
+        compute: async () => {
+            const n = ++computes;
+            const seen = version;
+            if (n === 1) await firstCompute; // slow rebuild started before the write
+            return `${seen}#${n}`;
+        },
+    };
+    const before = cache.get("k", opts); // reads fingerprint v1, starts a slow compute
+    await new Promise((r) => setImmediate(r));
+    version = "v2"; // an admin saves while that rebuild is running
+    const after = cache.get("k", opts); // must not join the v1 request
+    releaseFirst();
+    assert.equal(await before, "v1#1");
+    assert.equal(await after, "v2#2");
+});

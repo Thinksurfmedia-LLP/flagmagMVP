@@ -9,6 +9,7 @@ import { isNoStatsTeamName } from "@/lib/noStatsTeams";
 import { findGameTeamsWithPlayers } from "@/lib/gameTeams";
 import { computePasserRating, importedLinesToStatRows, passingDerived } from "@/lib/importedStats";
 import { createFingerprintCache } from "@/lib/fingerprintCache";
+import { createTtlMemo } from "@/lib/ttlMemo";
 import { fingerprintOf } from "@/lib/dataFingerprint";
 
 // Passer rating — the legacy Xflag 5-factor formula. Implementation moved to
@@ -837,6 +838,59 @@ const seasonStatsCache = createFingerprintCache({
     onBackgroundError: (error, key) => console.error(`[statsAggregation] background refresh failed for ${key}:`, error),
 });
 
+// Imported old-site leagues (registered in the `legacyimports` collection by
+// scripts/legacy/import-season.mjs) are frozen history: their games, stat
+// lines and rosters don't change. Re-checking their fingerprint on every
+// request cost two sequential Atlas round trips per league (x every league
+// of a season on the leaderboard), so for them the fingerprint itself is
+// memoized for a couple of minutes and results live a day — both
+// stale-while-revalidate, so a request never waits on either once a league
+// has been computed. The first request per process still checks the real
+// fingerprint, so a persisted result from before a data fix is never trusted
+// blindly; an admin edit to an imported league shows up within a few
+// minutes (the fingerprint re-check notices it). Live leagues keep
+// the per-request fingerprint check above. STATS_CACHE_VERSION bumps still
+// invalidate both (same persisted keys).
+const LEGACY_STATS_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+const LEGACY_FINGERPRINT_TTL_MS = 2 * 60 * 1000;
+const LEGACY_LEAGUE_IDS_TTL_MS = 10 * 60 * 1000;
+const legacySeasonStatsCache = createFingerprintCache({
+    maxAgeMs: LEGACY_STATS_MAX_AGE_MS,
+    // ~40KB per league; an org has ~850 imported leagues.
+    maxEntries: 500,
+    persist: statsCachePersist,
+    onBackgroundError: (error, key) => console.error(`[statsAggregation] legacy background refresh failed for ${key}:`, error),
+});
+const legacyFingerprints = createTtlMemo({
+    ttlMs: LEGACY_FINGERPRINT_TTL_MS,
+    maxEntries: 2000,
+    onError: (error, key) => console.error(`[statsAggregation] legacy fingerprint refresh failed for ${key}:`, error),
+});
+const legacyLeagueIdSet = createTtlMemo({
+    ttlMs: LEGACY_LEAGUE_IDS_TTL_MS,
+    onError: (error) => console.error("[statsAggregation] legacy league id refresh failed:", error),
+});
+
+async function loadLegacyLeagueIds() {
+    const rows = await mongoose.connection.db
+        .collection("legacyimports")
+        .find({ entity: "league" })
+        .project({ _id: 0, docId: 1 })
+        .toArray();
+    return new Set(rows.map((r) => String(r.docId)));
+}
+
+/** True when `leagueId` was imported from an old site. Lookup failures count as "not legacy" (the always-correct live path). */
+async function isLegacyLeague(leagueId) {
+    try {
+        const ids = await legacyLeagueIdSet.get("league", loadLegacyLeagueIds);
+        return ids.has(String(leagueId));
+    } catch (error) {
+        console.error("[statsAggregation] legacy league lookup failed:", error);
+        return false;
+    }
+}
+
 // noStatsBothSides games (see start-no-stats-game/route.js) are excluded
 // outright — neither side's plays should feed league/season player stats or
 // the season leaderboard, unlike noStatsSide which only strips one side's
@@ -1054,10 +1108,18 @@ async function computeSeasonStatsUncached(leagueId, orgId) {
  * need the same data) and reuses the result until the league's data changes.
  * The returned rows are shared across callers — copy before modifying.
  */
-export function computeSeasonStats(leagueId, orgId) {
-    return seasonStatsCache.get(`${leagueId}|${orgId}`, {
+export async function computeSeasonStats(leagueId, orgId) {
+    const key = `${leagueId}|${orgId}`;
+    const compute = () => computeSeasonStatsUncached(leagueId, orgId);
+    if (await isLegacyLeague(leagueId)) {
+        return legacySeasonStatsCache.get(key, {
+            fingerprint: () => legacyFingerprints.get(key, () => computeLeagueFingerprint(leagueId, orgId)),
+            compute,
+        });
+    }
+    return seasonStatsCache.get(key, {
         fingerprint: () => computeLeagueFingerprint(leagueId, orgId),
-        compute: () => computeSeasonStatsUncached(leagueId, orgId),
+        compute,
     });
 }
 

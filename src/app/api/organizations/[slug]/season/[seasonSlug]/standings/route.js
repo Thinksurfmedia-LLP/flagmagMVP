@@ -18,13 +18,17 @@ export async function GET(request, { params }) {
         if (!league) return NextResponse.json({ success: false, error: "League not found" }, { status: 404 });
 
         const isPlayoffs = league.leagueType === "playoffs";
-        const teams = await Team.find({ organization: org._id, "leagues.league": league._id })
-            .select("name logo leagues")
-            .lean();
-
+        // Independent queries — one round trip instead of two.
         // noStatsBothSides games (a forfeit turned into a live No Stats
         // Game) never count toward either team's win/loss/points here.
-        const games = await Game.find({ league: league._id, status: "completed", gameType: { $ne: "practice" }, noStatsBothSides: { $ne: true } }).lean();
+        const [teams, games] = await Promise.all([
+            Team.find({ organization: org._id, "leagues.league": league._id })
+                .select("name logo leagues")
+                .lean(),
+            Game.find({ league: league._id, status: "completed", gameType: { $ne: "practice" }, noStatsBothSides: { $ne: true } })
+                .select("teamA.name teamA.score teamB.name teamB.score")
+                .lean(),
+        ]);
 
         // Seed all teams with zero stats
         const stats = {};

@@ -29,30 +29,38 @@ export async function GET(request, { params }) {
             return NextResponse.json({ success: true, data: [] });
         }
 
-        // Look up county ObjectIds matching the org's state/county combos
-        const states = await State.find({}).lean();
+        // Look up county ObjectIds matching the org's state/county combos —
+        // states and candidate counties in one parallel round trip instead
+        // of one County.findOne per combo.
+        const [states, counties] = await Promise.all([
+            State.find({}).select("name abbreviation").lean(),
+            County.find({ name: { $in: [...new Set(combos.map((c) => c.countyName))] } }).select("name state").lean(),
+        ]);
         const stateMap = new Map(states.map((s) => [s.abbreviation, s._id]));
+        const stateById = new Map(states.map((s) => [String(s._id), s]));
 
-        const countyIds = [];
+        const countyById = new Map();
         for (const { stateAbbr, countyName } of combos) {
             const stateId = stateMap.get(stateAbbr);
             if (!stateId) continue;
-            const county = await County.findOne({ state: stateId, name: countyName }).lean();
-            if (county) countyIds.push(county._id);
+            const county = counties.find((c) => c.name === countyName && String(c.state) === String(stateId));
+            if (county) countyById.set(String(county._id), county);
         }
 
-        if (countyIds.length === 0) {
+        if (countyById.size === 0) {
             return NextResponse.json({ success: true, data: [] });
         }
 
-        const venues = await Venue.find({ county: { $in: countyIds } })
-            .populate({
-                path: "county",
-                select: "name state",
-                populate: { path: "state", select: "name abbreviation" },
-            })
+        // County/state names come from the docs loaded above (every venue
+        // returned is in one of those counties) rather than a populate.
+        const venues = (await Venue.find({ county: { $in: [...countyById.values()].map((c) => c._id) } })
+            .select("name slug address cityName managerName managerPhone county")
             .sort({ name: 1 })
-            .lean();
+            .lean())
+            .map((v) => {
+                const county = countyById.get(String(v.county));
+                return { ...v, county: county && { ...county, state: stateById.get(String(county.state)) } };
+            });
 
         const data = venues.map((v) => ({
             _id: v._id,

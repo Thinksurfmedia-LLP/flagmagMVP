@@ -17,6 +17,13 @@
 // (fresh → returned; stale → returned while recomputing), and every compute
 // is saved. Persistence is best-effort — its failures go to onBackgroundError
 // and the cache falls back to computing.
+//
+// `serveStaleOnChange: false` drops stale-while-revalidate for CHANGED data:
+// when the fingerprint differs from the cached one the caller waits for the
+// recompute instead of getting the old value (for results that must reflect
+// a write immediately, e.g. an admin picker right after creating a league).
+// An entry that is only older than maxAgeMs (same fingerprint) is still
+// served while it refreshes in the background.
 
 /**
  * @param {{
@@ -24,13 +31,14 @@
  *   maxEntries: number,
  *   onBackgroundError?: (error: unknown, key: string) => void,
  *   now?: () => number,
+ *   serveStaleOnChange?: boolean,
  *   persist?: {
  *     load: (key: string) => Promise<{ value: unknown, fingerprint: string, savedAt: number } | null>,
  *     save: (key: string, value: unknown, fingerprint: string, savedAt: number) => Promise<void>,
  *   },
  * }} options
  */
-function createFingerprintCache({ maxAgeMs, maxEntries, onBackgroundError = () => {}, now = Date.now, persist = null }) {
+function createFingerprintCache({ maxAgeMs, maxEntries, onBackgroundError = () => {}, now = Date.now, persist = null, serveStaleOnChange = true }) {
     const entries = new Map(); // key -> { value, fingerprint, createdAt }
     const refreshes = new Map(); // key -> { fingerprint, promise }
     const pending = new Map(); // key -> promise of an in-progress get()
@@ -91,6 +99,7 @@ function createFingerprintCache({ maxAgeMs, maxEntries, onBackgroundError = () =
 
         const refreshing = refresh(key, fingerprint, compute);
         if (!cached) return refreshing;
+        if (!serveStaleOnChange && cached.fingerprint !== fingerprint) return refreshing;
 
         refreshing.catch((error) => onBackgroundError(error, key));
         return cached.value;
@@ -103,6 +112,11 @@ function createFingerprintCache({ maxAgeMs, maxEntries, onBackgroundError = () =
      * @returns {Promise<T>}
      */
     function get(key, { fingerprint, compute }) {
+        // Must-be-fresh caches never join another caller's in-progress get():
+        // it may have read its fingerprint before a write this caller has
+        // already seen. Each call checks the fingerprint itself; computes are
+        // still shared per fingerprint (see refresh()).
+        if (!serveStaleOnChange) return resolve(key, fingerprint, compute);
         const inFlight = pending.get(key);
         if (inFlight) return inFlight;
         const promise = resolve(key, fingerprint, compute).finally(() => pending.delete(key));
