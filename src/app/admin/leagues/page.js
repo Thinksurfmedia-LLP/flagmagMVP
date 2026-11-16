@@ -7,6 +7,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 import WeekdayDatePicker from "@/components/WeekdayDatePicker";
 import ConfirmModal from "@/components/ConfirmModal";
+import { uploadImage } from "@/lib/uploadImage";
 
 function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrgId, userOrgName, userOrgSlug }) {
     const { showSuccess, showError } = useToast();
@@ -193,18 +194,9 @@ function LeagueModal({ onClose, onSave, initial, isAdmin, organizations, userOrg
         if (!file) return;
         setUploading(true);
         try {
-            const fd = new FormData();
-            fd.append("file", file);
-            const res = await fetch("/api/upload", { method: "POST", body: fd });
-            // A file over the server's upload limit never reaches our API route at
-            // all — nginx rejects it with a raw 413 HTML page, not JSON, so calling
-            // res.json() on it throws. This used to fail completely silently here
-            // (empty catch, no error shown) — now it tells the admin why.
-            if (res.status === 413) { showError("Upload size limit exceeded. Maximum file size is 1MB."); return; }
-            const data = await res.json();
-            if (data.success) setForm(prev => ({ ...prev, image: data.url }));
-            else showError(data.error || "Upload failed");
-        } catch { showError("Upload failed"); }
+            const url = await uploadImage(file);
+            setForm(prev => ({ ...prev, image: url }));
+        } catch (err) { showError(err.message); }
         finally { setUploading(false); }
     };
 
@@ -1094,18 +1086,8 @@ function PlaceholderTeamsModal({ onClose, isAdmin, organizations, userOrgId }) {
         if (!file) return;
         setUploadingFlag(true);
         try {
-            const fd = new FormData();
-            fd.append("file", file);
-            const res = await fetch("/api/upload", { method: "POST", body: fd });
-            // A file over the server's upload limit never reaches our API route at
-            // all — nginx rejects it with a raw 413 HTML page, not JSON, so calling
-            // res.json() on it throws and used to fall through to a generic
-            // "Upload failed" toast. Catch that case by status before parsing.
-            if (res.status === 413) { showError("Upload size limit exceeded. Maximum file size is 1MB."); return; }
-            const data = await res.json();
-            if (data.success) setter(data.url);
-            else showError(data.error || "Upload failed");
-        } catch { showError("Upload failed"); }
+            setter(await uploadImage(file));
+        } catch (err) { showError(err.message); }
         finally { setUploadingFlag(false); }
     };
 

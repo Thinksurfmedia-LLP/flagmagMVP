@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { uploadImage } from "@/lib/uploadImage";
 
 const inputStyle = {
     width: "100%",
@@ -93,17 +94,10 @@ export default function PlayerEditModal({ onClose }) {
         if (!file) return;
         setUploading(true);
         try {
-            const fd = new FormData();
-            fd.append("file", file);
-            const res = await fetch("/api/upload", { method: "POST", body: fd });
-            const data = await res.json();
-            if (data.success) {
-                setForm((f) => ({ ...f, [field]: data.url }));
-            } else {
-                setError(data.error || "Upload failed.");
-            }
-        } catch {
-            setError("Upload failed. Please try again.");
+            const url = await uploadImage(file);
+            setForm((f) => ({ ...f, [field]: url }));
+        } catch (err) {
+            setError(err.message);
         } finally {
             setUploading(false);
             if (inputRef.current) inputRef.current.value = "";

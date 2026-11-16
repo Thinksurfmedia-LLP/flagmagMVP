@@ -5,6 +5,7 @@ import AdminLayout, { hasAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 import { teamLabel, sortTeamsForPicker } from "@/lib/teamLabel";
+import { uploadImage } from "@/lib/uploadImage";
 
 // Wipes local browser state so a force-logged-out user actually gets a
 // clean build on next login, not a login screen over stale cached assets.
@@ -243,19 +244,10 @@ export default function SettingsPage() {
         const key = field === "logo" ? "logo" : "banner";
         setUploading(prev => ({ ...prev, [key]: true }));
         try {
-            const fd = new FormData();
-            fd.append("file", file);
-            const res = await fetch("/api/upload", { method: "POST", body: fd });
-            // A file over the server's upload limit never reaches our API route at
-            // all — nginx rejects it with a raw 413 HTML page, not JSON, so calling
-            // res.json() on it throws and used to fall through to a generic
-            // "Upload failed" toast. Catch that case by status before parsing.
-            if (res.status === 413) { showError("Upload size limit exceeded. Maximum file size is 1MB."); return; }
-            const data = await res.json();
-            if (!data.success) { showError(data.error || "Upload failed"); return; }
-            setForm(prev => ({ ...prev, [field]: data.url }));
+            const url = await uploadImage(file);
+            setForm(prev => ({ ...prev, [field]: url }));
             showSuccess("Image uploaded!");
-        } catch { showError("Upload failed"); }
+        } catch (err) { showError(err.message); }
         finally { setUploading(prev => ({ ...prev, [key]: false })); }
     };
 
@@ -263,15 +255,9 @@ export default function SettingsPage() {
         if (!file) return;
         setUploadingCustomIcon(index);
         try {
-            const fd = new FormData();
-            fd.append("file", file);
-            const res = await fetch("/api/upload", { method: "POST", body: fd });
-            if (res.status === 413) { showError("Upload size limit exceeded. Maximum file size is 1MB."); return; }
-            const data = await res.json();
-            if (!data.success) { showError(data.error || "Upload failed"); return; }
-            updateCustomLink(index, "icon", data.url);
+            updateCustomLink(index, "icon", await uploadImage(file));
             showSuccess("Icon uploaded!");
-        } catch { showError("Upload failed"); }
+        } catch (err) { showError(err.message); }
         finally { setUploadingCustomIcon(null); }
     };
 

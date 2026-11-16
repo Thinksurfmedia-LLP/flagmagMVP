@@ -23,13 +23,17 @@ export async function GET(request, { params }) {
         const ext = path.extname(safe).toLowerCase();
         const contentType = MIME_TYPES[ext] || "application/octet-stream";
 
-        return new NextResponse(buffer, {
-            status: 200,
-            headers: {
-                "Content-Type": contentType,
-                "Cache-Control": "public, max-age=31536000, immutable",
-            },
-        });
+        const headers = {
+            "Content-Type": contentType,
+            "Cache-Control": "public, max-age=31536000, immutable",
+            "X-Content-Type-Options": "nosniff",
+        };
+        // Any logged-in user can upload an SVG, and an SVG opened directly
+        // in the browser can run script on this origin. Serve it inert.
+        if (ext === ".svg") {
+            headers["Content-Security-Policy"] = "default-src 'none'; style-src 'unsafe-inline'; img-src data:; sandbox";
+        }
+        return new NextResponse(buffer, { status: 200, headers });
     } catch {
         // Dev convenience: a local server pointed at the live database lists
         // uploads that only exist on the production server's disk. When

@@ -7,6 +7,7 @@ import { US_STATES, US_COUNTIES } from "@/lib/usGeoData";
 import AdminLayout, { hasAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
+import { uploadImage } from "@/lib/uploadImage";
 
 const CATEGORY_OPTIONS = ["Men", "Youth", "Women", "Coed"];
 const SCHEDULE_DAY_OPTIONS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
@@ -20,19 +21,9 @@ function ImageUploadField({ label, value, onChange, placeholder, onError }) {
         if (!file) return;
         setUploading(true);
         try {
-            const fd = new FormData();
-            fd.append("file", file);
-            const res = await fetch("/api/upload", { method: "POST", body: fd });
-            // A file over the server's upload limit never reaches our API route at
-            // all — nginx rejects it with a raw 413 HTML page, not JSON, so calling
-            // res.json() on it throws and used to fall through to a generic
-            // "Upload failed" toast. Catch that case by status before parsing.
-            if (res.status === 413) { onError("Upload size limit exceeded. Maximum file size is 1MB."); return; }
-            const data = await res.json();
-            if (data.success) onChange(data.url);
-            else onError(data.error || "Upload failed");
-        } catch {
-            onError("Upload failed");
+            onChange(await uploadImage(file));
+        } catch (err) {
+            onError(err.message);
         } finally {
             setUploading(false);
             e.target.value = "";

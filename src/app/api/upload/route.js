@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { writeFile } from "fs/promises";
+import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import { requireAuth } from "@/lib/apiAuth";
+import { detectImageType, extensionFor } from "@/lib/uploadFileType";
 
 export async function POST(request) {
     try {
@@ -33,17 +34,26 @@ export async function POST(request) {
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
 
-        const ext = path.extname(file.name).toLowerCase() || ".jpg";
-        const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
-        const uploadPath = path.join(process.cwd(), "public", "assets", "images", "uploads", safeName);
+        // The stored type and extension come from the file's actual contents,
+        // not the browser-supplied type/name (which the client controls).
+        const detectedType = detectImageType(buffer);
+        if (!detectedType) {
+            return NextResponse.json({ success: false, error: "This file isn't a valid image. Please use a JPG, PNG, WebP, GIF or SVG." }, { status: 400 });
+        }
 
-        await writeFile(uploadPath, buffer);
+        const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${extensionFor(detectedType)}`;
+        const uploadDir = path.join(process.cwd(), "public", "assets", "images", "uploads");
+        // A fresh checkout/deploy may not have the folder yet — without this
+        // every upload failed with a bare ENOENT 500.
+        await mkdir(uploadDir, { recursive: true });
+        await writeFile(path.join(uploadDir, safeName), buffer);
 
         return NextResponse.json(
             { success: true, url: `/api/uploads/${safeName}` },
             { status: 200 }
         );
     } catch (error) {
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+        console.error("Image upload failed:", error);
+        return NextResponse.json({ success: false, error: "The server couldn't save the image. Please try again." }, { status: 500 });
     }
 }

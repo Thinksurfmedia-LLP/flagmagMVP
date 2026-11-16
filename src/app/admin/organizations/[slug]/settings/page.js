@@ -6,6 +6,7 @@ import AdminLayout, { hasAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useImpersonation } from "@/components/ImpersonationProvider";
 import { useToast } from "@/components/AdminToast";
+import { uploadImage } from "@/lib/uploadImage";
 
 // Wipes local browser state so a force-logged-out user actually gets a
 // clean build on next login, not a login screen over stale cached assets.
@@ -118,15 +119,9 @@ export default function OrgSettingsPage() {
         if (!file) return;
         setUploadingCustomIcon(index);
         try {
-            const fd = new FormData();
-            fd.append("file", file);
-            const res = await fetch("/api/upload", { method: "POST", body: fd });
-            if (res.status === 413) { showError("Upload size limit exceeded. Maximum file size is 1MB."); return; }
-            const data = await res.json();
-            if (!data.success) { showError(data.error || "Upload failed"); return; }
-            updateCustomLink(index, "icon", data.url);
+            updateCustomLink(index, "icon", await uploadImage(file));
             showSuccess("Icon uploaded!");
-        } catch { showError("Upload failed"); }
+        } catch (err) { showError(err.message); }
         finally { setUploadingCustomIcon(null); }
     };
 

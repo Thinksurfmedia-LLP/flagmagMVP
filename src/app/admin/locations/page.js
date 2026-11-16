@@ -8,6 +8,7 @@ import { useImpersonation } from "@/components/ImpersonationProvider";
 import { useToast } from "@/components/AdminToast";
 import { US_STATES, US_COUNTIES } from "@/lib/usGeoData";
 import { isValidPhoneNumber } from "@/lib/validators";
+import { uploadImage } from "@/lib/uploadImage";
 
 const selectStyles = {
     control: (base, state) => ({
@@ -155,32 +156,22 @@ function OrgLocationModal({ open, editingVenue, orgLocations, amenityList, onClo
         if (!files.length) return;
         setUploadingIdx(idx);
         try {
+            // One at a time; a photo that fails is skipped and reported, the
+            // rest still upload (each is shrunk to fit the 1MB limit first).
             const urls = [];
-            let sizeRejected = 0;
+            const failures = [];
             for (const file of files) {
-                const formData = new FormData();
-                formData.append("file", file);
-                const res = await fetch("/api/upload", { method: "POST", body: formData });
-                // A file over the server's upload limit never reaches our API route
-                // at all — nginx rejects it with a raw 413 HTML page, not JSON, so
-                // calling res.json() on it throws. This used to fail completely
-                // silently here (empty catch, no error shown) — now it tells the
-                // admin exactly which photos were too large.
-                if (res.status === 413) { sizeRejected++; continue; }
-                const data = await res.json();
-                if (data.success) urls.push(data.url);
-                else showError(data.error || "Upload failed");
+                try {
+                    urls.push(await uploadImage(file));
+                } catch (err) {
+                    failures.push(`${file.name}: ${err.message}`);
+                }
             }
             if (urls.length) {
                 setFields(prev => prev.map((f, i) => i === idx ? { ...f, images: [...f.images, ...urls] } : f));
             }
-            if (sizeRejected > 0) {
-                showError(
-                    sizeRejected === 1
-                        ? "Upload size limit exceeded. Maximum file size is 1MB."
-                        : `${sizeRejected} photos exceeded the 1MB upload limit and were skipped.`
-                );
-            }
+            if (failures.length === 1) showError(failures[0]);
+            else if (failures.length > 1) showError(`${failures.length} photos couldn't be uploaded. ${failures[0]}`);
         } catch { showError("Upload failed"); }
         finally { setUploadingIdx(null); }
         e.target.value = "";

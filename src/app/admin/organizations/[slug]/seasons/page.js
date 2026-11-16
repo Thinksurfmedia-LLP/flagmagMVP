@@ -6,6 +6,7 @@ import AdminLayout, { hasAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useImpersonation } from "@/components/ImpersonationProvider";
 import { useToast } from "@/components/AdminToast";
+import { uploadImage } from "@/lib/uploadImage";
 
 function LeagueModal({ onClose, onSave, initial, orgCategories, venuesByCounty = [] }) {
     const [form, setForm] = useState({
@@ -23,19 +24,21 @@ function LeagueModal({ onClose, onSave, initial, orgCategories, venuesByCounty =
     });
     const [saving, setSaving] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const { showError } = useToast();
 
     const handleImageUpload = async (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
         setUploading(true);
         try {
-            const fd = new FormData();
-            fd.append("file", file);
-            const res = await fetch("/api/upload", { method: "POST", body: fd });
-            const data = await res.json();
-            if (data.success) setForm(prev => ({ ...prev, image: data.url }));
-        } catch {}
-        setUploading(false);
+            const url = await uploadImage(file);
+            setForm(prev => ({ ...prev, image: url }));
+        } catch (err) {
+            // Used to fail silently — the admin never learned why nothing changed.
+            showError(err.message);
+        } finally {
+            setUploading(false);
+        }
     };
 
     const toggleVenue = (venueName) => {

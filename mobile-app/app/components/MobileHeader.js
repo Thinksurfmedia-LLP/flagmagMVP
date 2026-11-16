@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import Link from "next/link";
 import { useAuth } from "../lib/AuthContext";
+import { uploadImage } from "../lib/uploadImage";
 
 export default function MobileHeader({ showSearch, showFilter, onSearch, onFilter, navLocked = false, onNavLockedAttempt }) {
     const { user, logout, refetch } = useAuth();
@@ -27,34 +28,31 @@ export default function MobileHeader({ showSearch, showFilter, onSearch, onFilte
         if (!file) return;
 
         setUploadingProfile(true);
+        let url;
         try {
-            const formData = new FormData();
-            formData.append("file", file);
-
-            const uploadRes = await fetch("/api/upload", {
-                method: "POST",
-                body: formData,
+            // Shrinks phone photos to fit the server's 1MB upload limit first.
+            url = await uploadImage(file);
+        } catch (error) {
+            alert(error.message);
+            setUploadingProfile(false);
+            if (fileInputRef.current) fileInputRef.current.value = "";
+            return;
+        }
+        try {
+            const updateRes = await fetch("/api/user/profile", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ profilePicture: url }),
             });
-            const uploadData = await uploadRes.json();
-
-            if (uploadData.success) {
-                const updateRes = await fetch("/api/user/profile", {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ profilePicture: uploadData.url }),
-                });
-                const updateData = await updateRes.json();
-                if (updateData.success) {
-                    if (refetch) await refetch();
-                } else {
-                    alert("Failed to update profile picture: " + updateData.error);
-                }
+            const updateData = await updateRes.json();
+            if (updateData.success) {
+                if (refetch) await refetch();
             } else {
-                alert("Upload failed: " + uploadData.error);
+                alert("Failed to update profile picture: " + updateData.error);
             }
         } catch (error) {
-            console.error("Profile picture upload error:", error);
-            alert("An error occurred during upload.");
+            console.error("Profile picture update error:", error);
+            alert("The picture uploaded, but saving it to your profile failed. Please try again.");
         } finally {
             setUploadingProfile(false);
             if (fileInputRef.current) fileInputRef.current.value = "";

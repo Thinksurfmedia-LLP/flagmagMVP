@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import AdminLayout, { hasAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
+import { uploadImage } from "@/lib/uploadImage";
 
 export default function AmenitiesPage() {
     const { user } = useAuth();
@@ -62,18 +63,8 @@ export default function AmenitiesPage() {
         if (!file) return;
         setUploadingIcon(true);
         try {
-            const formData = new FormData();
-            formData.append("file", file);
-            const res = await fetch("/api/upload", { method: "POST", body: formData });
-            // A file over the server's upload limit never reaches our API route at
-            // all — nginx rejects it with a raw 413 HTML page, not JSON, so calling
-            // res.json() on it throws and used to fall through to a generic
-            // "Upload failed" toast. Catch that case by status before parsing.
-            if (res.status === 413) { showError("Upload size limit exceeded. Maximum file size is 1MB."); return; }
-            const data = await res.json();
-            if (data.url) setFormIcon(data.url);
-            else showError("Upload failed");
-        } catch { showError("Upload failed"); }
+            setFormIcon(await uploadImage(file));
+        } catch (err) { showError(err.message); }
         finally { setUploadingIcon(false); }
     };
 
