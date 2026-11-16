@@ -92,7 +92,8 @@ export default function SchedulesPage() {
         }
         setLoading(true);
         try {
-            const params = new URLSearchParams();
+            // Summary only — this list never shows the week-by-week games.
+            const params = new URLSearchParams({ fields: "summary" });
             if (search) params.set("search", search);
             const res = await fetch(`/api/schedules?${params.toString()}`);
             const data = await res.json();

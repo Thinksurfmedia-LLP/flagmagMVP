@@ -8,7 +8,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 import { teamLeagueSummary, sortTeamsForPicker } from "@/lib/teamLabel";
 import { playerTeamsPayload } from "@/lib/playerTeamsPayload";
-import { compressImageForUpload } from "@/lib/compressImage";
+import { uploadImage } from "@/lib/uploadImage";
 
 export default function AdminPlayersPage() {
     const { user } = useAuth();
@@ -26,10 +26,12 @@ export default function AdminPlayersPage() {
     const [editForm, setEditForm] = useState({ name: "", photo: "", teamName: "", jerseyNumber: "" });
     const [saving, setSaving] = useState(false);
     const [teamRemovalPrompt, setTeamRemovalPrompt] = useState(null); // { team, index }
-    // Rosters come from the (slow) full team list. Until it has loaded, a
-    // player's teams are unknown — not empty — so the edit form must not
-    // treat them as "no teams" (that wiped Julian Noble off Inferno).
-    const [teamsStatus, setTeamsStatus] = useState("loading"); // loading | loaded | error
+    // Each player's teams come with the player list (`rosterTeams`); the team
+    // list below only feeds the "Available Teams" picker. A player row
+    // without `rosterTeams` means their teams are unknown — not empty — so
+    // the edit form must not treat them as "no teams" (that wiped Julian
+    // Noble off Inferno).
+    const [teamsStatus, setTeamsStatus] = useState("loading"); // picker list: loading | loaded | error
     const [editBaseline, setEditBaseline] = useState({ teams: [], teamsKnown: false });
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
@@ -44,8 +46,9 @@ export default function AdminPlayersPage() {
 
     useEffect(() => { 
         fetchPlayers(); 
-        // Fetch all teams for the reassignment dropdown
-        fetch("/api/teams")
+        // Team names + leagues for the "Available Teams" picker — no rosters,
+        // which made the full list several MB and ~30s to load.
+        fetch("/api/teams?fields=picker")
             .then(res => res.json())
             .then(data => {
                 if (!data.success) throw new Error(data.error);
@@ -88,7 +91,7 @@ export default function AdminPlayersPage() {
     };
 
     const openEdit = (p, playerTeams) => {
-        const teamsKnown = teamsStatus === "loaded";
+        const teamsKnown = Array.isArray(p.rosterTeams);
         setEditPlayer(p);
         setEditForm({ name: p.name, photo: p.photo || "", teams: playerTeams, deleteStatsFor: [] });
         setEditBaseline({ teams: playerTeams, teamsKnown });
@@ -121,18 +124,12 @@ export default function AdminPlayersPage() {
 
     const playerTeamsMap = useMemo(() => {
         const map = {};
-        players.forEach(p => map[p._id] = []);
-        allTeams.forEach(t => {
-            if (t.isPlaceholder) return;
-            (t.players || []).forEach(tp => {
-                const pid = String(tp.player?._id || tp.player);
-                if (map[pid]) {
-                    if (!map[pid].includes(t.name)) map[pid].push(t.name);
-                }
-            });
+        players.forEach(p => {
+            const names = (p.rosterTeams || []).filter(t => !t.isPlaceholder).map(t => t.teamName);
+            map[p._id] = [...new Set(names)];
         });
         return map;
-    }, [players, allTeams]);
+    }, [players]);
 
     const uniqueTeamsForFilter = Array.from(new Set(Object.values(playerTeamsMap).flat())).sort();
 
@@ -212,10 +209,7 @@ export default function AdminPlayersPage() {
                                             <tbody>
                                                 {paginatedPlayers.map(p => {
                                                     const isInactive = p.isActive === false;
-                                                    const playerTeams = allTeams.filter(t => (t.players || []).some(tp => String(tp.player?._id || tp.player) === String(p._id))).map(t => {
-                                                        const tp = (t.players || []).find(tp => String(tp.player?._id || tp.player) === String(p._id));
-                                                        return { teamId: String(t._id), teamName: t.name, jerseyNumber: tp.jerseyNumber };
-                                                    });
+                                                    const playerTeams = p.rosterTeams || [];
                                                     const firstTeam = playerTeams[0];
                                                     // When filtered to a specific team, show that team's jersey number
                                                     // instead of whichever team happens to be first in the list.
@@ -287,10 +281,7 @@ export default function AdminPlayersPage() {
                                 <div className="players-card-list">
                                     {paginatedPlayers.map(p => {
                                         const isInactive = p.isActive === false;
-                                        const playerTeams = allTeams.filter(t => (t.players || []).some(tp => String(tp.player?._id || tp.player) === String(p._id))).map(t => {
-                                            const tp = (t.players || []).find(tp => String(tp.player?._id || tp.player) === String(p._id));
-                                            return { teamId: String(t._id), teamName: t.name, jerseyNumber: tp.jerseyNumber };
-                                        });
+                                        const playerTeams = p.rosterTeams || [];
                                         const firstTeam = playerTeams[0];
                                         // When filtered to a specific team, show that team's jersey number
                                         // instead of whichever team happens to be first in the list.
@@ -433,20 +424,10 @@ export default function AdminPlayersPage() {
                                                 if (!picked) return;
                                                 setUploadingPhoto(true);
                                                 try {
-                                                    // Phone photos are usually over the 1MB limit — shrink first.
-                                                    const file = await compressImageForUpload(picked).catch((err) => { showError(err.message); return null; });
-                                                    if (!file) return;
-                                                    const fd = new FormData();
-                                                    fd.append("file", file);
-                                                    const res = await fetch("/api/upload", { method: "POST", body: fd });
-                                                    // A file over the server's upload limit never reaches our
-                                                    // API route at all — nginx rejects it with a raw 413 HTML
-                                                    // page, not JSON, so calling res.json() on it throws.
-                                                    if (res.status === 413) { showError("Upload size limit exceeded. Maximum file size is 1MB."); return; }
-                                                    const data = await res.json();
-                                                    if (data.url) setEditForm(prev => ({ ...prev, photo: data.url }));
-                                                    else showError(data.error || "Upload failed");
-                                                } catch { showError("Upload failed"); }
+                                                    // Shrinks phone photos to fit the 1MB limit first.
+                                                    const url = await uploadImage(picked);
+                                                    setEditForm(prev => ({ ...prev, photo: url }));
+                                                } catch (err) { showError(err.message); }
                                                 finally { setUploadingPhoto(false); e.target.value = ""; }
                                             }}
                                         />
@@ -471,7 +452,7 @@ export default function AdminPlayersPage() {
                                     <label className="admin-form-label">Teams</label>
                                     <div style={{ background: "#f9fafb", border: "1px solid #e8eaef", borderRadius: 8, padding: 12, fontSize: 13, color: "#5a5f72" }}>
                                         <i className="fa-solid fa-circle-info" style={{ marginRight: 6 }}></i>
-                                        {teamsStatus === "error" ? "Teams couldn't be loaded" : "Teams were still loading when you opened this"}, so team changes are off for this edit.
+                                        This player&apos;s teams couldn&apos;t be loaded, so team changes are off for this edit.
                                         The player&apos;s teams will not be changed. Name and photo save normally — close and reopen to change teams.
                                     </div>
                                 </div>
@@ -479,6 +460,11 @@ export default function AdminPlayersPage() {
                                 <div className="admin-form-group">
                                     <label className="admin-form-label">Available Teams</label>
                                     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+                                        {teamsStatus !== "loaded" && (
+                                            <div style={{ fontSize: 13, color: "#8b90a0", fontStyle: "italic" }}>
+                                                {teamsStatus === "error" ? "Team list couldn't be loaded. Reload the page to add teams." : "Loading teams..."}
+                                            </div>
+                                        )}
                                         {sortTeamsForPicker(allTeams).filter(t => !t.isPlaceholder && !(editForm.teams || []).find(st => st.teamId === String(t._id))).map(t => (
                                             <div
                                                 key={t._id}
@@ -506,7 +492,7 @@ export default function AdminPlayersPage() {
                                                 <span style={{ color: "#8b90a0", marginLeft: 6 }}>· {teamLeagueSummary(t)}</span>
                                             </div>
                                         ))}
-                                        {allTeams.filter(t => !t.isPlaceholder && !(editForm.teams || []).find(st => st.teamId === String(t._id))).length === 0 && (
+                                        {teamsStatus === "loaded" && allTeams.filter(t => !t.isPlaceholder && !(editForm.teams || []).find(st => st.teamId === String(t._id))).length === 0 && (
                                             <div style={{ fontSize: 13, color: "#8b90a0", fontStyle: "italic" }}>No more teams available.</div>
                                         )}
                                     </div>

@@ -63,7 +63,8 @@ function CreateMatchContent() {
             .catch(() => {})
             .finally(done);
 
-        apiGet(`/api/teams`)
+        // Names, logos and leagues only — the full list carries every roster (several MB).
+        apiGet(`/api/teams?fields=picker`)
             .then((res) => setAllTeams(res.data || []))
             .catch(() => {})
             .finally(done);

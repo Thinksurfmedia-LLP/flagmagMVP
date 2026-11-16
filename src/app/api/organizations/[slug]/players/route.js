@@ -4,6 +4,7 @@ import Organization from "@/models/Organization";
 import User from "@/models/User";
 import Player from "@/models/Player";
 import { requireAdmin } from "@/lib/apiAuth";
+import { withRosterTeams } from "@/lib/playerRosterTeams";
 import { validateTeamJerseyRequests, pushPlayerAtomic, inTransaction, RosterConflictError } from "@/lib/teamJerseyGuard";
 
 // GET players for an organization (through user.organization)
@@ -26,8 +27,10 @@ export async function GET(request, { params }) {
 
         // Find players linked to those users
         const players = await Player.find({ user: { $in: userIds } }).sort({ name: 1 }).lean();
+        const data = await withRosterTeams(players);
 
-        return NextResponse.json({ success: true, count: players.length, data: players }, { status: 200 });
+        // organizationId lets the page ask for just this org's team picker list.
+        return NextResponse.json({ success: true, count: data.length, organizationId: String(org._id), data }, { status: 200 });
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }

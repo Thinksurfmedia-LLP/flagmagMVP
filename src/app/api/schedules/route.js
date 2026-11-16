@@ -48,14 +48,18 @@ export async function GET(request) {
             ];
         }
 
-        const schedules = await Schedule.find(filter)
+        // `?fields=summary` — the list screens only show label, league, season,
+        // location and status. Without it every week's games (with both teams)
+        // were loaded for every schedule: ~4.7MB for XFlag's 880 schedules.
+        const summaryOnly = searchParams.get("fields") === "summary";
+        let query = Schedule.find(filter)
             .populate("organization", "name slug")
             .populate({ path: "leagueId", select: "name image season", populate: { path: "season", select: "name isDefault" } })
-            .populate("locationId", "name address")
-            .populate("weeks.games.team1", "name logo")
-            .populate("weeks.games.team2", "name logo")
-            .sort({ createdAt: -1 })
-            .lean();
+            .populate("locationId", "name address");
+        query = summaryOnly
+            ? query.select("-weeks")
+            : query.populate("weeks.games.team1", "name logo").populate("weeks.games.team2", "name logo");
+        const schedules = await query.sort({ createdAt: -1 }).lean();
 
         // Mongoose's populate silently resolves a dangling leagueId (League
         // doc deleted, ref left behind) to null — identical to "no league

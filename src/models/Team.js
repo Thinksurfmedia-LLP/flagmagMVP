@@ -153,6 +153,9 @@ const TeamSchema = new mongoose.Schema(
 // ambiguous in standings/stats.
 TeamSchema.index({ organization: 1, name: 1 });
 TeamSchema.index({ organization: 1, "leagues.league": 1 });
+// "Which teams is this player on?" — asked on every player save, player
+// list and roster sync. Without it each lookup scanned every team.
+TeamSchema.index({ "players.player": 1 });
 
 function getTeamModel() {
     const existing = mongoose.models.Team;

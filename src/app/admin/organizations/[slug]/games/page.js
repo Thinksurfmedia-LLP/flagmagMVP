@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useParams } from "next/navigation";
 import AdminLayout, { hasAccess } from "@/components/AdminLayout";
 import { useAuth } from "@/components/AuthProvider";
@@ -1213,6 +1213,10 @@ export default function OrgGamesPage() {
     const [venues, setVenues] = useState([]);
     const [games, setGames] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [gamesLoading, setGamesLoading] = useState(false);
+    // Season whose games the list shows ("" until seasons load, then the
+    // org's default season).
+    const [listSeasonId, setListSeasonId] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [editTarget, setEditTarget] = useState(null);
     const [showLiveStats, setShowLiveStats] = useState(false);
@@ -1227,44 +1231,59 @@ export default function OrgGamesPage() {
         }
     }, [slug, impersonatedOrg, enterImpersonation]);
 
-    // Fetch seasons + leagues + teams + venues + all games for this org
+    // Fetch seasons + leagues + teams + venues for this org. Games load per
+    // season (fetchGames below): this used to request every league's games
+    // one by one — 886 requests / ~20k games for XFlag after the legacy import.
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
             const [seasonRes, leagueRes, teamRes, venueRes] = await Promise.all([
                 fetch(`/api/organizations/${slug}/seasons`),
                 fetch(`/api/organizations/${slug}/leagues`),
-                fetch("/api/teams"),
+                // Names/logos only — the game form needs nothing else (rosters made this several MB).
+                fetch("/api/teams?fields=basic"),
                 fetch("/api/locations"),
             ]);
             const [seasonData, leagueData, teamData, venueData] = await Promise.all([
                 seasonRes.json(), leagueRes.json(), teamRes.json(), venueRes.json(),
             ]);
-            if (seasonData.success) setSeasons(seasonData.data);
+            if (seasonData.success) {
+                setSeasons(seasonData.data);
+                setListSeasonId((current) => current || (seasonData.data.find(s => s.isDefault) || seasonData.data[0])?._id || "");
+            }
             if (teamData.success) setTeams(teamData.data);
             if (venueData.success) setVenues(venueData.data);
-
-            const orgLeagues = leagueData.success ? leagueData.data : [];
-            setLeagues(orgLeagues);
-
-            // Fetch games for all leagues in parallel
-            if (orgLeagues.length > 0) {
-                const gameResponses = await Promise.all(
-                    orgLeagues.map(l => fetch(`/api/seasons/${l._id}/games`).then(r => r.json()))
-                );
-                const allGames = gameResponses
-                    .filter(d => d.success)
-                    .flatMap(d => d.data);
-                allGames.sort((a, b) => new Date(b.date) - new Date(a.date) || (b.time || "").localeCompare(a.time || ""));
-                setGames(allGames);
-            } else {
-                setGames([]);
-            }
+            setLeagues(leagueData.success ? leagueData.data : []);
         } catch { showError("Failed to load data"); }
         finally { setLoading(false); }
     }, [slug]);
 
     useEffect(() => { fetchData(); }, [fetchData]);
+
+    // The selected season's games, newest first. A response for a season
+    // that's no longer selected is ignored.
+    const latestGamesRequest = useRef(0);
+    const fetchGames = useCallback(async () => {
+        const requestId = ++latestGamesRequest.current;
+        if (!listSeasonId) { setGames([]); return; }
+        setGamesLoading(true);
+        try {
+            const res = await fetch(`/api/organizations/${slug}/games?season=${encodeURIComponent(listSeasonId)}`);
+            const data = await res.json();
+            if (requestId !== latestGamesRequest.current) return;
+            const seasonGames = data.success ? data.data : [];
+            if (!data.success) showError(data.error || "Failed to load games");
+            setGames([...seasonGames].sort((a, b) => new Date(b.date) - new Date(a.date) || (b.time || "").localeCompare(a.time || "")));
+        } catch {
+            if (requestId === latestGamesRequest.current) showError("Failed to load games");
+        } finally {
+            if (requestId === latestGamesRequest.current) setGamesLoading(false);
+        }
+    }, [slug, listSeasonId, showError]);
+
+    useEffect(() => { fetchGames(); }, [fetchGames]);
+
+    const leagueNameById = useMemo(() => new Map(leagues.map(l => [String(l._id), l.name])), [leagues]);
 
     const handleSave = async (payload) => {
         const { leagueId, ...gameData } = payload;
@@ -1293,7 +1312,7 @@ export default function OrgGamesPage() {
             }
             setShowModal(false);
             setEditTarget(null);
-            fetchData();
+            fetchGames();
         } catch { showError("Failed to save game"); }
     };
 
@@ -1324,12 +1343,17 @@ export default function OrgGamesPage() {
                     <div className="admin-card">
                         <div className="admin-card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                             <h3>{orgName} &mdash; Games ({games.length})</h3>
-                            <button className="admin-btn admin-btn-danger" onClick={() => { setEditTarget(null); setShowModal(true); }}>
-                                <i className="fa-solid fa-plus"></i> Schedule Game
-                            </button>
+                            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                                <select className="admin-form-select" value={listSeasonId} onChange={e => setListSeasonId(e.target.value)} aria-label="Season" style={{ maxWidth: 220 }}>
+                                    {seasons.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
+                                </select>
+                                <button className="admin-btn admin-btn-danger" onClick={() => { setEditTarget(null); setShowModal(true); }}>
+                                    <i className="fa-solid fa-plus"></i> Schedule Game
+                                </button>
+                            </div>
                         </div>
 
-                        {loading ? (
+                        {loading || gamesLoading ? (
                             <div className="admin-loading"><div className="admin-spinner"></div>Loading games...</div>
                         ) : games.length === 0 ? (
                             <div className="admin-empty">
@@ -1357,7 +1381,7 @@ export default function OrgGamesPage() {
                                             <tr key={game._id}>
                                                 <td>{new Date(game.date.split("T")[0] + "T12:00:00Z").toLocaleDateString()}</td>
                                                 <td>{game.time || "—"}</td>
-                                                <td>{leagues.find(l => l._id === game.league)?.name || "—"}</td>
+                                                <td>{leagueNameById.get(String(game.league)) || "—"}</td>
                                                 <td style={{ fontWeight: 600 }}>{game.teamA.name}</td>
                                                 <td style={{ fontWeight: 600 }}>{game.teamB.name}</td>
                                                 <td>{game.location || "—"}</td>
@@ -1409,7 +1433,7 @@ export default function OrgGamesPage() {
                 <LiveStatsModal
                     game={liveStatsTarget}
                     onClose={() => { setShowLiveStats(false); setLiveStatsTarget(null); }}
-                    onGameUpdate={fetchData}
+                    onGameUpdate={fetchGames}
                 />
             )}
         </AdminLayout>

@@ -19,9 +19,42 @@ import Player from "@/models/Player";
 export async function reconcilePlayerStatuses(playerIds = null) {
     const teamFilter = playerIds ? { "players.player": { $in: playerIds } } : {};
     const teams = await Team.find(teamFilter).select("name logo players").lean();
+    const rosterMap = buildRosterMap(teams);
 
-    // Map of playerId (string) -> { name, logo } for whichever team they're on
-    // (first match wins if somehow rostered on multiple teams).
+    const playerFilter = playerIds ? { _id: { $in: playerIds } } : {};
+    const candidates = await Player.find(playerFilter).select("status presentTeam").lean();
+
+    return applyStatusFixes(rosterMap, candidates);
+}
+
+/**
+ * Same result as reconcilePlayerStatuses(<every player id in the org>) — or
+ * reconcilePlayerStatuses() for every org when orgId is null — but only
+ * loads players that can actually be out of sync. The old way sent all
+ * of an org's player ids (~55k for XFlag after the legacy import) as one
+ * `$in` list and loaded every one of those players, every few minutes while
+ * anyone had a player list open.
+ * @returns {Promise<number>} number of Player documents corrected
+ */
+export async function reconcileOrgPlayerStatuses(orgId = null) {
+    // Rosters across ALL orgs — someone in this org can be on another org's team.
+    const teams = await Team.find({ "players.0": { $exists: true } }).select("name logo players.player").lean();
+    const rosterMap = buildRosterMap(teams);
+    const rosteredIds = [...rosterMap.keys()];
+
+    // The only two ways to be wrong: marked "player" (maybe on no roster),
+    // or on a roster but not marked "player".
+    const scope = orgId ? { organization: orgId } : {};
+    const [markedPlayers, rosteredNonPlayers] = await Promise.all([
+        Player.find({ ...scope, status: "player" }).select("status presentTeam").lean(),
+        Player.find({ ...scope, _id: { $in: rosteredIds }, status: { $ne: "player" } }).select("status presentTeam").lean(),
+    ]);
+    return applyStatusFixes(rosterMap, [...markedPlayers, ...rosteredNonPlayers]);
+}
+
+// Map of playerId (string) -> { name, logo } for whichever team they're on
+// (first match wins if somehow rostered on multiple teams).
+function buildRosterMap(teams) {
     const rosterMap = new Map();
     for (const team of teams) {
         for (const entry of team.players || []) {
@@ -32,10 +65,10 @@ export async function reconcilePlayerStatuses(playerIds = null) {
             }
         }
     }
+    return rosterMap;
+}
 
-    const playerFilter = playerIds ? { _id: { $in: playerIds } } : {};
-    const candidates = await Player.find(playerFilter).select("status presentTeam").lean();
-
+async function applyStatusFixes(rosterMap, candidates) {
     const bulkOps = [];
     for (const p of candidates) {
         const rosterTeam = rosterMap.get(String(p._id));

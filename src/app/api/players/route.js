@@ -5,9 +5,10 @@ import Player from "@/models/Player";
 import Team from "@/models/Team";
 import User from "@/models/User";
 import { requireAdmin, requireAuth, hasRole } from "@/lib/apiAuth";
-import { reconcilePlayerStatuses } from "@/lib/playerRosterSync";
+import { reconcileOrgPlayerStatuses } from "@/lib/playerRosterSync";
 import { runAfterResponseThrottled } from "@/lib/backgroundTask";
 import { containsRegex } from "@/lib/searchRegex";
+import { withRosterTeams } from "@/lib/playerRosterTeams";
 
 const RECONCILE_INTERVAL_MS = 5 * 60 * 1000;
 
@@ -41,11 +42,7 @@ async function getUserOrgId(authUser) {
 // run after the response (and scoped to the org when there is one) instead
 // of making every load wait on a pass over every team and player in the DB.
 function scheduleReconcile(orgId) {
-    runAfterResponseThrottled(`players-reconcile:${orgId || "all"}`, RECONCILE_INTERVAL_MS, async () => {
-        if (!orgId) return reconcilePlayerStatuses();
-        const orgPlayerIds = await Player.distinct("_id", { organization: orgId });
-        if (orgPlayerIds.length > 0) await reconcilePlayerStatuses(orgPlayerIds);
-    });
+    runAfterResponseThrottled(`players-reconcile:${orgId || "all"}`, RECONCILE_INTERVAL_MS, () => reconcileOrgPlayerStatuses(orgId));
 }
 
 // GET all players
@@ -110,19 +107,8 @@ export async function GET(request) {
             .sort({ name: 1 })
             .lean();
 
-        // Extra: map jersey numbers from Team collection
-        const playerIds = players.map(p => p._id);
-        const teams = await Team.find({ "players.player": { $in: playerIds } })
-            .select("players.player players.jerseyNumber")
-            .lean();
-        const jerseyMap = {};
-        for (const team of teams) {
-            for (const p of (team.players || [])) {
-                if (p.player) jerseyMap[p.player.toString()] = p.jerseyNumber;
-            }
-        }
-
-        const data = players.map((p) => ({ ...p, jerseyNumber: jerseyMap[p._id.toString()] || null }));
+        // Jersey number + each player's teams, from the Team rosters.
+        const data = await withRosterTeams(players);
 
         return NextResponse.json({ success: true, count: data.length, data }, { status: 200 });
     } catch (error) {

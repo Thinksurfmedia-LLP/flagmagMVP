@@ -173,27 +173,40 @@ export async function GET(request) {
             return NextResponse.json({ success: true, data: basicTeams });
         }
 
-        const teams = await Team.find(filter)
-            .populate("organization", "name slug")
-            .populate({ path: "leagues.league", select: "name season locations type", populate: { path: "season", select: "name" } })
-            .populate("players.player", "name photo presentTeam organization")
-            .populate("retiredNumbers.player", "name")
-            .sort({ name: 1 })
-            .lean();
+        // `?fields=picker` — what "add player to team" pickers need to tell
+        // same-named teams apart (league name/type/season, see teamLabel.js),
+        // without rosters. The rosters are the bulk of the full payload.
+        if (searchParams.get("fields") === "picker") {
+            const pickerTeams = await Team.find(filter)
+                .select("name logo isPlaceholder leagues.league")
+                .populate({ path: "leagues.league", select: "name season type", populate: { path: "season", select: "name" } })
+                .sort({ name: 1 })
+                .lean();
+            return NextResponse.json({ success: true, data: pickerTeams });
+        }
+
+        const teams = await Team.find(filter).sort({ name: 1 }).lean();
 
         // `leagues.league` is a required field on the membership subdocument,
-        // so a null value here after populate can only mean one thing: the
-        // League doc it pointed at was deleted and the membership went
-        // dangling (see Denstar/XFlag orphaned-league audits). Populate also
-        // erases the raw id in the process, so re-fetch it unpopulated and
-        // attach it back — the UI needs the actual dead id to offer removal.
-        const rawTeams = await Team.find(filter).select("leagues").lean();
+        // so a null value after populate can only mean one thing: the League
+        // doc it pointed at was deleted and the membership went dangling (see
+        // Denstar/XFlag orphaned-league audits). Populate erases the raw id,
+        // so note it first — the UI needs the actual dead id to offer
+        // removal. (This used to be a second full query of every team.)
         const rawLeagueByMembershipId = new Map();
-        rawTeams.forEach((t) => {
+        teams.forEach((t) => {
             (t.leagues || []).forEach((m) => {
                 rawLeagueByMembershipId.set(String(m._id), m.league ? String(m.league) : null);
             });
         });
+
+        await Team.populate(teams, [
+            { path: "organization", select: "name slug" },
+            { path: "leagues.league", select: "name season locations type", populate: { path: "season", select: "name" } },
+            { path: "players.player", select: "name photo presentTeam organization" },
+            { path: "retiredNumbers.player", select: "name" },
+        ]);
+
         teams.forEach((t) => {
             (t.leagues || []).forEach((m) => {
                 if (!m.league) {

@@ -9,11 +9,10 @@ import { useToast } from "@/components/AdminToast";
 import { teamLabel, teamLeagueSummary, sortTeamsForPicker } from "@/lib/teamLabel";
 import { playerTeamsPayload } from "@/lib/playerTeamsPayload";
 
-function PlayerModal({ onClose, onSave, initial, orgUsers, allTeams, teamsKnown }) {
-    const initialTeams = initial ? allTeams.filter(t => (t.players || []).some(tp => String(tp.player?._id || tp.player) === String(initial._id))).map(t => {
-        const tp = (t.players || []).find(tp => String(tp.player?._id || tp.player) === String(initial._id));
-        return { teamId: String(t._id), teamName: t.name, jerseyNumber: tp.jerseyNumber };
-    }) : [];
+function PlayerModal({ onClose, onSave, initial, orgUsers, allTeams, teamsLoaded }) {
+    // The player's own teams arrive with the player list (`rosterTeams`).
+    const initialTeams = initial?.rosterTeams || [];
+    const teamsKnown = !initial || Array.isArray(initial.rosterTeams);
 
     const [form, setForm] = useState({
         name: initial?.name || "",
@@ -23,9 +22,9 @@ function PlayerModal({ onClose, onSave, initial, orgUsers, allTeams, teamsKnown 
         about: initial?.about || "",
     });
     const [saving, setSaving] = useState(false);
-    // Rosters as they were when the modal opened — only known if the team
-    // list had loaded by then. An unloaded list means "unknown", not "no
-    // teams": saving it as-is used to take the player off every team.
+    // Rosters as they were when the modal opened. A player row without
+    // `rosterTeams` means "unknown", not "no teams": saving that as-is used
+    // to take the player off every team.
     const [baseline] = useState(() => ({ teams: initialTeams, teamsKnown: Boolean(teamsKnown) }));
     const canEditTeams = !initial || baseline.teamsKnown;
 
@@ -70,7 +69,7 @@ function PlayerModal({ onClose, onSave, initial, orgUsers, allTeams, teamsKnown 
                 <div className="admin-form-group">
                     <label className="admin-form-label">Manage Teams</label>
                     <div style={{ background: "#f9fafb", border: "1px solid #e8eaef", borderRadius: 8, padding: 12, fontSize: 13, color: "#5a5f72" }}>
-                        Teams weren&apos;t loaded when you opened this, so team changes are off for this edit.
+                        This player&apos;s teams couldn&apos;t be loaded, so team changes are off for this edit.
                         The player&apos;s teams will not be changed — close and reopen to change teams.
                     </div>
                 </div>
@@ -140,7 +139,7 @@ function PlayerModal({ onClose, onSave, initial, orgUsers, allTeams, teamsKnown 
                             }
                         }} 
                     >
-                        <option value="">-- Select a team to add --</option>
+                        <option value="">{teamsLoaded ? "-- Select a team to add --" : "Loading teams..."}</option>
                         {/* Label with league/season — names repeat across leagues (e.g. two "Trojans"). */}
                         {sortTeamsForPicker(allTeams).filter(t => !form.teams.find(et => et.teamId === String(t._id))).map(t => <option key={t._id} value={t._id}>{teamLabel(t)}</option>)}
                     </select>
@@ -181,6 +180,7 @@ export default function OrgPlayersPage() {
 
     const [allTeams, setAllTeams] = useState([]);
     const [teamsLoaded, setTeamsLoaded] = useState(false);
+    const [orgId, setOrgId] = useState(null);
 
     useEffect(() => {
         if (!impersonatedOrg && slug) {
@@ -195,16 +195,25 @@ export default function OrgPlayersPage() {
         try {
             const res = await fetch(`/api/organizations/${slug}/players`);
             const data = await res.json();
-            if (data.success) setPlayers(data.data);
-            
-            const tRes = await fetch("/api/teams");
-            const tData = await tRes.json();
-            if (tData.success) { setAllTeams(tData.data); setTeamsLoaded(true); }
+            if (data.success) {
+                setPlayers(data.data);
+                if (data.organizationId) setOrgId(data.organizationId);
+            } else showError(data.error || "Failed to load players");
         } catch { showError("Failed to load players"); }
         finally { setLoading(false); }
     }, [slug, showError]);
 
     useEffect(() => { fetchPlayers(); }, [fetchPlayers]);
+
+    // This org's team names + leagues for the "add to team" picker — no
+    // rosters (each player's own teams come with the player list).
+    useEffect(() => {
+        if (!orgId) return;
+        fetch(`/api/teams?fields=picker&organization=${orgId}`)
+            .then(r => r.json())
+            .then(d => { if (d.success) { setAllTeams(d.data); setTeamsLoaded(true); } })
+            .catch(() => showError("Failed to load teams"));
+    }, [orgId, showError]);
 
     // Also fetch org users for linking
     useEffect(() => {
@@ -257,18 +266,12 @@ export default function OrgPlayersPage() {
 
     const playerTeamsMap = useMemo(() => {
         const map = {};
-        players.forEach(p => map[p._id] = []);
-        allTeams.forEach(t => {
-            if (t.isPlaceholder) return;
-            (t.players || []).forEach(tp => {
-                const pid = String(tp.player?._id || tp.player);
-                if (map[pid]) {
-                    if (!map[pid].includes(t.name)) map[pid].push(t.name);
-                }
-            });
+        players.forEach(p => {
+            const names = (p.rosterTeams || []).filter(t => !t.isPlaceholder).map(t => t.teamName);
+            map[p._id] = [...new Set(names)];
         });
         return map;
-    }, [players, allTeams]);
+    }, [players]);
 
     const filtered = players.filter(p => {
         const pTeams = playerTeamsMap[p._id] || [];
@@ -321,10 +324,7 @@ export default function OrgPlayersPage() {
                                 </thead>
                                 <tbody>
                                     {filtered.map(p => {
-                                        const playerTeams = allTeams.filter(t => (t.players || []).some(tp => String(tp.player?._id || tp.player) === String(p._id))).map(t => {
-                                            const tp = (t.players || []).find(tp => String(tp.player?._id || tp.player) === String(p._id));
-                                            return { teamId: String(t._id), teamName: t.name, jerseyNumber: tp.jerseyNumber };
-                                        });
+                                        const playerTeams = p.rosterTeams || [];
                                         const firstTeam = playerTeams[0];
                                         const additionalTeamsCount = playerTeams.length > 1 ? playerTeams.length - 1 : 0;
 
@@ -383,7 +383,7 @@ export default function OrgPlayersPage() {
                     initial={editTarget}
                     orgUsers={orgUsers}
                     allTeams={allTeams}
-                    teamsKnown={teamsLoaded}
+                    teamsLoaded={teamsLoaded}
                     onClose={() => { setShowModal(false); setEditTarget(null); }}
                     onSave={handleSave}
                 />

@@ -1930,6 +1930,7 @@ export default function AdminGamesPage() {
     const [games, setGames] = useState([]);
     const [venues, setVenues] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [gamesLoading, setGamesLoading] = useState(false);
     const [gamePage, setGamePage] = useState(1);
     const [showModal, setShowModal] = useState(false);
     const [editTarget, setEditTarget] = useState(null);
@@ -1966,35 +1967,47 @@ export default function AdminGamesPage() {
 
     useEffect(() => { fetchOrgs(); }, [fetchOrgs]);
 
-    // Refresh all games for the current org
+    // Only the selected season's games: the list never shows any other
+    // season, and the org's whole history (~20k games / ~20MB for XFlag after
+    // the legacy import) took minutes to download. A response for a season
+    // that's no longer selected is ignored.
+    const latestGamesRequest = useRef(0);
     const fetchAllGames = useCallback(async () => {
-        if (!selectedOrg) return;
-        setLoading(true);
+        const requestId = ++latestGamesRequest.current;
+        if (!selectedOrg || !filterSeason) { setGames([]); setGamesLoading(false); return; }
+        setGamesLoading(true);
         try {
-            const res = await fetch(`/api/organizations/${selectedOrg}/games`);
+            const res = await fetch(`/api/organizations/${selectedOrg}/games?season=${encodeURIComponent(filterSeason)}`);
             const data = await res.json();
+            if (requestId !== latestGamesRequest.current) return;
             if (data.success) { setGames(data.data); setGamePage(1); }
-        } catch { showError("Failed to load games"); }
-        finally { setLoading(false); }
-    }, [selectedOrg]);
+            else { setGames([]); showError(data.error || "Failed to load games"); }
+        } catch {
+            if (requestId === latestGamesRequest.current) showError("Failed to load games");
+        } finally {
+            if (requestId === latestGamesRequest.current) setGamesLoading(false);
+        }
+    }, [selectedOrg, filterSeason, showError]);
 
-    // Fetch seasons + venues + games when org changes. Teams aren't loaded
-    // here — the game modal fetches just the selected league's (useLeagueTeams).
+    useEffect(() => { fetchAllGames(); }, [fetchAllGames]);
+
+    // Fetch seasons + venues when org changes; games follow the selected
+    // season (fetchAllGames above). Teams aren't loaded here — the game modal
+    // fetches just the selected league's (useLeagueTeams).
     useEffect(() => {
         if (!selectedOrg) { setSeasons([]); setLeagues([]); setGames([]); setVenues([]); setScheduleDays([]); setScheduledLeagueIds(null); return; }
         setLoading(true);
         (async () => {
             try {
-                const [seasonRes, leagueRes, venueRes, orgRes, gamesRes, scheduleRes] = await Promise.all([
+                const [seasonRes, leagueRes, venueRes, orgRes, scheduleRes] = await Promise.all([
                     fetch(`/api/organizations/${selectedOrg}/seasons`),
                     fetch(`/api/organizations/${selectedOrg}/leagues`),
                     fetch("/api/locations"),
                     fetch(`/api/organizations/${selectedOrg}`),
-                    fetch(`/api/organizations/${selectedOrg}/games`),
-                    fetch(`/api/schedules?organization=${selectedOrg}`),
+                    fetch(`/api/schedules?organization=${selectedOrg}&fields=summary`),
                 ]);
-                const [seasonData, leagueData, venueData, orgData, gamesData, scheduleData] = await Promise.all([
-                    seasonRes.json(), leagueRes.json(), venueRes.json(), orgRes.json(), gamesRes.json(), scheduleRes.json(),
+                const [seasonData, leagueData, venueData, orgData, scheduleData] = await Promise.all([
+                    seasonRes.json(), leagueRes.json(), venueRes.json(), orgRes.json(), scheduleRes.json(),
                 ]);
                 if (seasonData.success) setSeasons(seasonData.data);
                 if (orgData.success) setScheduleDays(orgData.data?.scheduleDays || []);
@@ -2025,8 +2038,6 @@ export default function AdminGamesPage() {
                         : venueData.data;
                     setVenues(scopedVenues);
                 }
-                if (gamesData.success) { setGames(gamesData.data); setGamePage(1); }
-                else setGames([]);
             } catch { showError("Failed to load data"); }
             finally { setLoading(false); }
         })();
@@ -2353,7 +2364,7 @@ Delete anyway?`
                             </div>
                         </div>
 
-                        {loading ? (
+                        {loading || gamesLoading ? (
                             <div className="admin-loading">
                                 <div className="admin-spinner"></div>
                                 Loading games...
