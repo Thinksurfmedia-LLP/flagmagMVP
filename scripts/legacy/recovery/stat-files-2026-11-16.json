@@ -1,0 +1,27 @@
+{
+  "organization": "xflagfootball",
+  "note": "Stat files found on the old XFlag server (server_files.zip, admin/backend/storage/excel-folder) whose game is missing from the old database. Chosen by the audit in scripts/legacy/reports/orphan-stat-files-audit.csv.",
+  "items": [
+    {
+      "sourceFile": "4_8_Fighting Ducks_FLY BOYZ_1_2_0_0_0_0_2022-09-17_19:20_2022-09-17_1663407678_import.csv",
+      "localFile": "4_8_Fighting Ducks_FLY BOYZ_1_2_0_0_0_0_2022-09-17_19-20_2022-09-17_1663407678_import.csv",
+      "sha256": "cb00a813d18c6a0a1cdbaa2e8c88da1c3277cc609cd236eac23bab3c73a0ad93",
+      "mode": "stats",
+      "gameId": "6acf9372d888a1adb10b65a7"
+    },
+    {
+      "sourceFile": "1323_1326_Seven Sins W26_Raw Talent W26_1_6_0_0_0_0_2026-03-18_19:18_2026-03-19_1774220770_import.csv",
+      "localFile": "1323_1326_Seven Sins W26_Raw Talent W26_1_6_0_0_0_0_2026-03-18_19-18_2026-03-19_1774220770_import.csv",
+      "sha256": "ff25f8f7242e7c806bc454013062eedd5b317359a5a0e9a4f77c349b316445b5",
+      "mode": "game",
+      "leagueId": "6ae8496b56e65e529a364ad5"
+    },
+    {
+      "sourceFile": "1325_1321_Dope W26_Dream Team W26_1_6_0_0_0_0_2026-03-18_19:16_2026-03-19_1774491504_import.csv",
+      "localFile": "1325_1321_Dope W26_Dream Team W26_1_6_0_0_0_0_2026-03-18_19-16_2026-03-19_1774491504_import.csv",
+      "sha256": "f6354e9818ef4064ef98d373707b737fb92c2e2c5bed19e0fdc2d4f691df2c22",
+      "mode": "game",
+      "leagueId": "6ae8496b56e65e529a364ad5"
+    }
+  ]
+}

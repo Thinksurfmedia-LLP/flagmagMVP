@@ -15,6 +15,11 @@ const MAX_ATTEMPTS = 3;
 const RETRY_DELAY_MS = 5_000;
 const REDRAW_INTERVAL_MS = 250;
 const BAR_WIDTH = 30;
+// Derived caches, rebuilt automatically from the real data (statsAggregation's
+// persisted leaderboards). Their documents are large enough that a batch
+// outlasts the socket timeout on the Atlas link, and they hold nothing a
+// restore needs. BACKUP_INCLUDE_CACHES=1 backs them up anyway.
+const CACHE_COLLECTIONS = new Set(["statscaches"]);
 
 // Minimal .env parser — avoids adding a dotenv dependency for a one-off script.
 function loadEnv(envPath) {
@@ -192,7 +197,11 @@ async function main() {
     const db = mongoose.connection.db;
     log(`Connected to database: ${db.databaseName}`);
 
-    const collections = await db.listCollections().toArray();
+    const allCollections = await db.listCollections().toArray();
+    const includeCaches = process.env.BACKUP_INCLUDE_CACHES === "1";
+    const collections = allCollections.filter(({ name }) => includeCaches || !CACHE_COLLECTIONS.has(name));
+    const skipped = allCollections.filter((c) => !collections.includes(c)).map((c) => c.name);
+    if (skipped.length) log(`Skipping derived cache collections: ${skipped.join(", ")} (BACKUP_INCLUDE_CACHES=1 to include)`);
     const counts = await Promise.all(
         collections.map(({ name }) => db.collection(name).estimatedDocumentCount())
     );
@@ -200,7 +209,7 @@ async function main() {
     log(`Found ${collections.length} collections, ~${totalDocs.toLocaleString()} documents.`);
 
     const progress = createProgress(totalDocs, collections.length);
-    const manifest = { timestamp, database: db.databaseName, collections: {} };
+    const manifest = { timestamp, database: db.databaseName, collections: {}, skippedCaches: skipped };
 
     for (const [i, { name }] of collections.entries()) {
         progress.state.current = { name, index: i + 1, docs: 0, total: counts[i] };
