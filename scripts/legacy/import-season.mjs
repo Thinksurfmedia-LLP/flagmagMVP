@@ -631,8 +631,10 @@ async function applyPlan({ legacy, orgId, plan, sync = false }) {
             continue;
         }
         const name = await availablePlayerName(orgId, p.name || "Unknown player");
+        // legacyArchive: an old-site player with no login — listed under
+        // Admin → Archive Players, not Free Agents, while off every roster.
         const player = await ensureCreated(reg, Player, "player", p.legacyUserId, () => ({
-            organization: orgId, name, status: "player",
+            organization: orgId, name, status: "player", legacyArchive: true,
         }));
         if (player.created) counts.players++;
         if (player.created && name !== p.name) renamedPlayers.push({ legacyUserId: p.legacyUserId, name: p.name, createdAs: name });

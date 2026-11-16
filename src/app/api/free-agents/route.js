@@ -173,7 +173,9 @@ export async function GET(request) {
         // flip / keystroke.
         if (page === 1 && !searchRe) scheduleHeal(orgId);
 
-        const filter = { status: "free_agent" };
+        // Old-site imported players live under Archive Players
+        // (GET /api/players/archive), not here.
+        const filter = { status: "free_agent", legacyArchive: { $ne: true } };
         if (orgId) filter.organization = orgId;
         if (searchRe) Object.assign(filter, await buildSearchClause(searchRe, !isOrganizer));
 

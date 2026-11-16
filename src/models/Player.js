@@ -93,6 +93,14 @@ const PlayerSchema = new mongoose.Schema(
             instagram: { type: String, default: "" },
             youtube: { type: String, default: "" },
         },
+        // Imported from the old XFlag site (scripts/legacy/import-season.mjs):
+        // a historical player with old stats and no login. While not on a
+        // current roster they're listed under Admin → Archive Players instead
+        // of Free Agents — they never signed up as free agents.
+        legacyArchive: {
+            type: Boolean,
+            default: false,
+        },
         presentTeam: {
             name: { type: String, default: "" },
             logo: { type: String, default: "" },
@@ -167,13 +175,15 @@ PlayerSchema.index({ user: 1, organization: 1, name: 1 }, { unique: true, sparse
 // Paginated free-agent list: GET /api/free-agents filters by org + status
 // and sorts newest first.
 PlayerSchema.index({ organization: 1, status: 1, createdAt: -1 });
+// Free Agents (legacyArchive: false) vs Archive Players (true).
+PlayerSchema.index({ organization: 1, status: 1, legacyArchive: 1, name: 1 });
 
 function getPlayerModel() {
     const existing = mongoose.models.Player;
     // Dev HMR can keep a stale compiled model around after a field is added
     // here — same failure mode Team.js guards against. Rebuild rather than
     // silently dropping writes to a field the cached model doesn't know about.
-    if (existing && (!existing.schema.path("address") || !existing.schema.path("requestedLeague") || !existing.schema.path("email"))) {
+    if (existing && (!existing.schema.path("address") || !existing.schema.path("requestedLeague") || !existing.schema.path("email") || !existing.schema.path("legacyArchive"))) {
         delete mongoose.models.Player;
     }
     return mongoose.models.Player || mongoose.model("Player", PlayerSchema);

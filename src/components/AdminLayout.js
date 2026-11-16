@@ -131,6 +131,7 @@ function getImpersonationNav(orgSlug) {
                 { label: "Schedules", href: `/admin/organizations/${orgSlug}/schedules`, icon: "fa-solid fa-clipboard-list", perm: "manage_schedules" },
                 { label: "Games", href: `/admin/organizations/${orgSlug}/games`, icon: "fa-solid fa-football", perm: "manage_games" },
                 { label: "Free Agents", href: `/admin/free-agents`, icon: "fa-solid fa-user-clock", perm: "manage_players" },
+                { label: "Archive Players", href: `/admin/archive-players`, icon: "fa-solid fa-box-archive", perm: "manage_players" },
                 { label: "Players", href: `/admin/organizations/${orgSlug}/players`, icon: "fa-solid fa-users", perm: "manage_players" },
                 { label: "Teams", href: `/admin/organizations/${orgSlug}/teams`, icon: "fa-solid fa-people-group", perm: "manage_teams" },
                 { label: "Locations", href: `/admin/organizations/${orgSlug}/locations`, icon: "fa-solid fa-map-location-dot", perm: "manage_organizations" },
@@ -191,6 +192,12 @@ function getOrganizerNav(orgSlug) {
                     href: "/admin/free-agents",
                     icon: "fa-solid fa-user-clock",
                     perms: ["manage_players", "player_view", "player_create", "player_update", "player_delete"],
+                },
+                {
+                    label: "Archive Players",
+                    href: "/admin/archive-players",
+                    icon: "fa-solid fa-box-archive",
+                    perms: ["manage_players", "player_view", "player_update"],
                 },
                 {
                     label: "Players",
