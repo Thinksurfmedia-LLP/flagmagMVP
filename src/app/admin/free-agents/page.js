@@ -988,7 +988,7 @@ export default function AdminFreeAgentsPage() {
 
                     {jerseyPrompt && (
                         <div className="admin-modal-backdrop">
-                            <div className="admin-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 600, maxHeight: "90vh", overflowY: "auto" }}>
+                            <div className="admin-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 800, maxHeight: "90vh", overflowY: "auto" }}>
                                 <button className="admin-modal-close" onClick={() => setJerseyPrompt(null)} aria-label="Close">
                                     <i className="fa-solid fa-xmark"></i>
                                 </button>

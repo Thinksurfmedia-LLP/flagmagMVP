@@ -370,7 +370,7 @@ export default function AdminPlayersPage() {
 
                     {editPlayer && (
                         <div className="admin-modal-backdrop">
-                            <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 450, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", maxHeight: "90vh" }}>
+                            <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 800, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", maxHeight: "90vh" }}>
                                 {teamRemovalPrompt && (
                                     <div style={{ position: "absolute", inset: 0, background: "#fff", borderRadius: 8, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 10, padding: 32 }}>
                                         <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#fef2f2", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>

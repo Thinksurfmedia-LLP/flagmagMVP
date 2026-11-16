@@ -48,7 +48,7 @@ function PlayerModal({ onClose, onSave, initial, orgUsers, allTeams, teamsLoaded
 
     return (
         <div className="admin-modal-backdrop">
-            <div className="admin-modal" onClick={e => e.stopPropagation()}>
+            <div className="admin-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 800 }}>
                 <button className="admin-modal-close" onClick={onClose} aria-label="Close">
                     <i className="fa-solid fa-xmark"></i>
                 </button>
