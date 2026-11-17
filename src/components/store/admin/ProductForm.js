@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useToast } from "@/components/AdminToast";
 import ImagesEditor from "./ImagesEditor";
 import VariantsEditor, { emptyVariant } from "./VariantsEditor";
+import ProductContentFields from "./ProductContentFields";
+import ColorPhotosEditor, { pruneColorImages } from "./ColorPhotosEditor";
 
 const STATUSES = ["draft", "active", "archived"];
 
@@ -14,6 +16,8 @@ function toFormState(product) {
             name: "", category: "", shortDescription: "", description: "",
             price: "", compareAtPrice: "", isFeatured: false, status: "draft",
             images: [], variants: [emptyVariant()],
+            subtitle: "", highlight: "", details: "", specsCare: "",
+            tagsText: "", newBadge: "auto", colorImages: [],
         };
     }
     return {
@@ -26,6 +30,13 @@ function toFormState(product) {
         isFeatured: !!product.isFeatured,
         status: product.status || "draft",
         images: product.images || [],
+        subtitle: product.subtitle || "",
+        highlight: product.highlight || "",
+        details: product.details || "",
+        specsCare: product.specsCare || "",
+        tagsText: (product.tags || []).join(", "),
+        newBadge: product.newBadge || "auto",
+        colorImages: (product.colorImages || []).map((e) => ({ color: e.color, image: e.image })),
         variants: (product.variants || []).map((v) => ({
             sku: v.sku || "", size: v.size || "", color: v.color || "",
             colorHex: v.colorHex || "", stock: String(v.stock ?? 0),
@@ -40,6 +51,13 @@ function toPayload(form) {
         shortDescription: form.shortDescription.trim(),
         description: form.description,
         images: form.images,
+        subtitle: form.subtitle.trim(),
+        highlight: form.highlight.trim(),
+        details: form.details,
+        specsCare: form.specsCare,
+        tags: form.tagsText.split(",").map((t) => t.trim()).filter(Boolean),
+        newBadge: form.newBadge,
+        colorImages: form.colorImages,
         price: form.price,
         compareAtPrice: form.compareAtPrice === "" ? null : form.compareAtPrice,
         variants: form.variants.map((v) => ({ ...v, stock: v.stock === "" ? "" : Number(v.stock) })),
@@ -141,6 +159,7 @@ export default function ProductForm({ initial, onSaved }) {
                         <label className="admin-form-label" htmlFor="product-description">Description</label>
                         <textarea id="product-description" className="admin-form-input" rows={6} maxLength={5000} {...text("description")} />
                     </div>
+                    <ProductContentFields form={form} set={set} />
                 </div>
 
                 <div style={sectionStyle}>
@@ -169,15 +188,25 @@ export default function ProductForm({ initial, onSaved }) {
 
                 <div style={sectionStyle}>
                     <h4 style={{ marginTop: 0 }}>Images</h4>
-                    <ImagesEditor images={form.images} onChange={(images) => set({ images })} onError={showError} />
+                    <ImagesEditor images={form.images} onChange={(images) => set({ images, colorImages: pruneColorImages(form.colorImages, form.variants, images) })} onError={showError} />
                 </div>
 
                 <div style={sectionStyle}>
                     <h4 style={{ marginTop: 0 }}>Variants</h4>
                     <VariantsEditor
                         variants={form.variants}
-                        onChange={(variants) => { setVariantError(""); set({ variants }); }}
+                        onChange={(variants) => { setVariantError(""); set({ variants, colorImages: pruneColorImages(form.colorImages, variants, form.images) }); }}
                         error={variantError}
+                    />
+                </div>
+
+                <div style={sectionStyle}>
+                    <h4 style={{ marginTop: 0 }}>Colour photos</h4>
+                    <ColorPhotosEditor
+                        variants={form.variants}
+                        images={form.images}
+                        value={form.colorImages}
+                        onChange={(colorImages) => set({ colorImages })}
                     />
                 </div>
 
