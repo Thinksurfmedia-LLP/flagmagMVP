@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { formatPrice } from "@/lib/store/pricing";
 import { sizeLabel, colorImageFor } from "@/lib/store/badges";
-import { removeItem, readWishlist, writeWishlist, CHANGE_EVENT } from "@/lib/store/wishlist";
+import { removeItem, chunk, pruneMissing, readWishlist, writeWishlist, CHANGE_EVENT } from "@/lib/store/wishlist";
 
+const IMAGE_STYLE = { display: "block", width: "100%", aspectRatio: "9 / 10", objectFit: "cover" };
 const FALLBACK_IMAGE = "/assets/images/product1.jpg";
 
 function bagHref(item) {
@@ -31,7 +32,7 @@ function WishlistItem({ item, product }) {
                 </button>
                 <div className="image-area">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={image} alt={product.name} />
+                    <img src={image} alt={product.name} style={IMAGE_STYLE} />
                 </div>
                 <div className="content-area">
                     <h4>{product.name}</h4>
@@ -61,19 +62,24 @@ export default function WishlistGrid() {
     useEffect(() => {
         if (!slugKey) return undefined;
         const controller = new AbortController();
-        (async () => {
+        const fetchChunk = async (slugs) => {
             try {
-                const res = await fetch(`/api/store/products?slugs=${encodeURIComponent(slugKey)}`, { signal: controller.signal });
+                const res = await fetch(`/api/store/products?slugs=${encodeURIComponent(slugs.join(","))}`, { signal: controller.signal });
                 const body = await res.json();
-                if (!res.ok || !body.success || !Array.isArray(body.data)) return;
-                const bySlug = Object.fromEntries(body.data.map((p) => [p.slug, p]));
-                setProducts(bySlug);
-                const current = readWishlist();
-                const kept = current.filter((i) => bySlug[i.slug]);
-                if (kept.length !== current.length) writeWishlist(kept);
+                if (!res.ok || !body.success || !Array.isArray(body.data)) return null;
+                return { slugs, products: body.data };
             } catch {
-                // Offline or aborted: keep the saved list untouched.
+                return null; // Offline or aborted: leave these slugs untouched.
             }
+        };
+        (async () => {
+            const results = (await Promise.all(chunk(slugKey.split(",")).map(fetchChunk))).filter(Boolean);
+            if (controller.signal.aborted || results.length === 0) return;
+            const returned = results.flatMap((r) => r.products);
+            setProducts((prev) => ({ ...prev, ...Object.fromEntries(returned.map((p) => [p.slug, p])) }));
+            const current = readWishlist();
+            const kept = pruneMissing(current, results.flatMap((r) => r.slugs), returned.map((p) => p.slug));
+            if (kept.length !== current.length) writeWishlist(kept);
         })();
         return () => controller.abort();
     }, [slugKey]);

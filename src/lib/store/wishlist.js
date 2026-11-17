@@ -3,6 +3,7 @@
 const STORAGE_KEY = "flagmag.wishlist.v1";
 const CHANGE_EVENT = "wishlist:change";
 const MAX_ITEMS = 100;
+const API_SLUG_LIMIT = 50;
 const SLUG_RE = /^[a-z0-9-]{1,80}$/;
 
 const text = (v) => (typeof v === "string" ? v.trim() : "");
@@ -46,6 +47,23 @@ function parseStored(raw) {
     return out;
 }
 
+/** Splits into arrays of at most `size` (the API accepts <= 50 slugs per request). */
+function chunk(values, size = API_SLUG_LIMIT) {
+    const out = [];
+    for (let i = 0; i < values.length; i += size) out.push(values.slice(i, i + size));
+    return out;
+}
+
+/**
+ * Drops only items whose slug was requested but not returned. Slugs that were never
+ * requested (e.g. added in another tab mid-fetch) are kept.
+ */
+function pruneMissing(current, requested, returned) {
+    const asked = new Set(requested);
+    const found = new Set(returned);
+    return (Array.isArray(current) ? current : []).filter((i) => !asked.has(i.slug) || found.has(i.slug));
+}
+
 function readWishlist() {
     try {
         return parseStored(window.localStorage.getItem(STORAGE_KEY));
@@ -64,6 +82,6 @@ function writeWishlist(list) {
 }
 
 module.exports = {
-    addItem, removeItem, hasItem, parseStored, readWishlist, writeWishlist,
+    addItem, removeItem, hasItem, parseStored, chunk, pruneMissing, readWishlist, writeWishlist,
     STORAGE_KEY, CHANGE_EVENT, MAX_ITEMS,
 };

@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { addItem, removeItem, hasItem, parseStored, MAX_ITEMS } = require("../src/lib/store/wishlist.js");
+const { addItem, removeItem, hasItem, parseStored, chunk, pruneMissing, MAX_ITEMS } = require("../src/lib/store/wishlist.js");
 
 const item = (slug, size = "", color = "", addedAt = 1) => ({ slug, size, color, addedAt });
 
@@ -52,4 +52,22 @@ test("parseStored caps oversize lists keeping the newest", () => {
     const out = parseStored(raw);
     assert.equal(out.length, MAX_ITEMS);
     assert.equal(out[0].slug, "p20");
+});
+test("chunk splits into groups of at most 50 by default", () => {
+    const slugs = Array.from({ length: 120 }, (_, i) => `p${i}`);
+    assert.deepEqual(chunk(slugs).map((c) => c.length), [50, 50, 20]);
+    assert.deepEqual(chunk([]), []);
+});
+test("pruneMissing drops only requested slugs the API did not return", () => {
+    const current = [item("a"), item("gone"), item("b")];
+    assert.deepEqual(pruneMissing(current, ["a", "gone", "b"], ["a", "b"]).map((i) => i.slug), ["a", "b"]);
+});
+test("pruneMissing keeps slugs that were never requested (added mid-fetch)", () => {
+    const current = [item("a"), item("late")];
+    assert.deepEqual(pruneMissing(current, ["a"], ["a"]).map((i) => i.slug), ["a", "late"]);
+    assert.deepEqual(pruneMissing(current, ["a"], []).map((i) => i.slug), ["late"]);
+});
+test("pruneMissing removes every variant of a missing slug", () => {
+    const current = [item("gone", "L"), item("gone", "M"), item("a")];
+    assert.deepEqual(pruneMissing(current, ["gone", "a"], ["a"]).map((i) => i.slug), ["a"]);
 });
