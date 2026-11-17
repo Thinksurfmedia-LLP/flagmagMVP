@@ -309,4 +309,5 @@ module.exports = {
     MAX_SHORT,
     MAX_DESCRIPTION,
     PRODUCT_STATUSES,
+    isAllowedImage,
 };

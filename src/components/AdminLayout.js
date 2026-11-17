@@ -117,6 +117,7 @@ const NAV_ITEMS = [
         items: [
             { label: "Products", href: "/admin/store/products", icon: "fa-solid fa-shirt", perm: "admin_only" },
             { label: "Categories", href: "/admin/store/categories", icon: "fa-solid fa-tags", perm: "admin_only" },
+            { label: "Store Settings", href: "/admin/store/settings", icon: "fa-solid fa-gear", perm: "admin_only" },
         ],
     },
     {
