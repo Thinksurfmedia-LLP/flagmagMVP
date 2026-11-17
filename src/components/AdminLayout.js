@@ -113,6 +113,13 @@ const NAV_ITEMS = [
         ],
     },
     {
+        section: "Store",
+        items: [
+            { label: "Products", href: "/admin/store/products", icon: "fa-solid fa-shirt", perm: "admin_only" },
+            { label: "Categories", href: "/admin/store/categories", icon: "fa-solid fa-tags", perm: "admin_only" },
+        ],
+    },
+    {
         section: "Settings",
         items: [
             { label: "Site Settings", href: "/admin/site-settings", icon: "fa-solid fa-sliders", perm: "admin_only" },
