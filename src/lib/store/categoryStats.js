@@ -28,4 +28,9 @@ function summarizeByCategory(products) {
     return out;
 }
 
-module.exports = { summarizeByCategory };
+/** Tile label: the discount is the best across the category, so it is an "Up to". */
+function bestDiscountLabel(percent) {
+    return percent === null || percent === undefined ? "" : `(Up to ${percent}% OFF)`;
+}
+
+module.exports = { summarizeByCategory, bestDiscountLabel };

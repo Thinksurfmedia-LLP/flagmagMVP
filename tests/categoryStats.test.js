@@ -16,3 +16,9 @@ test("summarises lowest price, best discount and first available cover per categ
 test("returns an empty map for no products", () => {
     assert.equal(summarizeByCategory([]).size, 0);
 });
+
+test("bestDiscountLabel marks the discount as 'Up to'", () => {
+    const { bestDiscountLabel } = require("../src/lib/store/categoryStats");
+    assert.equal(bestDiscountLabel(50), "(Up to 50% OFF)");
+    assert.equal(bestDiscountLabel(null), "");
+});

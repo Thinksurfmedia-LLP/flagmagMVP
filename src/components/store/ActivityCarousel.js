@@ -3,6 +3,8 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { formatPrice } from "@/lib/store/pricing";
+import { bestDiscountLabel } from "@/lib/store/categoryStats";
+import WishlistLink from "@/components/store/WishlistLink";
 
 const TILE_STYLE = {
     display: "flex", alignItems: "center", gap: 12, aspectRatio: "456 / 314", padding: "0 16px",
@@ -29,10 +31,15 @@ function GeneratedTile({ category }) {
                         <small style={{ color: "#9a9a9a", marginRight: 4 }}>From</small>
                         <strong>{formatPrice(minPrice)}</strong>
                         {bestDiscountPercent !== null && (
-                            <div style={{ color: "#FF1E00", fontSize: 12 }}>({bestDiscountPercent}% OFF)</div>
+                            <div style={{ color: "#FF1E00", fontSize: 12 }}>{bestDiscountLabel(bestDiscountPercent)}</div>
                         )}
                     </div>
                 )}
+                <ul className="star-rating" aria-hidden="true" style={{ display: "flex", gap: 3, listStyle: "none", margin: "8px 0 0", padding: 0, color: "#FFC107", fontSize: 12 }}>
+                    {[0, 1, 2, 3, 4].map((n) => (
+                        <li key={n}><i className="fa-solid fa-star"></i></li>
+                    ))}
+                </ul>
             </div>
         </div>
     );
@@ -96,7 +103,10 @@ export default function ActivityCarousel({ categories }) {
                         <h2>Shop by Activity</h2>
                     </div>
                     <div className="col-sm-auto">
-                        <Link href="/store" className="btn btn-primary">See All</Link>
+                        <div className="d-flex gap-2 justify-content-center">
+                            <Link href="/store" className="btn btn-primary">See All</Link>
+                            <WishlistLink />
+                        </div>
                     </div>
                 </div>
 
