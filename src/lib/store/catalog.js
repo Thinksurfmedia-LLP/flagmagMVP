@@ -4,6 +4,7 @@ import dbConnect from "@/lib/dbConnect";
 import Product from "@/models/Product";
 import ProductCategory from "@/models/ProductCategory";
 import { buildCatalogFilter, sortSizes } from "@/lib/store/catalogQuery";
+import { summarizeByCategory } from "@/lib/store/categoryStats";
 import { nextFreeSlug, slugify } from "@/lib/store/slug";
 import { PRODUCT_STATUSES } from "@/lib/store/productInput";
 
@@ -50,21 +51,23 @@ export async function getProductById(id) {
 
 export async function listCategoriesWithCounts() {
     await dbConnect();
-    const [categories, counts] = await Promise.all([
+    const [categories, active] = await Promise.all([
         ProductCategory.find().sort({ sortOrder: 1, name: 1 }).lean(),
-        Product.aggregate([
-            { $match: { status: "active" } },
-            { $group: { _id: "$category", activeCount: { $sum: 1 } } },
-        ]),
+        Product.find({ status: "active" }).sort({ createdAt: -1, _id: 1 }).select("category price compareAtPrice images").lean(),
     ]);
-    const byId = new Map(counts.map((c) => [String(c._id), c.activeCount]));
+    const stats = summarizeByCategory(active);
+    const counts = new Map();
+    for (const p of active) counts.set(String(p.category), (counts.get(String(p.category)) || 0) + 1);
     return categories.map((c) => ({
         _id: c._id,
         name: c.name,
         slug: c.slug,
         image: c.image,
         sortOrder: c.sortOrder,
-        activeCount: byId.get(String(c._id)) || 0,
+        activeCount: counts.get(String(c._id)) || 0,
+        minPrice: stats.get(String(c._id))?.minPrice ?? null,
+        bestDiscountPercent: stats.get(String(c._id))?.bestDiscountPercent ?? null,
+        coverImage: stats.get(String(c._id))?.coverImage ?? null,
     }));
 }
 
