@@ -151,7 +151,7 @@ export default function ProductForm({ initial, onSaved }) {
                         </div>
                         <div className="admin-form-group" style={{ width: 200 }}>
                             <label className="admin-form-label" htmlFor="product-compare">Compare-at price</label>
-                            <input id="product-compare" className="admin-form-input" type="number" step="0.01" min="0" {...text("compareAtPrice")} />
+                            <input id="product-compare" className="admin-form-input" type="number" step="0.01" min="1" {...text("compareAtPrice")} />
                             <div style={{ fontSize: 11, color: "#5a5f72", marginTop: 4 }}>Ignored unless higher than price</div>
                         </div>
                         <div className="admin-form-group" style={{ width: 160 }}>

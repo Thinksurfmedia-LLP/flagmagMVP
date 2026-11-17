@@ -8,6 +8,7 @@ import { nextFreeSlug, slugify } from "@/lib/store/slug";
 import { PRODUCT_STATUSES } from "@/lib/store/productInput";
 
 const PRICE_STEP = 10;
+const NAME_COLLATION = { locale: "en", strength: 2 };
 const SLUG_BASE_RE = /^[a-z0-9-]+$/;
 
 export function serialize(doc) {
@@ -27,10 +28,10 @@ export async function listProducts(query, { includeDrafts = false, status } = {}
     const { filter, sort, skip, limit } = buildCatalogFilter(query, { categoryId, includeDrafts });
     if (includeDrafts && PRODUCT_STATUSES.includes(status)) filter.status = status;
 
-    const [total, items] = await Promise.all([
-        Product.countDocuments(filter),
-        Product.find(filter).sort(sort).skip(skip).limit(limit).populate("category", "name slug").lean(),
-    ]);
+    // Case-insensitive name order; other sorts skip collation so they keep their indexes.
+    const itemsQuery = Product.find(filter).sort(sort).skip(skip).limit(limit).populate("category", "name slug");
+    if (query.sort === "name") itemsQuery.collation(NAME_COLLATION);
+    const [total, items] = await Promise.all([Product.countDocuments(filter), itemsQuery.lean()]);
     return { items, total, page: query.page, pageCount: Math.max(1, Math.ceil(total / limit)) };
 }
 

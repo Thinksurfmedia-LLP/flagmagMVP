@@ -10,6 +10,7 @@ const MAX_SHORT = 200;
 const MAX_DESCRIPTION = 5000;
 const MAX_VARIANTS = 50;
 const MAX_VARIANT_LABEL = 40;
+const MAX_SKU = 64;
 const MAX_CATEGORY_NAME = 60;
 const PRODUCT_STATUSES = ["draft", "active", "archived"];
 const IMAGE_PREFIXES = ["/api/uploads/", "/assets/images/"];
@@ -22,8 +23,14 @@ function str(value) {
     return typeof value === "string" ? value.trim() : "";
 }
 
+const UNSAFE_PATH_RE = /\.\.|\\|%2e/i;
+
 function isAllowedImage(url) {
-    return typeof url === "string" && IMAGE_PREFIXES.some((p) => url.startsWith(p) && url.length > p.length);
+    return (
+        typeof url === "string"
+        && !UNSAFE_PATH_RE.test(url)
+        && IMAGE_PREFIXES.some((p) => url.startsWith(p) && url.length > p.length)
+    );
 }
 
 function toInteger(value) {
@@ -61,7 +68,11 @@ function normalizeVariant(raw, productName) {
     if (stock === null || stock < 0) {
         return fail("Stock must be a whole number of 0 or more");
     }
-    const sku = str(raw.sku)
+    const explicitSku = str(raw.sku);
+    if (explicitSku.length > MAX_SKU) {
+        return fail(`SKU is too long (max ${MAX_SKU} characters)`);
+    }
+    const sku = explicitSku
         || [productName, size, color].map((p) => slugify(p).toUpperCase()).filter(Boolean).join("-");
     return { ok: true, value: { sku, size, color, colorHex, stock } };
 }
@@ -97,14 +108,14 @@ function normalizeVariants(raw, productName) {
 function normalizePrices(body) {
     const price = normalizeAmount(body.price);
     if (!price.ok) {
-        return fail(price.error);
+        return fail(`Price: ${price.error}`);
     }
     let compareAtPrice = null;
     const hasCompare = body.compareAtPrice !== undefined && body.compareAtPrice !== null && body.compareAtPrice !== "";
     if (hasCompare) {
         const compare = normalizeAmount(body.compareAtPrice);
         if (!compare.ok) {
-            return fail(compare.error);
+            return fail(`Compare-at price: ${compare.error}`);
         }
         compareAtPrice = compare.value > price.value ? compare.value : null;
     }

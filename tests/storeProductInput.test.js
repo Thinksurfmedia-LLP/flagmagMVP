@@ -93,3 +93,29 @@ test("allows one no-option variant, rejects a second", () => {
     const dup = normalizeProductInput(validProduct({ variants: [{ stock: 1 }, { size: "", color: "", stock: 2 }] }));
     assert.equal(dup.error, "Duplicate variant: no options");
 });
+
+test("rejects image URLs with traversal, backslashes or encoded dots", () => {
+    for (const url of [
+        "/api/uploads/../secret.png",
+        "/assets/images/..%2fx.png",
+        "/api/uploads/%2e%2e/x.png",
+        "/api/uploads/%2Ex.png",
+        "/api/uploads/a\\b.png",
+    ]) {
+        const r = normalizeProductInput(validProduct({ images: [url] }));
+        assert.equal(r.ok, false, url);
+        assert.match(r.error, /Image URLs must start with/);
+    }
+    assert.equal(normalizeCategoryInput({ name: "A", image: "/assets/images/../a.png" }).ok, false);
+});
+
+test("caps explicit SKU at 64 characters", () => {
+    const long = normalizeProductInput(validProduct({ variants: [{ sku: "X".repeat(65), size: "M", stock: 1 }] }));
+    assert.equal(long.error, "SKU is too long (max 64 characters)");
+    assert.equal(normalizeProductInput(validProduct({ variants: [{ sku: "X".repeat(64), size: "M", stock: 1 }] })).ok, true);
+});
+
+test("price errors name the offending field", () => {
+    assert.match(normalizeProductInput(validProduct({ price: "12.345" })).error, /^Price: .*2 decimal/);
+    assert.match(normalizeProductInput(validProduct({ compareAtPrice: "9.999" })).error, /^Compare-at price: .*2 decimal/);
+});
