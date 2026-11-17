@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import ImageLightbox from "@/components/store/ImageLightbox";
 
 const FALLBACK_IMAGE = "/assets/images/product1.jpg";
 const THUMB_SLOTS = 4;
+const SWIPE_THRESHOLD_PX = 40;
 // Four thumbnails per row (the template's slick row); 10px gaps from style.css.
 const thumbItemStyle = { flex: "0 0 calc((100% - 30px) / 4)", minWidth: 0 };
 // style.css pads every thumb li 0 8px and li.more::after covers the whole li; move that
@@ -32,6 +33,8 @@ export default function ProductGallery({ images, name, activeImage }) {
     const [active, setActive] = useState(() => indexOrZero(list, activeImage));
     const [shownFor, setShownFor] = useState(activeImage);
     const [lightboxIndex, setLightboxIndex] = useState(null);
+    const dragStartX = useRef(null);
+    const didSwipe = useRef(false);
 
     // A new colour photo switches the slide (React's "adjust state on prop change" pattern).
     if (activeImage !== shownFor) {
@@ -46,8 +49,27 @@ export default function ProductGallery({ images, name, activeImage }) {
 
     const open = (index) => (event) => {
         event.preventDefault();
+        if (didSwipe.current) {
+            didSwipe.current = false;
+            return; // the pointer moved far enough to be a swipe, not a click
+        }
         setLightboxIndex(index);
     };
+
+    const onPointerDown = (event) => {
+        dragStartX.current = event.clientX;
+        didSwipe.current = false;
+    };
+    const onPointerUp = (event) => {
+        const start = dragStartX.current;
+        dragStartX.current = null;
+        if (start === null || list.length < 2) return;
+        const dx = event.clientX - start;
+        if (Math.abs(dx) <= SWIPE_THRESHOLD_PX) return;
+        didSwipe.current = true;
+        setActive((current + (dx < 0 ? 1 : -1) + list.length) % list.length);
+    };
+    const onPointerCancel = () => { dragStartX.current = null; };
 
     const onKeyDown = (event) => {
         if (event.key === "ArrowRight") {
@@ -61,10 +83,11 @@ export default function ProductGallery({ images, name, activeImage }) {
 
     return (
         <div className="product-images demo-gallery" tabIndex={0} onKeyDown={onKeyDown} aria-label={`${name} images`}>
-            <div className="main-img-slider product-image-slider">
+            <div className="main-img-slider product-image-slider" style={{ touchAction: "pan-y" }}
+                onPointerDown={onPointerDown} onPointerUp={onPointerUp} onPointerCancel={onPointerCancel}>
                 <a href={list[current]} onClick={open(current)} aria-label={`Open ${name} image ${current + 1} full screen`}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={list[current]} className="img-fluid" alt={name} style={{ width: "100%", display: "block" }} />
+                    <img src={list[current]} className="img-fluid" alt={name} draggable={false} style={{ width: "100%", display: "block" }} />
                 </a>
             </div>
             {list.length > 1 && (
