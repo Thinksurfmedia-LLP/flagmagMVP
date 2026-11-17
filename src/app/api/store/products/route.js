@@ -4,7 +4,7 @@ import ProductCategory from "@/models/ProductCategory";
 import { requireSiteAdmin } from "@/lib/apiAuth";
 import { normalizeProductInput } from "@/lib/store/productInput";
 import { parseCatalogQuery } from "@/lib/store/catalogQuery";
-import { listProducts, uniqueProductSlug, serialize } from "@/lib/store/catalog";
+import { listProducts, listProductsBySlugs, uniqueProductSlug, serialize } from "@/lib/store/catalog";
 import { ok, created, fail, readJson, handleError } from "@/lib/store/apiResponse";
 
 const DUPLICATE = "A product with this name already exists";
@@ -13,6 +13,11 @@ const DUPLICATE = "A product with this name already exists";
 export async function GET(request) {
     try {
         const { searchParams } = new URL(request.url);
+        const slugsParam = searchParams.get("slugs");
+        if (slugsParam !== null && searchParams.get("scope") !== "admin") {
+            const items = await listProductsBySlugs(slugsParam.split(",").map((s) => s.trim()));
+            return ok(serialize(items), undefined, { meta: { total: items.length, page: 1, pageCount: 1 } });
+        }
         const options = {};
         if (searchParams.get("scope") === "admin") {
             const auth = await requireSiteAdmin();

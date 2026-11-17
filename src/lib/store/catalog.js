@@ -10,6 +10,8 @@ import { PRODUCT_STATUSES } from "@/lib/store/productInput";
 
 const PRICE_STEP = 10;
 const NAME_COLLATION = { locale: "en", strength: 2 };
+const WISHLIST_SLUG_RE = /^[a-z0-9-]{1,80}$/;
+const MAX_SLUGS = 50;
 const SLUG_BASE_RE = /^[a-z0-9-]+$/;
 
 export function serialize(doc) {
@@ -41,6 +43,14 @@ export async function getProductBySlug(slug, { includeDrafts = false } = {}) {
     const filter = { slug: String(slug) };
     if (!includeDrafts) filter.status = "active";
     return Product.findOne(filter).populate("category", "name slug").lean();
+}
+
+/** Active products for a list of slugs (used by the wishlist). Invalid entries are ignored. */
+export async function listProductsBySlugs(slugs) {
+    const valid = [...new Set(slugs)].filter((s) => typeof s === "string" && WISHLIST_SLUG_RE.test(s)).slice(0, MAX_SLUGS);
+    if (valid.length === 0) return [];
+    await dbConnect();
+    return Product.find({ slug: { $in: valid }, status: "active" }).populate("category", "name slug").lean();
 }
 
 export async function getProductById(id) {
