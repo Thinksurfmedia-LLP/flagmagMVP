@@ -183,15 +183,17 @@ function EarlierMerges({ targetId, busy, onUndo, refreshKey }) {
 }
 
 /**
- * @param {{ player: { _id: string, name: string, organization?: unknown }, onClose: () => void, onChanged: () => void, startAsSource?: boolean }} props
+ * @param {{ player: { _id: string, name: string, organization?: unknown }, onClose: () => void, onChanged: () => void, startAsSource?: boolean, initialSources?: object[] }} props
  *   startAsSource: open with `player` as a record to merge away (archive
  *   records) rather than as the player to keep. Jersey-only records always are.
+ *   initialSources: several records to merge away, already chosen (Archive
+ *   Players → select → "Merge selected"); `player` is then the first of them.
  */
-export default function MergePlayersModal({ player, onClose, onChanged, startAsSource = false }) {
+export default function MergePlayersModal({ player, onClose, onChanged, startAsSource = false, initialSources = null }) {
     const { showSuccess, showError } = useToast();
-    const startsAsStandIn = startAsSource || isStandInName(player.name);
+    const startsAsStandIn = Boolean(initialSources?.length) || startAsSource || isStandInName(player.name);
     const [target, setTarget] = useState(startsAsStandIn ? null : player);
-    const [sources, setSources] = useState(startsAsStandIn ? [player] : []);
+    const [sources, setSources] = useState(initialSources?.length ? initialSources : startsAsStandIn ? [player] : []);
     const [review, setReview] = useState(null); // dry-run result
     const [busy, setBusy] = useState(false);
     const [done, setDone] = useState(null); // { mergeId, merged, targetName }

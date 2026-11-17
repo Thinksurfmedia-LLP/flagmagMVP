@@ -4,9 +4,9 @@ import dbConnect from "@/lib/dbConnect";
 import Player from "@/models/Player";
 import { requireAnyPermission, hasRole } from "@/lib/apiAuth";
 import { getManagedOrgIds } from "@/lib/managedOrgs";
-import { containsRegex } from "@/lib/searchRegex";
-import { ARCHIVE_KINDS, buildArchiveFilter } from "@/lib/archivePlayersFilter";
+import { ARCHIVE_KINDS, buildArchiveFilter, archiveSearchRegex } from "@/lib/archivePlayersFilter";
 import { playerIdentifiers } from "@/lib/playerMerge";
+import { MAX_MERGE_SOURCES } from "@/lib/playerMergePlan";
 
 const DEFAULT_PAGE_SIZE = 50;
 const MAX_PAGE_SIZE = 100;
@@ -16,10 +16,12 @@ function parsePositiveInt(value, fallback) {
     return Number.isFinite(n) && n > 0 ? n : fallback;
 }
 
-// GET /api/players/archive?page=1&limit=50&search=&kind=all|jersey|named[&organization=<id>]
+// GET /api/players/archive?page=1&limit=50&search=&kind=all|jersey|named[&organization=<id>][&view=selection]
 // Players imported from the old XFlag site who aren't on a current roster —
 // kept out of Free Agents (they never signed up). Each row carries its teams
 // and last season played so records can be told apart, merged or renamed.
+// view=selection: every match (up to one merge's worth) as {_id, name,
+// organization} — backs "Select all matching", e.g. every "Darkside #56".
 export async function GET(request) {
     const auth = await requireAnyPermission(["manage_players", "player_view", "player_update"]);
     if (!auth.authorized) return auth.response;
@@ -52,8 +54,16 @@ export async function GET(request) {
         const filter = buildArchiveFilter({
             orgIds: orgIds && orgIds.map((id) => new mongoose.Types.ObjectId(id)),
             kind,
-            searchRe: containsRegex(searchParams.get("search")),
+            searchRe: archiveSearchRegex(searchParams.get("search")),
         });
+
+        if (searchParams.get("view") === "selection") {
+            const [total, rows] = await Promise.all([
+                Player.countDocuments(filter),
+                Player.find(filter).select("name organization").sort({ name: 1, _id: 1 }).limit(MAX_MERGE_SOURCES).lean(),
+            ]);
+            return NextResponse.json({ success: true, data: rows, meta: { total, limit: MAX_MERGE_SOURCES } });
+        }
         const [total, rows] = await Promise.all([
             Player.countDocuments(filter),
             Player.find(filter)

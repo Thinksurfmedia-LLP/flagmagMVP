@@ -1614,3 +1614,19 @@
 }
 .team-picker-row:hover .team-picker-row-add { background: #FF1E00; color: #fff; border-color: #FF1E00; }
 .team-picker-note { font-size: 13px; color: #8b90a0; font-style: italic; padding: 6px 0; }
+
+/* Archive Players: selection bar ("Select all matching" / "Merge selected") */
+.archive-selection-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 8px 12px;
+    border: 1px solid #ffd2cc;
+    border-radius: 8px;
+    background: #fff6f4;
+    font-size: 13px;
+    color: #1a1d26;
+}
+.archive-selection-bar > span { margin-right: auto; }

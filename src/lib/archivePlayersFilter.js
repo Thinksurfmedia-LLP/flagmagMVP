@@ -3,6 +3,7 @@
 // runs under `node --test`.
 
 const { STAND_IN_NAME_RE } = require("./playerMergePlan");
+const { containsRegex } = require("./searchRegex");
 
 const ARCHIVE_KINDS = ["all", "jersey", "named"];
 
@@ -23,4 +24,18 @@ function buildArchiveFilter({ orgIds, kind = "all", searchRe = null }) {
     return filter;
 }
 
-module.exports = { ARCHIVE_KINDS, buildArchiveFilter };
+/**
+ * Search text -> case-insensitive "contains" regex (escaped), or null.
+ * When the text ends in a jersey number ("Darkside #5"), the number must end
+ * there too, so it finds #5 and not #56 / #57 — the search is used to select
+ * every season of one jersey at once.
+ * @param {unknown} input
+ * @returns {RegExp | null}
+ */
+function archiveSearchRegex(input) {
+    const re = containsRegex(input);
+    if (!re) return null;
+    return /#\d+$/.test(String(input).trim()) ? new RegExp(`${re.source}(?!\\d)`, "i") : re;
+}
+
+module.exports = { ARCHIVE_KINDS, buildArchiveFilter, archiveSearchRegex };

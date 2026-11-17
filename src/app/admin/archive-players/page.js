@@ -6,14 +6,15 @@ import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/AdminToast";
 import AdminPagination from "@/components/AdminPagination";
 import MergePlayersModal from "@/components/MergePlayersModal";
-import { isStandInName } from "@/lib/playerMergePlan";
+import { isStandInName, MAX_MERGE_SOURCES } from "@/lib/playerMergePlan";
 import { MAX_NAME_LENGTH } from "@/lib/freeAgentValidation";
 
 // Admin → Archive Players: everyone imported from the old XFlag site who
 // isn't on a current roster. They never signed up as free agents, so they're
 // kept out of Free Agents. Most old-site seasons recorded only a jersey
 // number, so many records are named "Team #56 (Season)" — merge those into
-// the real player, or rename them.
+// the real player, or rename them. Search "Darkside #56", "Select all
+// matching", then "Merge selected" moves every season of one jersey at once.
 
 const PAGE_SIZE = 50;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -106,6 +107,12 @@ export default function ArchivePlayersPage() {
     const [pageMeta, setPageMeta] = useState({ total: 0, totalPages: 1 });
     const [merging, setMerging] = useState(null);
     const [renaming, setRenaming] = useState(null);
+    // Chosen records, kept across pages: id -> { _id, name, organization }.
+    const [selected, setSelected] = useState(() => new Map());
+    const [selectingAll, setSelectingAll] = useState(false);
+    // Snapshot of the selection the merge dialog was opened with — the live
+    // selection is cleared after merging while the dialog still shows Undo.
+    const [mergingSelected, setMergingSelected] = useState(null);
     const latestRequest = useRef(0);
 
     const canView = user && hasAnyAccess(user, ["manage_players", "player_view", "player_update"]);
@@ -155,6 +162,56 @@ export default function ArchivePlayersPage() {
         setCurrentPage(1);
     };
 
+    const toRecord = (p) => ({ _id: String(p._id), name: p.name, organization: p.organization });
+    const toggleOne = (p) => {
+        setSelected((prev) => {
+            const next = new Map(prev);
+            if (next.has(String(p._id))) next.delete(String(p._id));
+            else if (next.size < MAX_MERGE_SOURCES) next.set(String(p._id), toRecord(p));
+            return next;
+        });
+    };
+    const pageAllSelected = players.length > 0 && players.every((p) => selected.has(String(p._id)));
+    const togglePage = () => {
+        setSelected((prev) => {
+            const next = new Map(prev);
+            if (pageAllSelected) players.forEach((p) => next.delete(String(p._id)));
+            else players.forEach((p) => { if (next.size < MAX_MERGE_SOURCES) next.set(String(p._id), toRecord(p)); });
+            return next;
+        });
+    };
+    const clearSelection = () => setSelected(new Map());
+
+    // Every record matching the current search/tab, not just this page.
+    const selectAllMatching = async () => {
+        setSelectingAll(true);
+        try {
+            const params = new URLSearchParams({ view: "selection", kind });
+            if (debouncedSearch) params.set("search", debouncedSearch);
+            const res = await fetch(`/api/players/archive?${params}`);
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error || "Couldn't select these records");
+            // Adds to what's already selected, so "Darkside #56" and
+            // "Ragnarok #56" can be merged into the same player together.
+            const rows = data.data || [];
+            const next = new Map(selected);
+            let capped = data.meta?.total > rows.length;
+            for (const p of rows) {
+                if (next.size >= MAX_MERGE_SOURCES && !next.has(String(p._id))) { capped = true; break; }
+                next.set(String(p._id), toRecord(p));
+            }
+            setSelected(next);
+            if (capped) showError(`Up to ${MAX_MERGE_SOURCES} records can be merged at once — some matches weren't selected.`);
+        } catch (error) {
+            showError(error.message);
+        } finally {
+            setSelectingAll(false);
+        }
+    };
+
+    const selectedList = [...selected.values()];
+    const afterMerge = () => { clearSelection(); fetchPlayers(); };
+
     const actions = (p) => canEdit && (
         <>
             <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={() => setMerging(p)} aria-label={`Merge ${p.name}`}>
@@ -197,8 +254,10 @@ export default function ArchivePlayersPage() {
                     <p style={{ fontSize: 13, color: "#5a5f72", margin: "0 0 12px" }}>
                         Players imported from the old XFlag website who aren&apos;t on a current team. Their games and stats
                         are kept. Many old seasons only recorded a jersey number, so those records are named
-                        &nbsp;<em>&quot;Team #56 (Season)&quot;</em> — use <strong>Merge</strong> to move them onto the real
-                        player, or <strong>Rename</strong>. Add someone back to a team from that team&apos;s page.
+                        &nbsp;<em>&quot;Team #56 (Season)&quot;</em>. To move every season of one jersey onto the real player,
+                        search e.g. <em>Darkside #56</em>, click <strong>Select all matching</strong>, then
+                        <strong> Merge selected into a player</strong>. You can also <strong>Rename</strong> a record. Add
+                        someone back to a team from that team&apos;s page.
                     </p>
                     <div role="tablist" aria-label="Record type" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                         {KINDS.map((k) => (
@@ -213,6 +272,29 @@ export default function ArchivePlayersPage() {
                             </button>
                         ))}
                     </div>
+                    {canEdit && (debouncedSearch || selected.size > 0) && (
+                        <div className="archive-selection-bar" aria-live="polite">
+                            {selected.size > 0 ? (
+                                <span><strong>{selected.size}</strong> selected</span>
+                            ) : (
+                                <span>{pageMeta.total} matching &ldquo;{debouncedSearch}&rdquo;</span>
+                            )}
+                            {debouncedSearch && pageMeta.total > 0 && (
+                                <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={selectAllMatching} disabled={selectingAll || loading}>
+                                    <i className="fa-solid fa-check-double"></i>{" "}
+                                    {selectingAll ? "Selecting..." : `Select all ${Math.min(pageMeta.total, MAX_MERGE_SOURCES)} matching`}
+                                </button>
+                            )}
+                            {selected.size > 0 && (
+                                <>
+                                    <button className="admin-btn admin-btn-primary admin-btn-sm" onClick={() => setMergingSelected(selectedList)}>
+                                        <i className="fa-solid fa-code-merge"></i> Merge {selected.size} selected into a player
+                                    </button>
+                                    <button className="admin-btn admin-btn-ghost admin-btn-sm" onClick={clearSelection}>Clear</button>
+                                </>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {loading ? (
@@ -232,6 +314,11 @@ export default function ArchivePlayersPage() {
                                 <table className="admin-table">
                                     <thead>
                                         <tr>
+                                            {canEdit && (
+                                                <th style={{ width: 36 }}>
+                                                    <input type="checkbox" checked={pageAllSelected} onChange={togglePage} aria-label="Select every record on this page" />
+                                                </th>
+                                            )}
                                             <th>Name</th>
                                             <th>History</th>
                                             {isAdmin && <th>Organization</th>}
@@ -241,6 +328,11 @@ export default function ArchivePlayersPage() {
                                     <tbody>
                                         {players.map((p) => (
                                             <tr key={p._id}>
+                                                {canEdit && (
+                                                    <td>
+                                                        <input type="checkbox" checked={selected.has(String(p._id))} onChange={() => toggleOne(p)} aria-label={`Select ${p.name}`} />
+                                                    </td>
+                                                )}
                                                 <td style={{ fontWeight: 600 }}>{p.name}</td>
                                                 <td style={{ color: "#6b7080", fontSize: 13 }}>{historyLine(p)}</td>
                                                 {isAdmin && <td>{p.organization?.name || "—"}</td>}
@@ -255,7 +347,10 @@ export default function ArchivePlayersPage() {
                         <div className="free-agents-card-list">
                             {players.map((p) => (
                                 <div key={p._id} className="free-agents-card-item">
-                                    <div className="free-agents-card-item-title">{p.name}</div>
+                                    <label className="free-agents-card-item-title" style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                                        {canEdit && <input type="checkbox" checked={selected.has(String(p._id))} onChange={() => toggleOne(p)} />}
+                                        {p.name}
+                                    </label>
                                     <div className="free-agents-card-item-meta">
                                         <span>{historyLine(p)}</span>
                                         {isAdmin && p.organization?.name && <span><strong>Org:</strong> {p.organization.name}</span>}
@@ -277,7 +372,15 @@ export default function ArchivePlayersPage() {
             </div>
 
             {merging && (
-                <MergePlayersModal player={merging} startAsSource onClose={() => setMerging(null)} onChanged={() => fetchPlayers()} />
+                <MergePlayersModal player={merging} startAsSource onClose={() => setMerging(null)} onChanged={afterMerge} />
+            )}
+            {mergingSelected && (
+                <MergePlayersModal
+                    player={mergingSelected[0]}
+                    initialSources={mergingSelected}
+                    onClose={() => setMergingSelected(null)}
+                    onChanged={afterMerge}
+                />
             )}
             {renaming && (
                 <RenameModal player={renaming} onClose={() => setRenaming(null)} onSaved={() => { setRenaming(null); fetchPlayers(); }} />
