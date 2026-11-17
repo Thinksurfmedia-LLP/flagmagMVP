@@ -25,7 +25,7 @@ const ProductSchema = new mongoose.Schema(
         specsCare: { type: String, default: "", trim: true, maxlength: 5000 },
         tags: { type: [String], default: [] },
         newBadge: { type: String, enum: ["auto", "on", "off"], default: "auto" },
-        colorImages: { type: Map, of: String, default: {} },
+        colorImages: { type: [{ _id: false, color: String, image: String }], default: [] },
         images: { type: [String], default: [] },
         price: { type: Number, required: true, min: 0 },
         compareAtPrice: { type: Number, default: null },

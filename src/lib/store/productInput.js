@@ -137,10 +137,23 @@ function normalizeTags(raw) {
     return { ok: true, value: tags };
 }
 
+const COLOR_IMAGES_SHAPE_ERROR = "colorImages must be a list of colour photos";
+
+function colorImageEntries(raw) {
+    if (raw === undefined || raw === null) {
+        return [];
+    }
+    if (Array.isArray(raw)) {
+        const ok = raw.every((e) => e && typeof e === "object" && !Array.isArray(e));
+        return ok ? raw.map((e) => [e.color, e.image]) : null;
+    }
+    return typeof raw === "object" ? Object.entries(raw) : null;
+}
+
 function normalizeColorImages(raw, variants, images) {
-    const result = {};
-    if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
-        return { ok: true, value: result };
+    const entries = colorImageEntries(raw);
+    if (entries === null) {
+        return fail(COLOR_IMAGES_SHAPE_ERROR);
     }
     const colorByLower = new Map();
     for (const v of variants) {
@@ -148,8 +161,9 @@ function normalizeColorImages(raw, variants, images) {
             colorByLower.set(v.color.toLowerCase(), v.color);
         }
     }
-    for (const [key, value] of Object.entries(raw)) {
-        const color = colorByLower.get(key.trim().toLowerCase());
+    const byColor = new Map();
+    for (const [key, value] of entries) {
+        const color = colorByLower.get(str(key).toLowerCase());
         if (!color) {
             continue;
         }
@@ -157,9 +171,9 @@ function normalizeColorImages(raw, variants, images) {
         if (!images.includes(url)) {
             return fail(`Colour photo for "${color}" must be one of the product images`);
         }
-        result[color] = url;
+        byColor.set(color, url);
     }
-    return { ok: true, value: result };
+    return { ok: true, value: [...byColor].map(([color, image]) => ({ color, image })) };
 }
 
 function normalizeTextFields(body) {

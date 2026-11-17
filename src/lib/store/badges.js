@@ -31,4 +31,14 @@ function sizeLabel(size) {
     return Object.hasOwn(SIZE_LABELS, key) ? SIZE_LABELS[key] : size;
 }
 
-module.exports = { isNewProduct, sizeLabel, NEW_BADGE_DAYS };
+/** Photo for a colour: its mapped image (case-insensitive), else the first image, else "". */
+function colorImageFor(product, color) {
+    const fallback = (product && Array.isArray(product.images) && product.images[0]) || "";
+    const key = typeof color === "string" ? color.trim().toLowerCase() : "";
+    const list = product && Array.isArray(product.colorImages) ? product.colorImages : [];
+    if (!key) return fallback;
+    const hit = list.find((e) => e && typeof e.color === "string" && e.color.trim().toLowerCase() === key);
+    return (hit && hit.image) || fallback;
+}
+
+module.exports = { isNewProduct, sizeLabel, colorImageFor, NEW_BADGE_DAYS };

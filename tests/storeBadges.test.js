@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { isNewProduct, sizeLabel, NEW_BADGE_DAYS } = require("../src/lib/store/badges.js");
+const { isNewProduct, sizeLabel, colorImageFor, NEW_BADGE_DAYS } = require("../src/lib/store/badges.js");
 
 const DAY = 24 * 60 * 60 * 1000;
 const now = new Date("2026-11-17T12:00:00Z");
@@ -32,4 +32,13 @@ test("sizeLabel maps known sizes case-insensitively and passes others through", 
     assert.equal(sizeLabel("XXL"), "2X Large");
     assert.equal(sizeLabel("3XL"), "3X Large");
     assert.equal(sizeLabel("Youth L"), "Youth L");
+});
+test("colorImageFor maps case-insensitively, else first image, else empty", () => {
+    const p = { images: ["/a.jpg", "/b.jpg"], colorImages: [{ color: "St. Red", image: "/b.jpg" }] };
+    assert.equal(colorImageFor(p, "st. red"), "/b.jpg");
+    assert.equal(colorImageFor(p, "Blue"), "/a.jpg");
+    assert.equal(colorImageFor(p, ""), "/a.jpg");
+    assert.equal(colorImageFor({ images: ["/a.jpg"] }, "Red"), "/a.jpg");
+    assert.equal(colorImageFor({}, "Red"), "");
+    assert.equal(colorImageFor(null, "Red"), "");
 });

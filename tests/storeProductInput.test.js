@@ -131,7 +131,7 @@ test("new text fields default to empty and are trimmed", () => {
     assert.equal(d.value.subtitle, "");
     assert.deepEqual(d.value.tags, []);
     assert.equal(d.value.newBadge, "auto");
-    assert.deepEqual(d.value.colorImages, {});
+    assert.deepEqual(d.value.colorImages, []);
 });
 test("rejects over-long subtitle, highlight, details, specsCare", () => {
     assert.equal(normalizeProductInput(validProduct({ subtitle: "x".repeat(121) })).ok, false);
@@ -178,5 +178,31 @@ test("colorImages: keys match variant colours case-insensitively and use variant
     });
     const r = normalizeProductInput(body);
     assert.equal(r.ok, true);
-    assert.deepEqual(r.value.colorImages, { Red: img });
+    assert.deepEqual(r.value.colorImages, [{ color: "Red", image: img }]);
+});
+test("colorImages: array input accepted, deduped (last wins), unknown dropped", () => {
+    const [a, b] = validProduct({ images: ["/assets/images/a.jpg", "/assets/images/b.jpg"] }).images;
+    const r = normalizeProductInput(validProduct({
+        images: [a, b],
+        variants: [{ size: "M", color: "Red", stock: 1 }],
+        colorImages: [{ color: "red", image: a }, { color: "RED", image: b }, { color: "Pink", image: a }],
+    }));
+    assert.equal(r.ok, true);
+    assert.deepEqual(r.value.colorImages, [{ color: "Red", image: b }]);
+});
+test("colorImages: invalid shapes are rejected", () => {
+    for (const bad of ["x", 5, ["a"], [null], true]) {
+        const r = normalizeProductInput(validProduct({ colorImages: bad }));
+        assert.equal(r.ok, false);
+        assert.equal(r.error, "colorImages must be a list of colour photos");
+    }
+});
+test("colorImages: colour containing a dot works", () => {
+    const img = validProduct().images[0];
+    const r = normalizeProductInput(validProduct({
+        variants: [{ size: "M", color: "St. Patrick Green", stock: 1 }],
+        colorImages: { "st. patrick green": img },
+    }));
+    assert.equal(r.ok, true);
+    assert.deepEqual(r.value.colorImages, [{ color: "St. Patrick Green", image: img }]);
 });
