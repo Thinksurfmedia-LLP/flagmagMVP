@@ -56,13 +56,13 @@ export default function ImagesEditor({ images, onChange, onError }) {
                             {index === 0 ? "Cover" : `Image ${index + 1}`}
                         </div>
                         <div style={{ display: "flex", gap: 4 }}>
-                            <button type="button" className="admin-btn admin-btn-ghost admin-btn-sm" title="Move left" aria-label="Move image left" disabled={index === 0} onClick={() => move(index, -1)}>
+                            <button type="button" className="admin-btn admin-btn-ghost admin-btn-sm" title="Move left" aria-label="Move image left" disabled={uploading || index === 0} onClick={() => move(index, -1)}>
                                 <i className="fa-solid fa-chevron-left"></i>
                             </button>
-                            <button type="button" className="admin-btn admin-btn-ghost admin-btn-sm" title="Move right" aria-label="Move image right" disabled={index === images.length - 1} onClick={() => move(index, 1)}>
+                            <button type="button" className="admin-btn admin-btn-ghost admin-btn-sm" title="Move right" aria-label="Move image right" disabled={uploading || index === images.length - 1} onClick={() => move(index, 1)}>
                                 <i className="fa-solid fa-chevron-right"></i>
                             </button>
-                            <button type="button" className="admin-btn admin-btn-danger admin-btn-sm" title="Remove" aria-label="Remove image" onClick={() => remove(index)}>
+                            <button type="button" className="admin-btn admin-btn-danger admin-btn-sm" title="Remove" aria-label="Remove image" disabled={uploading} onClick={() => remove(index)}>
                                 <i className="fa-solid fa-trash"></i>
                             </button>
                         </div>
