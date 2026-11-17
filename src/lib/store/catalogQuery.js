@@ -9,10 +9,10 @@ const MAX_LIST_ITEMS = 10;
 const MAX_VALUE_LENGTH = 40;
 const CATEGORY_RE = /^[a-z0-9-]{1,80}$/;
 const SORTS = {
-    newest: { createdAt: -1 },
+    newest: { createdAt: -1, _id: 1 },
     "price-asc": { price: 1, _id: 1 },
     "price-desc": { price: -1, _id: 1 },
-    name: { name: 1 },
+    name: { name: 1, _id: 1 },
 };
 const SIZE_ORDER = ["XS", "S", "M", "L", "XL", "XXL", "3XL"];
 

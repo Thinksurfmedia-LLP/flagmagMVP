@@ -56,5 +56,6 @@ test("filter composition: elemMatch, category, price, sort", () => {
     const none = buildCatalogFilter(parseCatalogQuery({}), {});
     assert.equal("variants" in none.filter, false);
     assert.equal("category" in none.filter, false);
-    assert.deepEqual(none.sort, { createdAt: -1 });
+    assert.deepEqual(none.sort, { createdAt: -1, _id: 1 });
+    assert.deepEqual(buildCatalogFilter(parseCatalogQuery({ sort: "name" }), {}).sort, { name: 1, _id: 1 });
 });
