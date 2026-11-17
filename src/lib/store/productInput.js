@@ -51,9 +51,6 @@ function normalizeVariant(raw, productName) {
     const size = str(raw.size);
     const color = str(raw.color);
     const colorHex = str(raw.colorHex);
-    if (!size && !color) {
-        return fail("Each variant needs a size or color");
-    }
     if (size.length > MAX_VARIANT_LABEL || color.length > MAX_VARIANT_LABEL) {
         return fail(`Variant size and color must be ${MAX_VARIANT_LABEL} characters or fewer`);
     }
@@ -85,7 +82,7 @@ function normalizeVariants(raw, productName) {
         const combo = `${v.size.toLowerCase()}\u0000${v.color.toLowerCase()}`;
         if (seenCombos.has(combo)) {
             const first = variants.find((x) => `${x.size.toLowerCase()}\u0000${x.color.toLowerCase()}` === combo);
-            return fail(`Duplicate variant: ${[first.size, first.color].filter(Boolean).join(" / ")}`);
+            return fail(`Duplicate variant: ${[first.size, first.color].filter(Boolean).join(" / ") || "no options"}`);
         }
         if (seenSkus.has(v.sku.toLowerCase())) {
             return fail(`Duplicate SKU: ${v.sku}`);

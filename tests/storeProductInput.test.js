@@ -85,3 +85,11 @@ test("category input", () => {
     assert.equal(normalizeCategoryInput({ name: "A", sortOrder: 1.5 }).ok, false);
     assert.equal(normalizeCategoryInput({ name: "A", sortOrder: 3, image: "/assets/images/a.png" }).value.sortOrder, 3);
 });
+
+test("allows one no-option variant, rejects a second", () => {
+    const r = normalizeProductInput(validProduct({ variants: [{ stock: 4 }] }));
+    assert.equal(r.ok, true);
+    assert.equal(r.value.variants[0].sku, "FLAGMAG-HOODIE");
+    const dup = normalizeProductInput(validProduct({ variants: [{ stock: 1 }, { size: "", color: "", stock: 2 }] }));
+    assert.equal(dup.error, "Duplicate variant: no options");
+});
