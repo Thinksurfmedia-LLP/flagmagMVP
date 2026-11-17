@@ -5,12 +5,12 @@ import Product from "@/models/Product";
 import ProductCategory from "@/models/ProductCategory";
 import { buildCatalogFilter, sortSizes } from "@/lib/store/catalogQuery";
 import { summarizeByCategory } from "@/lib/store/categoryStats";
-import { nextFreeSlug, slugify } from "@/lib/store/slug";
+import { nextFreeSlug, slugify, MAX_SLUG_LENGTH } from "@/lib/store/slug";
 import { PRODUCT_STATUSES } from "@/lib/store/productInput";
 
 const PRICE_STEP = 10;
 const NAME_COLLATION = { locale: "en", strength: 2 };
-const WISHLIST_SLUG_RE = /^[a-z0-9-]{1,80}$/;
+const WISHLIST_SLUG_RE = new RegExp(`^[a-z0-9-]{1,${MAX_SLUG_LENGTH}}$`);
 const MAX_SLUGS = 50;
 const SLUG_BASE_RE = /^[a-z0-9-]+$/;
 

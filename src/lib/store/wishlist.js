@@ -1,10 +1,12 @@
 // Wishlist core (pure, CommonJS for `node --test`) plus a guarded localStorage adapter.
 
+const { MAX_SLUG_LENGTH } = require("./slug.js");
+
 const STORAGE_KEY = "flagmag.wishlist.v1";
 const CHANGE_EVENT = "wishlist:change";
 const MAX_ITEMS = 100;
 const API_SLUG_LIMIT = 50;
-const SLUG_RE = /^[a-z0-9-]{1,80}$/;
+const SLUG_RE = new RegExp(`^[a-z0-9-]{1,${MAX_SLUG_LENGTH}}$`);
 
 const text = (v) => (typeof v === "string" ? v.trim() : "");
 const lower = (v) => text(v).toLowerCase();

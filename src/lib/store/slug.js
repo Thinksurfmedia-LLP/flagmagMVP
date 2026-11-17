@@ -1,7 +1,10 @@
 // Pure slug helpers for store product URLs. CommonJS with relative requires
 // only, so they run under `node --test` without the Next.js resolver.
 
-const MAX_SLUG_LENGTH = 80;
+// Generated slugs are cut to SLUG_BASE_LENGTH; a "-N" duplicate suffix then fits
+// well inside MAX_SLUG_LENGTH, the longest slug any lookup accepts.
+const SLUG_BASE_LENGTH = 80;
+const MAX_SLUG_LENGTH = 90;
 
 /**
  * Turn a product name into a URL-safe slug.
@@ -12,7 +15,7 @@ function slugify(text) {
     return String(text)
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
-        .slice(0, MAX_SLUG_LENGTH)
+        .slice(0, SLUG_BASE_LENGTH)
         .replace(/^-+|-+$/g, "");
 }
 

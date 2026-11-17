@@ -71,3 +71,9 @@ test("pruneMissing removes every variant of a missing slug", () => {
     const current = [item("gone", "L"), item("gone", "M"), item("a")];
     assert.deepEqual(pruneMissing(current, ["gone", "a"], ["a"]).map((i) => i.slug), ["a"]);
 });
+
+test("an 82-char slug can be wishlisted, 91 chars cannot", () => {
+    const long = "a".repeat(82);
+    assert.equal(addItem([], { slug: long, size: "M", color: "" }, 1).length, 1);
+    assert.equal(addItem([], { slug: "a".repeat(91) }, 1).length, 0);
+});
