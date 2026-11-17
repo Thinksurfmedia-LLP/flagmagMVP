@@ -7,7 +7,10 @@ const PAGE_SIZE = 12;
 const MAX_PAGE = 500;
 const MAX_LIST_ITEMS = 10;
 const MAX_VALUE_LENGTH = 40;
-const CATEGORY_RE = /^[a-z0-9-]{1,80}$/;
+const { MAX_SLUG_LENGTH } = require("./slug.js");
+
+const CATEGORY_RE = new RegExp(`^[a-z0-9-]{1,${MAX_SLUG_LENGTH}}$`);
+const MAX_TAG_LENGTH = 30;
 const SORTS = {
     newest: { createdAt: -1, _id: 1 },
     "price-asc": { price: 1, _id: 1 },
@@ -52,6 +55,11 @@ function parsePage(raw) {
     return Math.min(n, MAX_PAGE);
 }
 
+function parseTag(raw) {
+    const tag = typeof raw === "string" ? raw.trim() : "";
+    return tag !== "" && tag.length <= MAX_TAG_LENGTH ? tag : null;
+}
+
 function parseCatalogQuery(params) {
     const categoryRaw = getFirst(params, "category");
     const sortRaw = getFirst(params, "sort");
@@ -67,6 +75,7 @@ function parseCatalogQuery(params) {
         minPrice,
         maxPrice,
         q: normalize(getFirst(params, "q")),
+        tag: parseTag(getFirst(params, "tag")),
         sort: Object.hasOwn(SORTS, sortRaw) ? sortRaw : "newest",
         page: parsePage(getFirst(params, "page")),
     };
@@ -79,6 +88,8 @@ function buildCatalogFilter(query, opts = {}) {
 
     const re = containsRegex(query.q);
     if (re) filter.$or = [{ name: re }, { tags: re }];
+
+    if (query.tag) filter.tags = exactRegex(query.tag);
 
     const price = {};
     if (query.minPrice !== null) price.$gte = query.minPrice;
@@ -104,6 +115,7 @@ function toQueryString(query, overrides = {}) {
     const out = new URLSearchParams();
     if (next.category) out.set("category", next.category);
     if (next.q) out.set("q", next.q);
+    if (next.tag) out.set("tag", next.tag);
     for (const c of next.colors) out.append("color", c);
     for (const s of next.sizes) out.append("size", s);
     if (next.minPrice !== null && next.minPrice !== undefined) out.set("min", String(next.minPrice));

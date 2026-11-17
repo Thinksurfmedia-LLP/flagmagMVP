@@ -45,3 +45,8 @@ test("pushing the URL already shown with nothing pending records nothing", () =>
     assert.deepEqual(recordPush([], "size=M", "size=M"), []);
     assert.deepEqual(recordPush(["size=M"], "", ""), ["size=M", ""]);
 });
+
+test("hasActiveFilters counts the tag", () => {
+    assert.equal(hasActiveFilters({ ...base, tag: "Men" }), true);
+    assert.equal(hasActiveFilters({ ...base, tag: null }), false);
+});

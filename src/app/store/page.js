@@ -23,6 +23,29 @@ export default async function StorePage({ searchParams }) {
     const plainCategories = serialize(categories);
     const isCatalogEmpty = result.total === 0 && !hasActiveFilters(query);
 
+    const results = products.length > 0 ? (
+        <>
+            <div className="product-list row g-4">
+                {products.map((product) => (
+                    <div className="col-md-6 col-xl-4" key={product._id}>
+                        <ProductCard product={product} />
+                    </div>
+                ))}
+            </div>
+            <StorePagination query={query} page={result.page} pageCount={result.pageCount} />
+        </>
+    ) : isCatalogEmpty ? (
+        <div className="text-center py-5">
+            <h4>Our store is opening soon</h4>
+            <p>New FlagMag gear is on the way — check back shortly.</p>
+        </div>
+    ) : (
+        <div className="text-center py-5">
+            <h4>No products match these filters</h4>
+            <Link href="/store" className="btn btn-primary mt-3">Clear filters</Link>
+        </div>
+    );
+
     return (
         <>
             <Header />
@@ -42,34 +65,13 @@ export default async function StorePage({ searchParams }) {
             <section className="store-list-section section-padding">
                 <div className="container">
                     <div className="row align-items-start">
-                        {!isCatalogEmpty && (
-                            <StoreFilters query={query} categories={plainCategories} facets={serialize(facets)} />
+                        {isCatalogEmpty ? (
+                            <div className="col">{results}</div>
+                        ) : (
+                            <StoreFilters query={query} categories={plainCategories} facets={serialize(facets)}>
+                                {results}
+                            </StoreFilters>
                         )}
-
-                        <div className="col">
-                            {products.length > 0 ? (
-                                <>
-                                    <div className="product-list row g-4">
-                                        {products.map((product) => (
-                                            <div className="col-md-6 col-xl-4" key={product._id}>
-                                                <ProductCard product={product} />
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <StorePagination query={query} page={result.page} pageCount={result.pageCount} />
-                                </>
-                            ) : isCatalogEmpty ? (
-                                <div className="text-center py-5">
-                                    <h4>Our store is opening soon</h4>
-                                    <p>New FlagMag gear is on the way — check back shortly.</p>
-                                </div>
-                            ) : (
-                                <div className="text-center py-5">
-                                    <h4>No products match these filters</h4>
-                                    <Link href="/store" className="btn btn-primary mt-3">Clear filters</Link>
-                                </div>
-                            )}
-                        </div>
                     </div>
                 </div>
             </section>

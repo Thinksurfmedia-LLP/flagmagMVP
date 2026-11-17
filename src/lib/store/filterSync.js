@@ -13,6 +13,7 @@ function hasActiveFilters(query) {
     return Boolean(
         query.category
         || query.q
+        || query.tag
         || query.colors.length > 0
         || query.sizes.length > 0
         || (query.minPrice !== null && query.minPrice !== undefined)

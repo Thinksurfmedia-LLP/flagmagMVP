@@ -18,9 +18,10 @@ const SORT_OPTIONS = [
 const priceText = (n) => (n === null || n === undefined ? "" : String(n));
 
 /**
- * @param {{ query: object, categories: object[], facets: { colors: {name:string,hex:string}[], sizes: string[], maxPrice: number } }} props
+ * `children` (the product grid) renders in the right column under the active-filter chips.
+ * @param {{ children?: import("react").ReactNode, query: object, categories: object[], facets: { colors: {name:string,hex:string}[], sizes: string[], maxPrice: number } }} props
  */
-export default function StoreFilters({ query, categories, facets }) {
+export default function StoreFilters({ query, categories, facets, children }) {
     const router = useRouter();
     const [open, setOpen] = useState(false);
     const [minText, setMinText] = useState(priceText(query.minPrice));
@@ -89,6 +90,11 @@ export default function StoreFilters({ query, categories, facets }) {
     };
 
     // Public list hides empty categories, but keeps a selected one so it can be unticked.
+    const chips = [
+        working.tag && { key: "tag", label: `Tag: ${working.tag}`, clear: { tag: null } },
+        working.q && { key: "q", label: `Search: ${working.q}`, clear: { q: null } },
+    ].filter(Boolean);
+
     const visibleCategories = categories.filter((c) => c.activeCount > 0 || c.slug === working.category);
 
     return (
@@ -216,6 +222,23 @@ export default function StoreFilters({ query, categories, facets }) {
                         ))}
                     </div>
                 )}
+            </div>
+            <div className="col">
+                {chips.length > 0 && (
+                    <ul className="tag active-filters" aria-label="Active filters"
+                        style={{ display: "flex", flexWrap: "wrap", gap: 10, listStyle: "none", margin: "0 0 20px", padding: 0 }}>
+                        {chips.map((chip) => (
+                            <li key={chip.key} style={{ display: "inline-flex", alignItems: "center", gap: 8, textTransform: "uppercase", fontSize: "0.875rem", fontWeight: 300, color: "#fff", border: "1px solid rgba(255,255,255,0.4)", borderRadius: 36, padding: "4px 6px 4px 14px" }}>
+                                {chip.label}
+                                <button type="button" aria-label={`Remove filter ${chip.label}`} onClick={() => go(chip.clear)}
+                                    style={{ border: 0, background: "transparent", color: "#FF1E00", fontSize: 18, lineHeight: 1, padding: "0 6px", cursor: "pointer" }}>
+                                    &times;
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+                {children}
             </div>
         </>
     );

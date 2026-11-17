@@ -61,3 +61,29 @@ test("filter composition: elemMatch, category, price, sort", () => {
     assert.deepEqual(none.sort, { createdAt: -1, _id: 1 });
     assert.deepEqual(buildCatalogFilter(parseCatalogQuery({ sort: "name" }), {}).sort, { name: 1, _id: 1 });
 });
+
+test("tag filter is an exact, case-insensitive match", () => {
+    const { filter } = buildCatalogFilter(parseCatalogQuery({ tag: "Men" }), {});
+    assert.ok(filter.tags.test("men"));
+    assert.ok(filter.tags.test("MEN"));
+    assert.equal(filter.tags.test("Women"), false);
+    assert.equal(filter.$or, undefined);
+});
+test("tag param is trimmed, capped at 30 chars and ignores junk", () => {
+    assert.equal(parseCatalogQuery({ tag: "  Men " }).tag, "Men");
+    assert.equal(parseCatalogQuery({ tag: "x".repeat(31) }).tag, null);
+    assert.equal(parseCatalogQuery({ tag: "   " }).tag, null);
+    assert.equal(parseCatalogQuery({ tag: ["a", "b"] }).tag, "a");
+    assert.equal(parseCatalogQuery({}).tag, null);
+    const { filter } = buildCatalogFilter(parseCatalogQuery({ tag: "(a+)+$" }), {});
+    assert.ok(filter.tags.test("(a+)+$"));
+});
+test("toQueryString keeps a fixed param order including tag", () => {
+    const q = parseCatalogQuery({ sort: "name", size: "M", tag: "Men", color: "Red", q: "shirt", category: "tops", min: "5", max: "50", page: "2" });
+    assert.equal(toQueryString(q, { page: 2 }), "category=tops&q=shirt&tag=Men&color=Red&size=M&min=5&max=50&sort=name&page=2");
+    assert.equal(toQueryString(q, { tag: null }).includes("tag="), false);
+});
+test("category slugs up to the shared max length parse", () => {
+    assert.equal(parseCatalogQuery({ category: "a".repeat(90) }).category, "a".repeat(90));
+    assert.equal(parseCatalogQuery({ category: "a".repeat(91) }).category, null);
+});
