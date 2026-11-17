@@ -14,6 +14,9 @@ const DISABLED_PRIMARY = {
     "--bs-btn-disabled-color": "#fff",
 };
 
+// Keep the Ship / Pick Up copy clear of the icon style.css draws at 85% across the label.
+const SHIP_LABEL_STYLE = { paddingRight: "calc(15% + 48px)" };
+
 const inStock = (variant) => Boolean(variant) && variant.stock > 0;
 
 function stockLineFor(variant, isAllOut) {
@@ -150,14 +153,14 @@ export default function ProductOptions({ product, initial, sizeGuide, onChange }
             <div className="ship-type" role="radiogroup" aria-label="Delivery">
                 <div className="form-check">
                     <input type="radio" name="ship-type" id="st1" checked={fulfilment === "ship"} onChange={() => setFulfilment("ship")} />
-                    <label htmlFor="st1" className="ship">
+                    <label htmlFor="st1" className="ship" style={SHIP_LABEL_STYLE}>
                         <h6>Ship</h6>
                         <p>{copy.ship}</p>
                     </label>
                 </div>
                 <div className="form-check">
                     <input type="radio" name="ship-type" id="st2" checked={fulfilment === "pick"} onChange={() => setFulfilment("pick")} />
-                    <label htmlFor="st2" className="pick">
+                    <label htmlFor="st2" className="pick" style={SHIP_LABEL_STYLE}>
                         <h6>Pick Up</h6>
                         <p>{copy.pick}</p>
                     </label>

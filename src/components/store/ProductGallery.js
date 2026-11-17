@@ -73,7 +73,7 @@ export default function ProductGallery({ images, name, activeImage }) {
                             <a href={list[moreIndex]} onClick={open(moreIndex)} aria-label={`Show all ${list.length} images`}>
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img src={list[moreIndex]} alt="" style={thumbImgStyle} />
-                                <span>+{list.length - THUMB_SLOTS} More</span>
+                                <span>{`+${list.length - THUMB_SLOTS} More`}</span>
                             </a>
                         </li>
                     )}
