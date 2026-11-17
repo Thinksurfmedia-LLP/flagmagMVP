@@ -45,7 +45,7 @@ export default function ProductCard({ product }) {
             </div>
             <div className="product-content-area" style={{ marginTop: wrapHeight ? `-${wrapHeight}px` : 0 }}>
                 <h5><Link href={href} style={{ color: "inherit", textDecoration: "none" }}>{product.name}</Link></h5>
-                <p>{cardSubtitle(product)}</p>
+                <p>{cardSubtitle(product) || " "}</p>
                 <div className="price">
                     <span>{formatPrice(product.price)}</span>
                     {percent !== null && (
