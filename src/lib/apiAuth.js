@@ -51,6 +51,27 @@ export async function requireAdmin() {
 }
 
 /**
+ * Check if the current request is from a site admin (not organizers).
+ * Returns the user payload or a 403 response.
+ */
+export async function requireSiteAdmin() {
+    const auth = await requireAuth();
+    if (!auth.authorized) return auth;
+
+    const allRoles = auth.user.roles?.length ? auth.user.roles : [auth.user.role];
+    if (!allRoles.includes("admin")) {
+        return {
+            authorized: false,
+            response: NextResponse.json(
+                { success: false, error: "Admin access required" },
+                { status: 403 }
+            ),
+        };
+    }
+    return auth;
+}
+
+/**
  * Check if the current request is from an admin, organizer, OR statistician.
  * Used for game management actions (start, score) that statisticians need access to.
  */
