@@ -6,6 +6,7 @@ import StoreFilters from "@/components/store/StoreFilters";
 import ProductCard from "@/components/store/ProductCard";
 import StorePagination from "@/components/store/StorePagination";
 import { parseCatalogQuery } from "@/lib/store/catalogQuery";
+import { hasActiveFilters } from "@/lib/store/filterSync";
 import { listProducts, listCategoriesWithCounts, getFacetOptions, serialize } from "@/lib/store/catalog";
 
 export const metadata = { title: "Store | FlagMag" };
@@ -20,6 +21,7 @@ export default async function StorePage({ searchParams }) {
     ]);
     const products = serialize(result.items);
     const plainCategories = serialize(categories);
+    const isCatalogEmpty = result.total === 0 && !hasActiveFilters(query);
 
     return (
         <>
@@ -35,12 +37,14 @@ export default async function StorePage({ searchParams }) {
                 </div>
             </section>
 
-            <CategoryStrip categories={plainCategories} />
+            {!isCatalogEmpty && <CategoryStrip categories={plainCategories} />}
 
             <section className="store-list-section section-padding">
                 <div className="container">
                     <div className="row align-items-start">
-                        <StoreFilters query={query} categories={plainCategories} facets={serialize(facets)} />
+                        {!isCatalogEmpty && (
+                            <StoreFilters query={query} categories={plainCategories} facets={serialize(facets)} />
+                        )}
 
                         <div className="col">
                             {products.length > 0 ? (
@@ -54,6 +58,11 @@ export default async function StorePage({ searchParams }) {
                                     </div>
                                     <StorePagination query={query} page={result.page} pageCount={result.pageCount} />
                                 </>
+                            ) : isCatalogEmpty ? (
+                                <div className="text-center py-5">
+                                    <h4>Our store is opening soon</h4>
+                                    <p>New FlagMag gear is on the way — check back shortly.</p>
+                                </div>
                             ) : (
                                 <div className="text-center py-5">
                                     <h4>No products match these filters</h4>
