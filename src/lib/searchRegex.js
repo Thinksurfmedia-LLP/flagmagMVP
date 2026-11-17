@@ -30,4 +30,4 @@ function exactRegex(input) {
     return text === null ? null : new RegExp(`^${escapeRegex(text)}$`, "i");
 }
 
-module.exports = { escapeRegex, containsRegex, exactRegex, MAX_SEARCH_LENGTH };
+module.exports = { escapeRegex, normalize, containsRegex, exactRegex, MAX_SEARCH_LENGTH };
