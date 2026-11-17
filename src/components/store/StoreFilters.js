@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toQueryString } from "@/lib/store/catalogQuery";
+import { mergePendingPrice } from "@/lib/store/priceFilter";
 
 const PRICE_DEBOUNCE_MS = 400;
 const SORT_OPTIONS = [
@@ -24,31 +25,46 @@ export default function StoreFilters({ query, categories, facets }) {
     const [minText, setMinText] = useState(priceText(query.minPrice));
     const [maxText, setMaxText] = useState(priceText(query.maxPrice));
     const timer = useRef(null);
-
-    // Re-sync typed values when the URL changes underneath us (back/forward, clear).
+    const queryRef = useRef(query);
+    const textsRef = useRef({ min: priceText(query.minPrice), max: priceText(query.maxPrice) });
+    // Price values this component last pushed to the URL; a URL change to these is ours, not back/forward.
+    const [pushed, setPushed] = useState({ min: query.minPrice, max: query.maxPrice });
     const [seen, setSeen] = useState({ min: query.minPrice, max: query.maxPrice });
+
+    useEffect(() => {
+        queryRef.current = query;
+        textsRef.current = { min: minText, max: maxText };
+    });
+
+    // Re-sync typed values only when the URL moved to something we did not push (back/forward, Clear filters).
     if (seen.min !== query.minPrice || seen.max !== query.maxPrice) {
         setSeen({ min: query.minPrice, max: query.maxPrice });
-        if (seen.min !== query.minPrice && !(minText !== "" && Number(minText) === query.minPrice)) setMinText(priceText(query.minPrice));
-        if (seen.max !== query.maxPrice && !(maxText !== "" && Number(maxText) === query.maxPrice)) setMaxText(priceText(query.maxPrice));
+        if (seen.min !== query.minPrice && query.minPrice !== pushed.min) {
+            setMinText(priceText(query.minPrice));
+            setPushed((p) => ({ ...p, min: query.minPrice }));
+        }
+        if (seen.max !== query.maxPrice && query.maxPrice !== pushed.max) {
+            setMaxText(priceText(query.maxPrice));
+            setPushed((p) => ({ ...p, max: query.maxPrice }));
+        }
     }
 
     useEffect(() => () => clearTimeout(timer.current), []);
 
-    const go = (change) => {
-        const qs = toQueryString(query, change);
+    // Every navigation folds in any pending price text and cancels the debounce, so nothing is dropped.
+    const go = (change = {}) => {
+        clearTimeout(timer.current);
+        const next = mergePendingPrice(queryRef.current, textsRef.current);
+        const qs = toQueryString(next, change);
+        queryRef.current = { ...next, ...change };
+        setPushed({ min: next.minPrice, max: next.maxPrice });
         router.push(qs ? `/store?${qs}` : "/store", { scroll: false });
     };
 
     const onPrice = (which, text) => {
-        const setText = which === "minPrice" ? setMinText : setMaxText;
-        setText(text);
+        (which === "min" ? setMinText : setMaxText)(text);
         clearTimeout(timer.current);
-        timer.current = setTimeout(() => {
-            const trimmed = text.trim();
-            const n = trimmed === "" ? null : Number(trimmed);
-            go({ [which]: Number.isFinite(n) && n >= 0 ? n : null });
-        }, PRICE_DEBOUNCE_MS);
+        timer.current = setTimeout(() => go(), PRICE_DEBOUNCE_MS);
     };
 
     return (
@@ -117,7 +133,7 @@ export default function StoreFilters({ query, categories, facets }) {
                                     placeholder="0"
                                     aria-label="Minimum price"
                                     value={minText}
-                                    onChange={(e) => onPrice("minPrice", e.target.value)}
+                                    onChange={(e) => onPrice("min", e.target.value)}
                                 />
                             </div>
                             <div className="separator">-</div>
@@ -131,7 +147,7 @@ export default function StoreFilters({ query, categories, facets }) {
                                     placeholder={String(facets.maxPrice)}
                                     aria-label="Maximum price"
                                     value={maxText}
-                                    onChange={(e) => onPrice("maxPrice", e.target.value)}
+                                    onChange={(e) => onPrice("max", e.target.value)}
                                 />
                             </div>
                         </div>
