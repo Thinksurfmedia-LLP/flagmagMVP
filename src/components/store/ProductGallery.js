@@ -7,6 +7,16 @@ const FALLBACK_IMAGE = "/assets/images/product1.jpg";
 const THUMB_SLOTS = 4;
 // Four thumbnails per row (the template's slick row); 10px gaps from style.css.
 const thumbItemStyle = { flex: "0 0 calc((100% - 30px) / 4)", minWidth: 0 };
+// style.css pads every thumb li 0 8px and li.more::after covers the whole li; move that
+// padding to margin so the "+N More" overlay sits exactly over the rounded image.
+const moreItemStyle = {
+    flex: "0 0 calc((100% - 30px) / 4 - 16px)",
+    minWidth: 0,
+    margin: "0 8px",
+    padding: 0,
+    borderRadius: 10,
+    overflow: "hidden",
+};
 const thumbButtonStyle = { padding: 0, border: 0, background: "none", width: "100%", display: "block", cursor: "pointer" };
 const thumbImgStyle = { width: "100%", display: "block" };
 
@@ -69,7 +79,7 @@ export default function ProductGallery({ images, name, activeImage }) {
                         </li>
                     ))}
                     {hasMore && (
-                        <li className="more" style={thumbItemStyle}>
+                        <li className="more" style={moreItemStyle}>
                             <a href={list[moreIndex]} onClick={open(moreIndex)} aria-label={`Show all ${list.length} images`}>
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img src={list[moreIndex]} alt="" style={thumbImgStyle} />

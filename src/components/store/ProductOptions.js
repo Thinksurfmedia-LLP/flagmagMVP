@@ -32,7 +32,7 @@ function stockLineFor(variant, isAllOut) {
  *   product: { variants: object[], images: string[], colorImages: object[] },
  *   initial: { color: string, size: string, qty: number },
  *   sizeGuide: { text: string, image: string },
- *   onChange?: (sel: { variant: object|null, qty: number, fulfilment: "ship"|"pick", color: string, size: string }) => void
+ *   onChange?: (sel: { variant: object|null, qty: number, fulfilment: "ship"|"pick"|null, color: string, size: string }) => void
  * }} props
  */
 export default function ProductOptions({ product, initial, sizeGuide, onChange }) {
@@ -41,7 +41,8 @@ export default function ProductOptions({ product, initial, sizeGuide, onChange }
 
     const [selection, setSelection] = useState({ color: initial.color, size: initial.size });
     const [rawQty, setRawQty] = useState(initial.qty);
-    const [fulfilment, setFulfilment] = useState("ship");
+    // Neither box starts checked, as in the template (ruling F7).
+    const [fulfilment, setFulfilment] = useState(null);
     const [isGuideOpen, setIsGuideOpen] = useState(false);
 
     const isSizeChosen = sizes.length === 0 || selection.size !== "";

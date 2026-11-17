@@ -14,6 +14,7 @@ const overlayStyle = {
     alignItems: "center",
     justifyContent: "center",
     padding: "60px 70px",
+    outline: "none",
 };
 const roundBtn = {
     position: "absolute",
@@ -57,10 +58,15 @@ export default function ImageLightbox({ images, index, name, onIndexChange, onCl
         if (nodes.length === 0) return;
         const firstNode = nodes[0];
         const lastNode = nodes[nodes.length - 1];
-        if (event.shiftKey && document.activeElement === firstNode) {
+        const active = document.activeElement;
+        // Focus sits on the dialog itself after a click on the image or backdrop.
+        if (active === dialogRef.current) {
+            event.preventDefault();
+            (event.shiftKey ? lastNode : firstNode).focus();
+        } else if (event.shiftKey && active === firstNode) {
             event.preventDefault();
             lastNode.focus();
-        } else if (!event.shiftKey && document.activeElement === lastNode) {
+        } else if (!event.shiftKey && active === lastNode) {
             event.preventDefault();
             firstNode.focus();
         }
@@ -87,6 +93,7 @@ export default function ImageLightbox({ images, index, name, onIndexChange, onCl
         <div
             ref={dialogRef}
             role="dialog"
+            tabIndex={-1}
             aria-modal="true"
             aria-label={`${name} images`}
             style={overlayStyle}

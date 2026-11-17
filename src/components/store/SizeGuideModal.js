@@ -39,7 +39,9 @@ export default function SizeGuideModal({ text, image, onClose }) {
 
     return createPortal(
         <div className="book-demo-overlay" onClick={(e) => e.target === e.currentTarget && onClose()} onKeyDown={onKeyDown}>
-            <div className="book-demo-modal" role="dialog" aria-modal="true" aria-labelledby={TITLE_ID} style={{ maxWidth: 640 }}>
+            {/* tabIndex -1: a click on the text keeps focus inside, so Esc and the Tab trap keep working. */}
+            <div className="book-demo-modal" role="dialog" aria-modal="true" aria-labelledby={TITLE_ID} tabIndex={-1}
+                style={{ maxWidth: 640, outline: "none" }}>
                 <button ref={closeRef} type="button" className="book-demo-close" onClick={onClose} aria-label="Close">
                     <i className="fa-solid fa-xmark"></i>
                 </button>
