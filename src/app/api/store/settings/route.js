@@ -3,6 +3,8 @@ import { normalizeSettingsInput } from "@/lib/store/settingsInput";
 import { getStoreSettings, saveStoreSettings } from "@/lib/store/settings";
 import { ok, fail, readJson, handleError } from "@/lib/store/apiResponse";
 
+const SAVE_CONFLICT = "Settings were just saved by someone else — please retry";
+
 // GET store settings (public)
 export async function GET() {
     try {
@@ -25,6 +27,6 @@ export async function PUT(request) {
 
         return ok(await saveStoreSettings(input.value));
     } catch (err) {
-        return handleError("settings", err);
+        return handleError("settings", err, SAVE_CONFLICT);
     }
 }
