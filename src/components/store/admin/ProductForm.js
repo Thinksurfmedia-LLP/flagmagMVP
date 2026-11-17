@@ -6,7 +6,8 @@ import { useToast } from "@/components/AdminToast";
 import ImagesEditor from "./ImagesEditor";
 import VariantsEditor, { emptyVariant } from "./VariantsEditor";
 import ProductContentFields from "./ProductContentFields";
-import ColorPhotosEditor, { pruneColorImages } from "./ColorPhotosEditor";
+import ColorPhotosEditor from "./ColorPhotosEditor";
+import { pruneColorImages } from "@/lib/store/colorPhotos";
 
 const STATUSES = ["draft", "active", "archived"];
 
@@ -57,7 +58,7 @@ function toPayload(form) {
         specsCare: form.specsCare,
         tags: form.tagsText.split(",").map((t) => t.trim()).filter(Boolean),
         newBadge: form.newBadge,
-        colorImages: form.colorImages,
+        colorImages: pruneColorImages(form.colorImages, form.variants, form.images),
         price: form.price,
         compareAtPrice: form.compareAtPrice === "" ? null : form.compareAtPrice,
         variants: form.variants.map((v) => ({ ...v, stock: v.stock === "" ? "" : Number(v.stock) })),
@@ -152,7 +153,7 @@ export default function ProductForm({ initial, onSaved }) {
                         </select>
                     </div>
                     <div className="admin-form-group" style={{ maxWidth: 520 }}>
-                        <label className="admin-form-label" htmlFor="product-short">Short description</label>
+                        <label className="admin-form-label" htmlFor="product-short">Short description (shown when no subtitle)</label>
                         <input id="product-short" className="admin-form-input" maxLength={200} {...text("shortDescription")} />
                     </div>
                     <div className="admin-form-group" style={{ maxWidth: 720 }}>
@@ -195,7 +196,7 @@ export default function ProductForm({ initial, onSaved }) {
                     <h4 style={{ marginTop: 0 }}>Variants</h4>
                     <VariantsEditor
                         variants={form.variants}
-                        onChange={(variants) => { setVariantError(""); set({ variants, colorImages: pruneColorImages(form.colorImages, variants, form.images) }); }}
+                        onChange={(variants) => { setVariantError(""); set({ variants }); }}
                         error={variantError}
                     />
                 </div>

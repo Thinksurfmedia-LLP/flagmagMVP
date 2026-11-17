@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { formatPrice } from "@/lib/store/pricing";
-import { sizeLabel, colorImageFor } from "@/lib/store/badges";
+import { sizeLabel, colorImageFor, cardSubtitle } from "@/lib/store/badges";
 import { removeItem, chunk, pruneMissing, readWishlist, writeWishlist, CHANGE_EVENT } from "@/lib/store/wishlist";
 
 const IMAGE_STYLE = { display: "block", width: "100%", aspectRatio: "9 / 10", objectFit: "cover" };
@@ -36,7 +36,7 @@ function WishlistItem({ item, product }) {
                 </div>
                 <div className="content-area">
                     <h4>{product.name}</h4>
-                    <p>{product.subtitle}</p>
+                    <p>{cardSubtitle(product) || " "}</p>
                     {item.size && <p>Size: <span>{sizeLabel(item.size)}</span></p>}
                     <h6>{formatPrice(product.price)}</h6>
                 </div>

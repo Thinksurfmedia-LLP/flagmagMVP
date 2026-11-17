@@ -10,7 +10,7 @@ import { parseCatalogQuery } from "@/lib/store/catalogQuery";
 import { getProductBySlug, listProducts, serialize } from "@/lib/store/catalog";
 import { getStoreSettings } from "@/lib/store/settings";
 import { formatPrice, discountPercent } from "@/lib/store/pricing";
-import { isNewProduct } from "@/lib/store/badges";
+import { isNewProduct, cardSubtitle } from "@/lib/store/badges";
 import { initialSelection } from "@/lib/store/productSelection";
 
 export const dynamic = "force-dynamic";
@@ -40,7 +40,7 @@ function TagList({ category, tags }) {
         <ul className="tag">
             {category && <li><Link href={`/store?category=${encodeURIComponent(category.slug)}`}>{category.name}</Link></li>}
             {list.map((tag) => (
-                <li key={tag}><Link href={`/store?q=${encodeURIComponent(tag)}`}>{tag}</Link></li>
+                <li key={tag}><Link href={`/store?tag=${encodeURIComponent(tag)}`}>{tag}</Link></li>
             ))}
         </ul>
     );
@@ -48,7 +48,7 @@ function TagList({ category, tags }) {
 
 function ProductIntro({ product }) {
     const percent = discountPercent(product.price, product.compareAtPrice);
-    const subtitle = product.subtitle || product.shortDescription;
+    const subtitle = cardSubtitle(product);
     return (
         <>
             {isNewProduct(product) && (

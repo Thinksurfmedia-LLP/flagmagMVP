@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { isNewProduct, sizeLabel, colorImageFor, NEW_BADGE_DAYS } = require("../src/lib/store/badges.js");
+const { isNewProduct, sizeLabel, colorImageFor, cardSubtitle, NEW_BADGE_DAYS } = require("../src/lib/store/badges.js");
 
 const DAY = 24 * 60 * 60 * 1000;
 const now = new Date("2026-11-17T12:00:00Z");
@@ -41,4 +41,11 @@ test("colorImageFor maps case-insensitively, else first image, else empty", () =
     assert.equal(colorImageFor({ images: ["/a.jpg"] }, "Red"), "/a.jpg");
     assert.equal(colorImageFor({}, "Red"), "");
     assert.equal(colorImageFor(null, "Red"), "");
+});
+
+test("cardSubtitle falls back from subtitle to shortDescription to empty", () => {
+    assert.equal(cardSubtitle({ subtitle: "Sub", shortDescription: "Short" }), "Sub");
+    assert.equal(cardSubtitle({ subtitle: "", shortDescription: "Short" }), "Short");
+    assert.equal(cardSubtitle({ shortDescription: "" }), "");
+    assert.equal(cardSubtitle(null), "");
 });

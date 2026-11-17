@@ -41,4 +41,9 @@ function colorImageFor(product, color) {
     return (hit && hit.image) || fallback;
 }
 
-module.exports = { isNewProduct, sizeLabel, colorImageFor, NEW_BADGE_DAYS };
+/** Card / wishlist / product-page sub-heading: the subtitle, else the short description, else "". */
+function cardSubtitle(product) {
+    return (product && (product.subtitle || product.shortDescription)) || "";
+}
+
+module.exports = { isNewProduct, sizeLabel, colorImageFor, cardSubtitle, NEW_BADGE_DAYS };
