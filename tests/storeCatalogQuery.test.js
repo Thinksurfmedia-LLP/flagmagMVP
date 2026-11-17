@@ -24,7 +24,9 @@ test("pagination math", () => {
 });
 test("regex text is escaped", () => {
     const { filter } = buildCatalogFilter(parseCatalogQuery({ q: "(a+)+$" }), {});
-    assert.equal(filter.name.source, "\\(a\\+\\)\\+\\$");
+    assert.equal(filter.$or[0].name.source, "\\(a\\+\\)\\+\\$");
+    assert.equal(filter.$or[1].tags.source, filter.$or[0].name.source);
+    assert.equal(filter.name, undefined);
 });
 test("toQueryString drops defaults and resets page on filter change", () => {
     const q = parseCatalogQuery({ page: "4", color: "Red" });

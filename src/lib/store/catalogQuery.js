@@ -77,8 +77,8 @@ function buildCatalogFilter(query, opts = {}) {
     if (!opts.includeDrafts) filter.status = "active";
     if (opts.categoryId) filter.category = opts.categoryId;
 
-    const name = containsRegex(query.q);
-    if (name) filter.name = name;
+    const re = containsRegex(query.q);
+    if (re) filter.$or = [{ name: re }, { tags: re }];
 
     const price = {};
     if (query.minPrice !== null) price.$gte = query.minPrice;

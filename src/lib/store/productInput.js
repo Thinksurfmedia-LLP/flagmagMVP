@@ -8,6 +8,12 @@ const MAX_IMAGES = 8;
 const MAX_NAME = 120;
 const MAX_SHORT = 200;
 const MAX_DESCRIPTION = 5000;
+const MAX_SUBTITLE = 120;
+const MAX_HIGHLIGHT = 200;
+const MAX_LONG_TEXT = 5000;
+const MAX_TAGS = 10;
+const MAX_TAG = 30;
+const NEW_BADGE_MODES = ["auto", "on", "off"];
 const MAX_VARIANTS = 50;
 const MAX_VARIANT_LABEL = 40;
 const MAX_SKU = 64;
@@ -105,6 +111,74 @@ function normalizeVariants(raw, productName) {
     return { ok: true, value: variants };
 }
 
+function normalizeTags(raw) {
+    if (raw === undefined || raw === null) {
+        return { ok: true, value: [] };
+    }
+    if (!Array.isArray(raw)) {
+        return fail("Tags must be a list");
+    }
+    const seen = new Set();
+    const tags = [];
+    for (const item of raw) {
+        const tag = str(item);
+        if (!tag || seen.has(tag.toLowerCase())) {
+            continue;
+        }
+        if (tag.length > MAX_TAG) {
+            return fail(`Each tag must be ${MAX_TAG} characters or fewer`);
+        }
+        seen.add(tag.toLowerCase());
+        tags.push(tag);
+    }
+    if (tags.length > MAX_TAGS) {
+        return fail(`Use at most ${MAX_TAGS} tags`);
+    }
+    return { ok: true, value: tags };
+}
+
+function normalizeColorImages(raw, variants, images) {
+    const result = {};
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+        return { ok: true, value: result };
+    }
+    const colorByLower = new Map();
+    for (const v of variants) {
+        if (v.color) {
+            colorByLower.set(v.color.toLowerCase(), v.color);
+        }
+    }
+    for (const [key, value] of Object.entries(raw)) {
+        const color = colorByLower.get(key.trim().toLowerCase());
+        if (!color) {
+            continue;
+        }
+        const url = str(value);
+        if (!images.includes(url)) {
+            return fail(`Colour photo for "${color}" must be one of the product images`);
+        }
+        result[color] = url;
+    }
+    return { ok: true, value: result };
+}
+
+function normalizeTextFields(body) {
+    const limits = [
+        ["subtitle", MAX_SUBTITLE, "Subtitle"],
+        ["highlight", MAX_HIGHLIGHT, "Highlight"],
+        ["details", MAX_LONG_TEXT, "Details"],
+        ["specsCare", MAX_LONG_TEXT, "Specs & care"],
+    ];
+    const value = {};
+    for (const [field, max, label] of limits) {
+        value[field] = str(body[field]);
+        if (value[field].length > max) {
+            return fail(`${label} must be ${max} characters or fewer`);
+        }
+    }
+    return { ok: true, value };
+}
+
 function normalizePrices(body) {
     const price = normalizeAmount(body.price);
     if (!price.ok) {
@@ -165,9 +239,30 @@ function normalizeProductInput(body) {
         return variants;
     }
 
+    const text = normalizeTextFields(body);
+    if (!text.ok) {
+        return text;
+    }
+    const tags = normalizeTags(body.tags);
+    if (!tags.ok) {
+        return tags;
+    }
+    const newBadge = body.newBadge === undefined || body.newBadge === "" ? "auto" : body.newBadge;
+    if (!NEW_BADGE_MODES.includes(newBadge)) {
+        return fail("Invalid new badge setting");
+    }
+    const colorImages = normalizeColorImages(body.colorImages, variants.value, images.value);
+    if (!colorImages.ok) {
+        return colorImages;
+    }
+
     return {
         ok: true,
         value: {
+            ...text.value,
+            tags: tags.value,
+            newBadge,
+            colorImages: colorImages.value,
             name,
             category,
             shortDescription,

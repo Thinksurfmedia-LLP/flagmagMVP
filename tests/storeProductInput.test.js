@@ -119,3 +119,64 @@ test("price errors name the offending field", () => {
     assert.match(normalizeProductInput(validProduct({ price: "12.345" })).error, /^Price: .*2 decimal/);
     assert.match(normalizeProductInput(validProduct({ compareAtPrice: "9.999" })).error, /^Compare-at price: .*2 decimal/);
 });
+
+test("new text fields default to empty and are trimmed", () => {
+    const r = normalizeProductInput(validProduct({ subtitle: "  Sub  ", highlight: " H ", details: " D ", specsCare: " S " }));
+    assert.equal(r.ok, true);
+    assert.equal(r.value.subtitle, "Sub");
+    assert.equal(r.value.highlight, "H");
+    assert.equal(r.value.details, "D");
+    assert.equal(r.value.specsCare, "S");
+    const d = normalizeProductInput(validProduct());
+    assert.equal(d.value.subtitle, "");
+    assert.deepEqual(d.value.tags, []);
+    assert.equal(d.value.newBadge, "auto");
+    assert.deepEqual(d.value.colorImages, {});
+});
+test("rejects over-long subtitle, highlight, details, specsCare", () => {
+    assert.equal(normalizeProductInput(validProduct({ subtitle: "x".repeat(121) })).ok, false);
+    assert.equal(normalizeProductInput(validProduct({ subtitle: "x".repeat(120) })).ok, true);
+    assert.equal(normalizeProductInput(validProduct({ highlight: "x".repeat(201) })).ok, false);
+    assert.equal(normalizeProductInput(validProduct({ highlight: "x".repeat(200) })).ok, true);
+    assert.equal(normalizeProductInput(validProduct({ details: "x".repeat(5001) })).ok, false);
+    assert.equal(normalizeProductInput(validProduct({ details: "x".repeat(5000) })).ok, true);
+    assert.equal(normalizeProductInput(validProduct({ specsCare: "x".repeat(5001) })).ok, false);
+    assert.equal(normalizeProductInput(validProduct({ specsCare: "x".repeat(5000) })).ok, true);
+});
+test("tags are trimmed, deduped case-insensitively, empties dropped", () => {
+    const r = normalizeProductInput(validProduct({ tags: [" Flag ", "flag", "FLAG", "Tee", ""] }));
+    assert.deepEqual(r.value.tags, ["Flag", "Tee"]);
+});
+test("tags: more than 10 distinct is an error, tag over 30 chars is an error", () => {
+    const eleven = Array.from({ length: 11 }, (_, i) => `t${i}`);
+    assert.equal(normalizeProductInput(validProduct({ tags: eleven })).ok, false);
+    assert.equal(normalizeProductInput(validProduct({ tags: eleven.slice(0, 10) })).ok, true);
+    assert.equal(normalizeProductInput(validProduct({ tags: ["x".repeat(31)] })).ok, false);
+    assert.equal(normalizeProductInput(validProduct({ tags: ["x".repeat(30)] })).ok, true);
+    assert.equal(normalizeProductInput(validProduct({ tags: "nope" })).ok, false);
+});
+test("newBadge accepts auto/on/off, rejects others", () => {
+    for (const v of ["auto", "on", "off"]) {
+        assert.equal(normalizeProductInput(validProduct({ newBadge: v })).value.newBadge, v);
+    }
+    assert.equal(normalizeProductInput(validProduct({ newBadge: "yes" })).ok, false);
+});
+test("colorImages: value must be one of images, exact error", () => {
+    const body = validProduct({
+        variants: [{ size: "M", color: "Red", stock: 1 }],
+        colorImages: { Red: "/assets/images/other.jpg" },
+    });
+    const r = normalizeProductInput(body);
+    assert.equal(r.ok, false);
+    assert.equal(r.error, 'Colour photo for "Red" must be one of the product images');
+});
+test("colorImages: keys match variant colours case-insensitively and use variant casing; unknown dropped", () => {
+    const img = validProduct().images[0];
+    const body = validProduct({
+        variants: [{ size: "M", color: "Red", stock: 1 }],
+        colorImages: { red: img, Blue: img },
+    });
+    const r = normalizeProductInput(body);
+    assert.equal(r.ok, true);
+    assert.deepEqual(r.value.colorImages, { Red: img });
+});
