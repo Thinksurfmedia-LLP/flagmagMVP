@@ -2,7 +2,8 @@
 //
 //   node --import ./scripts/lib/alias-loader.mjs scripts/seed-store.mjs [--apply]
 //
-// No flag = DRY RUN (reads only, prints the plan). --apply upserts by slug with
+// No flag = DRY RUN (reads only, prints the plan; connects with autoCreate and
+// autoIndex off so Mongoose creates no collections or indexes). --apply upserts by slug with
 // $setOnInsert only, so anything an admin later edits is never overwritten and
 // re-running is safe. Categories are matched by slug OR name (name is unique).
 //
@@ -120,7 +121,8 @@ async function main() {
     loadEnv();
     console.log(`Target database: ${describeTarget(process.env.MONGODB_URI)}`);
     console.log(apply ? "Mode: APPLY" : "Mode: DRY RUN (pass --apply to write)");
-    await mongoose.connect(process.env.MONGODB_URI);
+    // Mongoose creates collections/indexes on connect by default; keep a dry run read-only.
+    await mongoose.connect(process.env.MONGODB_URI, apply ? {} : { autoCreate: false, autoIndex: false });
 
     console.log("Categories:");
     const cats = await seedCategories(apply);
