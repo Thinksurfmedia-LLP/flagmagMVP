@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toQueryString } from "@/lib/store/catalogQuery";
 import { mergePendingPrice } from "@/lib/store/priceFilter";
+import PriceSlider from "./PriceSlider";
 import { toggleValue, recordPush, reconcileUrl } from "@/lib/store/filterSync";
 
 const PRICE_DEBOUNCE_MS = 400;
@@ -145,6 +146,7 @@ export default function StoreFilters({ query, categories, facets }) {
                 <div className="filter-wrap">
                     <h5>price</h5>
                     <div className="price-filter">
+                        <PriceSlider minText={minText} maxText={maxText} maxPrice={facets.maxPrice} onChange={onPrice} />
                         <div className="price-input">
                             <div className="field">
                                 <span>$</span>

@@ -1,7 +1,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
-import CategoryStrip from "@/components/store/CategoryStrip";
+import ActivityCarousel from "@/components/store/ActivityCarousel";
 import StoreFilters from "@/components/store/StoreFilters";
 import ProductCard from "@/components/store/ProductCard";
 import StorePagination from "@/components/store/StorePagination";
@@ -37,7 +37,7 @@ export default async function StorePage({ searchParams }) {
                 </div>
             </section>
 
-            {!isCatalogEmpty && <CategoryStrip categories={plainCategories} />}
+            {!isCatalogEmpty && <ActivityCarousel categories={plainCategories} />}
 
             <section className="store-list-section section-padding">
                 <div className="container">
