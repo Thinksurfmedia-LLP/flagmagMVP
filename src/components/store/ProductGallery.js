@@ -80,7 +80,7 @@ export default function ProductGallery({ images, name, activeImage }) {
                     ))}
                     {hasMore && (
                         <li className="more" style={moreItemStyle}>
-                            <a href={list[moreIndex]} onClick={open(moreIndex)} aria-label={`Show all ${list.length} images`}>
+                            <a href={list[moreIndex]} onClick={open(moreIndex)} style={{ display: "block" }} aria-label={`Show all ${list.length} images`}>
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img src={list[moreIndex]} alt="" style={thumbImgStyle} />
                                 <span>{`+${list.length - THUMB_SLOTS} More`}</span>
