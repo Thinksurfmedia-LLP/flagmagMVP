@@ -21,13 +21,13 @@ export default function ProductGallery({ images, name }) {
     };
 
     return (
-        <div className="product-images demo-gallery" tabIndex={0} onKeyDown={onKeyDown} aria-label={`${name} images`}>
+        <div className="product-images demo-gallery" tabIndex={0} style={{ width: "100%" }} onKeyDown={onKeyDown} aria-label={`${name} images`}>
             <div className="main-img-slider product-image-slider">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={list[current]} className="img-fluid" alt={name} />
+                <img src={list[current]} className="img-fluid" alt={name} style={{ width: "100%", height: "auto", display: "block" }} />
             </div>
             {list.length > 1 && (
-                <ul className="thumb-nav">
+                <ul className="thumb-nav" style={{ padding: 0, listStyle: "none" }}>
                     {list.map((src, index) => (
                         <li key={`${src}-${index}`} style={{ listStyle: "none" }}>
                             <button

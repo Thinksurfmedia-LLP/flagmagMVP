@@ -5,6 +5,28 @@ import { stockState } from "@/lib/store/pricing";
 import { sortSizes } from "@/lib/store/catalogQuery";
 
 const MAX_QTY = 99;
+const NEUTRAL_SWATCH = "#4a4a4d";
+const SWATCH_SIZE = 65;
+
+/** Same box for every swatch; colours without a hex get a neutral grey with the name. */
+const swatchStyle = (hex) => ({
+    boxSizing: "border-box",
+    flex: "none",
+    width: SWATCH_SIZE,
+    height: SWATCH_SIZE,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    margin: 0,
+    padding: 2,
+    background: hex || NEUTRAL_SWATCH,
+    color: "#fff",
+    fontSize: 11,
+    lineHeight: 1.1,
+    textAlign: "center",
+    overflow: "hidden",
+    cursor: "pointer",
+});
 
 const unique = (values) => [...new Set(values.filter(Boolean))];
 const inStock = (variant) => Boolean(variant) && variant.stock > 0;
@@ -83,7 +105,7 @@ export default function ProductOptions({ product, onChange }) {
             {colors.length > 0 && (
                 <div className="product-image-variant">
                     <h4>{selection.color}</h4>
-                    <div className="form-group" role="radiogroup" aria-label="Color">
+                    <div className="form-group" role="radiogroup" aria-label="Color" style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
                         {colors.map((color) => {
                             const hex = variants.find((v) => v.color === color)?.colorHex;
                             return (
@@ -100,7 +122,7 @@ export default function ProductOptions({ product, onChange }) {
                                         htmlFor={`color-${color}`}
                                         title={color}
                                         aria-label={color}
-                                        style={hex ? { background: hex } : { display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, textAlign: "center" }}
+                                        style={swatchStyle(hex)}
                                     >
                                         {hex ? null : color}
                                     </label>
@@ -157,7 +179,14 @@ export default function ProductOptions({ product, onChange }) {
             </div>
 
             <div className="mt-4">
-                <button type="button" className="btn btn-primary w-100" disabled>Add to Bag</button>
+                <button
+                    type="button"
+                    className="btn btn-primary w-100"
+                    disabled
+                    style={{ backgroundColor: "#FF1E00", borderColor: "#FF1E00", color: "#fff", opacity: 0.5, cursor: "not-allowed" }}
+                >
+                    Add to Bag
+                </button>
                 <p className="mt-2 mb-0 text-center" style={{ fontSize: 14 }}>Checkout opens soon</p>
             </div>
         </>
