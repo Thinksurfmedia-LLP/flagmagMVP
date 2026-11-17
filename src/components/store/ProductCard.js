@@ -2,10 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { cardSubtitle } from "@/lib/store/badges";
 import { formatPrice, discountPercent, stockState } from "@/lib/store/pricing";
 
 const FALLBACK_IMAGE = "/assets/images/product1.jpg";
 const MAX_QTY = 99;
+// Template card photos are 294x320; a fixed box keeps every card in a row the same height.
+const IMAGE_STYLE = { display: "block", width: "100%", aspectRatio: "294 / 320", objectFit: "cover" };
 
 const clampQty = (n) => Math.min(MAX_QTY, Math.max(1, n));
 
@@ -34,7 +37,7 @@ export default function ProductCard({ product }) {
             <div className="product-image-area" style={{ position: "relative" }}>
                 <Link href={href}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={product.images?.[0] || FALLBACK_IMAGE} alt={product.name} />
+                    <img src={product.images?.[0] || FALLBACK_IMAGE} alt={product.name} style={IMAGE_STYLE} />
                 </Link>
                 {isOut && (
                     <span className="badge text-bg-dark" style={{ position: "absolute", top: 10, left: 10 }}>Out of stock</span>
@@ -42,7 +45,7 @@ export default function ProductCard({ product }) {
             </div>
             <div className="product-content-area" style={{ marginTop: wrapHeight ? `-${wrapHeight}px` : 0 }}>
                 <h5><Link href={href} style={{ color: "inherit", textDecoration: "none" }}>{product.name}</Link></h5>
-                <p>{product.subtitle}</p>
+                <p>{cardSubtitle(product)}</p>
                 <div className="price">
                     <span>{formatPrice(product.price)}</span>
                     {percent !== null && (
